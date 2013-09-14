@@ -1,26 +1,152 @@
-FTAN - the second iteration (phase match filter)
- T0=   1.45945173, tg0=   426.101835
- nb:  638  ntapb:  106
- n:  8192  n/5:  1638
- fmatch:   0.1
- Distance between maximas= -0.0982157237 in sec, Spectra point=  2132
- 2127 2128 2132 2136 2137
- Starting period=   6.83154719, Phase velocity=   4.17816565
- Starting period=   6.83154719, Phase velocity=   4.17816565
-Tamp =   127.400, nrow = 32, ncol = 4468
-REESULT: O.K.
-COR_J39A_I02D.SAC
 
-FTAN - the second iteration (phase match filter)
- T0=   1.45945173, tg0=   613.904588
- nb:  919  ntapb:  106
- n:  8192  n/5:  1638
- fmatch:   0.1
- Distance between maximas= -0.0954656822 in sec, Spectra point=  3071
- 0 0 3071 3080 3080
- In:   0.404534282-  6.87660647 Out:  0.404534282-  6.87660647
- Starting period=   6.87660647, Phase velocity=   4.19763302
- Starting period=   6.87660647, Phase velocity=   4.19763302
-Tamp =   183.600, nrow = 32, ncol = 6435
-RESULT: SOME PROBLEMS
-COR_J39A_PINE.SAC
+   10 continue
+   20 continue
+   21 continue
+   30  continue
+   31  continue
+   40 continue
+c ---
+c expand left end by factor fmatch
+c expand right end by factor fmatch
+c find global max, sm, and index ism
+c find some local minima,# < 100 from left and right side of central max ism
+c function [ss] = tgauss(fsnr,gt0,t0,dw,dt,n,seis);
+c left side 
+c left side, apply cutting
+c right side
+c right side, apply cutting
+c setup cutting point for gaussian
+c taper phase matched signal
+      czero = (0.0d0,0.0d0)
+          dl = smax(i)-smax(i-1)
+          dl = smax(i)-smax(i-1)
+      do i = 1,n
+       do i = 1,nleft
+       do i = 1,nnnl
+       do i = 1,nright
+      do i = ism-1,2,-1     
+      do i = ism+1,n-1      
+       do i = nnr,n
+      double complex czero,seis(n),ss(n)
+          dr = smax(i+1)-smax(i)
+          dr = smax(i+1)-smax(i)
+      dzer = 0.0d0
+           else
+           else
+           else
+           else
+      end
+      enddo
+      enddo
+      enddo
+       enddo
+       enddo
+       enddo
+       enddo
+      endif
+       endif
+       endif
+       endif
+         endif
+          endif
+          endif
+           endif
+           endif
+           endif
+           endif
+           endif
+           endif
+                endif
+                endif
+           freq =(nnnl-nnl)+1
+           freq =(nnnr-nnr)+1
+                    goto 21
+                    goto 31
+           if(abs(ism-left(i))*dt.gt.5.0d0) then
+           if(abs(ism-right(i))*dt.gt.5.0d0) then
+      if(cuttype.eq.1) then
+          if((dl.lt.dzer.and.dr.ge.dzer).or.(dl.le.dzer.and.dr.gt.dzer)) then
+          if((dl.lt.dzer.and.dr.ge.dzer).or.(dl.le.dzer.and.dr.gt.dzer)) then
+           if(ii.ne.nleft) then
+           if(ii.ne.nright) then
+      if(nleft.eq.0) goto 21
+          if(nleft.ge.100) goto 10
+       if(nnl.eq.0.or.nnnl.eq.0) goto 30
+       if(nnnl.ne.0) then
+       if(nnnr.ne.0.and.nnnl.ne.0) then
+       if(nnr.eq.0.or.nnnr.eq.0) goto 40
+       if(nnr.ne.0) then
+      if(nright.eq.0) goto 31
+          if(nright.ge.100) goto 20
+         if(smw.ge.sm) then
+           if(tre .gt. tresh) then
+           if(tre .gt. tresh) then
+                if(vleft(i) .lt. fsnr*sm) then
+                if(vright(i) .lt. fsnr*sm) then
+      ii = 0
+      ii = 0
+                    ii = i
+                    ii = i
+      implicit none
+      integer*4 nc,ii,nnl,nnnl,nnr,nnnr,nleft,nright,left(100),right(100)
+      integer*4 n, i,ism,nn,nnn,cuttype
+      ism = 1
+             ism = i
+         ism = nint((gt0 - t0)/dt)+1
+              left(nleft) = i
+      nc = nint(gt0/dt)+1
+      nleft = 0
+              nleft = nleft+1
+      nnl = 0 
+               nnl = 1
+               nnl = left(ii+1)
+         nnl = max0(1,nnl)
+         nnl = nint((nnl-ism)*fmatch)+ism
+       nnl = nnnl-nnn
+       nn = max0(iabs(ism-nnnl),iabs(ism-nnr))
+      nnnl = 0
+       nnnl = ism -nn
+                    nnnl = left(i)
+         nnnl = max0(1,nnnl)
+         nnnl = nint((nnnl-ism)*fmatch)+ism
+       nnn = max0(iabs(nnnl-nnl),iabs(nnnr-nnr))
+       nnnr = 0
+         nnnr = min0(n,nnnr)
+               nnnr = n
+         nnnr = nint((nnnr-ism)*fmatch+ism)
+       nnnr = nnr+nnn
+               nnnr = right(ii+1)
+      nnr = 0 
+       nnr = ism +nn
+         nnr = min0(n,nnr)
+         nnr = nint((nnr-ism)*fmatch)+ism
+                    nnr = right(i)
+      nright = 0
+              nright = nright+1
+      pi = datan(1.0d0)*4.0d0
+      print *, "n: ",n,"  n/5: ",n/5, "fmatch: ",fmatch
+      real*8    freq,dzer,dl,dr,vleft(100),vright(100),tre,tresh
+      real*8    pi, dt, gt0, t0, dw, fsnr,sm,smw,fmatch
+      real*8    smax(32768)
+      return
+              right(nright) = i
+      sm = 0.0d0
+         smax(i) = smw
+         sm = cdabs(seis(ism))
+             sm = smw
+         smw = cdabs(seis(i))
+     * ' Spectra point= ',ism
+     *                  ss,cuttype)
+               ss(i) = czero
+               ss(i) = czero
+         ss(i) = seis(i)
+               ss(i) = ss(i)*dexp(tre)
+               ss(i) = ss(i)*dexp(tre)
+      subroutine tgauss(fsnr,gt0,t0,dw,dt,n,fmatch,seis,
+           tre = -(i-nnnl)/freq*(i-nnnl)/freq/2.0d0
+           tre = -(i-nnr)/freq*(i-nnr)/freq/2.0d0
+       tresh = dlog(sm)-24.0d0
+              vleft(nleft) = smax(i)
+              vright(nright) = smax(i)
+      write(*,*) 'Distance between maximas=',gt0-(ism-1)*dt-t0,' in sec,',
+      write(*,*) nnl,nnnl,ism,nnr,nnnr

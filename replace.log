@@ -1,0 +1,640 @@
+#########################Programs/FIT/least_squares_amp#########################
+#
+#
+#########################Programs/FIT/least_squares_amp_fixA#########################
+#
+#
+#########################Programs/trash/SEED2COR_parallel/Whiten.o#########################
+Binary files Programs/trash/SEED2COR_parallel/Whiten.o and Programs/trash/SEED2COR_parallel/Whiten.o_replace_temp differ
+#
+#
+#########################Programs/trash/SEED2COR_parallel/parameters_7D.txt#########################
+/home/tianye/sac/bin/sac					char  |	/home/tianye/Software/sac/bin/sac				
+#
+#
+#########################Programs/trash/SEED2COR_parallel/ProduceSac.o#########################
+Binary files Programs/trash/SEED2COR_parallel/ProduceSac.o and Programs/trash/SEED2COR_parallel/ProduceSac.o_replace_temp differ
+#
+#
+#########################Programs/trash/SEED2COR_parallel/trash/parameters.txt#########################
+/home/tianye/sac/bin/sac					char  |	/home/tianye/Software/sac/bin/sac				
+#
+#
+#########################Programs/trash/SEED2COR_parallel/CrossCorr.o#########################
+Binary files Programs/trash/SEED2COR_parallel/CrossCorr.o and Programs/trash/SEED2COR_parallel/CrossCorr.o_replace_temp differ
+#
+#
+#########################Programs/trash/SEED2COR_parallel/Seed2Cor#########################
+Binary files Programs/trash/SEED2COR_parallel/Seed2Cor and Programs/trash/SEED2COR_parallel/Seed2Cor_replace_temp differ
+#
+#
+#########################Programs/trash/SEED2COR_parallel/DisAzi.o#########################
+Binary files Programs/trash/SEED2COR_parallel/DisAzi.o and Programs/trash/SEED2COR_parallel/DisAzi.o_replace_temp differ
+#
+#
+#########################Programs/trash/SEED2COR_parallel/TempSpecNorm.o#########################
+Binary files Programs/trash/SEED2COR_parallel/TempSpecNorm.o and Programs/trash/SEED2COR_parallel/TempSpecNorm.o_replace_temp differ
+#
+#
+#########################Programs/trash/SEED2COR_parallel/.nfs0000000001dc28a800000004#########################
+Binary files Programs/trash/SEED2COR_parallel/.nfs0000000001dc28a800000004 and Programs/trash/SEED2COR_parallel/.nfs0000000001dc28a800000004_replace_temp differ
+#
+#
+#########################Programs/trash/SEED2COR_parallel/.nfs0000000001dc28aa00000003#########################
+Binary files Programs/trash/SEED2COR_parallel/.nfs0000000001dc28aa00000003 and Programs/trash/SEED2COR_parallel/.nfs0000000001dc28aa00000003_replace_temp differ
+#
+#
+#########################Programs/trash/SEED2COR_parallel/SacOps.o#########################
+Binary files Programs/trash/SEED2COR_parallel/SacOps.o and Programs/trash/SEED2COR_parallel/SacOps.o_replace_temp differ
+#
+#
+#########################Programs/trash/SEED2COR_parallel/RemoveResp.o#########################
+Binary files Programs/trash/SEED2COR_parallel/RemoveResp.o and Programs/trash/SEED2COR_parallel/RemoveResp.o_replace_temp differ
+#
+#
+#########################Programs/trash/SEED2COR_parallel/Filter.o#########################
+Binary files Programs/trash/SEED2COR_parallel/Filter.o and Programs/trash/SEED2COR_parallel/Filter.o_replace_temp differ
+#
+#
+#########################Programs/trash/SEED2COR_parallel/MakeSDB.o#########################
+Binary files Programs/trash/SEED2COR_parallel/MakeSDB.o and Programs/trash/SEED2COR_parallel/MakeSDB.o_replace_temp differ
+#
+#
+#########################Programs/trash/SEED2COR_parallel/IFFT.o#########################
+Binary files Programs/trash/SEED2COR_parallel/IFFT.o and Programs/trash/SEED2COR_parallel/IFFT.o_replace_temp differ
+#
+#
+#########################Programs/trash/SEED2COR_parallel/Pthread.o#########################
+Binary files Programs/trash/SEED2COR_parallel/Pthread.o and Programs/trash/SEED2COR_parallel/Pthread.o_replace_temp differ
+#
+#
+#########################Programs/trash/SEED2COR_parallel/IFFT.c#########################
+#
+#
+#########################Programs/trash/SEED2COR_parallel/driver.o#########################
+Binary files Programs/trash/SEED2COR_parallel/driver.o and Programs/trash/SEED2COR_parallel/driver.o_replace_temp differ
+#
+#
+#########################Programs/ASN_Map/ASN_ph_amp_map#########################
+Binary files Programs/ASN_Map/ASN_ph_amp_map and Programs/ASN_Map/ASN_ph_amp_map_replace_temp differ
+#
+#
+#########################Programs/ASN_Map/cv_do#########################
+#
+#
+#########################Programs/ASN_Map/csta_map_gradient#########################
+#
+#
+#########################Programs/ASN_Map/norm_amp_azimuth_fit#########################
+#
+#
+#########################Programs/RemoveTilt/rmresponse.o#########################
+#
+#
+#########################Programs/RemoveTilt/RemoveTilt#########################
+#
+#
+#########################Programs/RemoveTilt/FFT.o#########################
+#
+#
+#########################Programs/RM_RESPONSE/FreqOps.o#########################
+#
+#
+#########################Programs/RM_RESPONSE/driver_c.o#########################
+#
+#
+#########################Programs/RM_RESPONSE/SysTools.o#########################
+#
+#
+#########################Programs/RM_RESPONSE/RemoveRESP#########################
+#
+#
+#########################Programs/Earthquake/eikonal_ty/correct_2pi_curvature.csh#########################
+#
+#
+#########################Programs/Earthquake/calc_ini_ph_model#########################
+#
+#
+#########################Programs/Earthquake/correct_2pi_model#########################
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/FreqOps.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel_sac/FreqOps.o and Programs/SEED2COR_old/SEED2COR_parallel_sac/FreqOps.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/Whiten.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel_sac/Whiten.o and Programs/SEED2COR_old/SEED2COR_parallel_sac/Whiten.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/parameters_7D.txt#########################
+/home/tianye/sac/bin/sac					char  |	/home/tianye/Software/sac/bin/sac				
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/ProduceSac.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel_sac/ProduceSac.o and Programs/SEED2COR_old/SEED2COR_parallel_sac/ProduceSac.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/trash/parameters.txt#########################
+/home/tianye/sac/bin/sac					char  |	/home/tianye/Software/sac/bin/sac				
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/CrossCorr.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel_sac/CrossCorr.o and Programs/SEED2COR_old/SEED2COR_parallel_sac/CrossCorr.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/DisAzi.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel_sac/DisAzi.o and Programs/SEED2COR_old/SEED2COR_parallel_sac/DisAzi.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/TempSpecNorm.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel_sac/TempSpecNorm.o and Programs/SEED2COR_old/SEED2COR_parallel_sac/TempSpecNorm.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/SacOps.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel_sac/SacOps.o and Programs/SEED2COR_old/SEED2COR_parallel_sac/SacOps.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/RemoveResp.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel_sac/RemoveResp.o and Programs/SEED2COR_old/SEED2COR_parallel_sac/RemoveResp.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/SysTools.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel_sac/SysTools.o and Programs/SEED2COR_old/SEED2COR_parallel_sac/SysTools.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/MakeSDB.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel_sac/MakeSDB.o and Programs/SEED2COR_old/SEED2COR_parallel_sac/MakeSDB.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/Pthread.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel_sac/Pthread.o and Programs/SEED2COR_old/SEED2COR_parallel_sac/Pthread.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/src_old/IFFT.c#########################
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/driver.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel_sac/driver.o and Programs/SEED2COR_old/SEED2COR_parallel_sac/driver.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/FreqOps.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel/FreqOps.o and Programs/SEED2COR_old/SEED2COR_parallel/FreqOps.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/Whiten.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel/Whiten.o and Programs/SEED2COR_old/SEED2COR_parallel/Whiten.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/ProduceSac.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel/ProduceSac.o and Programs/SEED2COR_old/SEED2COR_parallel/ProduceSac.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/trash/parameters.txt#########################
+/home/tianye/sac/bin/sac					char  |	/home/tianye/Software/sac/bin/sac				
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/CrossCorr.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel/CrossCorr.o and Programs/SEED2COR_old/SEED2COR_parallel/CrossCorr.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/DisAzi.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel/DisAzi.o and Programs/SEED2COR_old/SEED2COR_parallel/DisAzi.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/TempSpecNorm.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel/TempSpecNorm.o and Programs/SEED2COR_old/SEED2COR_parallel/TempSpecNorm.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/SacOps.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel/SacOps.o and Programs/SEED2COR_old/SEED2COR_parallel/SacOps.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/RemoveResp.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel/RemoveResp.o and Programs/SEED2COR_old/SEED2COR_parallel/RemoveResp.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/SysTools.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel/SysTools.o and Programs/SEED2COR_old/SEED2COR_parallel/SysTools.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/MakeSDB.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel/MakeSDB.o and Programs/SEED2COR_old/SEED2COR_parallel/MakeSDB.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/Pthread.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel/Pthread.o and Programs/SEED2COR_old/SEED2COR_parallel/Pthread.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/src_old/IFFT.c#########################
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/driver.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_parallel/driver.o and Programs/SEED2COR_old/SEED2COR_parallel/driver.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/parameters_7D.txt#########################
+/home/tianye/sac/bin/sac					char  |	/home/tianye/Software/sac/bin/sac				
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/whiten_phamp.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_serial/whiten_phamp.o and Programs/SEED2COR_old/SEED2COR_serial/whiten_phamp.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/ProduceSac.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_serial/ProduceSac.o and Programs/SEED2COR_old/SEED2COR_serial/ProduceSac.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/trash/parameters.txt#########################
+/home/tianye/sac/bin/sac					char  |	/home/tianye/Software/sac/bin/sac				
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/CrossCorr.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_serial/CrossCorr.o and Programs/SEED2COR_old/SEED2COR_serial/CrossCorr.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/DisAzi.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_serial/DisAzi.o and Programs/SEED2COR_old/SEED2COR_serial/DisAzi.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/TempSpecNorm.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_serial/TempSpecNorm.o and Programs/SEED2COR_old/SEED2COR_serial/TempSpecNorm.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/.nfs0000000001dc28a800000004#########################
+Binary files Programs/SEED2COR_old/SEED2COR_serial/.nfs0000000001dc28a800000004 and Programs/SEED2COR_old/SEED2COR_serial/.nfs0000000001dc28a800000004_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/.nfs0000000001dc28aa00000003#########################
+Binary files Programs/SEED2COR_old/SEED2COR_serial/.nfs0000000001dc28aa00000003 and Programs/SEED2COR_old/SEED2COR_serial/.nfs0000000001dc28aa00000003_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/SacOps.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_serial/SacOps.o and Programs/SEED2COR_old/SEED2COR_serial/SacOps.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/ifft.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_serial/ifft.o and Programs/SEED2COR_old/SEED2COR_serial/ifft.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/RemoveResp.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_serial/RemoveResp.o and Programs/SEED2COR_old/SEED2COR_serial/RemoveResp.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/MakeSDB.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_serial/MakeSDB.o and Programs/SEED2COR_old/SEED2COR_serial/MakeSDB.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/filter4.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_serial/filter4.o and Programs/SEED2COR_old/SEED2COR_serial/filter4.o_replace_temp differ
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/driver.o#########################
+Binary files Programs/SEED2COR_old/SEED2COR_serial/driver.o and Programs/SEED2COR_old/SEED2COR_serial/driver.o_replace_temp differ
+#
+#
+#########################Programs/Attenuation/alpha_from_amp_ev_lst#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl_cap/grdt_smth.o#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl_cap/grdt_beta.o#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl_cap/alpha_from_ampg_btag_tvtl#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl_cap/lplc.o#########################
+#
+#
+#########################Programs/Attenuation/ASN_atn_aplf_term/grdt_lplc.o#########################
+#
+#
+#########################Programs/Attenuation/ASN_atn_aplf_term/csta_atn_aplf_term#########################
+#
+#
+#########################Programs/Attenuation/ASN_atn_aplf_term/local_amp_grdt.o#########################
+#
+#
+#########################Programs/Attenuation/calc_grdt#########################
+#
+#
+#########################Programs/Attenuation/calc_grdt_lplc#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl_test_coef/grdt_smth.o#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl_test_coef/grdt_beta.o#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl_test_coef/alpha_from_ampg_btag_tvtl#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl_test_coef/lplc.o#########################
+#
+#
+#########################Programs/Attenuation/alpha_from_amp_beta_pvel_sta#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl_test_alp/grdt_smth.o#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl_test_alp/grdt_beta.o#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl_test_alp/alpha_from_ampg_btag_tvtl#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl_test_alp/lplc.o#########################
+#
+#
+#########################Programs/Attenuation/test_temp#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl/grdt_smth.o#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl/grdt_beta.o#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl/alpha_from_ampg_btag_tvtl#########################
+#
+#
+#########################Programs/Attenuation/Alpha_from_ampg_btag_tvtl/lplc.o#########################
+#
+#
+#########################Programs/Attenuation/alpha_from_amp_beta_pvel_ev_lst#########################
+#
+#
+#########################Programs/Attenuation/csta_atn_aplf_term#########################
+#
+#
+#########################Programs/Attenuation/alpha_from_amp_beta_pvel#########################
+#
+#
+#########################Programs/Attenuation/alpha_from_amp_sta#########################
+#
+#
+#########################Programs/Attenuation/csta_atn_aplf_term_earthquake#########################
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days/amp_length_normalize.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days/amp_length_normalize.o and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days/amp_length_normalize.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days/check_am_ph#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days/check_am_ph and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days/check_am_ph_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days/filter4.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days/filter4.o and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days/filter4.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days/amp_length_normalize#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days/amp_length_normalize and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days/amp_length_normalize_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/nosnr_nonoise/amp_length_normalize.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/nosnr_nonoise/amp_length_normalize.o and Programs/ASN_AMP/CORRECT_ASN_AMP/nosnr_nonoise/amp_length_normalize.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/nosnr_nonoise/check_am_ph#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/nosnr_nonoise/check_am_ph and Programs/ASN_AMP/CORRECT_ASN_AMP/nosnr_nonoise/check_am_ph_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/nosnr_nonoise/filter4.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/nosnr_nonoise/filter4.o and Programs/ASN_AMP/CORRECT_ASN_AMP/nosnr_nonoise/filter4.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/nosnr_nonoise/amp_length_normalize#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/nosnr_nonoise/amp_length_normalize and Programs/ASN_AMP/CORRECT_ASN_AMP/nosnr_nonoise/amp_length_normalize_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_sym/amp_length_normalize.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_sym/amp_length_normalize.o and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_sym/amp_length_normalize.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_sym/check_am_ph#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_sym/check_am_ph and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_sym/check_am_ph_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_sym/filter4.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_sym/filter4.o and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_sym/filter4.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_sym/amp_length_normalize#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_sym/amp_length_normalize and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_sym/amp_length_normalize_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_pos/amp_length_normalize.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_pos/amp_length_normalize.o and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_pos/amp_length_normalize.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_pos/check_am_ph#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_pos/check_am_ph and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_pos/check_am_ph_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_pos/filter4.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_pos/filter4.o and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_pos/filter4.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_pos/amp_length_normalize#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_pos/amp_length_normalize and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_pos/amp_length_normalize_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_neg/amp_length_normalize.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_neg/amp_length_normalize.o and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_neg/amp_length_normalize.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_neg/check_am_ph#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_neg/check_am_ph and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_neg/check_am_ph_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_neg/filter4.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_neg/filter4.o and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_neg/filter4.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_neg/amp_length_normalize#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_neg/amp_length_normalize and Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_neg/amp_length_normalize_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/original/amp_length_normalize.o#########################
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/original/check_am_ph#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP/original/check_am_ph and Programs/ASN_AMP/CORRECT_ASN_AMP/original/check_am_ph_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/original/normalize_sac_by_noise#########################
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/original/filter4.o#########################
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/original/amp_length_normalize#########################
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/original/normalize_sac_by_noise.o#########################
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/amp_length_normalize.o#########################
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/with_days/amp_length_normalize.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/with_days/amp_length_normalize.o and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/with_days/amp_length_normalize.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/with_days/check_am_ph#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/with_days/check_am_ph and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/with_days/check_am_ph_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/with_days/filter4.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/with_days/filter4.o and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/with_days/filter4.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/with_days/amp_length_normalize#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/with_days/amp_length_normalize and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/with_days/amp_length_normalize_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/nosnr_nonoise/amp_length_normalize.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/nosnr_nonoise/amp_length_normalize.o and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/nosnr_nonoise/amp_length_normalize.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/nosnr_nonoise/check_am_ph#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/nosnr_nonoise/check_am_ph and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/nosnr_nonoise/check_am_ph_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/nosnr_nonoise/filter4.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/nosnr_nonoise/filter4.o and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/nosnr_nonoise/filter4.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/nosnr_nonoise/amp_length_normalize#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/nosnr_nonoise/amp_length_normalize and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/nosnr_nonoise/amp_length_normalize_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/amp_length_normalize.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/amp_length_normalize.o and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/amp_length_normalize.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/check_am_ph#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/check_am_ph and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/check_am_ph_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/test/amp_length_normalize.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/test/amp_length_normalize.o and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/test/amp_length_normalize.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/test/filter4.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/test/filter4.o and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/test/filter4.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/test/amp_length_normalize#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/test/amp_length_normalize and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/test/amp_length_normalize_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/filter4.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/filter4.o and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/filter4.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/amp_length_normalize#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/amp_length_normalize and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/amp_length_normalize_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_sym/amp_length_normalize.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_sym/amp_length_normalize.o and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_sym/amp_length_normalize.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_sym/check_am_ph#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_sym/check_am_ph and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_sym/check_am_ph_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_sym/filter4.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_sym/filter4.o and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_sym/filter4.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_sym/amp_length_normalize#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_sym/amp_length_normalize and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_sym/amp_length_normalize_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_pos/amp_length_normalize.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_pos/amp_length_normalize.o and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_pos/amp_length_normalize.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_pos/check_am_ph#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_pos/check_am_ph and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_pos/check_am_ph_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_pos/filter4.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_pos/filter4.o and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_pos/filter4.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_pos/amp_length_normalize#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_pos/amp_length_normalize and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_pos/amp_length_normalize_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_neg/amp_length_normalize.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_neg/amp_length_normalize.o and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_neg/amp_length_normalize.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_neg/check_am_ph#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_neg/check_am_ph and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_neg/check_am_ph_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_neg/filter4.o#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_neg/filter4.o and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_neg/filter4.o_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_neg/amp_length_normalize#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_neg/amp_length_normalize and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_neg/amp_length_normalize_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/check_am_ph#########################
+Binary files Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/check_am_ph and Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/check_am_ph_replace_temp differ
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/filter4.o#########################
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/amp_length_normalize#########################
+#
+#
+#########################Programs/Eikonal/amp_HD_to_amp_gradient_HD_to_amp_laplace_HD_XR#########################
+Binary files Programs/Eikonal/amp_HD_to_amp_gradient_HD_to_amp_laplace_HD_XR and Programs/Eikonal/amp_HD_to_amp_gradient_HD_to_amp_laplace_HD_XR_replace_temp differ
+#
+#
+#########################Programs/Eikonal/dist_table_ASN.C#########################
+#
+#
+#########################Programs/Eikonal/amp_HD_to_amp_gradient_HD_to_amp_laplace_HD#########################
+Binary files Programs/Eikonal/amp_HD_to_amp_gradient_HD_to_amp_laplace_HD and Programs/Eikonal/amp_HD_to_amp_gradient_HD_to_amp_laplace_HD_replace_temp differ
+#
+#
+#########################Programs/Synthetic/NoiseSynthetic#########################
+#
+#
+#########################Programs/mini_tools/PathAvg/PathAvg#########################
+Binary files Programs/mini_tools/PathAvg/PathAvg and Programs/mini_tools/PathAvg/PathAvg_replace_temp differ
+#
+#
+#########################Programs/mini_tools/PathAvg/DisAzi.o#########################
+Binary files Programs/mini_tools/PathAvg/DisAzi.o and Programs/mini_tools/PathAvg/DisAzi.o_replace_temp differ
+#
+#
+#########################Programs/mini_tools/COR_in_TimeDomain_reci/parameters_7D.txt#########################
+/home/tianye/sac/bin/sac					char  |	/home/tianye/Software/sac/bin/sac				
+#
+#
+#########################Programs/mini_tools/COR_in_TimeDomain_reci/parameters_fake.txt#########################
+/home/tianye/sac/bin/sac					char  |	/home/tianye/Software/sac/bin/sac				
+#
+#
+#########################Programs/SEED2COR_parallel/Seed2Cor#########################
+#
+#
+#########################Programs/SEED2COR_parallel/src_old/IFFT.c#########################
+#
+#
+#########################Programs/Locate_Source/Locate_ASN_Source/calc_amp_azimuth_HD#########################
+#
+#

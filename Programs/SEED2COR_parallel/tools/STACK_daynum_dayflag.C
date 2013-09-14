@@ -28,7 +28,6 @@ void bin2hex( short* bin, char* hex )
 }
 
 
-/*c/////////////////////////////////////////////////////////////////////////*/
 /*--------------------------------------------------------------------------*/
 SAC_HD *read_sac (char *fname, float **sig, SAC_HD *SHD) {
    FILE *fsac;
@@ -60,7 +59,6 @@ SAC_HD *read_sac (char *fname, float **sig, SAC_HD *SHD) {
 
 
 
-/*c/////////////////////////////////////////////////////////////////////////*/
 /*--------------------------------------------------------------------------*/
         void write_sac (char *fname, float *sig, SAC_HD *SHD)
 /*----------------------------------------------------------------------------
@@ -188,6 +186,10 @@ cout<<"sac_add: "<<filename<<endl;
 #define NSTA 2000
 
 int main (int argn, char *argv[]) {
+   if (argn != 5) {
+      fprintf (stderr,"input [station.lst] [dir.lst] [type(COR or DCV)] [out.dir]\n");
+      return 0;
+   }
  
   int i,j,k,nsta,ndir,npath,ii,jj,jjj,jjjj,flag;
   short day_fs[32];
@@ -198,12 +200,6 @@ int main (int argn, char *argv[]) {
 
   struct stat st;
   SAC_HD shd,shd1;
-
-
-  if (argn != 5) {
-    fprintf (stderr,"input [station.lst] [dir.lst] [type(COR or DCV)] [out.dir]\n");
-    return 0;
-    }
 
   char type[4];
   sprintf(type,"%s",argv[3]);

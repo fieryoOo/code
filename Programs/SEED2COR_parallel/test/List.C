@@ -74,6 +74,10 @@ char * List(char *dir, const char *pattern, int type) {
  
 int main(int argc, char *argv[])
 {
+   if( argc != 3 ) {
+      cerr<<"Usage: "<<argv[0]<<" [list type (int)] [pattern]"<<endl;
+      exit(-1);
+   }
    char *list = List(".", argv[2], atoi(argv[1]));
    int offset, curp = 0;
    char buff[PLENMAX];

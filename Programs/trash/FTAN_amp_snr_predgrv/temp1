@@ -1,0 +1,26 @@
+FTAN - the second iteration (phase match filter)
+ T0=   1.45945173, tg0=   426.101835
+ nb:  638  ntapb:  106
+ n:  8192  n/5:  1638
+ fmatch:   0.1
+ Distance between maximas= -0.0982157237 in sec, Spectra point=  2132
+ 2127 2128 2132 2136 2137
+ Starting period=   6.83154719, Phase velocity=   4.17816565
+ Starting period=   6.83154719, Phase velocity=   4.17816565
+Tamp =   127.400, nrow = 32, ncol = 4468
+REESULT: O.K.
+COR_J39A_I02D.SAC
+
+FTAN - the second iteration (phase match filter)
+ T0=   1.45945173, tg0=   613.904588
+ nb:  919  ntapb:  106
+ n:  8192  n/5:  1638
+ fmatch:   0.1
+ Distance between maximas= -0.0954656822 in sec, Spectra point=  3071
+ 0 0 3071 3080 3080
+ In:   0.404534282-  6.87660647 Out:  0.404534282-  6.87660647
+ Starting period=   6.87660647, Phase velocity=   4.19763302
+ Starting period=   6.87660647, Phase velocity=   4.19763302
+Tamp =   183.600, nrow = 32, ncol = 6435
+RESULT: SOME PROBLEMS
+COR_J39A_PINE.SAC

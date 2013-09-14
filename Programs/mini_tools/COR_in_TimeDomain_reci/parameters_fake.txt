@@ -1,5 +1,5 @@
 /home/tianye/Software/rdseedv5.1/rdseed				char rdsexe[]: rdseed excutable
-/home/tianye/sac/bin/sac					char sacexe[]: sac excutable
+/home/tianye/Software/sac/bin/sac					char sacexe[]: sac excutable
 station_fake2.lst						char stalst[]: station list (J23A -129.682500 +44.844000)
 seed_fake.lst							char seedlst[]: SEED file list (down_US_ALL/OBS_BHZ_2012.FEB.29.203762.seed 2012 2 29)
 BDH								char ch[]: channel name

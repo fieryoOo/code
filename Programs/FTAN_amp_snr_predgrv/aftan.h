@@ -6,8 +6,8 @@ void aftanipg_(double *piover4,int *n,float *sei,double *t0,double *dt,
            double *delta,double *vmin,double *vmax,double *tmin,double *tmax,
            double *tresh,double *ffact,double *perc,int *npoints,
            double *taperl,int *nfin,double *snr,double *fmatch,
-           int *npred, double pred[2][300], int *cuttype,
-           int *nprpv,double prpvper[300],double prpvvel[300],
+           int *npred, double pred[2][300], int *cuttype,int *nprpv,
+           double prpvper[300],double prpvvel[300],float *seiout,
            int *nfout1,double arr1[100][8],int *nfout2,double arr2[100][7],
            double *tamp, int *nrow,int *ncol, double ampo[32][32768],int *ierr);
 void aftanpg_(double *piover4,int *n,float *sei,double *t0,double *dt,
@@ -28,6 +28,6 @@ void gaufilt_(double *alpha,double *c_per,
 
 void filter4_(double *f1,double *f2,double *f3,double *f4,
               double *dt,int *n, float seis_in[],
-              int *ns,double *dom);
+              int *ns,double *dom,float amp_rec[]);
 
 #endif /* !AFTAN_H */

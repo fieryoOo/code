@@ -7,7 +7,7 @@
 #include <math.h>
 #include <string.h>
 #include "aftan.h"
-#include "/home/tianye/code/Programs/head/mysac64.h"
+#include "mysac64.h"
 
 void readdata(int sac,char *name,int *n,double *dt,double *delta,
               double *t0,float *sei)
@@ -61,13 +61,45 @@ FILE  *fd;
 
       printf("Dist= %lf, Dt= %lf, Nsamples= %d\n",*delta,*dt,*n);
 }
-/*
- * print completion result
- */
+
+SAC_HD *read_sac (char *fname, float **sig, SAC_HD *SHD) {
+   FILE *fsac;
+   if((fsac = fopen(fname, "rb"))==NULL) return NULL;
+   //pthread_mutex_lock(&fiolock);
+   if ( !SHD ) SHD = &SAC_HEADER;
+   fread(SHD,sizeof(SAC_HD),1,fsac);
+   if( *sig == NULL) *sig = (float *) malloc (SHD->npts * sizeof(float));
+   //else *sig = (float *) realloc (*sig, SHD->npts * sizeof(float));
+   fread(*sig,sizeof(float),SHD->npts,fsac);
+   fclose (fsac);
+   //pthread_mutex_unlock(&fiolock);
+
+   /*-------------  calcule de t0  ----------------*/
+   {
+        int eh, em ,i;
+        float fes;
+        char koo[9];
+
+        for ( i = 0; i < 8; i++ ) koo[i] = SHD->ko[i];
+        koo[8] = 0;
+
+        SHD->o = SHD->b + SHD->nzhour*3600. + SHD->nzmin*60 +
+         SHD->nzsec + SHD->nzmsec*.001;
+
+        sscanf(koo,"%d%*[^0123456789]%d%*[^.0123456789]%g",&eh,&em,&fes);
+
+        SHD->o  -= (eh*3600. + em*60. + fes);
+   /*-------------------------------------------*/}
+   return SHD;
+}
 
 void write_sac (char *fname, float *sig, SAC_HD *SHD) {
    FILE *fsac;
-   fsac = fopen(fname, "wb");
+   if( (fsac = fopen(fname, "wb"))==NULL ) {
+      fprintf(stderr, "ERROR(write_sac): Cannot open file %s\n", fname);
+      return;
+   }
+
    if ( !SHD ) SHD = &SAC_HEADER;
    SHD->iftype = (int)ITIME;
    SHD->leven = (int)TRUE;
@@ -81,13 +113,14 @@ void write_sac (char *fname, float *sig, SAC_HD *SHD) {
    for ( i = 0; i < SHD->npts ; i++ )
    {
     if ( SHD->depmin > sig[i] ) SHD->depmin = sig[i];
-    if ( SHD->depmax < sig[i] ) SHD->depmax = sig[i];
+    else if ( SHD->depmax < sig[i] ) SHD->depmax = sig[i];
    }
 
+//memset(SHD, 0, sizeof(SAC_HD));
+	 //pthread_mutex_lock(&fiolock);
          fwrite(SHD,sizeof(SAC_HD),1,fsac);
-
-         fwrite(sig,sizeof(float),(int)(SHD->npts),fsac);
-
+         fwrite(sig,sizeof(float),SHD->npts,fsac);
+	 //pthread_mutex_unlock(&fiolock);
 
         fclose (fsac);
 }

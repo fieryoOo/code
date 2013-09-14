@@ -30,7 +30,7 @@ set sacp=$sacf'_pos'
 set DispGrv = $outnm2'.R.grv'
 set DispPhv = $outnm2'.R.phv'
 ### compute bathymetry and age
-set exe = '/home/tianye/Programs/mini_tools/MapOperation/PathAvg/PathAvg'
+set exe = '/home/tianye/code/Programs/mini_tools/MapOperation/PathAvg/PathAvg'
 set bathypath = '/mtera/tianye/ASN_OBS_BHZ/PaperResults/DISP_Pred/Bathymetry'
 set agepath = '/mtera/tianye/ASN_OBS_BHZ/PaperResults/DISP_Pred/Age'
 set bathy = `$exe $bathypath'/sea_floor.CICE.HD' $lat1 $lon1 $lat2 $lon2 $lamdamax`
@@ -78,7 +78,7 @@ END
 #set DispGrv = $outnm2'.R.grv'
 #set DispPhv = $outnm2'.R.phv'
 set param = '-1 0.3 4.5 1. 35. 15. 1.5 3. 0.99 5.'
-set FTANexe = /home/tianye/Programs/FTAN_amp_snr_predgrv/aftani_c_pgl_amp
+set FTANexe = /home/tianye/code/Programs/FTAN_amp_snr_predgrv/aftani_c_pgl_amp
    ### on positive and negative lags
 echo $sacp"\n"$sacn | awk -v param="$param" '{print param,$1,"0" }' > param_R.dat
 #echo ${sacp}_2_DISP.1 ${sacp}_amp_snr ${sacn}_2_DISP.1 ${sacn}_amp_snr >> $fcleanup

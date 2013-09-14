@@ -1,0 +1,234 @@
+#!/bin/csh
+if ($#argv != 1) then
+  echo "USAGE: "$0" [sac_file_name]"
+  exit 1
+endif
+
+### set FTAN parameters
+set param = '-1 0.5 5. 5. 35 20 1. 0.5 0.2 2.'
+set FTANexe = '/home/tianye/code/Programs/FTAN_amp_snr_1Dmodel/aftani_c_pgl_amp'
+set fModel = '/home/tianye/code/Programs/head/OBS_phvel.dat'
+
+### prompt to 'continue' or 'set' or 'quit'
+echo "FTAN parameter:\t"$param
+echo "FTAN executive:\t"$FTANexe
+echo "model in_file:\t"$fModel
+echo "continue(c) or set_params(s) or quit(q) ?"
+set cin = `echo "$<" | cut -c1`
+if( $cin != 'c' && $cin != 'C' ) then
+   if( $cin == 's' || $cin == 'S' ) then ### update the script and run it again
+      echo -n "FTAN parameter:\t"
+      set param_new = "$<"
+      if( "$param_new" == '' ) then
+	 set param_new = "$param"
+      else if ( `echo $param_new | awk '{print NF}'` != 10 ) then
+	 echo "Incorrect parameter input!"
+	 exit 0
+      endif
+      echo -n "FTAN executive:\t"
+      set FTANexe_new = "$<"
+      if( "$FTANexe_new" == '' ) then
+	 set FTANexe_new = "$FTANexe"
+      else if( ! -e "${FTANexe_new}" ) then
+	 echo "File cannot be accessed!"
+	 exit
+      endif
+      echo -n "model in_file:\t"
+      set fModel_new = "$<"
+      if( "$fModel_new" == '' ) then
+         set fModel_new = "$fModel"
+      else if( ! -e "${fModel_new}" ) then
+         echo "File cannot be accessed!"
+         exit
+      endif
+      set Sname = `which $0`
+      set args = "$argv"
+      set Nname = $Sname'~'
+      awk '{if($1=="set" && $2=="param"){print "set param = '"'$param_new'"'"}else if($1=="set" && $2=="FTANexe"){print "set FTANexe = '"'${FTANexe_new}'"'"}else if($1=="set" && $2=="fModel"){print "set fModel = '"'${fModel_new}'"'"}else print $0}' $Sname > $Nname
+      chmod +x $Nname
+$Nname $args << END
+c
+END
+      mv $Nname $Sname
+      exit 0
+   else 
+      if( $cin != 'q' && $cin != 'Q' ) echo "Unknow input. Stopped!"
+      exit 0
+   endif
+endif
+###save old files###
+set dirold = 'FTAN_old_files'
+mkdir $dirold
+( ls $argv[1]'_'* | grep -v '.ps' | xargs -i mv {} $dirold ) >& /dev/null
+### run FTAN
+echo $argv[1] | awk -v param="$param" '{print param,$1,"1" }' > param_R.dat
+$FTANexe param_R.dat $fModel
+###file names###
+set sacf=$argv[1]
+set disf1=$argv[1]'_1_DISP.0'
+set disf2=$argv[1]'_2_DISP.1'
+set ampf1=$argv[1]'_1_AMP'
+set ampf2=$argv[1]'_2_AMP'
+set snrf=$argv[1]'_amp_snr'
+set outf=$argv[1]'_spc_amp_disp.ps'
+### check results
+foreach file ( $disf1 $disf2 $ampf1 $ampf2 $snrf )
+if( ! -e $file )then
+echo "File "$file" not found."
+goto cleanup
+endif
+end
+### Plot ###
+###set gmt parameters
+cp /home/tianye/code/Script/GMT/gmtdefaults4 ./.gmtdefaults4
+gmtset LABEL_OFFSET 0
+gmtset HEADER_OFFSET 0.03c
+gmtset ANNOT_FONT_SIZE 8p
+gmtset LABEL_FONT_SIZE 12p
+gmtset HEADER_FONT_SIZE 15p
+###plot time series###
+set t_info=`saclst KEVNM KSTNM DIST KCMPNM f $sacf | awk '{print "ev/csta: "$2"  sta: "$3"  dist: "$4"  ch: "$5}'`
+set vmin=0.5
+set vmax=4.5
+echo $sacf
+set tb=`saclst b f $sacf | awk '{print $2}'`
+set te=`saclst e f $sacf | awk '{print $2}'`
+set sacff=$sacf
+echo $tb $te
+set sym_flag=`echo $tb $te | awk '{printf "%.0f\n",$1/$2}'`
+echo $sym_flag
+if ( $sym_flag == -1 ) then
+set sacff=$sacf'_sym'
+set tlen=`echo $tb $te | awk '{a=-$1;if(a>$2){a=$2} print a}'`
+echo "tlen" $tlen
+/home/tianye/code/Software/sac/bin/sac << END
+cut -$tlen 0 
+r $sacf
+reverse
+ch b 0
+ch nzjday 1
+w temp_n
+cut 0 $tlen
+r $sacf
+ch nzjday 1
+addf temp_n
+w $sacff
+quit
+END
+rm -f temp_n
+endif
+set sptf=$sacff'.am'
+set dist=`saclst DIST f $sacf | awk '{print $2}'`
+set wb=`echo $dist $vmin $vmax | awk '{printf "%.0f",$1*(1./$3-(1./$2-1./$3)/4.)}'`
+if( $wb < 0 ) set wb=0
+set we=`echo $dist $vmin $vmax | awk '{printf "%.0f",$1*(1./$2+(1./$2-1./$3)/4.)}'`
+if( $we > $te ) set we=$te
+set yrange=`echo $wb $we | awk '{printf "%.2g/%.2g",$1,$2}'`
+set ytic=`echo $wb $we | awk '{printf "%.1g",($2-$1)/20.}'`
+set ymrk=`echo $ytic | awk '{print $1*5}'`
+set xtmp=`saclst DEPMIN DEPMAX f $sacff | awk '{a=-$2;if(a<$3){a=$3} print a}'`
+echo $xtmp
+set xrange=`echo $xtmp | awk '{a=$1*1.1; printf "%.2g/%.2g",-a,a}'`
+echo $xrange
+set xtic=`echo $xtmp | awk '{printf "%.1g",$1/5.}'`
+set xmrk=`echo $xtmp | awk '{printf "%.2g",$1*1.1}'`
+set REG='-R'$xrange'/'$yrange
+/home/tianye/code/Programs/pssac/pssac $REG -JX1.5i/-6.5i -K -V -B'a'$xmrk'f'$xtic':'"amplitude"':/a'$ymrk'f'$ytic':'."Time Series":'WeSn' -X24 -Y2 $sacff >! $outf
+pstext -R0/10/0/10 -JX1.5i/-6.5i -O -K -N << END >> $outf
+-1.7 4.6 12 270 20 LT time(s)
+12 0 15 270 20 LT $t_info
+END
+###produce am file###
+/home/tianye/code/Software/sac/bin/sac << END
+cut -$wb $we
+r $sacff
+fft
+wsp am
+quit
+END
+###plot spectrum###
+set amax=`saclst DEPMAX f $sptf | awk '{print $2}'`
+set xrange=`echo $amax | awk '{a=$1*1.1; printf "%.2g/%.2g",0,a}'`
+set xtic=`echo $amax | awk '{printf "%.1g",$1/10.}'`
+set xmrk=`echo $xtic | awk '{printf "%.2g",$1*5}'`
+set yrange='0/0.3'
+set ytic='0.02'
+set ymrk='0.1'
+set REG='-R'$xrange'/'$yrange
+/home/tianye/code/Programs/pssac/pssac $REG -JX1.5i/-6.5i -B'a'$xmrk'f'$xtic':'"amplitude":/'a'$ymrk'f'$ytic':'."Spectrum":WeSn -X-5.5 -V -O -K $sptf >> $outf
+pstext -R0/10/0/10 -JX1.5i/-6.5i -O -K -N << END >> $outf
+-1.7 4.2 12 270 20 LT frequency(Hz)
+END
+###plot amplitude and group dispersion 1###
+set perl=`awk 'BEGIN{a=999}{if(a>$3)a=$3}END{print a}' $disf1`
+set perh=`awk 'BEGIN{a=0}{if(a<$3)a=$3}END{print a}' $disf1`
+set REG=`echo $vmin $vmax $perl $perh | awk '{print "-R"$1"/"$2"/"log($3)"/"log($4)}'`
+echo $REG > region_tmp
+awk '{print $2,log($1),$3}' $ampf1 > amp_tmp
+TXT2CPT_FTAN amp_tmp
+C_plot_travel_nn amp_tmp region_tmp 0.02 0.15
+xyz2grd amp_tmp.HD -Gamp.grd -I0.02 -V $REG
+grdimage $REG -JX2.5i/-2.8i -Y10 -X-8.5 amp.grd -C'amp_tmp.cpt' -O -K >> $outf
+set REG="-R"$vmin"/"$vmax"/"$perl"/"$perh
+awk '{print $4,$3}' $disf1 | psxy $REG -JX2.5i/-2.8il -Ba0.5f0.1:"group velocity (km/s)":/a3f3:."Dispersion(1st)":WSne -Sc.15 -W6,white -Gblack -A -O -K >> $outf
+pstext -R0/10/0/10 -JX2.5i/-2.8i -O -K -N << END >> $outf
+-1.2 3.8 12 270 20 LT period(s)
+END
+###plot amplitude and group dispersion 2###
+set perl=`awk 'BEGIN{a=999}{if(a>$3)a=$3}END{print a}' $disf2`
+set perh=`awk 'BEGIN{a=0}{if(a<$3)a=$3}END{print a}' $disf2`
+set REG=`echo $vmin $vmax $perl $perh | awk '{print "-R"$1"/"$2"/"log($3)"/"log($4)}'`
+echo $REG > region_tmp
+awk '{print $2,log($1),$3}' $ampf2 > amp_tmp
+TXT2CPT_FTAN amp_tmp
+C_plot_travel_nn amp_tmp region_tmp 0.02 0.15
+xyz2grd amp_tmp.HD -Gamp.grd -I0.02 -V $REG
+grdimage $REG -JX2.5i/-2.8i -Y-10 amp.grd -C'amp_tmp.cpt' -O -K >> $outf
+set REG="-R"$vmin"/"$vmax"/"$perl"/"$perh
+rm -f amp_tmp amp_tmp.cpt amp_tmp.HD amp.grd region_tmp
+awk '{print $4,$3}' $disf1 | psxy $REG -JX2.5i/-2.8il -Ba0.5f0.1:"group velocity (km/s)":/a3f3:."Dispersion(2nd)":WSne -Sc.15 -W6,white -A -O -K >> $outf
+awk '{print $4,$3}' $disf2 | psxy $REG -JX2.5i/-2.8il -Sc.12 -Gred -W4 -A -O -K >> $outf
+pstext -R0/10/0/10 -JX2.5i/-2.8i -O -K -N << END >> $outf
+-1.2 3.8 12 270 20 LT period(s)
+END
+###plot group and phase dispersion###
+awk '{print $4,$3}' $disf2 | psxy $REG -JX2i/-2.8il -Ba0.5f0.1:"group/phase vel (km/s)":/a3f3:."Dispersion":WSne -X-6.5 -Y10 -Sc.1 -Gred -A -O -K >> $outf
+awk '{print $5,$3}' $disf2 | psxy $REG -JX2i/-2.8il -Sc.1 -Gblue -A -O -K >> $outf
+pstext -R0/10/0/10 -JX2i/-2.8i -O -K -N << END >> $outf
+-1.2 3.8 12 270 20 LT period(s)
+END
+pstext -R0/10/0/10 -JX2i/-2.8i -Gred -O -K -N << END >> $outf
+2.3 6.7 12 270 20 LT Group Vel
+END
+pstext -R0/10/0/10 -JX2i/-2.8i -Gblue -O -K -N << END >> $outf
+1.3 6.7 12 270 20 LT Phase Vel
+END
+###plot SNR###
+if( $sym_flag == -1 )then
+set snrl=`awk 'BEGIN{a=1e10}{if(a>$3){a=$3}if(a>$5){a=$5}}END{print a/1.2}' $snrf`
+set snrh=`awk 'BEGIN{a=0}{if(a<$3){a=$3}if(a<$5){a=$5}}END{print a*1.2}' $snrf`
+else
+set snrl=`awk 'BEGIN{a=1e10}{if(a>$3){a=$3}}END{print a/1.2}' $snrf`
+set snrh=`awk 'BEGIN{a=0}{if(a<$3){a=$3}}END{print a*1.2}' $snrf`
+endif
+set xtic=`echo $snrl $snrh | awk '{printf "%.1g",($2-$1)/10.}'`
+set xmrk=`echo $xtic | awk '{print $1*3}'`
+set REG="-R"$snrl"/"$snrh"/"$perl"/"$perh
+awk '{print $3,$1}' $snrf | psxy $REG -JX2i/-2.8il -B'a'$xmrk'f'$xtic':':/a3f3:."Signal to Noise Ratio":WSne -Y-10 -Sc.1 -Gred -A -O -K >> $outf
+if( $sym_flag == -1 ) awk '{print $5,$1}' $snrf | psxy $REG -JX2i/-2.8il -Sc.1 -Gblue -A -O -K >> $outf
+pstext -R0/10/0/10 -JX2i/-2.8i -O -K -N << END >> $outf
+-1.2 3.8 12 270 20 LT period(s)
+END
+pstext -R0/10/0/10 -JX2i/-2.8i -Gred -O -K -N << END >> $outf
+9.4 7.5 12 270 20 LT Pos Leg
+END
+pstext -R0/10/0/10 -JX2i/-2.8i -Gblue -O -N << END >> $outf
+8.4 7.4 12 270 20 LT Neg Leg
+END
+echo $outf
+
+cleanup:
+rm -f param_R.txt
+ls $argv[1]'_'* | grep -v $outf | xargs rm -f
+mv $dirold'/'* .
+rm -rf $dirold

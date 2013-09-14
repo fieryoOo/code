@@ -14,13 +14,13 @@ c seis_out - output array length of n, (float)
 c ==========================================================
 
       subroutine filter4(f1,f2,f3,f4,dt,n,seis_in,
-     1  ns,dom)
+     1  ns,dom,amp_rec)
       implicit none
       include 'fftw3.h'
       integer*4 npow,n
       real*8    f1,f2,f3,f4,dt
       real*4    seis_in(400000)
-c      real*8    amp_rec(400000)
+      real*4    amp_rec(400000)
 c ---
       integer*4 k,ns,nk,i
       real*8    plan1,plan2
@@ -63,7 +63,8 @@ c       enddo
 c=============================================================
 c     do smoothing on sf equivalent to do " smooth mean h 10" in SAC
 
-      call smooth(f1,f2,f3,f4,dom,nk,sf)
+      call smooth(f1,f2,f3,f4,dom,nk,sf,amp_rec)
+
 C=============================================================
 c===============================================================
 c   make tapering
@@ -138,11 +139,12 @@ c ---
 c===================================================================
 c  smoothing routine      call smooth(f1,f2,f3,f4,dom,nk,sf)
 c=s=================================================================
-      subroutine smooth(f1,f2,f3,f4,dom,nk,sf)
+      subroutine smooth(f1,f2,f3,f4,dom,nk,sf,amp_rec)
       real*8    f1,f2,f3,f4
       integer*4 nk
       double complex sf(400000)
-      real*8    sorig(400000), amp_rec(20000), dom
+      real*8    sorig(400000), dom
+      real*4    amp_rec(200000)
       real*8    f, sum
 c ---
         do i = 1,nk
@@ -153,14 +155,14 @@ c ---
 
         f = (i-1)*dom
         if( f .ge. f1 .and. f .le. f4 ) then
-            sum = 0.
-          do jk = -10,10
-             ijk = i+jk
-             sum = sum + sorig(ijk)
-          enddo
-            amp_rec(i) = sum/(2.*10.+1.)
+           sum = 0.
+           do jk = -10,10
+              ijk = i+jk
+              sum = sum + sorig(ijk)
+           enddo
+           amp_rec(i) = (2.*10.+1.)/sum
         else
-            amp_rec(i) = 0.
+           amp_rec(i) = 0.
         endif
 
        enddo
@@ -168,7 +170,7 @@ c ---
       do i = 1,nk
         f = (i-1)*dom
       if( f .ge. f1 .and. f .le. f4 ) then
-         sf(i) = sf(i)*(1.0d0/amp_rec(i))
+         sf(i) = sf(i)*amp_rec(i)
       else
          sf(i) = sf(i)*0.0d0
       endif

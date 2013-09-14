@@ -524,12 +524,12 @@ void CrossCorr() {
             delete [] sigcor; sigcor = NULL;
          }
       }
+      pthread_join(tid[NTHRDS], NULL);
       //if( npair==0 || npair%10 != 0 ) fprintf(stderr, "\n   ");
       fprintf(stdout, "\n");
       if(fdel2) DeleteGroup(size);
       fprintf(stdout, "%d station pairs (%d records) processed. ###\n", npair, nrec);
    }
-   pthread_join(tid[NTHRDS], NULL);
 
    pthread_mutex_destroy(&addlock);
 

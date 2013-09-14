@@ -8,7 +8,7 @@ c Autor: M. Barmine,CIEI,CU. Date: Jun 15, 2006. Version: 2.00
 c
       subroutine aftanipg(piover4,n,sei,t0,dt,delta,vmin,vmax,tmin,tmax,
      *           tresh,ffact,perc,npoints,taperl,nfin,fsnr,fmatch,npred,pred,
-     *           cuttype,nphpr,phprper,phprvel,
+     *           cuttype,nphpr,phprper,phprvel,seiout,
      *           nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,amp,ierr);
 c======================================================================
 c Parameters for aftanipg function:
@@ -81,13 +81,13 @@ c======================================================================
       real*8    piover4,perc,taperl,tamp,arr1(8,100),arr2(7,100)
       real*8    t0,dt,delta,vmin,vmax,tmin,tmax,tresh,ffact,ftrig(100),tfact
       real*8    fsnr,fmatch
-      real*4    sei(32768)
+      real*4    sei(32768), seiout(32768)
       double complex dczero,s(32768),sf(32768),fils(32768),tmp(32768)
       real*8    grvel(100),tvis(100),ampgr(100),om(100),per(100),tim(100)
       real*8    grveltmp,tvistmp,ampgrtmp,omtmp,pertmp,timtmp,snrtmp,wdthtmp,phgrtmp
       real*8    pha(32768,32),amp(32768,32),ampo(32768,32)
       real*8    time(32768),v(32768),b(32768)
-      real*8    alpha,alphad,pi,omb,ome,dom,step,amax,t,dph,tm,ph
+      real*8    alpha,alphad,pi,omb,ome,omcur,dom,step,amax,t,dph,tm,ph
       integer*4 j,k,k2,m,ntapb,ntape,ne,nb,ntime,ns,ntall,ici,iciflag,ia
       real*8    plan1,plan2,plan3,plan4
       integer*4 ind(2,32768)
@@ -219,6 +219,15 @@ c apply back phase correction for spectra
       do i = 1,ns
          sf(i) = sf(i)/pha_cor(i)
       enddo
+c again forward FFT to get the phase-match-filtered signal in time domain
+      call dfftw_plan_dft_1d(plan1,ns,sf,s,
+     *                         FFTW_BACKWARD, FFTW_ESTIMATE)
+      call dfftw_execute(plan1)
+      call dfftw_destroy_plan(plan1)
+      do i =1,n
+         seiout(i) = 2.0*real(dreal(s(i)))/ns
+      enddo
+
 c==================================================================
 c main loop by frequency
       do k = 1,nf
@@ -537,7 +546,7 @@ c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
           enddo
           call trigger(grvel1,tvis1,nfout2,tresh,trig1, ftrig1,ierr1)
 c          if(nfout2 .lt. nf*perc/100.0d0) then
-          write(*,*) "In: ", tvis(1), "-", tvis(nf), " Out:", tvis1(1), "-", tvis1(nfout2)
+c          write(*,*) "In: ", tvis(1), "-", tvis(nf), " Out:", tvis1(1), "-", tvis1(nfout2)
           if((dlog(tvis1(nfout2))-dlog(tvis1(1))).lt.(dlog(tvis(nf))-dlog(tvis(1)))*perc/100.0d0) then
             ierr1 = 1
             nfout2 = 0

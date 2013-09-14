@@ -63,7 +63,7 @@
  *          tamp      -  time to the beginning of ampo table, s (double)
  *          nrow      -  number of rows in array ampo, (int)
  *          ncol      -  number of columns in array ampo, (int)
- *          ampo      -  Ftan amplitude array, Db, (double [32][32768])
+ *          ampo      -  Ftan amplitude array, Db, (double [32][2*NMAX])
  * ierr   - completion status, =0 - O.K.,           (int)
  *                             =1 - some problems occures
  *                             =2 - no final results
@@ -76,11 +76,12 @@
 #include <string.h>
 #include <math.h>
 #include "aftan.h"
-#include "/home/tianye/code/Programs/head/mysac64.h"
-#include "/home/tianye/code/Programs/head/sac_db64.h"
+#include "mysac64.h"
 #include "/home/tianye/code/Programs/head/koftan.h"
 #include "/home/tianye/code/Programs/head/gl_const.h"
 #include "/home/tianye/code/Programs/head/mymacro.h"
+
+SAC_HD *read_sac (char *fname, float **sig, SAC_HD *SHD);
 
 void write_sac (char *fname, float *sig, SAC_HD *SHD);
 
@@ -88,25 +89,28 @@ int get_snr(float *sei, int nsample, double dt, double dist, double b, double *c
 
 
 /*--------------------------------------------------------------*/
+#define NMAX 16384
 int pflag = 1;
 int main (int argc, char *argv[])
 {
   static int n, npoints, nfin, nfout1, nfout2, ierr, nprpv;
   static double t0, dt, delta, vmin, vmax, tmin, tmax;
   static double snr, tresh, ffact, perc, taperl,fmatch,piover4;
-  static float sei[16384], sei_p[32768], sei_n[16384];
+  static double snr2, tresh2, ffact2, taperl2,fmatch2;
+  static float sei[NMAX], seiout[NMAX], sei_n[NMAX], *sei_p;
   static double arr1[100][8],arr2[100][7];
   static double c_per[100],g_vel[100],amp_p[100],amp_n[100];
-  static double tamp, ampo[32][32768];
+  static double tamp, ampo[32][NMAX*2];
   static int nrow, ncol;
   static double prpvper[300],prpvvel[300]; // phase vel prediction files
 
   double snr_p[64], snr_n[64];
   double f1,f2,f3,f4,dom_am;
-  char name[160],buff[300];
-  char amp_name[100];
+  char name[150],buff[300];
+  char amp_name[160];
   FILE *in, *inv, *fas;
   int i, j, flag, k, len, n_am;
+  SAC_HD shd;
 
 // input command line arguments treatment
   if(argc!=4 && argc!=5 ) {
@@ -141,11 +145,11 @@ controls what files to output
       printf("Can not find file %s.\n",argv[1]);
       exit(1);
   }
-  while((n = fscanf(in,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %s %d",
-             &piover4,&vmin,&vmax,&tmin,&tmax,&tresh,&ffact,&taperl,&snr,&fmatch,
-             name,&flag)) != EOF) {
+  while((n = fscanf(in,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %s %d",
+             &piover4,&vmin,&vmax,&tmin,&tmax,&tresh,&ffact,&taperl,&snr,&fmatch, &tresh2,
+	     &ffact2,&taperl2,&snr2,&fmatch2,name,&flag)) != EOF) {
 
-      if(n == 0 || n != 12) break;
+      if(n == 0 || n != 17) break;
 
   // remove quotes from file names
       j = 0;
@@ -159,18 +163,35 @@ controls what files to output
              tresh,ffact,snr,fmatch,name);
   // read SAC or ascii data 
    int sac = 1; // =1 - SAC, =0 - ftat files
-   readdata(sac,name,&n,&dt,&delta,&t0,sei_p);
-
+   //sei_p = (float *) malloc (2*NMAX * sizeof(float));
+   //readdata(sac,name,&n,&dt,&delta,&t0,sei_p);
+   if( read_sac(name, &sei_p, &shd) == NULL ) {
+      fprintf(stderr, "ERROR(read_sac): %s\n", name);
+      exit(-1);
+   }
+   n = shd.npts; dt = shd.delta;
+   delta = shd.dist; t0 = shd.b;
+   
   // prepare single sided record for FTAN
       if(flag==1) { //the input sac is marked as double-sided. compute symetric compenent
-         len=(n-1)/2;
+	 len = shd.npts/2;
+	 if( len > NMAX ) {
+	    fprintf(stderr, "ERROR(NMAX): len=%d > NMAX=%d!\n", len, NMAX);
+	    exit(-1);
+	 }
          for(k=0;k<=len;k++) sei_n[k]=sei_p[len-k]; 
          for(k=0;k<=len;k++) sei_p[k]=sei_p[len+k];
          for(k=0;k<=len;k++) sei[k]=(sei_p[k]+sei_n[k])/2.;
-         n=len+1;
-	 t0 += len*dt;
+         n = len+1; t0 += len*dt;
+	 shd.npts = n; shd.b = t0;
       }
-      else for(k=0;k<n;k++) sei[k]=sei_p[k]; //single-sided. copy
+      else {
+	 if( n > NMAX ) {
+	    fprintf(stderr, "ERROR(NMAX): n=%d > NMAX=%d!\n", n, NMAX);
+	    exit(-1);
+	 }
+	 for(k=0;k<n;k++) sei[k]=sei_p[k]; //single-sided. copy
+      }
 
   // Pre-whiten and record the amp factor
   f1=1./tmax/1.25;
@@ -185,14 +206,14 @@ controls what files to output
 //  taperl  = 2.0;      // factor to the left end tapering
 
 /* FTAN without phase match filter to construct the original FTAN diagram. First Iteration. */
-  perc    = 10.0; // output if the percentage of measurable frequecy range is greater than 10%
+  perc    = 40.0; // output if the percentage of measurable frequecy range is greater than 10%
   printf("FTAN - the first iteration\n");
   double tresh1 = tresh * 1.;
   aftanpg_(&piover4,&n,sei,&t0,&dt,&delta,&vmin,&vmax,&tmin,&tmax,&tresh1,
         &ffact,&perc,&npoints,&taperl,&nfin,&snr,&nprpv,prpvper,prpvvel,
         &nfout1,arr1,&nfout2,arr2,&tamp,&nrow,&ncol,ampo,&ierr);
   if(pflag) printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_1",delta);
-  //if(nfout2 == 0) continue;   // break aftan sequence 
+  if(nfout2 == 0) continue;   // break aftan sequence 
   //printf("Tamp = %9.3lf, nrow = %d, ncol = %d\n",tamp,nrow,ncol);
 
 /* Read in the predicted group dispersion. (or make prediction based on the first iteration.) */
@@ -202,39 +223,56 @@ controls what files to output
      perror("Failed to open file ");
      exit(-1);
   }
-  npred = 0; tmin = 9999.; tmax = -1.;
+  npred = 0; 
+  float tminp = 9999., tmaxp = -1.;
   while( fgets(buff,300,inv) != NULL ) {
      if( sscanf(buff,"%lf %lf",&pred[0][npred],&pred[1][npred]) < 2) break;
      if(pred[1][npred] != pred[1][npred]) continue;
-     if(tmin>pred[0][npred]) tmin = pred[0][npred];
-     if(tmax<pred[0][npred]) tmax = pred[0][npred];
-     //printf("%d %lf %lf\n", npred, pred[0][npred], pred[1][npred]);
+     if( pred[0][npred] < tmin || pred[0][npred] > tmax ) continue;
+     if(tminp>pred[0][npred]) tminp = pred[0][npred];
+     if(tmaxp<pred[0][npred]) tmaxp = pred[0][npred];
+    // printf("%d %lf %lf\n", npred, pred[0][npred], pred[1][npred]);
      npred++;
   }
   fclose(inv);
+  //printf("%f %f  %f %f\n", tmin, tmax, tminp, tmaxp); exit(0);
+  //if( tminp > tmin ) tmin = tminp;
+  //if( tmaxp < tmax ) tmax = tmaxp;
+  tmin = tminp; tmax = tmaxp;
 
 /* Pre-whiten and record the amp factor */
-  f1=1./tmax/1.25;
+  f1=1./(tmax*1.25);
   f2=1./tmax;
   f3=1./tmin;
-  f4=1./tmin/1.25;
-  filter4_(&f1,&f2,&f3,&f4,&dt,&n,sei,&n_am,&dom_am);
+  f4=1./tmin*1.25;
+  float amprec[NMAX], ampavg;
+  filter4_(&f1,&f2,&f3,&f4,&dt,&n,sei,&n_am,&dom_am,amprec);
+/*
+  int ib = (int)ceil(f1/dom_am);
+  for(i=ib;i<n_am;i++) {
+     if(dom_am*i >= f4) break;
+     ampavg += amprec[i];
+  }
+  ampavg = (i-ib)/ampavg;
+*/
 /* FTAN with (1st, wide) phase match filter to trach energy around prediction. Second Iteration.
  cuttype = 1 tells tgauss() to cut the anti-dispersed diagram by 
  strictly following the group prediction instead of at the max energy */
   int cuttype = 1;
-  perc = 10.0;
+  perc = 40.0;
   printf("FTAN - the second iteration (phase match filter)\n");
   aftanipg_(&piover4,&n,sei,&t0,&dt,&delta,&vmin,&vmax,&tmin,&tmax,&tresh, // 11 params
         &ffact,&perc,&npoints,&taperl,&nfin,&snr,&fmatch,&npred,pred,	   // 9
-        &cuttype,&nprpv,prpvper,prpvvel,				   // 4
+        &cuttype,&nprpv,prpvper,prpvvel,seiout,				   // 4
         &nfout1,arr1,&nfout2,arr2,&tamp,&nrow,&ncol,ampo,&ierr);	   // 9
   //printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_2",delta);
+  //sprintf(amp_name, "%s_cld", name);
+  //write_sac (amp_name, seiout, &shd);
 
 /* FTAN with (2nd, narrow) phase match filter. Third Iteration */
   npred = nfout2;
-  //tmin = arr2[0][1];
-  //tmax = arr2[nfout2-1][1];
+  tmin = arr2[0][1];
+  tmax = arr2[nfout2-1][1];
   pred[0][0] = arr2[0][1]; pred[1][0] = arr2[0][2];
   for(i=1,j=1; i<nfout2; i++) {
       pred[0][j] = arr2[i][1];   // apparent periods
@@ -245,15 +283,15 @@ controls what files to output
   }
   cuttype = 0;
   perc = 40.0;
-  double tresh2 = tresh, fmatch2 = fmatch*0.6;
   printf("FTAN - the third iteration (phase match filter)\n");
   printf("%f %f\n", tmin, tmax);
   aftanipg_(&piover4,&n,sei,&t0,&dt,&delta,&vmin,&vmax,&tmin,&tmax,&tresh2, // 11 params
-        &ffact,&perc,&npoints,&taperl,&nfin,&snr,&fmatch2,&npred,pred,      // 9
-        &cuttype,&nprpv,prpvper,prpvvel,                                   // 4
+        &ffact2,&perc,&npoints,&taperl2,&nfin,&snr2,&fmatch2,&npred,pred,      // 9
+        &cuttype,&nprpv,prpvper,prpvvel,seiout,                                   // 4
         &nfout1,arr1,&nfout2,arr2,&tamp,&nrow,&ncol,ampo,&ierr);           // 9
-  //printf("Tamp = %9.3lf, nrow = %d, ncol = %d\n",tamp,nrow,ncol);
   printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_2",delta);
+  sprintf(amp_name, "%s_cld", name);
+  write_sac (amp_name, seiout, &shd);
 
 /* comput amplitude and SNR based on the phase-match filter results */
   for(i = 0; i < nfout2; i++) {
@@ -274,5 +312,6 @@ controls what files to output
   fclose(fas);
   }
   fclose(in);
+  free(sei_p);
   return 0;
 }
