@@ -1,0 +1,21 @@
+# GMT common arguments shelf
+-Ba5f1/a5f1WESN:.:
+-JM15h
+-Jm2.540
+-JX10c
+-R0/10/0/10
+-X2.2
+-x0.5c
+-Y8.0
+-y3c
+-jX10c
+EOF
+OF
+JX10c
+-R254/258/30/35
+-X2.2
+-x3
+-Y8.0
+-y3c
+-jm2.540
+EOF

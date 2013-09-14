@@ -1,0 +1,9 @@
+seed2sac_earthquake/earthquake_sac_from_seed_8000s_v3_LHN_LHE_v3_ye
+/home/tianye/code/Script/FTAN/FTAN_SNR.csh /home/...
+/home/tianye/code/Programs/Earthquake/dist_table_earthquake event.lst station.lst
+FTAN_to_traveltime.csh /home/tianye/data_Eikonal/SAC_XR/
+change criteria for 2pi and curvature
+correct_2pi_curvature.csh /home/tianye/data_Eikonal/SAC_XR/region_XR /home/tianye/data_Eikonal/SAC_XR/
+change path in amp_HD_to_amp_gradient_HD_to_amp_laplace_HD.C
+tool_do_surface_slow_lapalce_all.csh /home/tianye/data_Eikonal/SAC_TA/region_TA /home/tianye/data_Eikonal/SAC_TA
+

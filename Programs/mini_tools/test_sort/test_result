@@ -1,0 +1,27 @@
+
+Array size: 1000000
+Opt inser quicksort (avg): 214.313msec
+Opt inser quicksort (best): 68.71msec
+Opt quicksort (avg): 236.654msec
+Opt quicksort (best): 97.932msec
+inser Quicksort (avg): 268.55msec
+inser Quicksort (best): 133.975msec
+Quicksort (avg): 292.785msec
+Quicksort (best): 163.967msec
+Insertion sort (avg): 1.42846e+06msec
+Insertion sort (best): 8.356msec
+selection sort: 1.71542e+06msec
+
+
+Array size: 100000
+Opt inser quicksort (avg): 18.084msec
+Opt inser quicksort (best): 6.115msec
+Opt quicksort (avg): 21.577msec
+Opt quicksort (best): 9.556msec
+inser Quicksort (avg): 22.107msec
+inser Quicksort (best): 11.345msec
+Quicksort (avg): 24.792msec
+Quicksort (best): 14.537msec
+Insertion sort (avg): 13355.3msec
+Insertion sort (best): 0.794msec
+selection sort: 16050.9msec

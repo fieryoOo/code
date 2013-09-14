@@ -1,0 +1,55 @@
+#!/bin/csh
+# Script for plotting the inversion results for the western US region from the weekly stacks.
+
+# GET PLOTTING PARAMETERS
+if ($#argv != 4) then
+  echo "USAGE: C_plot [cpt file] [data infile] [region_infile] [resolution]"
+  exit 1
+endif
+
+cp /home/tianye/code/Script/GMT/gmtdefaults4 ./.gmtdefaults4
+set cptfile = $argv[1]
+set input_map = $argv[2]
+#set clong=`echo $argv[5] | cut -d_ -f1`
+#set clati=`echo $argv[5] | cut -d_ -f2`
+#set sta_lst=`echo $input_map | awk -F.HD '{print $1}'`
+
+#set title=`echo $input_map | sed s/'\.'/'_'/g | cut -d_ --complement -f$i | sed s/'_txt.*HD'/''/g | sed s/'_'/' '/g`
+set title = `echo $input_map | awk -F_ '{print $2,$3$4}' | sed s/'T'/'T='/ | sed s/'p'/' p='/ | sed s/'E'/'%  E='/ | sed s/'.txt'/''/`
+
+set out_name = `echo $input_map `
+set output_ps_file = ${out_name}.ps
+echo "writing $output_ps_file file"
+if (-f $output_ps_file) rm $output_ps_file
+
+set REG = `more $argv[3]`
+set long1=`echo $REG | cut -d/ -f1 | sed s/'\-R'/''/` 
+set long2=`echo $REG | cut -d/ -f2`
+set long=`echo $long1 $long2 | awk '{print ($1+$2)/2}'`
+
+set latimin=`echo $REG | cut -d/ -f3`
+set latimax=`echo $REG | cut -d/ -f4`
+set SCA = -JX5i
+
+pwd | psxy -H $REG $SCA -X2.2 -Y8.0 -P  -V -K  >! $output_ps_file
+
+set sms=`echo $argv[4] | awk '{print $1/5.0}'`
+xyz2grd $input_map -Gtomo.grd -I$argv[4] -V $REG
+#grdsample tomo.grd -Q -Gtomo2.grd $REG -I$sms
+grdimage $SCA $REG tomo.grd -C$cptfile -Ba10f1/a10f1WESN:."$title": -X3 -O -P -K >> $output_ps_file
+
+#pscoast $SCA $REG -A100 -N1/3/0/0/0 -N2/3/0/0/0 -O -K -W3 >> $output_ps_file
+
+#psxy /home/tianye/code/Programs/head/wus_province_II.dat $SCA $REG -W5/255/0/0 -M"99999 99999"  -O -K >> $output_ps_file
+#psscale  -C$cptfile -P -D-3.5/7.5/15/1 -O -K -L  >> $output_ps_file
+
+#psxy $sta_lst $SCA $REG -St.3 -W3 -Ggray -O -K >> $output_ps_file
+#echo $clong $clati | psxy $SCA $REG -Sc2 -W4,red -G128/128/128 -O -K >> $output_ps_file
+
+# LABELS
+#pstext -R0/10/0/10 -JX10c  -V -O -N -G0 -Y3c -X0.5c << END >>  $output_ps_file
+#3 -4.5 16 0.0 7 CB  event: $event_label
+#END
+pwd | psxy $REG $SCA -O >> $output_ps_file
+\rm tomo.grd tomo2.grd topo_westUS2.xyz
+

@@ -1,0 +1,87 @@
+#!/bin/csh
+# Script for plotting the inversion results for the western US region from the weekly stacks.
+
+# GET PLOTTING PARAMETERS
+if ($#argv != 4) then
+  echo "USAGE: C_plot_v2_input_region [mid_v] [data infile] [period] [region_infile]"
+  exit 1
+endif
+gmtset ANNOT_FONT_SIZE 10
+gmtset BASEMAP_TYPE plain
+set per = $argv[1]
+set input_map = $argv[2]
+
+set tomo_label=$input_map
+set out_name = `echo $input_map | cut -d. -f1`
+set output_ps_file = ${input_map}.ps
+echo "writing $output_ps_file file"
+if (-f $output_ps_file) rm $output_ps_file
+
+# COPY NECESSARY FILES FROM gmt_files 
+#if ($per == 8) then
+#  cp /home/linf/SCRIPTS/Morgan/gmt_files/CAtomo_8s.cpt ./8s.cpt
+#  cp /home/linf/SCRIPTS/Morgan/gmt_files/CAtomo_8sB.cpt ./8s.cpt
+#  set cptfile = 8s.cpt
+  set cptfile = /home/tianye/Programs/cpt/$per.cpt
+
+cp /home/linf/SCRIPTS/Morgan/gmt_files/topo_westUS2.xyz .
+set topofile = topo_westUS2.xyz
+set topogrd = topo.grd
+set topoint = topoint.grd
+set SCA = -Jm1.6
+set REG = `more $argv[4]`
+
+#gmtset BASEMAP_TYPE fancy
+
+
+# sample topography and tomography
+#pwd | psxy -H $REG $SCA -Ba2f1g1/a2f1g1WeSn:."": -X1 -Y1.8 -P  -V -K  >! $output_ps_file
+pwd | psxy -H $REG $SCA -X2.2 -Y6.0 -P  -V -K  >! $output_ps_file
+
+#xyz2grd $topofile -G$topogrd -I4m -N-999 $REG -V
+#grdgradient $topogrd -A90 -G$topoint -Nt -V
+
+#psclip $REG $SCA -O -P -K -V << EOF >> $output_ps_file
+#235 30
+#235 50
+#250 50
+#250 30
+#235 30
+#EOF
+
+xyz2grd $input_map -Gtomo.grd -I0.2 -N0 -V $REG
+#grdsample tomo.grd -Gtomo2.grd $REG -I4m
+#surface $input_map -T.2 -Gtomo.grd -I0.2 $REG
+#grdsample tomo.grd -Gtomo2.grd $REG -I4m
+grdimage $SCA $REG tomo.grd -C$cptfile -O -P -K >> $output_ps_file
+#grd2xyz tomo2.grd $REG > $input_map".HD"
+
+#set cont_cpt=./resol.txt
+set cont_cpt=$argv[3]
+#xyz2grd $input_map -Gresol_contour1.grd.tmp -I.05 $REG
+#grdsample resol_contour1.grd.tmp -Gresol_contour1.grd $REG -I2m -V
+#set CONTOPT="$cont_cpt -W1p/70/0/255 -Ddumpfile"
+set CONTOPT="$cont_cpt -W1p/70/0/255"
+grdcontour $SCA $REG tomo.grd -C$CONTOPT -O -K >> $output_ps_file
+
+#psclip -C -O -K >> $output_ps_file
+
+pscoast $SCA $REG -A100 -N1/3/0/0/0 -N2/3/0/0/0 -O -K >> $output_ps_file
+# removed gridlines (uncomment to replace)
+#pscoast $SCA $REG -Ba5f5g2.5/a5f5g2.5WeSn:."": -W3/0/0/0 -S135/206/235  -O -K >> $output_ps_file
+pscoast $SCA $REG -Ba5f1/a5f1WESN:."": -W3/0/0/0 -S135/206/235 -O -K >> $output_ps_file
+
+psxy $out_name".ph.txt_v2" $SCA $REG -St.25 -W3 -C$cptfile -O -K >> $output_ps_file
+#psxy source.txt $SCA $REG -Sa.8 -W3  -O -K >>$output_ps_file
+psxy station.txt $SCA $REG -St.2 -W3  -O -K >>$output_ps_file
+
+psscale  -C$cptfile -P -D8/-1/15/1/h -X-1.5c -Y-0.5c -O -K -L  >> $output_ps_file
+
+# LABELS
+pstext -R0/10/0/10 -JX10c  -V -O -N -G0 -Y3c -X0c << END >>  $output_ps_file
+
+3.50 -1.75 16 0.0 7 CB  $tomo_label
+END
+
+\rm tomo.grd tomo2.grd topo.grd topo_westUS2.xyz topoint.grd
+#xv $output_ps_file &

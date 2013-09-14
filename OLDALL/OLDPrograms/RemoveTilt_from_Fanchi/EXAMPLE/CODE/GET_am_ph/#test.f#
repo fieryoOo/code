@@ -1,0 +1,11 @@
+
+         real *8 a,b,c 
+
+c       dpi = datan(1.0d0)*4.0d0
+
+          a = 0 
+          b = 1
+
+         c = datan2(a,b)
+         write(*,*) c
+        end

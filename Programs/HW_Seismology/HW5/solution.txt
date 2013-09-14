@@ -1,0 +1,31 @@
+GEOL 6670   Homework set 5   Ye Tian
+
+(1) By fitting a line a + b*x to the data we got:
+    4075534.77540666 + -3.94446697526973e-11*x
+    variance reduction: 1-(d-Gm)T*(d-Gm) = 1-4.89857555655469e-19  reduced chi-square: sum((d_i-Gm_i)/uncertainty_i) = 8439.19226479565
+    covariance matrix: 
+     5.22472e-08 -1.71613e-16 
+    -1.71613e-16  5.73586e-25 
+    By using the square root of model-parameter variances as their uncertainties we got: 
+    uncertainty on a: 0.000228576439745643 (5.60850176337498e-09%)  uncertainty on b: 7.57354652656534e-13 (1.9200430816251%)
+
+(2) Adding an annual term c1*sin(theta+phi1) to the fit and compute the variance reduction and chi-square again: 
+    4075534.77488805 + -3.78301280546615e-11*x + 0.00138678687053633*sin(2*pi*x/31557600.0+-2.71452099974175)
+    variance reduction: 1-4.35613594892976e-19  reduced chi-square: 7406.1376957011
+
+(3) Again adding an biannual term c2*sin(2*theta+phi2) to the fit: 
+    4075534.77518409 + -3.88510436793782e-11*x + 0.00132010750831467*sin(2*pi*x/31557600.0+-2.70760997743442) + 0.000953354670235495*sin(4*pi*x/31557600.0+0.392137490396055)
+    variance reduction: 1-4.09732056738685e-19  reduced chi-square: 6900.59398355043
+
+(4) By comparing the results from all 3 of the above results, 2 key conclusions can be made: 
+    First, in those 3 results, the value of model parameter a are nearly identical while the value of b changes a lot. This is consistent with the model-parameter uncertainties we got in problem 1, where the fractional uncertainty of a (5.6e-9%) is much smaller than that of b (1.9%).
+    Second, as we add in the annual and biannual term, the variance reduction gets more close to 1 and the reduced chi-square decreases. This indicates that we fit the data better by adding in those two terms.
+
+(5) Not sure how to do this one, sorry.
+
+(6) Use an L1 norm instead of L2 to fit the data: 
+    210 iterations performed for tolr=1e-25 and tolm=1e-25
+    4075534.77563351 + -4.0433902753767e-11*x + 0.00131068781822303*sin(2*pi*x/31557600.0+-2.76178677045108) + 0.00100639073992321*sin(4*pi*x/31557600.0+0.420989887221918)
+    variance reduction: 1-4.10387165241278e-19  reduced chi-square: 6910.37333991187
+    This result is very close to the result in part 3. However, because there are several outliers in the data set, the chi-square value from L1 norm turned out to be a little bit larger than from L2 norm. This is because the L1 norm down weights those outliers thus leads to larger chi-square distances.
+

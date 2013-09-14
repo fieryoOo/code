@@ -1,0 +1,27 @@
+5.
+By applying the Breadth-first Search algorithm on each vertex of the graph,
+the shortest distances between all vertex pairs can be computed in polynomial
+time. The maximum distance among all of these shortest distances is the graph diameter.
+Because BFS runs in O(V+E) time plus that it takes O(V) time to check through vertices to find the largest distance of each BFS, the total running time of
+computing the diameter of a graph is O(V(V+E)).
+In terms of space requirement, storing the graph in an adjacency list requires one edge pointer on each vertex and one edge pointer on each edge, plus that each edge has to be linked twice (once for each the vertex it connects). This itself is already O(V+E) additional space. Besides, we run BFS |V| times to find the largest distance. In each BFS, we maintain 3 variables (vflag, dist, pre) for each vertex and a Queue that is at most |V| length which together occupies O(V) space. Combining the two parts described above, the algorithm requires O(V+E) addtional space.
+The C code of this implementation is attached at the end.
+
+6.
+(a) For c=5, the first input size on which the Erdos-Renyi graph is not always
+complete is n=7. At n=6 or less any of the pair-wise connection exist and the graph diameter is always 1. Therefore I started at n=6 and went all the way to n=900 to check the diameter-n relationship. At each input size n, I ran the experiment at least 20 times (more on smaller n to get a better result) by producing an Erdos-Renyi graph randomly and compute its diameter, then use the averaged diameter as the measurement for this input size. The resulted relationship between diameter and log(n) does seem linear as shown in the figure below, which is the evidence that the expected diameter increases as O(logn).
+(b) For an Erdos-Renyi random graph with n vertices, the expected number of
+edge is given by the sum of the expected degree of each vertex divided by 2:
+E(E) = c*V/2. = 2.5V for c = 5. Therefore, combine this with the analysis from problem 5, the analytic running time and space requirement for this algorithm are O(V(V+2.5V)) = O(V^2) and O(V+2.5V) = O(V), respectively.
+The experiment to prove the analytic prediction is done by implementing two counters in the code to record the atomic operation numbers and spaces used in each iteration. The results are averaged as in (a) and are plotted as two separate figures below. One shows Time v.s. n^2, another shows Space v.s. n. Both of them show linear relationships as predicted.
+
+7.
+(a)
+Use w(u,v) to present the number of edges that go from u to v. 
+k_out version: with n=k=3, c=1, we have 3 vertices A, B and C each in its own group. Degree(A) = w(A,B)+w(A,C), Degree(B) = w(B,C) + w(B,A), Degree(C) = w(C,A) + w(C,B). Suppose that we have Degree(A)>Degree(B)>Degree(C), then Golum's method number A=1, B=2, C=3 and gives f(h) = [ w(A,B) + w(A,C) + w(B,C) ] - [ w(B,A) + w(C,A) + w(C,B) ]. However this f(h) is smaller than that of A=1, C=2, B=3 when w(B,C)<w(C,B) because in such case f_better(h) = [ w(A,B) + w(A,C) + w(C,B) ] - [ w(B,A) + w(C,A) + w(B,C) ]. An example of such case is shown below:
+w(A,B)=2  w(A,C)=3  w(B,A)=3  w(B,C)=1  w(C,A)=0  w(C,B) = 2. Now Degree(A)=5,
+Degree(B)=4, Degree(C)=2. f_Golum(h) = (2+3+1)-(3+0+2) = 1, f_better(h) = (2+3+2) - (3+0+1) = 3. Golum's method fails.
+k_out - k_in version: Degree(A) = [w(A,B)+w(A,C)] - [w(B,A)+w(C,A)], Degree(B) = [w(B,C)+w(B,A)] - [w(C,B)-w(A,B)], Degree(C) = [w(C,A)+w(C,B)] - [w(A,C) - w(B,C)]. Now the same thing happens if the condition described in (a) is met. Checking the same example given in (a) (which was designed and wasn't an accident to work in both cases), we could see that now Degree(A) = 2+3-3-0=2, Degree(B) = 3+1-2-2=0, Degree(C) = 0+2-3-1=-2. Still Golum's method puts the three groups in the order of A, B, C which gives f_Golum(h) = 1 while the order A, C, B gives a larger score f_better(h) = 3.
+(b)
+Golum's second version is close. Instead of using the out and in-degree, what
+should the algorithm use is the 'efficient out and in-degree'

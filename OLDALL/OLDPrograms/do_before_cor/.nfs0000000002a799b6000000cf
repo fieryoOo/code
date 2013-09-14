@@ -1,0 +1,97 @@
+#foreach  year  (2007 2008)
+#set year = 2007
+#需要调试，看看运行完成之后有哪些文件需要删除#
+set year = 2008
+set bp_old1 = 5to150
+set bp_old2 = 5to150_new
+set bp = 5to150_v1
+set mainpath = /utera/tianye/data_check_sampling
+#set sta_reverse_lst = ${mainpath}/sta_reverse.lst #provide absorlute path
+set station_lst = ${mainpath}/station.lst
+#set sta_unit_lst =  #provide absorlute path
+
+cd ${mainpath}
+#if($year == 2007) then
+foreach month ( JAN )
+	if( $month == JAN ) @ nmonth =  1
+	if( $month == FEB ) @ nmonth =  2
+	if( $month == MAR ) @ nmonth =  3
+	if( $month == APR ) @ nmonth =  4
+	if( $month == MAY ) @ nmonth =  5
+	if( $month == JUN ) @ nmonth =  6
+	if( $month == JUL ) @ nmonth =  7
+	if( $month == AUG ) @ nmonth =  8
+	if( $month == SEP ) @ nmonth =  9
+	if( $month == OCT ) @ nmonth = 10
+	if( $month == NOV ) @ nmonth = 11
+	if( $month == DEC ) @ nmonth = 12
+
+	cd $year$month
+#####a detail of station.lst needs to be modified. More specificlly, province name should be added before station name, like "ProvStaName", eg. HLBAQ.#### 
+	\rm -f event.dat
+#	\rm *.*
+	foreach day1 ( 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31  )
+	
+######if need to do de_resp, then need to remove the origional ft_fname files	
+#	echo "remove ft*\n"
+	\rm -f ${year}_${nmonth}_${day1}_0_0_0/ft_*bit
+	
+	echo $month $day1 > temp.dat
+	awk -v ytp=$year '{  printf "%-4s %3s %2s 000000.00\n",ytp,$1, $2}' temp.dat  >> event.dat
+	end #foreach day1
+
+set event_dat = ${mainpath}/$year$month/event.dat	
+######cut and trans, in the program the output ft_bit is different from the zy's version#
+######modify the cut_tran_resp_bit to fit your use, we can just do the bit without doing transfer#	
+	\rm sac_db.out event_station.tbl 
+
+	echo "###############set_sacdb_China_bit"
+	/home/tianye/Programs/do_before_cor/de_resp/set_sacdb_CheckSamp_bit BHZ ${station_lst} ${event_dat}
+
+	echo "###############cut_trans_resp_bit"
+	/home/tianye/Programs/do_before_cor/de_resp/cut_trans_resp_bit 0 3456001
+# 3450000
+exit
+
+	\rm temp.dat sac_db.out
+######special cases: for the stations have pi shift, use the "reverse"; for those have pi/2 shift, use "unit"#
+#	\rm sac_db_reverse.out  event_station_reverse.tbl
+#	echo "################set_sacdb_China_reverse"
+#	/Users/jiayixie/progs/jy/do_before_cor/de_resp/set_sacdb_China_reverse BHZ ${sta_reverse_lst}
+#	echo "################reverse_used_with_db"
+#	/Users/jiayixie/progs/jy/do_before_cor/de_resp/reverse_used_with_db
+#	\rm sac_db_reverse.out 
+######for the unit, choose d (differentiate) or i (integrate)
+#	/Users/jiayixie/progs/jy/do_before_cor/de_resp/set_sacdb_CheckSamp_unit BHZ ${sta_unit_lst}
+#	/Users/jiayixie/progs/jy/do_before_cor/de_resp/unit_used_with_db d
+#	/home/tianye/Programs/do_before_cor/de_resp/unit_used_with_db d		
+	\rm -r $bp_old1 $bp_old2 $bp
+	mkdir $bp
+	cd $bp
+
+
+
+	foreach day ( 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31  )
+#	foreach day ( 2 )
+		set dirday =  ${year}_${nmonth}_${day}_0_0_0
+		mkdir  $dirday
+		cd $dirday
+		cp '../../ft_'$year'.'$month'.'$day'.'* .
+		ls ft_*SAC > temp.ft
+		awk '{print "200 150 5 4 1 1  ", $1}' temp.ft > param.dat
+		/home/tianye/Programs/do_before_cor/filter4/filter4 param.dat
+#######here we can choose if include the filter in whiten process (whiten_rej_phamp_no/with_fil)
+echo AAA
+		/home/tianye/Programs/do_before_cor/whiten_outphamp/whiten_rej_phamp_no_fil  param.dat
+echo BBB		\rm ft_*.SAC
+		\rm ft_*.SAC_bit
+		\rm ft_*.SAC_old
+		\rm temp.ft param.dat smooth.sac sac_one_cor #could remove sac_one_cor as well
+		cd ../
+exit
+	end #foreach day
+
+	cd ../../
+
+end #foreach month
+

@@ -1,0 +1,91 @@
+#!/bin/csh 
+
+limit datasize 1000000; limit stacksize 120000
+
+if ($#argv != 2) then
+  echo "USAGE: $0 [region_infile] [sac_path]"
+  exit 1
+endif
+
+cd $argv[2]
+foreach per (6 8 10 14 18 24 30)
+cd 'Gr_Ph_Amp_Map_'$per'sec'
+set dir='tomo_results'
+#mkdir -p $dir
+cp /media/WORK/tianye/ASN_OBS/OBS_STACK/plot/* $dir'/'
+foreach alpha (100)
+foreach beta (10)
+foreach sigma (50)
+###setting parameters
+#set alpha=400
+#set beta=10
+#set sigma=70
+set name="OBS_a"$alpha"_b"$beta"_s"$sigma
+
+###Produce data file
+set data='OBS_data_'$per's'
+#ls *_center_gr_ph_amp_map > gr_ph_amp.lst
+#/home/tianye/code/Programs/tomo_sp_cu_s_shn/data_producer gr_ph_amp.lst $data
+#rm -f gr_ph_amp.lst
+
+###Produce contour file
+set cord=`more $argv[1] | sed s/'-R'/''/ | sed s/'\/'/' '/g`
+if( 0 )then
+echo $cord[1] $cord[3] | awk '{lon=$1-0.1;lat=$2-0.1;if(lon<0)lon+=360.;if(lat<-90)lat+=180.;print lon,lat}' > contour.ctr
+echo "4\
+"$cord[1] $cord[3]"\
+"$cord[1] $cord[4]"\
+"$cord[2] $cord[4]"\
+"$cord[2] $cord[3]"\
+4\
+1 2\
+2 3\
+3 4\
+4 1" >> contour.ctr
+endif
+###run tomo_sp_cu_s_shn for gr and ph vel
+foreach vtp (gr ph)
+if( 0 ) then
+/home/tianye/code/Programs/tomo_sp_cu_s_shn/tomo_sp_cu_s_shn $data'_'$vtp $name'_'$vtp $per << EOF
+me
+4
+5
+$cord[3] $cord[4] 0.5
+6
+$cord[1] $cord[2] 0.5
+10
+0.1
+2
+R
+P
+1
+7
+11
+0
+12
+$alpha
+$beta
+$sigma
+$sigma
+19
+25
+v
+q
+go
+EOF
+endif
+
+mv $name'_'$vtp* $dir
+cd $dir
+C_plot_travel $name'_'$vtp'_'$per'.1' region_OBS 0.05 0.2 30
+TXT2CPT $name'_'$vtp'_'$per'.1'
+C_plot_input_region_res $name'_'$vtp'_'$per'.1.cpt' $name'_'$vtp'_'$per'.1.HD' region_OBS 0.05 0_0
+cd ..
+
+end #foreach vtp
+
+end #foreach alpha
+end #foreach beta
+end #foreach sigma
+cd ..
+end #foreach per

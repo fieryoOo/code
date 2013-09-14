@@ -1,0 +1,21 @@
+/home/tianye/Software/rdseedv5.1/rdseed <<END
+down_US_ALL/OBS_BHZ_2012.FEB.29.203762.seed
+
+
+d
+
+J28A
+BHZ
+
+
+1
+N
+N
+0
+
+
+
+
+Y
+quit
+END

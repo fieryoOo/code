@@ -1,0 +1,57 @@
+
+Program SURF_DISP calculates dispersion curves of Rayleigh and Love waves in
+layered media. One liquid layer is permiited  at the top.
+
+To translate program use command
+
+f77 -e -o SURF_DISP SURF_DISP.f flat1.f surfa.f calcul_deep.f init_deep.f
+
+To run program use command
+
+SURF_DISP infile outname R/L kmin kmax tmin tmax tstep [-f] [-a]
+
+Here 
+infile is a crustal-mantle model
+outname  - arbitrary
+
+R -Rayleigh waves
+L -Love waves
+
+kmin -minimal number of mode (0 for fundamental mode)
+kmax - maximal number of mode 
+
+tmin -minimal period (sec)
+tmax - maximal period (sec)
+tstep - period increment (sec)
+
+Optonal  [-f] for  approximate accounting for sphericity;
+Oprional [-a] for nonelastic model; in this case the model 
+should include an extra column with Qs values.
+
+Test in test.dir
+
+Obtained with command
+
+SURF_DISP crust_model proba R 0 0 5 100 5
+
+crust_model
+columns:
+thickness (km); P-velocity (km/s); S-Velocity (km/s); density (g/sm**3)
+Output:
+proba.R - eigenvalues for each period
+proba.R.phv - T,phasevel1,phasevel2 (km/s), normally identical
+proba.R.grv - period, grvel (km/s)
+
+With -a option 
+SURF_DISP crust_model1 proba R 0 0 5 100 5 -a
+
+crust_model1
+columns
+thickness (km); P-velocity (km/s); S-Velocity (km/s); density (g/sm**3); Qs (dimensionless) 
+
+Output:
+
+proba1.R - eigenvalues for each period
+proba1.R.phv - T,phasevel1,phasevel2 (km/s), normally identical
+proba1.R.grv - period, grvel (km/s)
+proba1.R.att - period,  R-wave Q (dimensionless)

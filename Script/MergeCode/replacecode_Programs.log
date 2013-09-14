@@ -1,0 +1,307 @@
+#########################Programs/FTAN_amp_snr_predgrv/driver_c.c#########################
+#include "/home/tianye/Programs/head/mysac64.h"			      |	#include "/home/tianye/code/Programs/head/mysac64.h"
+#include "/home/tianye/Programs/head/sac_db64.h"		      |	#include "/home/tianye/code/Programs/head/sac_db64.h"
+#include "/home/tianye/Programs/head/koftan.h"			      |	#include "/home/tianye/code/Programs/head/koftan.h"
+#include "/home/tianye/Programs/head/gl_const.h"		      |	#include "/home/tianye/code/Programs/head/gl_const.h"
+#include "/home/tianye/Programs/head/mymacro.h"			      |	#include "/home/tianye/code/Programs/head/mymacro.h"
+#
+#
+#########################Programs/FTAN_amp_snr_predgrv/misc.c#########################
+#include "/home/tianye/Programs/head/mysac64.h"			      |	#include "/home/tianye/code/Programs/head/mysac64.h"
+#
+#
+#########################Programs/trash/SEED2COR_parallel/trash/cut_trans_RESP.c#########################
+  fprintf(ff,"/home/tianye/sac/bin/sac << END\n");		      |	  fprintf(ff,"/home/tianye/Software/sac/bin/sac << END\n");
+#
+#
+#########################Programs/trash/SEED2COR_parallel/IFFT.c#########################
+#
+#
+#########################Programs/ASN_Map/ASN_ph_amp_map.C#########################
+     sprintf(buff,"/home/tianye/Script/GMT/C_plot_travel_positive %s  |	     sprintf(buff,"/home/tianye/code/Script/GMT/C_plot_travel_positiv
+     sprintf(buff,"/home/tianye/Script/GMT/C_plot_ASN_am %s region_te |	     sprintf(buff,"/home/tianye/code/Script/GMT/C_plot_ASN_am %s regi
+#
+#
+#########################Programs/FTAN_amp_snr_1Dmodel/driver_c.c#########################
+#include "/home/tianye/Programs/head/koftan.h"			      |	#include "/home/tianye/code/Programs/head/koftan.h"
+#include "/home/tianye/Programs/head/gl_const.h"		      |	#include "/home/tianye/code/Programs/head/gl_const.h"
+#include "/home/tianye/Programs/head/mymacro.h"			      |	#include "/home/tianye/code/Programs/head/mymacro.h"
+#
+#
+#########################Programs/Earthquake/eikonal_ty/correct_2pi_curvature.csh#########################
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/trash/cut_trans_RESP.c#########################
+  fprintf(ff,"/home/tianye/sac/bin/sac << END\n");		      |	  fprintf(ff,"/home/tianye/Software/sac/bin/sac << END\n");
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel_sac/src_old/IFFT.c#########################
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/trash/cut_trans_RESP.c#########################
+  fprintf(ff,"/home/tianye/sac/bin/sac << END\n");		      |	  fprintf(ff,"/home/tianye/Software/sac/bin/sac << END\n");
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_parallel/src_old/IFFT.c#########################
+#
+#
+#########################Programs/SEED2COR_old/SEED2COR_serial/trash/cut_trans_RESP.c#########################
+  fprintf(ff,"/home/tianye/sac/bin/sac << END\n");		      |	  fprintf(ff,"/home/tianye/Software/sac/bin/sac << END\n");
+#
+#
+#########################Programs/OLD_ALL/SPEC_SNR_RMS/spec_snr_rms_fast.c#########################
+#include "/home/tianye/Programs/head/koftan.h"			      |	#include "/home/tianye/code/Programs/head/koftan.h"
+#include "/home/tianye/Programs/head/gl_const.h"		      |	#include "/home/tianye/code/Programs/head/gl_const.h"
+#include "/home/tianye/Programs/head/mymacro.h"			      |	#include "/home/tianye/code/Programs/head/mymacro.h"
+#
+#
+#########################Programs/OLD_ALL/CORR_REC_am/stack_cor.c#########################
+#include "/home/tianye/Programs/head/64_mysac.h"		      |	#include "/home/tianye/code/Programs/head/64_mysac.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/whiten_outphamp_C_run_whiten/driver_c.c#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/whiten_outphamp_C~/driver_c.c#########################
+#include "/home/tianye/Programs/head/64_mysac.h"		      |	#include "/home/tianye/code/Programs/head/64_mysac.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/whiten_outphamp_C~/driver_c.c~#########################
+#include "/home/tianye/Programs/head/64_mysac.h"		      |	#include "/home/tianye/code/Programs/head/64_mysac.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/trash/whiten_outphamp_C_test/driver_c.c#########################
+#include "/home/tianye/Programs/head/64_mysac.h"		      |	#include "/home/tianye/code/Programs/head/64_mysac.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/whiten_outphamp_C_cut_whiten/driver_c.c#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/whiten_outphamp_C_cut_whiten/driver_c.c~#########################
+#include "/home/tianye/Programs/head/64_mysac.h"		      |	#include "/home/tianye/code/Programs/head/64_mysac.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/de_resp/cut_trans_PZ_64.c#########################
+#include "/home/tianye/Programs/head/mysac64.h"			      |	#include "/home/tianye/code/Programs/head/mysac64.h"
+#include "/home/tianye/Programs/head/64_sac_db.h"		      |	#include "/home/tianye/code/Programs/head/64_sac_db.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/de_resp/set_sacdb_China_unit.c#########################
+#include "/home/tianye/Programs/head/64_mysac.h"		      |	#include "/home/tianye/code/Programs/head/64_mysac.h"
+#include "/home/tianye/Programs/head/64_sac_db.h"		      |	#include "/home/tianye/code/Programs/head/64_sac_db.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/de_resp/cut_trans_RESP.c#########################
+  fprintf(ff,"/home/tianye/sac/bin/sac << END\n");		      |	  fprintf(ff,"/home/tianye/Software/sac/bin/sac << END\n");
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/de_resp/cut_trans_resp_32.c#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#include "/home/tianye/Programs/head/sac_db.h"			      |	#include "/home/tianye/code/Programs/head/sac_db.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/de_resp/set_sacdb_CheckSamp_bit.C#########################
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/de_resp/cut_trans_resp_bit.c#########################
+#include "/home/tianye/Programs/head/64_mysac.h"		      |	#include "/home/tianye/code/Programs/head/64_mysac.h"
+#include "/home/tianye/Programs/head/64_sac_db.h"		      |	#include "/home/tianye/code/Programs/head/64_sac_db.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/de_resp/sac_from_seed_resp_32.c#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#include "/home/tianye/Programs/head/sac_db.h"			      |	#include "/home/tianye/code/Programs/head/sac_db.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/de_resp/unit_used_with_db.c#########################
+#include "/home/tianye/Programs/head/64_koftan.h"		      |	#include "/home/tianye/code/Programs/head/64_koftan.h"
+#include "/home/tianye/Programs/head/64_sac_db.h"		      |	#include "/home/tianye/code/Programs/head/64_sac_db.h"
+#include "/home/tianye/Programs/head/64_mysac.h"		      |	#include "/home/tianye/code/Programs/head/64_mysac.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/de_resp/sac_from_seed_holes_PZ_64.c#########################
+#include "/home/tianye/Programs/head/mysac64.h"			      |	#include "/home/tianye/code/Programs/head/mysac64.h"
+#include "/home/tianye/Programs/head/64_sac_db.h"		      |	#include "/home/tianye/code/Programs/head/64_sac_db.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/whiten_outphamp_C/driver_c.c#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/whiten_outphamp_C/driver_c.c~#########################
+#include "/home/tianye/Programs/head/64_mysac.h"		      |	#include "/home/tianye/code/Programs/head/64_mysac.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/whiten_outphamp_C_amp/driver_c.c~#########################
+#include "/home/tianye/Programs/head/64_mysac.h"		      |	#include "/home/tianye/code/Programs/head/64_mysac.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/CUT_TRANS/cut_trans_z.c#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#include "/home/tianye/Programs/head/sac_db.h"			      |	#include "/home/tianye/code/Programs/head/sac_db.h"
+#
+#
+#########################Programs/OLD_ALL/do_before_cor/whiten_outphamp_rec/driver_c.c~#########################
+#include "/home/tianye/Programs/head/64_mysac.h"		      |	#include "/home/tianye/code/Programs/head/64_mysac.h"
+#
+#
+#########################Programs/OLD_ALL/seed2sac_earthquake/earthquake_sac_from_seed_8000s_ye.C#########################
+  fprintf(ff,"/home/tianye/sac/bin/sac << END\n");		      |	  fprintf(ff,"/home/tianye/Software/sac/bin/sac << END\n");
+#
+#
+#########################Programs/OLD_ALL/seed2sac_earthquake/trash/earthquake_sac_from_seed_8000s_v3_LHN_LHE_v3_ye.c#########################
+#include "/home/tianye/Programs/head/mysac64.h"			      |	#include "/home/tianye/code/Programs/head/mysac64.h"
+#include "/home/tianye/Programs/head/sac_db64_1ev.h"		      |	#include "/home/tianye/code/Programs/head/sac_db64_1ev.h"
+  sprintf(str,"/home/tianye/Programs/RM_RESPONSE/rm_instrument_respon |	  sprintf(str,"/home/tianye/code/Programs/RM_RESPONSE/rm_instrument_r
+#
+#
+#########################Programs/OLD_ALL/seed2sac_earthquake/earthquake_sac_from_seed_8000s_v3_BH_v3_ye.C#########################
+  fprintf(ff,"/home/tianye/sac/bin/sac << END\n");		      |	  fprintf(ff,"/home/tianye/Software/sac/bin/sac << END\n");
+#
+#
+#########################Programs/OLD_ALL/seed2sac_earthquake/earthquake_sac_from_seed_5000s_BH_ye.C#########################
+  fprintf(ff,"/home/tianye/sac/bin/sac << END\n");		      |	  fprintf(ff,"/home/tianye/Software/sac/bin/sac << END\n");
+#
+#
+#########################Programs/OLD_ALL/Eikonal_fanchi/amp_HD_to_amp_gradient_HD_to_amp_laplace_HD_XR.C#########################
+      sprintf(buff1,"/home/tianye/Script/GMT/C_plot_travel %s_am_grad |	      sprintf(buff1,"/home/tianye/code/Script/GMT/C_plot_travel %s_am
+      sprintf(buff1,"/home/tianye/Script/GMT/C_plot_travel %s_am_grad |	      sprintf(buff1,"/home/tianye/code/Script/GMT/C_plot_travel %s_am
+#
+#
+#########################Programs/OLD_ALL/Eikonal_fanchi/amp_HD_to_amp_gradient_HD_to_amp_laplace_HD.C#########################
+      sprintf(buff1,"/home/tianye/Script/GMT/C_plot_travel %s_am_grad |	      sprintf(buff1,"/home/tianye/code/Script/GMT/C_plot_travel %s_am
+      sprintf(buff1,"/home/tianye/Script/GMT/C_plot_travel %s_am_grad |	      sprintf(buff1,"/home/tianye/code/Script/GMT/C_plot_travel %s_am
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days/azi_cov_center_sta.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days/bin_avg_center_sta.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_sym/bin_avg_center_sta.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_pos/bin_avg_center_sta.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/with_days_neg/bin_avg_center_sta.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/original/sort_COR_by_centre_sta.C#########################
+#include "/home/tianye/Programs/head/mysac64.h"			      |	#include "/home/tianye/code/Programs/head/mysac64.h"
+#include "/home/tianye/Programs/head/sac_db64.h"		      |	#include "/home/tianye/code/Programs/head/sac_db64.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP/original/STACK_by_centre_sta.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/with_days/azi_cov_center_sta.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/with_days/bin_avg_center_sta.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/sort_COR_by_centre_sta.C#########################
+#include "/home/tianye/Programs/head/mysac64.h"			      |	#include "/home/tianye/code/Programs/head/mysac64.h"
+#include "/home/tianye/Programs/head/sac_db64.h"		      |	#include "/home/tianye/code/Programs/head/sac_db64.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/STACK_by_centre_sta.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/cv_STACK_final.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_sym/bin_avg_center_sta.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_pos/bin_avg_center_sta.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/CORRECT_ASN_AMP/old/with_days_neg/bin_avg_center_sta.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/azi_cov_center_sta.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/ASN_AMP/CORRECT_ASN_AMP_DAYNUM/bin_avg_center_sta.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/Eikonal/get_event_period_trvt_amp.C#########################
+#include "/home/tianye/Programs/head/mysac64.h"			      |	#include "/home/tianye/code/Programs/head/mysac64.h"
+#
+#
+#########################Programs/Eikonal/amp_HD_to_amp_gradient_HD_to_amp_laplace_HD_XR.C#########################
+      sprintf(buff1,"/home/tianye/Script/GMT/C_plot_travel %s_am_grad |	      sprintf(buff1,"/home/tianye/code/Script/GMT/C_plot_travel %s_am
+      sprintf(buff1,"/home/tianye/Script/GMT/C_plot_travel %s_am_grad |	      sprintf(buff1,"/home/tianye/code/Script/GMT/C_plot_travel %s_am
+#
+#
+#########################Programs/Eikonal/dist_table_earthquake.C#########################
+#include "/home/tianye/Programs/head/koftan.h"			      |	#include "/home/tianye/code/Programs/head/koftan.h"
+#include "/home/tianye/Programs/head/mysac64.h"			      |	#include "/home/tianye/code/Programs/head/mysac64.h"
+#include "/home/tianye/Programs/head/sac_db64.h"		      |	#include "/home/tianye/code/Programs/head/sac_db64.h"
+#
+#
+#########################Programs/Eikonal/dist_table_ASN.C#########################
+#include "/home/tianye/Programs/head/koftan.h"			      |	#include "/home/tianye/code/Programs/head/koftan.h"
+#include "/home/tianye/Programs/head/mysac64.h"			      |	#include "/home/tianye/code/Programs/head/mysac64.h"
+#include "/home/tianye/Programs/head/sac_db64.h"		      |	#include "/home/tianye/code/Programs/head/sac_db64.h"
+#
+#
+#########################Programs/Eikonal/amp_HD_to_amp_gradient_HD_to_amp_laplace_HD.C#########################
+      sprintf(buff1,"/home/tianye/Script/GMT/C_plot_travel %s_am_grad |	      sprintf(buff1,"/home/tianye/code/Script/GMT/C_plot_travel %s_am
+      sprintf(buff1,"/home/tianye/Script/GMT/C_plot_travel %s_am_grad |	      sprintf(buff1,"/home/tianye/code/Script/GMT/C_plot_travel %s_am
+#
+#
+#########################Programs/mini_tools/Maximized_Smoothing.C#########################
+#include "/home/tianye/Programs/head/mysac64.h"			      |	#include "/home/tianye/code/Programs/head/mysac64.h"
+#include "/home/tianye/Programs/head/64_sac_db.h"		      |	#include "/home/tianye/code/Programs/head/64_sac_db.h"
+#
+#
+#########################Programs/mini_tools/Whitening.C#########################
+#include "/home/tianye/Programs/head/mysac64.h"			      |	#include "/home/tianye/code/Programs/head/mysac64.h"
+#include "/home/tianye/Programs/head/64_sac_db.h"		      |	#include "/home/tianye/code/Programs/head/64_sac_db.h"
+#
+#
+#########################Programs/STACK/STACK_daynum.C~#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/STACK/STACK_daynum.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/STACK/cv_STACK_final.C#########################
+#include "/home/tianye/Programs/head/mysac.h"			      |	#include "/home/tianye/code/Programs/head/mysac.h"
+#
+#
+#########################Programs/SEED2COR_parallel/src_old/IFFT.c#########################
+#
+#
+#########################Programs/Locate_Source/Precursor_Weisen/Source_Loc_Prob.C#########################
+#include "/home/tianye/Programs/head/64_mysac.h"		      |	#include "/home/tianye/code/Programs/head/64_mysac.h"
+#
+#
+#########################Programs/SURF_DISP/disp.csh#########################
+awk '{if($2==0){print $1,1.5,$2,$2*1.73*0.32 + 0.77}else{print $1,$2* |	awk '{if($2==0){print $1,1.5,$2,$2*1.73*0.32 + 0.77}else{print $1,$2*
+cd /home/tianye/Programs/SURF_DISP				      |	cd /home/tianye/code/Programs/SURF_DISP
+#
+#

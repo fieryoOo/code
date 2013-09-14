@@ -1,0 +1,20 @@
+#!/bin/csh
+foreach file (`ls /home/tianye/data_Eikonal/SAC/TA_XR/80sec_10snr_960dis/20*_am.txt_v2.HD`)
+set event=`echo $file | cut -d/ -f8 | cut -d_ -f1`
+set file2=/home/tianye/data_Eikonal/SAC/TA_ONLY/80sec_10snr_960dis/$event'_am.txt_v2.HD'
+set source1 = `echo $file | cut -d. --complement -f3`
+set source2 = `echo $file2 | cut -d. --complement -f3`
+#echo $file2
+if (! -e $file2) then
+continue
+endif
+csh /home/tianye/Script/GMT/TXT2CPT $file
+csh /home/tianye/Script/GMT/TXT2CPT $file2
+/home/tianye/Script/GMT/C_plot_kernel_HHD $file.cpt $file
+/home/tianye/Script/GMT/C_plot_kernel_HHD $file2.cpt $file2
+awk -v file2=$file2 '{amp=$3;getline < file2;print $1,$2,amp-$3}' $file > /home/tianye/data_Eikonal/SAC/amp_diff/$event'_amp_diff'
+csh /home/tianye/Script/GMT/TXT2CPT_mid0 /home/tianye/data_Eikonal/SAC/amp_diff/$event'_amp_diff'
+/home/tianye/Script/GMT/C_plot_kernel_input_2_sta /home/tianye/data_Eikonal/SAC/amp_diff/$event'_amp_diff.cpt' /home/tianye/data_Eikonal/SAC/amp_diff/$event'_amp_diff' $source1 $source2
+echo $source1;echo $source2
+#exit
+end

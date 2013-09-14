@@ -1,0 +1,19 @@
+#!/bin/csh
+if ($#argv != 3) then
+  echo "USAGE: C_plot_input_region [data infile] [region_infile] [dx dy]"
+  exit 1
+endif
+set input_map = $argv[1]
+set REG = `more $argv[2]`
+set temp1=`echo $input_map | awk -F/ '{print $NF}'`
+set temp2=`echo $argv[2] | awk -F/ '{print $NF}'`
+set dx = $argv[3]
+#set tomo = $temp1'.'$temp2'.grd'
+set tomo = tomo.grd
+gmtset BASEMAP_TYPE fancy
+rm -f $tomo
+surface $input_map -T0.0 -G$tomo -I$argv[3] $REG
+#if (-e $tomo )then
+grd2xyz $tomo $REG > $input_map".HD"
+#endif
+rm -f $tomo

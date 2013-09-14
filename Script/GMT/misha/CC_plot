@@ -1,0 +1,121 @@
+#!/bin/tcsh
+#
+# plot spectra & seismograms
+#
+gmtset LABEL_FONT_SIZE 12
+gmtset ANOT_FONT_SIZE 10
+gmtset MEASURE_UNIT inch
+#
+set nam=$1':r'
+echo $nam
+set dir=TMPRC
+set in1=$dir/$nam.d1
+set in2=$dir/$nam.d2
+set in3=$dir/$nam.sp1
+set in4=$dir/$nam.sp2
+set bull=../SPCGA.1-4_RP_S-8-12.0.005.102.0/PV.102.bull
+set bull=PV.102.bull
+set out_file=Map.$1.ps
+#goto LLL
+#
+# #1 - seismograms
+#
+set pr="X6/1"
+set p=`minmax $in1 | sed -e"s/</ /g;s/\// /g;s/>/ /g"`
+echo $p
+set coord="R0/400/$p[8]/$p[9]"
+psbasemap -J$pr -$coord -Ba100f50:"Time, s":/a1000:"nm/s":WnSe -K -P -X1 -Y9.0 > $out_file 
+psxy $in1 -J$pr -$coord -W2/255/0/0 -L -O -K >> $out_file 
+psxy $in2 -J$pr -$coord -W2/0/255/0 -L -O -K >> $out_file 
+#
+# #2 - filters
+#
+set in1=$dir/$nam.d3
+echo $in1
+set in2=$dir/$nam.d4
+set pr="X6/1"
+set p=`minmax $in1 | sed -e"s/</ /g;s/\// /g;s/>/ /g"`
+echo $p
+set coord="R0/400/$p[8]/$p[9]"
+psbasemap -J$pr -$coord -Ba100f50:"Time, s":/a1000:"nm/s":WnSe -O -K -P -Y-2.0 >> $out_file 
+psxy $in1 -J$pr -$coord -W2/255/0/0 -L -O -K >> $out_file 
+psxy $in2 -J$pr -$coord -W2/0/255/0 -L -O -K >> $out_file 
+#
+# #2 - spectra
+#
+set pr="X6/1"
+set p=`minmax $in3 | sed -e"s/</ /g;s/\// /g;s/>/ /g"`
+set coord="R0/.3/$p[8]/$p[9]"
+psbasemap -J$pr -$coord -Ba.1f.05:"Frequency, Hz":/a5000f1000:"":WnSe -K -O -P -Y-1.5  >> $out_file 
+awk '{print $1/4096,$2}' $in3  > tmp.1
+psxy tmp.1 -J$pr -$coord -W2/255/0/0 -L -O -K >> $out_file 
+awk '{print $1/4096,$2}' $in4  > tmp.1
+psxy tmp.1 -J$pr -$coord -W2/0/255/0 -L -O -K >> $out_file 
+# Label
+#set del=`awk '{if("'$1'" == $1) printf("%6.1f", $3)}' $bull`
+set del=212.6184
+pstext -JX10/10 -R0/10/0/10 -G0 -N -O -K >> $out_file << EOF
+3.0 5.0 13 0.0 1 6 Station: $nam Delta: $del
+EOF
+#
+# FTAN map
+#
+set SCA="-JX2.8/3"
+set REG="-R6/18/2.2/5.0"
+set REG="-R4/16/2.2/5.0"
+set color_table_1=cpt_res
+# map before filtering
+set input1=$dir/REAL_${nam}_1_AMP
+set input2=$dir/REAL_${nam}_1_DISP.1
+set color_table_1=cpt_res
+set ran=`minmax $input1 | sed -e"s/>/ /g" -e"s/</ /g" -e"s/\// /"g`
+echo $ran
+# plot FTAN map
+makecpt  -T40/100/5  > $color_table_1
+# make real axes
+echo $del
+awk '{print $2}' $input2 > tmp.1
+echo "@@@" >> tmp.1
+cat $input1 >> tmp.1
+awk 'BEGIN{n=0;fl=0}{if($1 == "@@@"){fl=1;next;}; \
+if(fl == 0){n++; x[n]=$1;next;}; j=int($1);a=x[j];b='$del'/$2; \
+print a,b,$3}' tmp.1 > tmp.2
+xyz2grd tmp.2  -Ggrdfile_top  $REG -I.8/.1
+grdsample grdfile_top  -Ggrdfile_top2 -I.05/.05 -Ql -R
+psbasemap  $SCA $REG -Ba2f1:"T, s":/a.5f.1:"Vel, km/s":WnSe -K -O -P -V \
+-Y-4.0  >> $out_file
+grdimage grdfile_top2 $SCA $REG -C$color_table_1 -V -K -O >> $out_file
+grdcontour grdfile_top2 -W4/133/62/38 -S500 -Af12 -Clev_int  \
+-G1.5i/2 $REG $SCA -O -K -V -P -K >> $out_file
+# plot dispersion curve
+awk '{print $3,$4}' $input2 > tmp.1
+psxy tmp.1 $REG $SCA -W5/255/255/255 -N -O -K >> $out_file
+# map after filtering
+set input1=$dir/REAL_${nam}_2_AMP
+set input2=$dir/REAL_${nam}_2_DISP.1
+# set color_table_1=cpt_res
+set ran=`minmax $input1 | sed -e"s/>/ /g" -e"s/</ /g" -e"s/\// /"g`
+echo $ran
+# plot FTAN map
+# makecpt  -T40/100/5  > $color_table_1
+# make real axes
+echo $del
+awk '{print $2}' $input2 > tmp.1
+echo "@@@" >> tmp.1
+cat $input1 >> tmp.1
+awk 'BEGIN{n=0;fl=0}{if($1 == "@@@"){fl=1;next;}; \
+if(fl == 0){n++; x[n]=$1;next;}; j=int($1);a=x[j];b='$del'/$2; \
+print a,b,$3}' tmp.1 > tmp.2
+xyz2grd tmp.2  -Ggrdfile_top  $REG -I.8/.1
+grdsample grdfile_top  -Ggrdfile_top2 -I.05/.05 -Ql -R
+psbasemap  $SCA $REG -Ba2f1:"T, s":/a.5f.1:"":WnSe -K -O -P -V \
+-X3.2   >> $out_file
+grdimage grdfile_top2 $SCA $REG -C$color_table_1 -V -K -O >> $out_file
+grdcontour grdfile_top2 -W4/133/62/38 -S500 -Af12 -Clev_int  \
+-G1.5i/2 $REG $SCA -O  -V -P -K >> $out_file
+awk '{print $3,'$del'/$4}' $input2 > tmp.1
+psxy tmp.1 $REG $SCA -W5/255/255/255 -N -O  >> $out_file
+# plot dispersion curve
+#
+gv $out_file &
+exit

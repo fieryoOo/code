@@ -1,0 +1,77 @@
+#define NDAT 500
+int least_fit_parabola (double *datx, double *daty, double *weit, int ndat, double *a, double *b, double *c, double *std, double *stdw)
+{
+   int i, j, ii;
+   double pi=3.14159265359;
+
+
+   int dim=3;
+   double A[dim][ndat], AC[dim+1], coef[dim], **AA, **AAI;
+   AA = (double **) malloc ( (dim+1) * sizeof(double *) );
+   AAI = (double **) malloc ( (dim+1) * sizeof(double *) );
+   for(i=0;i<dim+1;i++) AA[i] = (double *) malloc ( (dim+1) * sizeof(double) );
+   for(i=0;i<dim+1;i++) AAI[i] = (double *) malloc ( (dim+1) * sizeof(double) );
+
+   for(i=0;i<ndat;i++) {
+      A[2][i] = pow(datx[i],2)*weit[i];
+      A[1][i] = datx[i]*weit[i];
+      A[0][i] = weit[i];
+   }
+   for(i=0;i<dim;i++)
+      for(j=i;j<dim;j++) {
+         AA[i][j] = 0.;
+         for(ii=0;ii<ndat;ii++) AA[i][j] += A[i][ii]*A[j][ii];
+      }
+   for(i=1;i<dim;i++) for(j=0;j<i;j++) AA[i][j] = AA[j][i];
+
+   int nc=2;
+   for(i=0;i<dim;i++) {
+      AA[i][dim] = A[i][nc];
+      AA[dim][i] = A[i][nc];
+   }
+   AA[dim][dim] = 0;
+/*
+   for(i=0;i<dim+1;i++) {
+      for(j=0;j<dim+1;j++) cout<<AA[i][j]<<" ";
+      cout<<endl;
+   }
+*/
+   Inverse( AA, dim+1, AAI );
+/*
+   for(i=0;i<dim+1;i++) {
+      for(j=0;j<dim+1;j++) cout<<AAI[i][j]<<" ";
+      cout<<endl;
+   }
+*/
+   for(i=0;i<dim;i++) {
+      AC[i]=0;
+      for(ii=0;ii<ndat;ii++) AC[i] += A[i][ii]*daty[ii]*weit[ii];
+   }
+   AC[dim] = daty[nc];
+
+   for(i=0;i<dim;i++) {
+      coef[i] = 0;
+      for(j=0;j<dim+1;j++) {
+          coef[i] += AAI[i][j]*AC[j];
+      }
+      //cout<<"coef["<<i<<"]: "<<coef[i]<<endl;
+   }
+
+   *a=coef[0];
+   *b=coef[1];
+   *c=coef[2];
+   *std = 0; *stdw = 0;
+   double v1=0, v2=0;
+   for(i=0;i<ndat;i++) {
+      *std = *std + pow(daty[i] - (*c * pow(datx[i],2) + *b * datx[i] + *a),2);
+      *stdw = *std + pow(daty[i] - (*c * pow(datx[i],2) + *b * datx[i] + *a),2) * weit[i];
+      v1 += weit[i];
+      v2 += pow(weit[i],2);
+   }
+   *std = sqrt(*std/(ndat-3.));
+   *stdw = sqrt(*stdw*v1/(v1*v1-3.*v2));
+   //cout<<*A0<<" + "<<*A1<<" * sin( theta + "<<*phi<<" )"<<endl;
+
+   return 1;
+}
+

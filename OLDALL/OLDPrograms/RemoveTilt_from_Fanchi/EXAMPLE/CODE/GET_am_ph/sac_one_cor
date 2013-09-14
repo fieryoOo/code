@@ -1,0 +1,10 @@
+/home/nshapiro/PROGS/SAC/bin/sac2000 << END
+r test.sac
+abs
+smooth mean h 40
+w a.avg 
+r test.sac
+divf a.avg
+w smooth.sac
+quit
+END

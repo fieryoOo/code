@@ -1,0 +1,18 @@
+# GMT common arguments shelf
+-B10/10/100:ZKm::.title:WEsNZ+
+-JM15h
+-Jm0.13
+-JX10c
+-Jx5c
+-JZ4.5
+-R0/5/0/5/-5/0
+-X2.2
+-x0.5c
+-Y5
+-y3c
+-jm0.13
+EOF
+
+-y3c
+-jM15h
+EOF

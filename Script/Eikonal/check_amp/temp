@@ -1,0 +1,10 @@
+#!/bin/csh
+if ($#argv != 1) then
+echo "usage: temp [event]"
+exit 1
+endif
+
+Plot_amp_diff_map_input_background.csh /home/tianye/data_Eikonal/SAC_TA /home/tianye/data_Eikonal/station_TA_within_XR_region.lst $argv[1] v1 /home/tianye/data_Eikonal/SAC_TA/
+Plot_amp_diff_map_input_background.csh /home/tianye/data_Eikonal/SAC_TA /home/tianye/data_Eikonal/station_TA_within_XR_region.lst $argv[1] v2 /home/tianye/data_Eikonal/SAC_TA/
+Plot_amp_diff_map_input_background.csh /home/tianye/data_Eikonal/SAC_XR /home/tianye/data_Eikonal/station_XR.lst $argv[1] v1 /home/tianye/data_Eikonal/SAC_TA/
+Plot_amp_diff_map_input_background.csh /home/tianye/data_Eikonal/SAC_XR /home/tianye/data_Eikonal/station_XR.lst $argv[1] v2 /home/tianye/data_Eikonal/SAC_TA/

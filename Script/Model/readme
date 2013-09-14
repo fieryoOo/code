@@ -1,0 +1,27 @@
+
+
+step1.  creat a global model
+use get_world.py
+python /home/tianye/Programs/Locate_Source/get_world.py $input.model 2.5 > tianye_R_$per
+
+
+global model has a name of 
+XXXX_R_${per}
+
+step2. creat a path file
+use get_path.py
+python /home/tianye/Programs/Locate_Source/get_path.py event.lst station.lst > tianye.path
+
+
+step3. creat a period list
+file is like:
+10
+12
+14
+
+step4. run code:
+/home/tianye/Programs/Locate_Source/mhr_grvel_predict/mhr_grvel_predict_earth_v2  tianye.path XXXX per.lst 
+
+
+step5.
+change output into each velfile

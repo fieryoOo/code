@@ -1,0 +1,18 @@
+GEOL 6670   Homework set 4   Ye Tian
+
+
+
+(1) The covariance matrix for y = a+b*x+c*x^2 is:
+     0.038842 -0.013000  0.001017 
+    -0.013000  0.008650 -0.001035 
+     0.001017 -0.001035  0.000146 
+    Where the model vector is [a, b, c] transpose
+
+
+(2) By constrain the inversion to go through the 3rd point, we get:
+   -0.19607 * x^2 + 2.20641 * x + 0.869709  (See page 2 for plots)    with a data variance (with denominator n-3) of: 0.532719
+    In HW3 we see that the weighted fit went higher than the unweighted fit in the middle part. That was because the 3rd measurements was weighted heavier thus dragged the mid part up. Here the solution is even higher as the parabola is constrained to go through the 3rd point, which functions like an infinite weighting.
+
+
+(3) Linear programming is a technique for optimizing a linear objective function under a set of linear equality and inequality constraints. This technique can be applied to improve the accuracy and to reduce the computational cost in computing earthquake mechanisms when both the first-motion polarities and amplitude rations were taken into consideration.
+    A relevant paper: <Earthquake Mechanisms from Linear-Programming Inversion of Seismic-Wave Amplitude Ratios> by Bruce R. Julian and G. R. Foulger. Published on August 1996. This is the paper where the linear-programming method was extended to work on amplitude ratios in earthquake mechanism computation method.

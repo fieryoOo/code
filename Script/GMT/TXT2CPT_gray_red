@@ -1,0 +1,32 @@
+if ($#argv != 1) then
+echo "USAGE: TXT2CPT [input file]"
+exit
+endif
+
+set in_map=$argv[1]
+set avg=`awk 'BEGIN{avg=0}{avg+=$3}END{print avg/NR}' $in_map`
+set avg_high_end=`awk -v avg=$avg 'BEGIN{avg_h=0;N=0}{if($3>avg){avg_h+=$3;N+=1}}END{print 3*avg_h/N-2*avg}' $in_map`
+set avg_low_end=`awk -v avg=$avg 'BEGIN{avg_l=0;N=0}{if($3<avg){avg_l+=$3;N+=1}}END{print 3*avg_l/N-2*avg}' $in_map`
+set high_end=`awk 'BEGIN{high=-99999}{if($3>high){high=$3}}END{print high}' $in_map`
+set low_end=`awk 'BEGIN{low=99999}{if($3<low){low=$3}}END{print low}' $in_map`
+#echo $avg,$avg_high_end,$high_end,$avg_low_end,$low_end
+if ( `echo "$high_end*100/2" | bc` > `echo "$avg_high_end*100/2" | bc` ) then
+ set high_end=$avg_high_end
+endif
+if ( `echo "$low_end*100/2" | bc` < `echo "$avg_low_end*100/2" | bc` ) then
+ set low_end=$avg_low_end
+endif
+set avg=`echo "200*$avg/2*0.01" | bc`
+set inc_low=`echo "100*($avg-($low_end))/3*0.01" | bc`
+set inc_high=`echo "100*($high_end-($avg))/3*0.01" | bc`
+set low3=`echo "$avg-($inc_low)*3" | bc`
+set low2=`echo "$avg-($inc_low)*2" | bc`
+set low1=`echo "$avg-($inc_low)*1" | bc`
+set high1=`echo "$avg+$inc_high*1" | bc`
+set high2=`echo "$avg+$inc_high*2" | bc`
+set high3=`echo "$avg+$inc_high*3" | bc`
+echo $low3" 0 0 0 "$avg" 255 255 255\
+"$avg" 255 255 255 "$high3" 255 0 0\
+B 0 0 0\
+F 255 0 0\
+N 128 128 128\" > $in_map.cpt

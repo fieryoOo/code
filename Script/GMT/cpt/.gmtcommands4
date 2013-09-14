@@ -1,0 +1,6 @@
+# GMT common arguments shelf
+-B:continuous:
+-Jx1i
+-R/0/8.5/0/11
+-jx1i
+EOF

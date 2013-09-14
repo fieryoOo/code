@@ -1,0 +1,22 @@
+#!/bin/csh
+if ($#argv != 4) then
+  echo "USAGE: C_plot_input_region [data infile] [region_infile] [resolution] [dis(150k?)]"
+  exit 1
+endif
+set input_map = $argv[1]
+set REG = `cat $argv[2]`
+set res = $argv[3]
+set temp1=`echo $input_map | awk -F/ '{print $NF}'`
+set temp2=`echo $argv[2] | awk -F/ '{print $NF}'`
+set tomo = $temp1'.'$temp2'.grd'
+gmtset BASEMAP_TYPE fancy
+rm -f $tomo
+#surface $input_map -T0.0 -G$tomo -I$res $REG
+#triangulate $input_map -G$tomo -I$res $REG
+nearneighbor $input_map -G$tomo -I$res $REG -S$argv[4] -N6/2
+if (-e $tomo )then
+grd2xyz $tomo $REG > $input_map".HD~"
+grep -v 'NaN' $input_map".HD~" > $input_map".HD"
+rm -f $input_map".HD~"
+endif
+rm -f $tomo

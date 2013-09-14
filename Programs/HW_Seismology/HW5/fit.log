@@ -1,0 +1,225 @@
+
+
+*******************************************************************************
+Mon Oct 22 16:05:32 2012
+
+
+FIT:    data read from 'GPS_data.txt'
+        #datapoints = 1589
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+fitted parameters initialized with current variable values
+
+
+
+Iteration 0
+WSSR        : 1.45041e+20       delta(WSSR)/WSSR   : 0
+delta(WSSR) : 0                 limit for stopping : 1e-05
+lambda	  : 12.7937
+
+initial set of free parameter values
+
+a               = 1
+b               = 1
+
+After 4 iterations the fit converged.
+final sum of squares of residuals : 2.49667e+18
+rel. change during last iteration : -4.10147e-14
+
+degrees of freedom (ndf) : 1587
+rms of residuals      (stdfit) = sqrt(WSSR/ndf)      : 3.96636e+07
+variance of residuals (reduced chisquare) = WSSR/ndf : 1.5732e+15
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+a               = 2.98865e+08      +/- 2.037e+06    (0.6816%)
+b               = 40966.1          +/- 1.128e+05    (275.3%)
+
+
+correlation matrix of the fit parameters:
+
+               a      b      
+a               1.000 
+b              -0.873  1.000 
+
+
+*******************************************************************************
+Mon Oct 22 16:06:04 2012
+
+
+FIT:    data read from 'GPS_data.txt' using 2:3
+        #datapoints = 1589
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+fitted parameters initialized with current variable values
+
+
+
+Iteration 0
+WSSR        : 2.43422e+29       delta(WSSR)/WSSR   : 0
+delta(WSSR) : 0                 limit for stopping : 1e-05
+lambda	  : 2.13633e+08
+
+initial set of free parameter values
+
+a               = 2.98865e+08
+b               = 40966.1
+
+After 3 iterations the fit converged.
+final sum of squares of residuals : 2.46809e+18
+rel. change during last iteration : -9.6641e-08
+
+degrees of freedom (ndf) : 1587
+rms of residuals      (stdfit) = sqrt(WSSR/ndf)      : 3.94359e+07
+variance of residuals (reduced chisquare) = WSSR/ndf : 1.55519e+15
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+a               = 2.98865e+08      +/- 7.54e+06     (2.523%)
+b               = -0.985625        +/- 0.02496      (2.532%)
+
+
+correlation matrix of the fit parameters:
+
+               a      b      
+a               1.000 
+b              -0.991  1.000 
+
+
+*******************************************************************************
+Mon Oct 22 16:06:19 2012
+
+
+FIT:    data read from 'GPS_data.txt' using 2:3
+        #datapoints = 1589
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+fitted parameters initialized with current variable values
+
+
+
+Iteration 0
+WSSR        : 2.46809e+18       delta(WSSR)/WSSR   : 0
+delta(WSSR) : 0                 limit for stopping : 1e-05
+lambda	  : 2.13633e+08
+
+initial set of free parameter values
+
+a               = 2.98865e+08
+b               = -0.985625
+
+After 1 iterations the fit converged.
+final sum of squares of residuals : 2.46809e+18
+rel. change during last iteration : -1.45213e-15
+
+degrees of freedom (ndf) : 1587
+rms of residuals      (stdfit) = sqrt(WSSR/ndf)      : 3.94359e+07
+variance of residuals (reduced chisquare) = WSSR/ndf : 1.55519e+15
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+a               = 2.98865e+08      +/- 7.54e+06     (2.523%)
+b               = -0.985625        +/- 0.02496      (2.532%)
+
+
+correlation matrix of the fit parameters:
+
+               a      b      
+a               1.000 
+b              -0.991  1.000 
+
+
+*******************************************************************************
+Mon Oct 22 16:07:40 2012
+
+
+FIT:    data read from 'GPS_data.txt' using 2:3
+        #datapoints = 1589
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+fitted parameters initialized with current variable values
+
+
+
+Iteration 0
+WSSR        : 2.46809e+18       delta(WSSR)/WSSR   : 0
+delta(WSSR) : 0                 limit for stopping : 1e-05
+lambda	  : 2.13633e+08
+
+initial set of free parameter values
+
+a               = 2.98865e+08
+b               = -0.985625
+
+After 1 iterations the fit converged.
+final sum of squares of residuals : 2.46809e+18
+rel. change during last iteration : -8.29791e-16
+
+degrees of freedom (ndf) : 1587
+rms of residuals      (stdfit) = sqrt(WSSR/ndf)      : 3.94359e+07
+variance of residuals (reduced chisquare) = WSSR/ndf : 1.55519e+15
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+a               = 2.98865e+08      +/- 7.54e+06     (2.523%)
+b               = -0.985625        +/- 0.02496      (2.532%)
+
+
+correlation matrix of the fit parameters:
+
+               a      b      
+a               1.000 
+b              -0.991  1.000 
+
+
+*******************************************************************************
+Mon Oct 22 16:08:03 2012
+
+
+FIT:    data read from 'GPS_data.txt' using 2:3
+        #datapoints = 1589
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+fitted parameters initialized with current variable values
+
+
+
+Iteration 0
+WSSR        : 0.00758313        delta(WSSR)/WSSR   : 0
+delta(WSSR) : 0                 limit for stopping : 1e-05
+lambda	  : 2.13633e+08
+
+initial set of free parameter values
+
+a               = -1.51123e+06
+b               = -7.99982e-12
+
+After 1 iterations the fit converged.
+final sum of squares of residuals : 0.00758312
+rel. change during last iteration : -1.37925e-06
+
+degrees of freedom (ndf) : 1587
+rms of residuals      (stdfit) = sqrt(WSSR/ndf)      : 0.00218593
+variance of residuals (reduced chisquare) = WSSR/ndf : 4.77827e-06
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+a               = -1.51123e+06     +/- 0.0004179    (2.766e-08%)
+b               = -8.00831e-12     +/- 1.383e-12    (17.27%)
+
+
+correlation matrix of the fit parameters:
+
+               a      b      
+a               1.000 
+b              -0.991  1.000 

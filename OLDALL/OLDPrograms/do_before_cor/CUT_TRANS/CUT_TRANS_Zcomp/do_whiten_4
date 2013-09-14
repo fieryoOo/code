@@ -1,0 +1,62 @@
+echo on
+if ($#argv != 2) then
+  echo "USAGE: do_whiten_4 year month"
+  exit 1
+endif
+
+set bp = 5to100_EN
+set year = $argv[1]
+foreach month ( $argv[2] )
+echo $year
+echo $month
+
+if( $month == Jan ) @ nmonth =  1
+if( $month == Feb ) @ nmonth =  2
+if( $month == Mar ) @ nmonth =  3
+if( $month == Apr ) @ nmonth =  4
+if( $month == May ) @ nmonth =  5
+if( $month == Jun ) @ nmonth =  6
+if( $month == Jul ) @ nmonth =  7
+if( $month == Aug ) @ nmonth =  8
+if( $month == Sep ) @ nmonth =  9
+if( $month == Oct ) @ nmonth = 10
+if( $month == Nov ) @ nmonth = 11
+if( $month == Dec ) @ nmonth = 12
+
+
+
+
+
+cd $month
+mkdir $bp
+cd $bp
+
+foreach day ( 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 )
+set dirday =  $year"_"${nmonth}_${day}_0_0_0
+mkdir  $dirday
+cd $dirday
+cp ../../${dirday}/ft_*LHE.SAC .
+cp ../../${dirday}/ft_*LHN.SAC .
+ls ft_* > temp.ft
+awk '{print "120 100 5 4 1 1", $1}' temp.ft > param.dat
+/home/linf/NOISE_CODA/FTA/filter4_f/filter4  param.dat
+mkdir test
+cd test
+cp ../ft* .
+ls ft_* > temp.ft
+awk '{print "60 50 15 12 1 1", $1}' temp.ft > param.dat
+/home/linf/NOISE_CODA/FTA/filter4_f/filter4  param.dat
+cd ..
+grep LHE param.dat > param1.dat
+/home/linf/NOISE_CODA/FTA/gill_white_outphamp_NE/whiten_phamp  param1.dat
+rm -r test
+rm *SAC
+cd ../
+end
+
+cd ../
+
+cd ../
+
+end
+

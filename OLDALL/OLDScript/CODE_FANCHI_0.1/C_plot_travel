@@ -1,0 +1,11 @@
+#!/bin/csh
+if ($#argv != 1) then
+  echo "USAGE: C_plot_westUS_wk [data infile]"
+  exit 1
+endif
+set input_map = $argv[1]
+set REG = -R248/258/34/43
+
+gmtset BASEMAP_TYPE fancy
+surface $input_map -T0.0 -Gtomo.grd -I0.1 $REG
+grd2xyz tomo.grd $REG > $input_map".HD"

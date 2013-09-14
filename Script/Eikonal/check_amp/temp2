@@ -1,0 +1,87 @@
+#!/bin/csh
+if ($#argv != 2)then
+echo "usage: ph_diff [sac_path_1] [sta_loc_2]"
+exit
+endif
+
+cd $argv[1]
+#rm -f event_TA_XR.lst
+#foreach event (`ls -d 20*/ | cut -d/ -f1`)
+#ls -d $argv[2]/20* | awk -F/ '{print $NF}' | grep $event >> event_TA_XR.lst
+#end
+
+cp /home/tianye/Script/GMT/gmtdefaults4 ./.gmtdefaults4
+
+foreach station (`awk '{if(NR==32){print}}' $argv[2] | sed s/' '/'@'/g | sed s/'\+'/''/g`)
+set sta_name=`echo $station | cut -d@ -f1`
+set long=`echo $station | cut -d@ -f2`
+set lati=`echo $station | cut -d@ -f3`
+if (`echo "$long*2/2" | bc`<0)then
+ set long=`echo "$long+360" | bc`
+endif
+set gplong=`echo "$long*2000/2*0.001" | bc | sed s/'\.'/'\\.'/g`
+set gplati=`echo "$lati*2000/2*0.001" | bc | sed s/'\.'/'\\.'/g`
+set longlow=`echo "$long*20/2*0.1" | bc | sed s/'\.0'/''/g`
+set longhigh=`echo "$long*20/2*0.1+0.1" | bc | sed s/'\.0'/''/g`
+set latilow=`echo "$lati*20/2*0.1" | bc | sed s/'\.0'/''/g`
+set latihigh=`echo "$lati*20/2*0.1+0.1" | bc | sed s/'\.0'/''/g`
+echo $longlow,$longhigh;echo $latilow,$latihigh
+echo $long $lati
+set dis_lowlow=`echo "(($longlow-$long)*1.0000)^2+(($latilow-$lati)*1.0000)^2" | bc`
+set dis_lowhigh=`echo "(($longlow-$long)*1.0000)^2+(($latihigh-$lati)*1.0000)^2" | bc`
+set dis_highlow=`echo "(($longhigh-$long)*1.0000)^2+(($latilow-$lati)*1.0000)^2" | bc`
+set dis_highhigh=`echo "(($longhigh-$long)*1.0000)^2+(($latihigh-$lati)*1.0000)^2" | bc`
+echo $dis_lowlow $dis_lowhigh; echo $dis_highlow $dis_highhigh
+foreach period (30)
+echo 'working on station '$sta_name' for '$period'sec...'
+set dis=`echo "$period*12" | bc`
+cd $period'sec_10snr_'$dis'dis'
+mkdir -p $argv[1]/$period'sec_10snr_'$dis'dis'/ph_diff_$period's'
+rm -f $argv[1]/$period'sec_10snr_'$dis'dis'/ph_diff_$period's'/$sta_name
+rm -f $argv[1]/$period'sec_10snr_'$dis'dis'/ph_diff_$period's'/$sta_name'_pctg'
+foreach event (`more ../event_TA_XR.lst`)
+#set event=20080819163018
+if ( ! -e $event'.ph.txt_v2' ) then
+continue
+endif
+if ( ! `grep $gplong $argv[1]/$period'sec_10snr_'$dis'dis'/$event'.ph.txt_v2' | grep -c $gplati` )then
+continue
+endif
+
+awk -v long=$long -v lati=$lati 'sqrt(1.0000*(($1-long)^2+($2-lati)^2))>0.44 && sqrt(1.0000*(($1-long)^2+($2-lati)^2))<2.26' $event'.ph.txt_v2' > throw_v2_onesta_temp
+if ( `more throw_v2_onesta_temp | wc -l` < 10 )continue
+
+set rg_longlow=`echo "$long*20/2*0.1-2.2" | bc`
+set rg_longhigh=`echo "$long*20/2*0.1+2.3" | bc`
+set rg_latilow=`echo "$lati*20/2*0.1-2.2" | bc`
+set rg_latihigh=`echo "$lati*20/2*0.1+2.3" | bc`
+echo '-R'$rg_longlow'/'$rg_longhigh'/'$rg_latilow'/'$rg_latihigh > temp_onesta.region
+#echo $file'_no_'$sta_name
+/home/tianye/Script/GMT/C_plot_travel throw_v2_onesta_temp temp_onesta.region
+
+set ph_sta2=`grep $gplong $argv[1]/$period'sec_10snr_'$dis'dis'/$event'.ph.txt_v2' | grep $gplati | awk '{print $3}'`
+#echo $long $lati 
+#grep $gplong $argv[1]/$period'sec_10snr_'$dis'dis'/$event'.ph.txt_v2' | grep $gplati
+set lowlow=`grep $longlow'	'$latilow'	' throw_v2_onesta_temp.HD | awk '{print $3}'`
+set lowhigh=`grep $longlow'	'$latihigh'	' throw_v2_onesta_temp.HD | awk '{print $3}'`
+set highlow=`grep $longhigh'	'$latilow'	' throw_v2_onesta_temp.HD | awk '{print $3}'`
+set highhigh=`grep $longhigh'	'$latihigh'	' throw_v2_onesta_temp.HD | awk '{print $3}'`
+echo $lowlow,$lowhigh,$highlow,$highhigh
+
+set ph_pdt=`echo "(10000/$dis_lowlow*$lowlow+10000/$dis_lowhigh*$lowhigh+10000/$dis_highlow*$highlow+10000/$dis_highhigh*$highhigh)*1000/(10000/$dis_lowlow+10000/$dis_lowhigh+10000/$dis_highlow+10000/$dis_highhigh)*0.001" | bc`
+echo $ph_pdt
+#echo $ph_sta2
+#echo $gplong,$gplati
+#set amp_sta2=`grep $gplong $argv[1]/$period'sec_10snr_'$dis'dis'/$event'_am.txt_v2' | grep $gplati | awk '{print $3}'`
+set ph_diff=`echo "$ph_sta2*2000/2*0.001-($ph_pdt)" | bc`
+set diff_pctg=`echo "$ph_diff*10000/$ph_pdt*0.01" | bc`
+if (`echo "$diff_pctg*200/2" | bc`)then
+echo $ph_diff >> $argv[1]/$period'sec_10snr_'$dis'dis'/ph_diff_$period's'/$sta_name
+echo $diff_pctg >> $argv[1]/$period'sec_10snr_'$dis'dis'/ph_diff_$period's'/$sta_name'_pctg'
+endif
+#exit
+end
+#exit
+cd ..
+end
+end

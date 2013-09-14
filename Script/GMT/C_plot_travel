@@ -1,0 +1,28 @@
+#!/bin/csh
+if ($#argv != 5) then
+  echo "USAGE: C_plot_input_region [data infile] [region_infile] [resolution] [tension] [block_size(km) (1/3 inter sta dis?)]"
+  exit 1
+endif
+set input_map = $argv[1]
+set REG = `more $argv[2]`
+set res = $argv[3]
+set ts = `echo $argv[4] | awk '{printf "%.2f",$1}'`
+set bdis = `echo $argv[5] | awk '{printf "%.0f",$1}'`
+set temp1=`echo $input_map | awk -F/ '{print $NF}'`
+set temp2=`echo $argv[2] | awk -F/ '{print $NF}'`
+set tomo = $temp1'.'$temp2'.grd'
+gmtset BASEMAP_TYPE fancy
+rm -f $tomo
+if( $bdis != 0 ) then
+blockmean $input_map $REG -I$bdis'km' > $temp1'.'$temp2'.txt1'
+blockmean $temp1'.'$temp2'.txt1' $REG -F -I$bdis'km' > $temp1'.'$temp2'.txt'
+else cp $input_map $temp1'.'$temp2'.txt'
+endif
+surface $temp1'.'$temp2'.txt' -T$ts -G$tomo -I$res $REG
+#triangulate $input_map -G$tomo -I$res $REG
+#nearneighbor $input_map -G$tomo -I$res $REG -S260k -N6/4
+if (-e $tomo )then
+#grd2xyz $tomo $REG > $input_map"_ts"$ts"_bs"$bdis".HD"
+grd2xyz $tomo $REG > $input_map".HD"
+endif
+rm -f $tomo $temp1'.'$temp2'.txt' $temp1'.'$temp2'.txt1'

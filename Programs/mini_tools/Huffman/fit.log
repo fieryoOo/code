@@ -1,0 +1,135 @@
+
+
+*******************************************************************************
+Sun Feb 24 18:46:38 2013
+
+
+FIT:    data read from 'atomic_operations.txt'
+        #datapoints = 14
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+fitted parameters initialized with current variable values
+
+
+
+Iteration 0
+WSSR        : 2.89854e+13       delta(WSSR)/WSSR   : 0
+delta(WSSR) : 0                 limit for stopping : 1e-05
+lambda	  : 34096.7
+
+initial set of free parameter values
+
+a               = 1
+b               = 1
+
+After 5 iterations the fit converged.
+final sum of squares of residuals : 2.53725e+06
+rel. change during last iteration : -3.20408e-07
+
+degrees of freedom (ndf) : 12
+rms of residuals      (stdfit) = sqrt(WSSR/ndf)      : 459.823
+variance of residuals (reduced chisquare) = WSSR/ndf : 211438
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+a               = 31.5176          +/- 0.0526       (0.1669%)
+b               = -0.856942        +/- 0.01335      (1.558%)
+
+
+correlation matrix of the fit parameters:
+
+               a      b      
+a               1.000 
+b               0.999  1.000 
+
+
+*******************************************************************************
+Sun Feb 24 18:47:21 2013
+
+
+FIT:    data read from 'atomic_operations.txt'
+        #datapoints = 14
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+fitted parameters initialized with current variable values
+
+
+
+Iteration 0
+WSSR        : 2.53725e+06       delta(WSSR)/WSSR   : 0
+delta(WSSR) : 0                 limit for stopping : 1e-05
+lambda	  : 135597
+
+initial set of free parameter values
+
+a               = 31.5176
+b               = -0.856942
+
+After 1 iterations the fit converged.
+final sum of squares of residuals : 2.53725e+06
+rel. change during last iteration : -7.13931e-14
+
+degrees of freedom (ndf) : 12
+rms of residuals      (stdfit) = sqrt(WSSR/ndf)      : 459.823
+variance of residuals (reduced chisquare) = WSSR/ndf : 211438
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+a               = 31.5176          +/- 0.0526       (0.1669%)
+b               = -0.856942        +/- 0.01335      (1.558%)
+
+
+correlation matrix of the fit parameters:
+
+               a      b      
+a               1.000 
+b               0.999  1.000 
+
+
+*******************************************************************************
+Sun Feb 24 18:47:57 2013
+
+
+FIT:    data read from 'atomic_operations.txt'
+        #datapoints = 14
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+fitted parameters initialized with current variable values
+
+
+
+Iteration 0
+WSSR        : 2.53725e+06       delta(WSSR)/WSSR   : 0
+delta(WSSR) : 0                 limit for stopping : 1e-05
+lambda	  : 135597
+
+initial set of free parameter values
+
+a               = 31.5176
+b               = -0.856942
+
+After 1 iterations the fit converged.
+final sum of squares of residuals : 2.53725e+06
+rel. change during last iteration : -4.03766e-14
+
+degrees of freedom (ndf) : 12
+rms of residuals      (stdfit) = sqrt(WSSR/ndf)      : 459.823
+variance of residuals (reduced chisquare) = WSSR/ndf : 211438
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+
+a               = 31.5176          +/- 0.0526       (0.1669%)
+b               = -0.856942        +/- 0.01335      (1.558%)
+
+
+correlation matrix of the fit parameters:
+
+               a      b      
+a               1.000 
+b               0.999  1.000 

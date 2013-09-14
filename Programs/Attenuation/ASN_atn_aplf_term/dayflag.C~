@@ -1,0 +1,262 @@
+#define MAIN
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+#include <unistd.h>
+
+#include <iostream>
+#include <sys/stat.h>
+#include "/home/tianye/code/Programs/head/mysac.h"
+
+using namespace std;
+
+void bin2hex( short* bin, char* hex );
+
+SAC_HD *read_sac (char *fname, float *sig, SAC_HD *SHD, int nmax);
+
+void write_sac (char *fname, float *sig, SAC_HD *SHD)
+
+#define NSTA 2000
+
+int extract_day_flag ( char *stalst, char dirlst ) {
+ 
+  int i,j,k,nsta,ndir,npath,ii,jj,jjj,jjjj,flag;
+  short day_fs[32];
+  char staname[NSTA][10],outname[100],dirlist[100][300],outfname[300],lst_name[300],outdir1[300],tstr[300],buff[100],dstr[32],pstr[NSTA*NSTA/2][100];
+  char tname1[300],tname2[300],tname3[300],tname4[300], stnm1[6], stnm2[6];
+  float stalat[NSTA],stalon[NSTA],fsig[6001];
+  FILE *ff1, *flst;  
+
+  struct stat st;
+  SAC_HD shd,shd1;
+
+
+  if (argn != 4) {
+    fprintf (stderr,"input [station.lst] [dir.lst] [out.dir]\n");
+    return 0;
+    }
+
+  sprintf(tstr,"mkdir -p %s\0" , argv[3]);
+  system(tstr);
+
+  if ((ff1 = fopen(argv[1],"r"))==NULL) {
+    fprintf(stderr,"cannot open file %s\n",argv[1]);
+    return 0;
+    }
+
+  for (i=0;;i++) {
+    if (fscanf(ff1,"%s %g %g", &staname[i], &stalon[i], &stalat[i]) != 3) break;
+    }
+  nsta = i;
+  fclose(ff1);  
+
+  if ((ff1 = fopen(argv[2],"r"))==NULL) {
+    fprintf(stderr,"cannot open file %s\n",argv[1]);
+    return 0;
+    }
+  for (i=0;;i++) {
+    if (fscanf(ff1,"%s", &dirlist[i]) != 1) break;
+    }
+  ndir = i;
+  fclose(ff1); 
+  
+  fprintf (stderr,"%d %d\n",nsta,ndir);
+
+  char tmpc[9], sflag[nsta][nsta], day_fc[nsta][nsta][9*ndir+1];
+/*
+  char ***day_fc = (char ***) malloc(nsta * sizeof(char **));
+  for(i=0;i<nsta;i++) {day_fc[i] = (char **) malloc(nsta * sizeof(char *));}
+  for(i=0;i<nsta;i++) for(j=0;j<nsta;j++) {
+     day_fc[i][j] = (char *) malloc((9 * ndir + 1) * sizeof(char)); }
+  char **sflag = (char **) malloc(nsta * sizeof(char *));
+  for(i=0;i<nsta;i++) {sflag[i] = (char *) malloc(nsta * sizeof(char));}
+  if( sflag == NULL || day_fc == NULL) return 0;
+  for(i=0;i<nsta;i++) {if( sflag[i] == NULL || day_fc[i] == NULL )return 0;}
+  for(i=0;i<nsta;i++) for(j=0;j<nsta;j++) {if( day_fc[i][j] == NULL )return 0;}
+*/
+  for (i=0;i<ndir;i++) {
+     for(j=0;j<nsta;j++)for(k=j;k<nsta;k++) sflag[j][k] = '0';
+     sprintf(tname1,"%s/Cor_dayflag.lst",dirlist[i]);
+     if ((ff1 = fopen(tname1,"r"))==NULL) {
+        fprintf(stderr,"cannot locate the dayflag file %s\n",tname1);
+        return 0;
+     }
+     for(j=0;;j++) {
+        if( (fgets(pstr[j], 300, ff1)) == NULL ) break; }
+     fclose(ff1);
+     npath=j;
+     for(j=0;j<npath;j++){
+        sscanf(pstr[j],"%s%s",&buff,&dstr);
+        sscanf(buff,"%[^_]_%[^_]_%[^.]",&tstr,&stnm1,&stnm2);
+        for(ii=0;ii<nsta;ii++) if(strcmp(stnm1,staname[ii])==0) break;
+        for(jj=0;jj<nsta;jj++) if(strcmp(stnm2,staname[jj])==0) break;
+        if( ii==nsta || jj==nsta ) {
+           cout<<"Station "<<stnm1<<" or "<<stnm2<<" not found in "<<argv[1]<<endl;
+           continue;
+        }
+        if(ii>jj) {
+          k=ii; ii=jj; jj=k;
+        }
+        if( sflag[ii][jj] == '1' ) continue;
+        day_fs[0]=0;
+        sscanf(dstr,"%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d",&day_fs[1],&day_fs[2],&day_fs[3],&day_fs[4],&day_fs[5],&day_fs[6],&day_fs[7],&day_fs[8],&day_fs[9],&day_fs[10],&day_fs[11],&day_fs[12],&day_fs[13],&day_fs[14],&day_fs[15],&day_fs[16],&day_fs[17],&day_fs[18],&day_fs[19],&day_fs[20],&day_fs[21],&day_fs[22],&day_fs[23],&day_fs[24],&day_fs[25],&day_fs[26],&day_fs[27],&day_fs[28],&day_fs[29],&day_fs[30],&day_fs[31]);
+        bin2hex( day_fs, tmpc );
+        sprintf(&day_fc[ii][jj][i*9], "%s ", tmpc);
+        sflag[ii][jj] = '1';
+/*
+        if(strlen(day_fc[ii][jj])!=(i+1)*9){
+           for(k=0;k<(i+1)*9;k++)if(day_fc[ii][jj][k]=='\0')day_fc[ii][jj][k]='!';
+           cout<<strlen(day_fc[ii][jj])<<" ?= "<<(i+1)*9<<endl;
+           ntmp=day_fc[ii][jj];
+           cout<<"after: "<<tmpc<<" "<<ntmp<<endl;
+        }
+*/
+     }
+     for(j=0;j<nsta;j++) for(k=j+1;k<nsta;k++) { 
+        if( sflag[j][k] == '0' ) sprintf(&day_fc[j][k][i*9],"00000000 "); }
+  }
+
+  sprintf(tname1,"%s/Cor_dayflag.lst\0",argv[3]);
+  if ((flst = fopen(tname1,"w"))==NULL) {
+     fprintf(stderr,"Cannot open Cor_dayflag.lst to write\n");
+     return 0;
+  }
+  for(i=0;i<nsta;i++) for(j=i+1;j<nsta;j++){
+     sprintf(lst_name,"%s/COR_%s_%s.SAC",staname[i],staname[i],staname[j]);
+     fprintf(flst,"%s\t%s\n",lst_name, day_fc[i][j]);
+  }
+  fclose(flst);
+
+//  sprintf(tname1,"%s/file_daynum.lst",argv[3]);
+//  if ((flst = fopen(tname1,"w"))==NULL) {
+//     fprintf(stderr,"Cannot open list file file_daynum.lst to write\n");
+//     return 0;
+//    }
+
+  jj=0; k=0;
+  for (i=0;i<nsta;i++) {
+     sprintf(outdir1,"%s/%s\0",argv[3],staname[i]);
+     if (access(outdir1,F_OK) != 1) {
+	fprintf (stderr,"open directory %s\n",outdir1);
+	sprintf(tstr,"mkdir -p %s\0" , outdir1);
+	system(tstr);
+	}
+     jjj = 0;
+     jjjj = 0;
+
+     for (j=i+1;j<nsta;j++) {
+       sprintf(outname,"COR_%s_%s.SAC",staname[i],staname[j]);
+       sprintf(lst_name,"%s/COR_%s_%s.SAC",staname[i],staname[i],staname[j]);
+       sprintf(outfname,"%s/%s/COR_%s_%s.SAC",argv[3],staname[i],staname[i],staname[j]);
+       flag = 0;
+
+       jj = jj +1 ;
+       jjj = jjj + 1;
+       if (fmod(jj,50) == 0) fprintf(stderr,"%d %d %s %d\n",jj,jjj,outname,jjjj);
+
+
+       if (access(outfname,F_OK) == 0) continue;
+
+       jjjj = 0;
+       for (k=0;k<ndir;k++) {
+         if(stat(dirlist[k],&st) != 0){
+           printf("Can't access path: %s\n",dirlist[k]);
+           continue;
+          }
+         sprintf(tname1,"%s/%s/COR_%s_%s.SAC\0",dirlist[k],staname[i],staname[i],staname[j]);
+         sprintf(tname2,"%s/%s/COR_%s_%s.SAC\0",dirlist[k],staname[j],staname[j],staname[i]);
+//	 sprintf(tname3,"%s/COR_%s_%s.SAC\0",dirlist[k],staname[i],staname[j]);
+//	 sprintf(tname4,"%s/COR_%s_%s.SAC\0",dirlist[k],staname[j],staname[i]);
+
+	 if (access(tname1,F_OK) == 0) {
+//	    fprintf (stderr,"yes!! file %s\n",tname1);
+	    if (flag == 0) {
+		shd = sac_null;
+                shd.user0=0;
+		for (ii=0;ii<6001;ii++) fsig[ii] = 0.;
+		sac_add (&shd,fsig,tname1,1);
+		flag = 1;
+		jjjj ++;
+		continue;
+		}
+	    else {
+		sac_add(&shd,fsig,tname1,1);
+		jjjj ++;
+		continue;
+		}
+	    }
+	 if (access(tname2,F_OK) == 0) {
+//	    fprintf (stderr,"yes!! file %s\n",tname2);
+            if (flag == 0) {
+                shd = sac_null;
+                for (ii=0;ii<6001;ii++) fsig[ii] = 0.;
+                sac_add (&shd,fsig,tname2,0);
+                flag = 1;
+		jjjj ++;
+		continue;
+                }
+            else {
+                sac_add(&shd,fsig,tname2,0);
+		jjjj ++;
+		continue;
+                }
+            }
+
+/*
+	 if (access(tname3,F_OK) == 0) {
+//	    fprintf (stderr,"yes!! file %s\n",tname3);
+            if (flag == 0) {
+                shd = sac_null;
+                for (ii=0;ii<6001;ii++) fsig[ii] = 0.;
+                sac_add (&shd,fsig,tname3,1);
+                flag = 1;
+		jjjj ++;
+		continue;
+                }
+            else {
+                sac_add(&shd,fsig,tname3,1);
+		jjjj ++;
+		continue;
+                }
+            }
+
+	  if (access(tname4,F_OK) == 0) {
+//	    fprintf (stderr,"yes!! file %s\n",tname4);
+            if (flag == 0) {
+                shd = sac_null;
+                for (ii=0;ii<6001;ii++) fsig[ii] = 0.;
+                sac_add (&shd,fsig,tname4,0);
+                flag = 1;
+		jjjj ++;
+                }
+            else {
+                sac_add(&shd,fsig,tname4,0);
+		jjjj ++;
+                }
+            }
+*/
+
+         }
+       if (flag==1) {
+	 shd.evlo = stalon[i];
+	 shd.evla = stalat[i];
+	 sprintf(shd.kevnm,"%s\0",staname[i]);
+	 shd.stlo = stalon[j];
+	 shd.stla = stalat[j];
+	 sprintf(shd.kstnm,"%s\0",staname[j]);
+	 shd.npts = 6001;
+	 shd.b = -3000;
+	 shd.lcalda = 1;
+	 shd.dist = 100.;
+	 write_sac(outfname,fsig,&shd);
+//         fprintf(flst,"%s   %d\n",lst_name,(int)shd.user0);
+	 }
+      
+       } //sta2
+     } //sta1
+//  fclose(flst);
+
+  return 1;
+  }

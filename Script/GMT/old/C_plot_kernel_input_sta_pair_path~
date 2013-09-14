@@ -1,0 +1,124 @@
+#!/bin/csh
+# Script for plotting the inversion results for the western US region from the weekly stacks.
+
+# GET PLOTTING PARAMETERS
+if ($#argv != 4) then
+  echo "USAGE: C_plot [cpt file] [data infile] [region_infile] [sta_pair_lst]"
+  exit 1
+endif
+
+cp /home/tianye/Script/GMT/gmtdefaults4 ./.gmtdefaults4
+#gmtset ANOT_FONT_SIZE 10
+#gmtset BASEMAP_TYPE plain
+#gmtset MEASURE_UNIT cm
+set cptfile = $argv[1]
+set input_map = $argv[2]
+set sta_file = `echo $input_map | sed s/'.HD'/''/g`
+#set sta_list = $argv[3]
+
+#set tomo_label=$input_map
+
+foreach i (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)
+set event_label=`echo $input_map | sed s/'\.'/'_'/g | cut -d_ -f$i`
+if( `echo $event_label | awk '{print length}'` == 14 )then
+break
+endif
+end
+set title=`echo $input_map | sed s/'\.'/'_'/g | cut -d_ --complement -f$i | sed s/'_txt.*HD'/''/g | sed s/'_'/' '/g`
+
+set out_name = `echo $input_map `
+#set event = `echo $out_name | cut -d/ -f8 | cut -d_ -f1`
+set source = `echo $out_name | cut -d. --complement -f3`
+set output_ps_file = ${out_name}.ps
+echo "writing $output_ps_file file"
+if (-f $output_ps_file) rm $output_ps_file
+
+# COPY NECESSARY FILES FROM gmt_files 
+#if ($per == 8) then
+  #cp /home/linf/SCRIPTS/Morgan/gmt_files/CAtomo_8s.cpt ./8s.cpt
+#  cp /home/linf/SCRIPTS/Morgan/gmt_files/CAtomo_8sB.cpt ./8s.cpt
+#set cptfile = /home/tianye/Script/GMT/cpt/$per
+
+cp /home/tianye/Script/GMT/head/topo_westUS2.xyz .
+set topofile = topo_westUS2.xyz
+#set topogrd = topo.grd
+#set topoint = topoint.grd
+#set SCA = -Jm.87
+set REG = `more $argv[3]`
+
+#set latimin=`echo $REG | cut -d/ -f3`
+#set latimax=`echo $REG | cut -d/ -f4`
+#set SCA = '-Jm'`echo "12700/($latimax-$latimin)*0.001" | bc`
+#set longmin=`echo $REG | cut -d/ -f1`
+#set longmax=`echo $REG | cut -d/ -f2`
+#set scaY=`echo $longmin $longmax $latimin $latimax | awk '{print 15/($4-$3)*($2-$1)}'`
+set SCA=-JM15h
+
+#gmtset BASEMAP_TYPE fancy
+
+
+# sample topography and tomography
+#pwd | psxy -H $REG $SCA -Ba2f1g1/a2f1g1WeSn:."": -X1 -Y1.8 -P  -V -K  >! $output_ps_file
+pwd | psxy -H $REG $SCA -X2.2 -Y8.0 -P  -V -K  >! $output_ps_file
+#xyz2grd $topofile -G$topogrd -I4m -N-999 $REG -V
+#grdgradient $topogrd -A90 -G$topoint -Nt -V
+
+#psclip $REG $SCA -O -P -K -V << EOF >> $output_ps_file
+#235 30
+#235 50
+#250 50
+#250 30
+#235 30
+#EOF
+
+xyz2grd $input_map -Gtomo.grd -I0.1 -V $REG
+grdsample tomo.grd -Q -Gtomo2.grd $REG -I2m
+#grdimage $SCA $REG tomo2.grd -C$cptfile -I$topoint -O -P -K >> $output_ps_file
+#grdsample tomo.grd -Gtomo2.grd $REG -I4m
+#surface $input_map -T.2 -Gtomo.grd -I0.1 $REG
+#grdsample tomo.grd -Gtomo2.grd $REG -I4m
+#psbasemap $REG $SCA -Bf1a2:Distance:/:"No  of  samples":WeSn -O -P -K >> $output_ps_file
+
+grdimage $SCA $REG tomo2.grd -C$cptfile -B:."$title": -X3 -O -P -K >> $output_ps_file
+#set cont_dis=`awk 'BEGIN{b=99999;e=-99999}{if(b>$3){b=$3};if(e<$3){e=$3}}END{print (e-b)/20}' $input_map`
+set cont_dis=1000
+
+pscoast $SCA $REG -A100 -N1/3/0/0/0 -N2/3/0/0/0 -O -K >> $output_ps_file
+pscoast $SCA $REG -Ba5f1/a5f1WESN:."": -W3/0/0/0 -S135/206/235 -O -K >> $output_ps_file
+
+grdcontour $SCA $REG tomo.grd -C$cont_dis -W.5p,black -O -K >> $output_ps_file
+awk 'NR>0 && NR<3' $argv[4] | psxy $REG $SCA -W10,red -O -K  >> $output_ps_file
+awk 'NR>2 && NR<5' $argv[4] | psxy $REG $SCA -W10,red -O -K  >> $output_ps_file
+awk 'NR>4 && NR<7' $argv[4] | psxy $REG $SCA -W10,red -O -K  >> $output_ps_file
+awk 'NR>6 && NR<9' $argv[4] | psxy $REG $SCA -W10,red -O -K  >> $output_ps_file
+
+#psclip -C -O -K >> $output_ps_file
+#pscoast $SCA $REG -A100 -N1/3/0/0/0 -N2/3/0/0/0 -O -K >> $output_ps_file
+# removed gridlines (uncomment to replace)
+#pscoast $SCA $REG -Ba5f5g2.5/a5f5g2.5WeSn:."": -W3/0/0/0 -S135/206/235  -O -K >> $output_ps_file
+#pscoast $SCA $REG -Ba5f1/a5f1WESN:."": -W3/0/0/0 -S135/206/235 -O -K >> $output_ps_file
+
+#psxy $temp_name".good5.ph.txt" $SCA $REG -St.25 -W3 -G255/255/255 -O -K >> $output_ps_file
+#psxy source.txt $SCA $REG -Sa.8 -W3 -G255/255/255 -O -K >>$output_ps_file
+#psxy target.txt $SCA $REG -Sa.8 -W3 -G255/255/255 -O -K >>$output_ps_file
+
+psxy $sta_file $SCA $REG -St.1 -W3 -G200/200/200 -O -K >> $output_ps_file
+
+#psxy $temp_name".good5.ph.txt" $SCA $REG -St.25 -W3  -O -K >> $output_ps_file
+#psxy $source $SCA $REG -St.2 -W3  -O -K >>$output_ps_file
+#psxy target.txt $SCA $REG -Sa.8 -W3  -O -K >>$output_ps_file
+
+#psxy /data/ocarina2/linf/California/2006_Rayleigh/one_year_COR_ZZ/TOMO_phvel_2nd_iter/test_kernel/tomo_inv/wus_province_II.dat $SCA $REG -W5/255/0/0 -M"99999 99999"  -O -K >> $output_ps_file
+psxy /home/tianye/Script/GMT/head/wus_province_II.dat $SCA $REG -W5/255/0/0 -m"99999 99999"  -O -K >> $output_ps_file
+psscale  -C$cptfile -P -D-3.5/7.5/15/1 -O -K -L  >> $output_ps_file
+
+# LABELS
+pstext -R0/10/0/10 -JX10c  -V -O -N -G0 -Y3c -X0.5c << END >>  $output_ps_file
+
+3 -4.5 16 0.0 7 CB  event: $event_label
+#5.50 -6.75 16 0.0 7 CB  phase velocity (km/s)
+END
+
+\rm tomo.grd tomo2.grd topo_westUS2.xyz
+#xv $output_ps_file &
+

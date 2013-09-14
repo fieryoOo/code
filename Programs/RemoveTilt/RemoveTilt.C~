@@ -1,0 +1,146 @@
+#define MAIN
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <iostream>
+#include "mysac64.h"
+using namespace std;
+
+extern "C" {
+void FFT_(double *dt, int *n, float seis_in[], float seis_outamp[], float seis_outph[],int *nk,double *dom);
+}
+
+SAC_HD *read_sac (char *fname, float **sig, SAC_HD *SHD) {
+   FILE *fsac;
+   if((fsac = fopen(fname, "r"))==NULL) return NULL;
+   if ( !SHD ) SHD = &SAC_HEADER;
+   fread(SHD,sizeof(SAC_HD),1,fsac);
+   //*sig = (float *) malloc (SHD->npts * sizeof(float));
+   *sig = new float[SHD->npts];
+   fread(*sig,sizeof(float),SHD->npts,fsac);
+   fclose (fsac);
+
+   /*-------------  calcule de t0  ----------------*/
+   {
+        int eh, em ,i;
+        float fes;
+        char koo[9];
+
+        for ( i = 0; i < 8; i++ ) koo[i] = SHD->ko[i];
+        koo[8] = 0;
+
+        SHD->o = SHD->b + SHD->nzhour*3600. + SHD->nzmin*60 +
+         SHD->nzsec + SHD->nzmsec*.001;
+
+        sscanf(koo,"%d%*[^0123456789]%d%*[^.0123456789]%g",&eh,&em,&fes);
+
+        SHD->o  -= (eh*3600. + em*60. + fes);
+   /*-------------------------------------------*/}
+   return SHD;
+}
+
+void write_sac (char *fname, float *sig, SAC_HD *SHD) {
+   FILE *fsac;
+   fsac = fopen(fname, "wb");
+   if ( !SHD ) SHD = &SAC_HEADER;
+   SHD->iftype = (int)ITIME;
+   SHD->leven = (int)TRUE;
+   SHD->lovrok = (int)TRUE;
+   SHD->internal4 = 6L;
+
+  /*+++++++++++++++++++++++++++++++++++++++++*/
+   SHD->depmin = sig[0];
+   SHD->depmax = sig[0];
+   int i;
+   for ( i = 0; i < SHD->npts ; i++ )
+   {
+    if ( SHD->depmin > sig[i] ) SHD->depmin = sig[i];
+    if ( SHD->depmax < sig[i] ) SHD->depmax = sig[i];
+   }
+
+         fwrite(SHD,sizeof(SAC_HD),1,fsac);
+
+         fwrite(sig,sizeof(float),(int)(SHD->npts),fsac);
+
+
+        fclose (fsac);
+}
+
+int main (int argc, char *argv[])
+{
+   if( argc != 8) {
+      cout<<"Usage: "<<argv[0]<<" [SAC_BHZ] [SAC_BDH] [f1] [f2] [f3] [f4] [out_name]"<<endl;
+      exit(-1);
+   }
+   
+   double f1 = atof(argv[3]);
+   double f2 = atof(argv[4]);
+   double f3 = atof(argv[5]);
+   double f4 = atof(argv[6]);
+   if( f1<0 || f1>=f2 || f2>=f3 || f3>=f4 ) {
+      cout<<"Incorrect corner frequencies"<<endl;
+      exit(0);
+   }
+
+   float *sigZ, *sigD;
+   SAC_HD shdZ, shdD;
+   if( read_sac(argv[1], &sigZ, &shdZ) == NULL ) {
+      cout<<"Cannot access file "<<argv[1]<<endl;
+      exit(0);
+   }
+   if( read_sac(argv[2], &sigD, &shdD) == NULL ) {
+      cout<<"Cannot access file "<<argv[2]<<endl;
+      exit(0);
+   }
+
+   int nkZ, nkD, npow = 1;
+   int nsp = (int)pow(2., floor(log(shdZ.npts)/log(2.)))+10;
+   float sigZam[nsp], sigZph[nsp];
+   float sigDam[nsp], sigDph[nsp];
+   double dt = shdZ.delta, domZ, domD;
+   if(dt!=shdD.delta) {
+      cout<<"Incompatible sampling rate"<<endl;
+      exit(0);
+   }
+   FFT_(&dt,&shdZ.npts,sigZ,sigZam,sigZph,&nkZ,&domZ);
+   FFT_(&dt,&shdD.npts,sigD,sigDam,sigDph,&nkD,&domD);
+   if( domZ!=domD || nkZ!=nkD ) {
+      cout<<"Incompatible am/ph files"<<endl;
+      exit(0);
+   }
+
+   int i, j, ii;
+   int hlen = 100, ib = (int)floor(f1/domZ);
+   if(ib<hlen) ib=hlen;
+   double xx,xy,yy,x,y,xy_r,xy_i,x_r,y_r,x_i,y_i;
+   double temp_ph, temp_am, fcurrent = ib*domZ, pi = 4.0*atan(1.0);
+   FILE *fout;
+   fout = fopen(argv[7], "w");
+   for(i=ib; i<nkZ-hlen&&fcurrent<=f4; i++, fcurrent+=domZ) {
+      xx=0; yy=0;
+      xy_r=0; xy_i=0;
+      x_r=0; x_i=0;
+      y_r=0; y_i=0;
+      for(ii=-100;ii<=100;ii++) {
+          j=ii+i;
+          x=sigDam[j];
+          y=sigZam[j];
+          xx+=x*x;
+          yy+=y*y;
+          xy_r+=x*y*cos(sigDph[j]-sigZph[j]);
+          xy_i+=x*y*sin(sigDph[j]-sigZph[j]);
+      }
+      temp_ph=atan(xy_i/xy_r);
+      if(xy_r<0)
+        temp_ph+=pi;
+      if(temp_ph>pi)
+        temp_ph-=2*pi;
+      temp_am=sqrt(xy_r*xy_r+xy_i*xy_i);
+      fprintf(fout, "%lf %lf %lf %lf\n", fcurrent, temp_am/sqrt(xx*yy), temp_am/xx, temp_ph);
+   }
+   fclose(fout);
+
+   delete [] sigZ;
+   delete [] sigD;
+   return 1;
+}

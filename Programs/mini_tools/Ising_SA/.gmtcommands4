@@ -1,0 +1,15 @@
+# GMT common arguments shelf
+-Ba10f1/a10f1WESN:.T=7.5e-16 p=80.00% E=-4792:
+-JN25/6i
+-JX5i
+-R0/49/0/49
+-X2.2
+-x3
+-Y8.0
+-y3c
+-jX5i
+EOF
+
+i
+EOF
+F

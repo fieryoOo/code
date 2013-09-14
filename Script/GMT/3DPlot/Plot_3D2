@@ -1,0 +1,43 @@
+#!/bin/csh
+# GMT script to plot Gulf Coast Seismicity
+# AVN
+# Last modified Mon Sep 11 20:56:16 EDT 2006
+
+
+## DECLARE YOUR VARIABLES HERE ##
+#################################
+  set SCALE=15                   # scale of overall plot
+  set LONMIN=-85; set LONMAX=-80. # Longitude range of plots
+  set LATMIN=20  ; set LATMAX=25. # Latitude range of plots
+  set ZMIN=-4000; set ZMAX=2000
+  set OUTFILE=out.ps                 # Output file
+  set RANGE='-R'$LONMIN'/'$LONMAX'/'$LATMIN'/'$LATMAX'/'$ZMIN'/'$ZMAX
+  set PROJ='-JX'${SCALE}
+  set ZSCALE=3.
+  set ZPROJ='-JZ'${ZSCALE}
+  set ELEV="-E200/20"   # orientation
+  set BGN=$RANGE' '$PROJ' '$ZPROJ' '$ELEV' -K'
+  set MID=$RANGE' '$PROJ' '$ZPROJ' '$ELEV' -O -K'
+  set END=$RANGE' '$PROJ' '$ZPROJ' '$ELEV' -O'
+#################################
+  set EQS='EQs_gulf.txt'
+  set CPTTOPO='out.cpt'   # a default GMT cpt
+  set TOPOGRD='Gulf.grd'      # created here
+  STATIONS=~anewman/seismic/stations/station_comma_list.asc
+################################
+
+# CREATE A LETTER SIZE BOUNDING BOX
+  gmtset PAPER_MEDIA letter+  PSIMAGE_FORMAT bin BASEMAP_TYPE plain  PLOT_DEGREE_FORMAT D ANOT_FONT_SIZE 16
+###########################################################
+  pscoast -B0.5a1WSen  -Dc -W1/255 -Y5 -X3 -P $BGN > $OUTFILE
+
+ # .PLOT TOPO/BATH
+    grdraster 1 $RANGE -G$TOPOGRD -V
+    grdgradient $TOPOGRD -GIllum.grd  -A10 -Ne0.6
+    grdview  $TOPOGRD -C$CPTTOPO   -IIllum.grd -Qs100  $END >>$OUTFILE
+
+# PUT HIDDEN STAMP IN FILE THAT WILL DENOTE ITS SOURCE
+  echo " %% created by ${USER} using ${HOST}:${PWD}/$0 $* " >>$OUTFILE
+# BRING UP PLOT
+  gs   $OUTFILE
+exit 0

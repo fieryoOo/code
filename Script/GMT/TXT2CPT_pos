@@ -1,0 +1,51 @@
+#!/bin/csh
+if ($#argv != 1) then
+echo "USAGE: TXT2CPT [input file]"
+exit
+endif
+
+set in_map=$argv[1]
+set tmp_map = $argv[1]'_tmp'
+awk '$3>0' $in_map > $tmp_map
+set avg=`awk 'BEGIN{avg=0}{avg+=$3}END{print avg/NR}' $tmp_map`
+set avg_high_end=`awk -v avg=$avg 'BEGIN{avg_h=0;N=0}{if($3>avg){avg_h+=$3;N+=1}}END{if(N==0){print avg}else{print 3*avg_h/N-2*avg}}' $tmp_map`
+set flag=`echo $avg $avg_high_end | awk '{if($1==$2){print 1}else{print 0}}'`
+if ( $flag )then
+set flow=`echo $avg | awk '{printf "%.3g",$1*0.99}'`
+set fhigh=`echo $avg | awk '{printf "%.3g",$1*1.01}'`
+echo $flow" 255 255 0 "$fhigh" 255 255 0\
+B 0 0 0\
+F 100 0 170\
+N 128 128 128\" > $in_map.cpt
+break
+endif
+
+set avg_low_end=`awk -v avg=$avg 'BEGIN{avg_l=0;N=0}{if($3<avg){avg_l+=$3;N+=1}}END{if(N==0){print avg}else{print 3*avg_l/N-2*avg}}' $tmp_map`
+set high_end=`awk 'BEGIN{high=-99999}{if($3>high){high=$3}}END{print high}' $tmp_map`
+set low_end=`awk 'BEGIN{low=99999}{if($3<low){low=$3}}END{print low}' $tmp_map`
+#echo $avg,$avg_high_end,$high_end,$avg_low_end,$low_end
+if ( `echo $high_end $avg_high_end | awk '{if($1>$2){print 1}else{print 0}}'` ) then
+ set high_end=$avg_high_end
+endif
+if ( `echo $low_end $avg_low_end | awk '{if($1<$2){print 1}else{print 0}}'` ) then
+ set low_end=$avg_low_end
+endif
+set inc_low=`echo $avg $low_end | awk '{print ($1-$2)/3}'`
+set inc_high=`echo $avg $high_end | awk '{print ($2-$1)/3}'`
+set low3=`echo $avg $inc_low | awk '{printf "%.3g",$1-$2*3}'`
+set low2=`echo $avg $inc_low | awk '{printf "%.3g",$1-$2*2}'`
+set low1=`echo $avg $inc_low | awk '{printf "%.3g",$1-$2*1}'`
+set high1=`echo $avg $inc_high | awk '{printf "%.3g",$1+$2*1}'`
+set high2=`echo $avg $inc_high | awk '{printf "%.3g",$1+$2*2}'`
+set high3=`echo $avg $inc_high | awk '{printf "%.3g",$1+$2*3}'`
+set avg=`echo $avg | awk '{printf "%.3g",$1}'`
+echo $low3" 0 0 0 "$low2" 255 0 0\
+"$low2" 255 0 0 "$low1" 255 255 0\
+"$low1" 255 255 0 "$avg" 255 255 255\
+"$avg" 255 255 255 "$high1" 150 255 150\
+"$high1" 150 255 150 "$high2" 100 185 255\
+"$high2" 100 185 255 "$high3" 100 0 170\
+B 0 0 0\
+F 100 0 170\
+N 128 128 128\" > $in_map.cpt
+rm -f $tmp_map

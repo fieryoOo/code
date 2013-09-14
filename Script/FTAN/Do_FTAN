@@ -1,0 +1,92 @@
+#!/bin/csh
+
+if( $#argv != 3 ) then
+   echo "Usage: "$0" [sacfile] [station.lst] [mode (0=fundamental, 1=overtone)]"
+   exit 0
+endif
+
+### locate stations
+set sacf = $argv[1]
+set sac = `echo $argv[1] | awk -F/ '{print $NF}'`
+set sta1 = `echo $sacf | cut -d_ -f2`
+set sta2 = `echo $sacf | cut -d_ -f3 | cut -d. -f1`
+### read locations from station.lst
+set stalst = $argv[2]
+set loc = `awk -v sta=$sta1 '$1==sta{print $2"_"$3; exit}' $stalst`
+set lat1 = `echo $loc | cut -d_ -f2`
+set lon1 = `echo $loc | cut -d_ -f1`
+set loc = `awk -v sta=$sta2 '$1==sta{print $2"_"$3; exit}' $stalst`
+set lat2 = `echo $loc | cut -d_ -f2`
+set lon2 = `echo $loc | cut -d_ -f1`
+### estimate wavelength
+set lamdamin = 2
+set lamdamax = 10
+### set all names
+set outname = $sacf'_DISP_predicted'
+set outnm2 = 'test2'
+### compute bathymetry and age
+set exe = '/home/tianye/Programs/mini_tools/MapOperation/PathAvg/PathAvg'
+set bathypath = '/mtera/tianye/ASN_OBS_BHZ/PaperResults/DISP_Pred/Bathymetry'
+set agepath = '/mtera/tianye/ASN_OBS_BHZ/PaperResults/DISP_Pred/Age'
+set bathy = `$exe $bathypath'/sea_floor.CICE.HD' $lat1 $lon1 $lat2 $lon2 $lamdamax`
+echo $lat1 $lon1 $lat2 $lon2 $lamdamax
+set age = `$exe $agepath'/age.3.6.xyz.HD' $lat1 $lon1 $lat2 $lon2 $lamdamax | awk '{printf "%.1f", $1}'`
+echo "path_age: "$age"  path_bathy: "$bathy
+if ( `echo $age $bathy | awk '{if($1==-12345.||$2==-12345.){print 1}else{print 0}}'` ) then
+   echo "Cannot get age/bathyemetry measurement:  age: "$age"  bathy: "$bathy
+   exit
+endif
+### read in and update modfile
+set modpath = '/mtera/tianye/ASN_OBS_BHZ/PaperResults/DISP_Pred/SV_allage_model'
+set modfile = $modpath'/'$age'.thk.out'
+if( ! -e $modfile ) then
+echo $modfile" doesn't exist!"
+exit
+endif
+ #set bathy = `echo $bathy | awk '{print $1-100}'`
+ #echo $modfile $bathy
+awk -v bathy=$bathy 'BEGIN{dep=0.;bathy=-bathy/1000.;flag=0}{dep+=$1; if(dep>=bathy){if(flag==0){print bathy,0.000,0;flag++}else if(flag==1){print dep-bathy,$2,$3;flag++}else{print $0}}}' $modfile > temp.thk
+echo temp.thk
+awk '{if($2==0){print $1,1.45,0,0.77,$3}else{print $1,$2*1.73,$2,$2*1.73*0.32 + 0.77,$3}}' temp.thk > model.tmp
+rm -f temp.thk
+### run SURF_DISP
+#set outname = $sacf'_DISP_predicted'
+SURF_DISP model.tmp $outname R 0 1 0.1 30 0.2 -a -f -c
+rm -f $outname'.R' $outname'.R.att' model.tmp
+### Plot FTAN
+if( $argv[3] == 0 ) then
+   #set param = '-1 0.3 4.5 1. 35. 30. 1.5 3. 0.2 3.'
+   #set FTANexe = /home/tianye/Programs/FTAN_amp_snr_1Dmodel/aftani_c_pgl_amp
+   set param = '-1 0.3 4.5 0.8 35. 20. 1.5 3. 0.99 8. 15. 2.5 3.0 0.6 3.'
+   set FTANexe = /home/tianye/Programs/FTAN_amp_snr_predgrv/aftani_c_pgl_amp
+else if ( $argv[3] == 1 ) then
+   set param = '-1 0.3 4.2 0.8 20. 5 1.5 3. 0.99 3. 5. 1.5 3. 0.6 2.'
+   set FTANexe = /home/tianye/Programs/FTAN_amp_snr_predgrv/aftani_c_pgl_amp
+else
+   exit
+endif
+#set outnm2 = 'test2'
+if( $argv[3] == 1 ) then
+awk 'NF>0' $outname'.R.grv' | awk 'BEGIN{oldper=0}{print $1-oldper,$1,$2;oldper=$1}' | awk 'BEGIN{flagp=0}{if(flagp==0){if($1<0){flagp=1}}else{print $2,$3}}' > $outnm2'.R.grv'
+awk 'NF>0' $outname'.R.phv' | awk 'BEGIN{oldper=0}{print $1-oldper,$1,$2;oldper=$1}' | awk 'BEGIN{flagp=0}{if(flagp==0){if($1<0){flagp=1}}else{print $2,$3}}' > $outnm2'.R.phv'
+else
+awk 'NF>0' $outname'.R.grv' | awk 'BEGIN{oldper=0}{print $1-oldper,$1,$2;oldper=$1}' | awk '{if($1<0){exit;} print $2,$3;}' > $outnm2'.R.grv'
+awk 'NF>0' $outname'.R.phv' | awk 'BEGIN{oldper=0}{print $1-oldper,$1,$2;oldper=$1}' | awk '{if($1<0){exit;} print $2,$3;}' > $outnm2'.R.phv'
+endif
+if( $argv[3] == 0) then
+#FTAN_Plot $argv[1]  <<END
+FTAN_Plot_wDispPre $argv[1] $outnm2'.R.grv' $outnm2'.R.phv' $outname'.R.grv' $outname'.R.phv' << END
+s
+$param
+$FTANexe
+END
+else
+FTAN_Plot_wDispPre $argv[1] $outnm2'.R.grv' $outnm2'.R.phv' $outname'.R.grv' $outname'.R.phv' << END
+s
+$param
+$FTANexe
+END
+endif
+rm -f $outname'.R.'??? 
+rm -f $outnm2'.R.'???
+

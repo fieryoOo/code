@@ -1,0 +1,31 @@
+#!/usr/bin/csh
+
+set view="-E125/20"
+set yshift="-Y5"
+set title="Solomon Islands"
+
+# set up basemap and borders
+psbasemap -Jm0.13 -JZ4.5 -R0/5/0/5/-5/0 $yshift -K -P -Z0.01 \
+-B10/10/100:ZKm::."title":WEsNZ+ $view > plot.ps
+
+# mask out the back two sides of the cube
+psxyz -Jm -M% -JZ -R -K -O -W3/255/255/255 $view <<END>> plot.ps
+%
+175 20 0
+175 20 -700
+%
+140 20 0
+140 20 -700
+%
+END
+
+# plot the events
+psxyz eh-out.list -R -Jm -: -JZ -Sc0.03 -G0/150/255 $view -K -L -O >> plot.ps
+
+# plot the bathymetric contours
+#grdcontour 110-180-30S-30N-etopo5.grd $yshift -C4000 $view -Jm -K -O \
+#-L-6000/-1000 -K -O -R140/175/-20/20/-700/0 -T0.1/0.015 \
+#-Wc0.7/000/100/255 -Wa3t8_8:0 >> plot.ps
+
+# plot coastlines
+pscoast -Jm -R $view -O -G150/150/150 -W3/0/0/0 >> plot.ps

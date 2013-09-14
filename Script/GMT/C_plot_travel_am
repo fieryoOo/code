@@ -1,0 +1,21 @@
+#!/bin/csh
+if ($#argv != 2) then
+  echo "USAGE: C_plot_am_input_region [data infile] [region_infile]"
+  exit 1
+endif
+set input_map = $argv[1]
+set out_name = `echo $input_map | cut -d. -f1`
+set v1v2 = `echo $input_map | cut -d. -f3`
+set output_am = $out_name"_am."$v1v2
+if (`more $input_map | wc -l`)then
+awk '{print $1,$2,$5}' $input_map > $output_am
+endif
+set REG = `more $argv[2]`
+
+gmtset BASEMAP_TYPE fancy
+rm -f tomo.grd
+surface $output_am -T0.0 -Gtomo.grd -I0.1 -Ll0 $REG
+if (-e tomo.grd )then
+grd2xyz tomo.grd $REG > $output_am".HD"
+endif
+rm -f tomo.grd
