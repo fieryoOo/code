@@ -1,6 +1,8 @@
 /*
-This code extracts information (distance, azimuth, velocity, amplitude, and snr of both positive and negative lags) from FTAN results.
-   a measurement is accepted if it matches the input predicted dispersions 
+This code investigate the quality of FTAN results by computing a quality factor defined as the weighted 
+-average of the SNR/amplitude in a given period band. Weights are defined based on the distance between 
+measured and predicted dispersion curves.
+Output: (distance, azimuth, integrated_amp, and integrated_snr of both positive and negative lags)
 Input 1: station.lst (STANM LON LAT)
 Input 2: input-file list ( staname1 staname2 fDisppos fAmppos fDispneg fAmpneg daynum fpredDispgrv fpredDispphv )
 */
@@ -14,8 +16,8 @@ Input 2: input-file list ( staname1 staname2 fDisppos fAmppos fDispneg fAmpneg d
 #include "/home/tianye/MyLib/Dis_Azi.h"
 using namespace std;
 
-#define NSTA 1000
-#define NSPR 100000
+#define NSTA 2000
+#define BLKs 5000
 #define NFRQ 100
 
 float perl, perh, ghlgrv, ghlphv, alphagrv, alphaphv;
@@ -27,9 +29,9 @@ struct STATION {
 
 struct STAPAIR {
    char sta1[6], sta2[6];
-   char disp_pf[NFRQ], disp_nf[NFRQ];
-   char snr_pf[NFRQ], snr_nf[NFRQ];
-   char pdisp_g[NFRQ], pdisp_p[NFRQ];
+   char disp_pf[150], disp_nf[150];
+   char snr_pf[150], snr_nf[150];
+   char pdisp_g[150], pdisp_p[150];
    float daynum;
 };
 
@@ -39,7 +41,7 @@ void InserSort1(float *arr, float *dat1, int n) {
    for(i=1;i<n;i++) {
       ftmp0=arr[i]; ftmp1=dat1[i];
       for(j=i;j>0 && ftmp0<arr[j-1]; j--) { arr[j]=arr[j-1]; dat1[j]=dat1[j-1]; }
-      arr[j]=ftmp0; dat1[i]=ftmp1;
+      arr[j]=ftmp0; dat1[j]=ftmp1;
    }
 }
 
@@ -49,7 +51,7 @@ void InserSort2(float *arr, float *dat1, float *dat2, int n) {
    for(i=1;i<n;i++) {
       ftmp0=arr[i]; ftmp1=dat1[i]; ftmp2=dat2[i];
       for(j=i;j>0 && ftmp0<arr[j-1]; j--) { arr[j]=arr[j-1]; dat1[j]=dat1[j-1]; dat2[j]=dat2[j-1]; }
-      arr[j]=ftmp0; dat1[i]=ftmp1; dat2[i]=ftmp2;
+      arr[j]=ftmp0; dat1[j]=ftmp1; dat2[j]=ftmp2;
    }
 }
 
@@ -145,9 +147,9 @@ defines how the amplitude and SNRs are weighted
 */
    FILE *ff;
    char buff[300];
-   int i, nsta, npth;
+   int i, nsta, npth, nblk;
    struct STATION sta[NSTA];
-   struct STAPAIR spr[NSPR];
+   struct STAPAIR *spr = NULL;
 /* read in sta.name, sta.lon, sta.lat from station list */
    if((ff=fopen(arg[1],"r"))==NULL) {
       cout<<"Cannot open file "<<arg[1]<<endl;
@@ -165,8 +167,10 @@ defines how the amplitude and SNRs are weighted
       cout<<"Cannot open file "<<arg[2]<<endl;
       return -1;
    }
-   for(i=0;fgets(buff, 300, ff)!=NULL;i++)
+   for(nblk=0,i=0;fgets(buff, 300, ff)!=NULL;i++) {
+      if( nblk*BLKs <= i ) spr = (struct STAPAIR *) realloc (spr, (++nblk)*BLKs * sizeof(struct STAPAIR));
       sscanf(buff,"%s %s %s %s %s %s %f %s %s", spr[i].sta1, spr[i].sta2, spr[i].disp_pf, spr[i].snr_pf, spr[i].disp_nf, spr[i].snr_nf, &(spr[i].daynum), spr[i].pdisp_g, spr[i].pdisp_p);
+   }
    npth = i;
    fclose(ff);
 /* main loop. Process data from each path. Compute dist and snr, and as an indicator of FTAN quality,
@@ -199,6 +203,8 @@ defines how the amplitude and SNRs are weighted
       fprintf(ff, "%s %f %f  %s %f %f  %lf %lf %lf %f : %f %g  %f %g\n", sta[isp].name, sta[isp].lat, sta[isp].lon, sta[isn].name, sta[isn].lat, sta[isn].lon, dist, azi1, azi2, spr[ipth].daynum, snrsig_pos, ampsig_pos/spr[ipth].daynum, snrsig_neg, ampsig_neg/spr[ipth].daynum);
    }
    fclose(ff);
-  
+
+   free(spr);
+ 
    return 1;
 }

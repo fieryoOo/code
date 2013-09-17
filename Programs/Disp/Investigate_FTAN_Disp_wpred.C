@@ -58,7 +58,7 @@ void InserSort1(float *arr, float *dat1, int n) {
    for(i=1;i<n;i++) {
       ftmp0=arr[i]; ftmp1=dat1[i];
       for(j=i;j>0 && ftmp0<arr[j-1]; j--) { arr[j]=arr[j-1]; dat1[j]=dat1[j-1]; }
-      arr[j]=ftmp0; dat1[i]=ftmp1;
+      arr[j]=ftmp0; dat1[j]=ftmp1;
    }
 }
 
@@ -68,7 +68,7 @@ void InserSort2(float *arr, float *dat1, float *dat2, int n) {
    for(i=1;i<n;i++) {
       ftmp0=arr[i]; ftmp1=dat1[i]; ftmp2=dat2[i];
       for(j=i;j>0 && ftmp0<arr[j-1]; j--) { arr[j]=arr[j-1]; dat1[j]=dat1[j-1]; dat2[j]=dat2[j-1]; }
-      arr[j]=ftmp0; dat1[i]=ftmp1; dat2[i]=ftmp2;
+      arr[j]=ftmp0; dat1[j]=ftmp1; dat2[j]=ftmp2;
    }
 }
 

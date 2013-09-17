@@ -65,7 +65,7 @@ int get_snr(float *sei, int nsample, double dt, double dist, double b, double *c
 }
 
 /*--------------------------------------------------------------*/
-int pflag = 1;
+int pflag;
 int main (int argc, char *argv[])
 {
   static int n, npoints, nfin, nfout1, nfout2, ierr, nprpv;
@@ -94,16 +94,18 @@ int main (int argc, char *argv[])
   }
 /*---------------- out_flag --------------------
 controls what files to output
-1(default):     all the files
-0:              only _2_DISP.1 and _amp_snr
+0(default):     all the files
+1:		only _1_DISP.1 and _amp_snr
+2:              only _2_DISP.1 and _amp_snr
+notice that amp_snrs are always measured based on
+ the final dispersions (_2_DISP.1)
 -----------------------------------------------*/
-   pflag = 1;
+   pflag = 0;
    if(argc==4) pflag = atof(argv[3]);
-   if(pflag!=0 && pflag!=1) {
+   if(pflag<0 || pflag>2) {
       printf("Unknow out_flag: %d\n", pflag);
       exit(-1);
    }
-printf("pflag: %d!!!\n\n", pflag);
 // open and read contents of parameter file
   if((in = fopen(argv[1],"r")) == NULL) {
       printf("Can not find file %s.\n",argv[1]);
@@ -271,7 +273,7 @@ printf("pflag: %d!!!\n\n", pflag);
 //  t0      = 0.0;
   nfin    = 32;
   npoints = 10;        // only 3 points in jump
-  perc    = 40.0;     // output if the percentage of measurable frequecy range is greater than 40%
+  perc    = 35.0;     // output if the percentage of measurable frequecy range is greater than 35%
 //  taperl  = 2.0;      // factor to the left end tapering
   //printf("pi/4 = %5.1lf, t0 = %9.3lf\n",piover4,t0);
   //printf("#filters= %d, Perc= %6.2f %s, npoints= %d, Taper factor= %6.2f\n",
@@ -294,7 +296,7 @@ printf("pflag: %d!!!\n\n", pflag);
   f2=1./tmax;
   f3=1./tmin;
   f4=1./tmin/1.25;
-  filter4_(&f1,&f2,&f3,&f4,&dt,&n,sei,&n_am,&dom_am);
+//  filter4_(&f1,&f2,&f3,&f4,&dt,&n,sei,&n_am,&dom_am);
 //  printf("%lf  %lf %lf\n",amp_rec[180],amp_rec[1000],amp_rec[1600]);
 //  printf("%d  %lf\n",n_am/2+1,dom_am);
 /* FTAN (without?) phase match filter. First Iteration. */
@@ -304,7 +306,7 @@ printf("pflag: %d!!!\n\n", pflag);
   aftanpg_(&piover4,&n,sei,&t0,&dt,&delta,&vmin,&vmax,&tmin,&tmax,&tresh1,
         &ffact,&perc,&npoints,&taperl,&nfin,&snr,&nprpv,prpvper,prpvvel,
         &nfout1,arr1,&nfout2,arr2,&tamp,&nrow,&ncol,ampo,&ierr);
-  if(pflag) printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_1",delta);
+  if( pflag==0 || pflag==1 ) printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_1",delta);
   if(nfout2 == 0) continue;   // break aftan sequence
   printf("Tamp = %9.3lf, nrow = %d, ncol = %d\n",tamp,nrow,ncol);
 
@@ -329,7 +331,7 @@ printf("pflag: %d!!!\n\n", pflag);
         &cuttype,&nprpv,prpvper,prpvvel,seiout,
         &nfout1,arr1,&nfout2,arr2,&tamp,&nrow,&ncol,ampo,&ierr);
   printf("Tamp = %9.3lf, nrow = %d, ncol = %d\n",tamp,nrow,ncol);
-  printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_2",delta);
+  if( pflag==0 || pflag==2 ) printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_2",delta);
   sprintf(amp_name, "%s_cld", name);
   write_sac (amp_name, seiout, &shd);
 

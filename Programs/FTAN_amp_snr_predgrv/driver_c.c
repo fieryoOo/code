@@ -90,7 +90,7 @@ int get_snr(float *sei, int nsample, double dt, double dist, double b, double *c
 
 /*--------------------------------------------------------------*/
 #define NMAX 16384
-int pflag = 1;
+int pflag;
 int main (int argc, char *argv[])
 {
   static int n, npoints, nfin, nfout1, nfout2, ierr, nprpv;
@@ -119,12 +119,15 @@ int main (int argc, char *argv[])
   }
 /*---------------- out_flag --------------------
 controls what files to output
-1(default):	all the files
-0:		only _2_DISP.1 and _amp_snr
+0(default):	all the files
+1:		only _1_DISP.1 and _amp_snr
+2:		only _2_DISP.1 and _amp_snr
+notice that amp_snrs are always measured based on
+ the final dispersions (_2_DISP.1)
 -----------------------------------------------*/
-   pflag = 1;
+   pflag = 0;
    if(argc==5) pflag = atof(argv[4]);
-   if(pflag!=0 && pflag!=1) {
+   if(pflag<0 && pflag>2) {
       printf("Unknow out_flag: %d\n", pflag);
       exit(-1);
    }
@@ -212,7 +215,7 @@ controls what files to output
   aftanpg_(&piover4,&n,sei,&t0,&dt,&delta,&vmin,&vmax,&tmin,&tmax,&tresh1,
         &ffact,&perc,&npoints,&taperl,&nfin,&snr,&nprpv,prpvper,prpvvel,
         &nfout1,arr1,&nfout2,arr2,&tamp,&nrow,&ncol,ampo,&ierr);
-  if(pflag) printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_1",delta);
+  if( pflag==0 || pflag==1 ) printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_1",delta);
   if(nfout2 == 0) continue;   // break aftan sequence 
   //printf("Tamp = %9.3lf, nrow = %d, ncol = %d\n",tamp,nrow,ncol);
 
@@ -289,7 +292,7 @@ controls what files to output
         &ffact2,&perc,&npoints,&taperl2,&nfin,&snr2,&fmatch2,&npred,pred,      // 9
         &cuttype,&nprpv,prpvper,prpvvel,seiout,                                   // 4
         &nfout1,arr1,&nfout2,arr2,&tamp,&nrow,&ncol,ampo,&ierr);           // 9
-  printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_2",delta);
+  if( pflag==0 || pflag==2 ) printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_2",delta);
   sprintf(amp_name, "%s_cld", name);
   write_sac (amp_name, seiout, &shd);
 

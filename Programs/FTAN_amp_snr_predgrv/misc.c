@@ -156,7 +156,7 @@ void printres(double dt,int nfout1,double arr1[100][8],int nfout2,
       //}
 //  write results to hard drive
 // file ...DISP.0 contains preliminary result
-   if(pflag) {
+   if( pflag==0 ) {
       strcpy(name2,name);
       strcat(name2,pref);
       strcat(name2,"_DISP.0");
@@ -188,7 +188,7 @@ void printres(double dt,int nfout1,double arr1[100][8],int nfout2,
           fclose(out);
       }
 //*/ Output amplitude array into file on hard drive
-   if(pflag) {
+   if( pflag==0 ) {
       strcpy(name2,name);
       strcat(name2,pref);
       strcat(name2,"_AMP");
@@ -197,9 +197,10 @@ void printres(double dt,int nfout1,double arr1[100][8],int nfout2,
           exit(1);
       }
       for(i = 0; i < nrow; ++i)
-          for(j = 0; j < ncol; ++j)
-             fprintf(out,"%8.4lf %8.4lf %15.6e\n", arr1[i][1],delta/(tamp+j*dt),ampo[i][j]);
-            //fprintf(out,"%8.3lf %8.3lf %15.6e\n", (double)(i+1),tamp+j*dt,ampo[i][j]);
+          for(j = 0; j < ncol; ++j) {
+	     fprintf(out,"%8.4lf %8.4lf %15.6e\n", arr1[i][1],delta/(tamp+j*dt),ampo[i][j]);
+	     //printf("%d %d\n",i,j);
+	  }
       fclose(out);
    }
 }
