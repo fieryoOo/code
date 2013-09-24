@@ -33,8 +33,8 @@ set DispPhv = $outnm2'.R.phv'
 set exe = '/home/tianye/code/Programs/mini_tools/MapOperation/PathAvg/PathAvg'
 set bathypath = '/mtera/tianye/ASN_OBS_BHZ/PaperResults/DISP_Pred/Bathymetry'
 set agepath = '/mtera/tianye/ASN_OBS_BHZ/PaperResults/DISP_Pred/Age'
-set bathy = `$exe $bathypath'/sea_floor.CICE.HD' $lat1 $lon1 $lat2 $lon2 $lamdamax`
-set age = `$exe $agepath'/age.3.6.xyz.HD' $lat1 $lon1 $lat2 $lon2 $lamdamax | awk '{printf "%.1f", $1}'`
+set bathy = `$exe $bathypath'/sea_floor.CICE.HD' $lon1 $lat1 $lon2 $lat2 $lamdamax`
+set age = `$exe $agepath'/age.3.6.xyz.HD' $lon1 $lat1 $lon2 $lat2 $lamdamax | awk '{printf "%.1f", $1}'`
 if ( `echo $age $bathy | awk '{if($1==-12345.||$2==-12345.){print 1}else{print 0}}'` )  exit
 ### read in and update modfile
 set modpath = '/mtera/tianye/ASN_OBS_BHZ/PaperResults/DISP_Pred/SV_allage_model'

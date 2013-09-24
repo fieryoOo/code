@@ -58,10 +58,10 @@ void InserSort(struct SPR_DATA *dat) {
    }
 }
 
-float Avg( float *arr, int npt ) {
+float Sum( float *arr, int npt ) {
    float sum=0.;
    for(int i=0; i<npt; i++) sum += arr[i];
-   return sum/npt;
+   return sum;
 }
 int DataSelect( char *fdisp, char *famp, struct SPR_DATA *sdata ) {
    FILE *fin;
@@ -93,25 +93,29 @@ int DataSelect( char *fdisp, char *famp, struct SPR_DATA *sdata ) {
    // sort by period
    InserSort(&datatmp);
    // compute avg and std of vel
-   float vstd, vavg = Avg(datatmp.grv, itmp);
+   float vstd, vavg = Sum(datatmp.grv, itmp)/itmp;
    for(vstd=0.,i=0;i<itmp;i++) {
       ftmp = datatmp.grv[i] - vavg;
       vstd += ftmp*ftmp;
    }
    vstd = 1.5*sqrt(vstd/(itmp-1));
    // discard by vstd/snrmin and assign weights
+   sdata->wsum = 0.;
    for(ief=0,i=0;i<itmp;i++) {
       if( fabs(datatmp.grv[i]-vavg) > vstd ) continue;
       if( datatmp.snr[i] < snrmin ) continue;
-      if( i > ief ) {
-	 ftmp = datatmp.snr[i] * datatmp.snr[i];
-	 sdata->per[ief] = datatmp.per[i]*ftmp; sdata->snr[ief] = datatmp.snr[i]*ftmp;
-	 sdata->grv[ief] = datatmp.grv[i]*ftmp; sdata->phv[ief] = datatmp.phv[i]*ftmp;
-	 sdata->amp[ief] = datatmp.amp[i]*ftmp; sdata->wsum += ftmp;
-      }
+      ftmp = datatmp.snr[i] * datatmp.snr[i]; // define weight as energy
+      //cerr<<"per: "<<datatmp.per[i]<<" snr: "<<datatmp.snr[i]<<" grv: "<<datatmp.grv[i]<<" phv: "<<datatmp.phv[i]<<" amp: "<<datatmp.amp[i]<<" weight: "<<ftmp<<endl;
+      sdata->per[ief] = datatmp.per[i]*ftmp; sdata->snr[ief] = datatmp.snr[i]*ftmp;
+      sdata->grv[ief] = datatmp.grv[i]*ftmp; sdata->phv[ief] = datatmp.phv[i]*ftmp;
+      sdata->amp[ief] = datatmp.amp[i]*ftmp; sdata->wsum += ftmp;
       ief++;
    }
    sdata->npt = ief;
+   if( ief == 0 ) {
+      cout<<"   No data points left from "<<fdisp<<" and "<<famp<<endl;
+      return 0;
+   }
    return 1;  
 }
 
@@ -158,11 +162,11 @@ main(int na, char *arg[])
    int ipth, isp, isn, np, nn;
    int flagp, flagn;
    double dist, azi1, azi2;
-   float perp, pern, grvp, grvn, phvp, phvn, ampp, ampn, snrp, snrn;
+   float perp, pern, grvp, grvn, phvp, phvn, ampp, ampn, snrp, snrn, wp, wn;
    struct SPR_DATA datapos, dataneg;
    sprintf(buff, "Disp_info_avg_%.1fto%.1fsec", perl, perh);
    ff = fopen(buff, "w");
-   fprintf(ff, "sta1 lat1 lon1  sta2 lat2 lon2  dist azi1 azi2 dnum : per-appa snrp ampp/dnum grvp phvp  per-appa snrn ampn/dnum grvn phvn\n");
+   fprintf(ff, "sta1(1) lat1(2) lon1(3)  sta2(4) lat2(5) lon2(6)  dist(7) azi1(8) azi2(9) dnum(10) : per-appa(12) snrp(13) ampp/dnum(14) grvp(15) phvp(16)  per-appa(17) snrn(18) ampn/dnum(19) grvn(20) phvn(21)\n");
    for(ipth=0;ipth<npth;ipth++) {
       // search for sta1 and sta2 in station list
       for(isp=0;isp<nsta;isp++) if(strcmp(spr[ipth].sta1, sta[isp].name)==0) break;
@@ -174,15 +178,24 @@ main(int na, char *arg[])
       calc_azimuth(sta[isp].lat, sta[isp].lon, sta[isn].lat, sta[isn].lon, &azi1);
       calc_azimuth(sta[isn].lat, sta[isn].lon, sta[isp].lat, sta[isp].lon, &azi2);
       // read in the disp amd amp_snr file, discard data points by grv-std and snrmin and weight data by energy (snr sqaure)
-      if( ! DataSelect( spr[ipth].disp_pf, spr[ipth].snr_pf, &datapos ) ) continue;
-      if( ! DataSelect( spr[ipth].disp_nf, spr[ipth].snr_nf, &dataneg ) ) continue;
-      // get averaged per, amp, snr, grv, and phv
-      np = datapos.npt; nn = dataneg.npt; //npt
-      perp = Avg(datapos.per, np); pern = Avg(dataneg.per, nn); //per
-      snrp = Avg(datapos.snr, np); snrn = Avg(dataneg.snr, nn); //snr
-      ampp = Avg(datapos.amp, np); ampn = Avg(dataneg.amp, nn); //amp
-      grvp = Avg(datapos.grv, np); grvn = Avg(dataneg.grv, nn); //grv
-      phvp = Avg(datapos.phv, np); phvn = Avg(dataneg.phv, nn); //phv
+      // positive lag
+      if( DataSelect( spr[ipth].disp_pf, spr[ipth].snr_pf, &datapos ) ) {
+	 // get averaged per, amp, snr, grv, and phv
+	 np = datapos.npt; wp = datapos.wsum;
+	 perp = Sum(datapos.per, np)/wp; snrp = Sum(datapos.snr, np)/wp;
+	 grvp = Sum(datapos.grv, np)/wp; phvp = Sum(datapos.phv, np)/wp;
+	 ampp = Sum(datapos.amp, np)/wp;
+      }
+      else perp = -1.;
+      // negative lag
+      if( DataSelect( spr[ipth].disp_nf, spr[ipth].snr_nf, &dataneg ) ) {
+	 nn = dataneg.npt; wn = dataneg.wsum;
+	 pern = Sum(dataneg.per, nn)/wn; snrn = Sum(dataneg.snr, nn)/wn;
+	 grvn = Sum(dataneg.grv, nn)/wn; phvn = Sum(dataneg.phv, nn)/wn;
+	 ampn = Sum(dataneg.amp, nn)/wn;
+      }
+      else pern = -1.;
+      if( perp==-1. && pern==-1. ) continue;
       // output
       fprintf(ff, "%s %f %f  %s %f %f  %lf %lf %lf %f : %f %f %g %f %f  %f %f %g %f %f\n", sta[isp].name, sta[isp].lat, sta[isp].lon, sta[isn].name, sta[isn].lat, sta[isn].lon, dist, azi1, azi2, spr[ipth].daynum, perp, snrp, ampp/spr[ipth].daynum, grvp, phvp, pern, snrn, ampn/spr[ipth].daynum, grvn, phvn);
    }

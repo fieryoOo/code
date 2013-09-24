@@ -2,10 +2,10 @@
 INST_DIR = $(HOME)/bin
 BIN  =  SURF_DISP
 
-fflags = -O2 -Wall -ffixed-line-length-none -m64
-cflags = -O2 -Wall -m64
+fflags = -O2 -Wall -ffixed-line-length-none
+cflags = -O2 -Wall
 
-#LDLIBS = -L/home/barmin/FFTW_64/lib -lfftw3
+LDLIBS = -L/home/barmin/FFTW_64/lib -lfftw3
 
 FFLAGS = $(DBG) $(fflags)
 
@@ -13,7 +13,7 @@ CFLAGS = $(DBG) $(cflags)
 
 FC = g77
 
-CC = gcc
+CC = g++
 
 DBG =
 

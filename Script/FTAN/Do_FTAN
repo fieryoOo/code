@@ -25,12 +25,12 @@ set lamdamax = 10
 set outname = $sacf'_DISP_predicted'
 set outnm2 = 'test2'
 ### compute bathymetry and age
-set exe = '/home/tianye/code/Programs/mini_tools/MapOperation/PathAvg/PathAvg'
+set exe = '/home/tianye/code/Programs/MapOperation/PathAvg/PathAvg'
 set bathypath = '/mtera/tianye/ASN_OBS_BHZ/PaperResults/DISP_Pred/Bathymetry'
 set agepath = '/mtera/tianye/ASN_OBS_BHZ/PaperResults/DISP_Pred/Age'
-set bathy = `$exe $bathypath'/sea_floor.CICE.HD' $lat1 $lon1 $lat2 $lon2 $lamdamax`
+set bathy = `$exe $bathypath'/sea_floor.CICE.HD' $lon1 $lat1 $lon2 $lat2 $lamdamax`
 echo $lat1 $lon1 $lat2 $lon2 $lamdamax
-set age = `$exe $agepath'/age.3.6.xyz.HD' $lat1 $lon1 $lat2 $lon2 $lamdamax | awk '{printf "%.1f", $1}'`
+set age = `$exe $agepath'/age.3.6.xyz.HD' $lon1 $lat1 $lon2 $lat2 $lamdamax | awk '{printf "%.1f", $1}'`
 echo "path_age: "$age"  path_bathy: "$bathy
 if ( `echo $age $bathy | awk '{if($1==-12345.||$2==-12345.){print 1}else{print 0}}'` ) then
    echo "Cannot get age/bathyemetry measurement:  age: "$age"  bathy: "$bathy
@@ -46,7 +46,6 @@ endif
  #set bathy = `echo $bathy | awk '{print $1-100}'`
  #echo $modfile $bathy
 awk -v bathy=$bathy 'BEGIN{dep=0.;bathy=-bathy/1000.;flag=0}{dep+=$1; if(dep>=bathy){if(flag==0){print bathy,0.000,0;flag++}else if(flag==1){print dep-bathy,$2,$3;flag++}else{print $0}}}' $modfile > temp.thk
-echo temp.thk
 awk '{if($2==0){print $1,1.45,0,0.77,$3}else{print $1,$2*1.73,$2,$2*1.73*0.32 + 0.77,$3}}' temp.thk > model.tmp
 rm -f temp.thk
 ### run SURF_DISP

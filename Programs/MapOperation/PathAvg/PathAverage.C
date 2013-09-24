@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
    char fname[100], ftmpname[20];
    sprintf(fname, "%s", argv[1]);
    sprintf(ftmpname, "./projecttmp.txt");
-   sprintf(buff, "project %s -Dg -C%lf/%lf -E%lf/%lf -Lw -Q -S -W-%f/%f -Fpqz > %s", fname, lat1, lon1, lat2, lon2, wmax, wmax, ftmpname);
+   sprintf(buff, "project %s -Dg -C%lf/%lf -E%lf/%lf -Lw -Q -S -W-%f/%f -Fpqz > %s", fname, lon1, lat1, lon2, lat2, wmax, wmax, ftmpname);
    system(buff);
 
    // read in project data
