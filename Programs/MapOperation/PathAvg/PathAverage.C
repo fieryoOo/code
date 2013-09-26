@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 {
    if (argc!=7) {
       cout<<"Usage: "<<argv[0]<<" [Input_Map (lon lat value)] [lon1] [lat1] [lon2] [lat2] [wavelength (km)]"<<endl;
-      return 0;
+      return -1;
    }
 
    double dist, Nmin = 3.; //(2 ~ 20?) Don't know much about sw kernel
@@ -56,5 +56,5 @@ int main(int argc, char *argv[])
    else zsum /= weit;
    cout<<zsum<<endl;
    
-   return 1;
+   return 0;
 }
