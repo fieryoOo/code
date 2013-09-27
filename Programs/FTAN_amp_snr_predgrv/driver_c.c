@@ -268,7 +268,7 @@ notice that amp_snrs are always measured based on
         &ffact,&perc,&npoints,&taperl,&nfin,&snr,&fmatch,&npred,pred,	   // 9
         &cuttype,&nprpv,prpvper,prpvvel,seiout,				   // 4
         &nfout1,arr1,&nfout2,arr2,&tamp,&nrow,&ncol,ampo,&ierr);	   // 9
-  //printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_2",delta);
+  //if( pflag==0 || pflag==2 ) printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_2",delta);
   //sprintf(amp_name, "%s_cld", name);
   //write_sac (amp_name, seiout, &shd);
 
