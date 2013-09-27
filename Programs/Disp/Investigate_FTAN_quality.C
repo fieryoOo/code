@@ -38,18 +38,20 @@ struct STAPAIR {
 };
 
 struct LAG_DATA {
-   float per[NFRQ], weight[NFRQ];
+   float per[NFRQ];
+   float disgrv[NFRQ], disphv[NFRQ];
    float grv[NFRQ], phv[NFRQ];
    float effperc; // percentage of the effective bandwidth 
    int ndat;
 };
 
 struct TIMING_DATA {
-   float per[NFRQ*2];
-   float weipos[NFRQ*2], weineg[NFRQ*2];
-   float grvdiff[NFRQ*2], phvdiff[NFRQ*2];
-   int ndat;
-}
+   float logper[NFRQ*2];
+   float weigrv[NFRQ*2], weiphv[NFRQ*2];
+   float tdiffgrv[NFRQ*2], tdiffphv[NFRQ*2];
+   int npair;
+};
+
 
 void InserSort1(float *arr, float *dat1, int n) {
    int i,j;
@@ -132,14 +134,14 @@ int AmpSNRSummation( char *fdisp, char *fsnr, char *fgrvpred, char *fphvpred, fl
       if( percur > perhighO ) perhighO = percur;
       disgrv = FVDist(percur, grvcur, pergrv, grvpred, nfgrv);
       disphv = FVDist(percur, phvcur, perphv, phvpred, nfphv);
-      weight = exp(alphagrv*disgrv*disgrv) * 0.7 + exp(alphaphv*disphv*disphv) * 0.3;
-      data->per[ndat] = percur; data->weight[ndat] = weight;
+      // save data
+      data->per[ndat] = percur;
+      data->disgrv[ndat] = disgrv; data->disphv[ndat] = disphv;
       data->grv[ndat] = grvcur; data->phv[ndat] = phvcur;
+
+      weight = exp(alphagrv*disgrv*disgrv)*0.7 + exp(alphaphv*disphv*disphv) * 0.3;
       ndat++;
-      if( disgrv > ghlgrv*3 ) {
-	 data->weight[neff] = 0.;
-	 continue;
-      }
+      if( disgrv > ghlgrv*3 ) continue;
       *snr += weight*snrcur;
       *amp += weight*ampcur;
       weit += weight;
@@ -157,46 +159,74 @@ int AmpSNRSummation( char *fdisp, char *fsnr, char *fgrvpred, char *fphvpred, fl
    return 1;
 }
 
-void ComputeDiff( struct LAG_DATA *datacurve, int ilow, int ihigh, struct LAG_DATA *datapoint, int ipoint,  struct TIMING_DATA *datadiff ) {
+void ComputeDiff( struct LAG_DATA *datacurve, int ilow, int ihigh, struct LAG_DATA *datapoint, int ipoint, double dist, struct TIMING_DATA *datadiff ) {
    // avoid duplications
-   int idiff = dataditt->ndat;
-   float per = datapoint->per[ipoint];
-   if( per == datadiff->per[idiff-1] ) return;
-   // interpolate
-   float perl = datacurve->per[ilow], perh = datacurve->per[ihigh];
-   datadiff->per[idiff] = datapoint->
-   
-struct TIMING_DATA {
-   float per[NFRQ*2];
-   float weipos[NFRQ*2], weineg[NFRQ*2];
-   float grvdiff[NFRQ*2], phvdiff[NFRQ*2];
-   int ndat;
+   int idiff = datadiff->npair;
+   float logper = log(datapoint->per[ipoint]);
+   if( logper == datadiff->logper[idiff-1] ) return;
+   // interpolate for tdiffgrv, tdiffphv, disgrv and disphv on datacurve at per
+   float logperl = log(datacurve->per[ilow]), logperh = log(datacurve->per[ihigh]);
+   float frac = (logper-logperl) / (logperh-logperl);
+   float grv_curve = datacurve->grv[ilow] + (datacurve->grv[ihigh] - datacurve->grv[ilow]) * frac;
+   float phv_curve = datacurve->phv[ilow] + (datacurve->phv[ihigh] - datacurve->phv[ilow]) * frac;
+   float disgrv_curve = datacurve->disgrv[ilow] + (datacurve->disgrv[ihigh] - datacurve->disgrv[ilow]) * frac;
+   float disphv_curve = datacurve->disphv[ilow] + (datacurve->disphv[ihigh] - datacurve->disphv[ilow]) * frac;
+   // compute and store tdiff & weight
+   float disgrv = disgrv_curve + datapoint->disgrv[ipoint];
+   float disphv = disphv_curve + datapoint->disphv[ipoint];
+   datadiff->logper[idiff] = logper;
+   datadiff->weigrv[idiff] = exp(alphagrv*disgrv*disgrv);
+   datadiff->weiphv[idiff] = exp(alphaphv*disphv*disphv);
+   datadiff->tdiffgrv[idiff] = dist/grv_curve - dist/datapoint->grv[ipoint];
+   datadiff->tdiffphv[idiff] = dist/phv_curve - dist/datapoint->phv[ipoint];
+   datadiff->npair += 1;
+
 }
-struct LAG_DATA {
-   float per[NFRQ], weight[NFRQ];
-   float grv[NFRQ], phv[NFRQ];
-   float effperc; // percentage of the effective bandwidth 
-   int ndat;
-};
 
-
+void AverageTimeShift(struct TIMING_DATA *datadiff, float *TShift, float *sigma) {
+   int i, npair = datadiff-> npair;
+   float weit = 0.;
+   *TShift = 0.;
+   for(i=0;i<npair;i++) {
+      *TShift += (datadiff->tdiffgrv[i]) * (datadiff->weigrv[i]);
+      *TShift += (datadiff->tdiffphv[i]) * (datadiff->weiphv[i]);
+      weit += (datadiff->weigrv[i]) + (datadiff->weiphv[i]);
+   }
+   *TShift /= weit;
+   *sigma = 0.;
+   float V1=0., V2=0., ftmp, weight;
+   for(i=0;i<npair;i++) {
+      //grv
+      weight = datadiff->weigrv[i];
+      ftmp = (datadiff->tdiffgrv[i]) - *TShift;
+      *sigma += weight*ftmp*ftmp;
+      V1 += weight; V2 += weight*weight;
+      //phv
+      weight = datadiff->weiphv[i];
+      ftmp = (datadiff->tdiffphv[i]) - *TShift;
+      *sigma += weight*ftmp*ftmp;
+      V1 += weight; V2 += weight*weight;
+   }
+   *sigma = *sigma * V1 / (V1*V1-V2);
 }
 
-int TimeShift( struct LAG_DATA *datapos, sturct LAG_DATA *dataneg ) {
-   int ip, in, np=datapos->ndat, nn=dataneg->ndat;
+void TimeShift( struct LAG_DATA *datapos, struct LAG_DATA *dataneg, double dist, float *TShift, float *sigma ) {
+   int ii, ip, in, np=datapos->ndat, nn=dataneg->ndat;
    struct TIMING_DATA datadiff;
+   // compute timeshift and weight at each point
    for(ip=0,in=0; ip<np,in<nn; ) {
       if( datapos->per[ip] < dataneg->per[in] ) {
-	 for(ii=in; dataneg->per[ii]<=datapos->per[ip+1]; ii++) ComputeDiff(datapos, ip, ip+1, dataneg, ii, &datadiff);
-	 ip++
+	 for(ii=in; dataneg->per[ii]<=datapos->per[ip+1]; ii++) ComputeDiff(datapos, ip, ip+1, dataneg, ii, dist, &datadiff);
+	 ip++;
       }
       else {
-	 for(ii=ip; datapos->per[ii]<dataneg->per[in+1]; ii++) ComputeDiff(dataneg, in, in+1, datapos, ii, &datadiff);
-         in++
+	 for(ii=ip; datapos->per[ii]<dataneg->per[in+1]; ii++) ComputeDiff(dataneg, in, in+1, datapos, ii, -dist, &datadiff);
+         in++;
       }
    }
+   // compute averaged timeshift and uncertainty for this sta-pair
+   AverageTimeShift(&datadiff, TShift, sigma);
 
-   return 1;
 }
 
 main(int na, char *arg[])
@@ -245,6 +275,7 @@ defines how the amplitude and SNRs are weighted
    float snrsig_pos, snrsig_neg, ampsig_pos, ampsig_neg;
    double dist, azi1, azi2;
    struct LAG_DATA datapos, dataneg;
+   float TShift, sigma;
    perl = atof(arg[3]); perh = atof(arg[4]); 
    ghlgrv = atof(arg[5]); ghlphv = atof(arg[6]);
    snrmin = atof(arg[7]);
@@ -268,7 +299,8 @@ defines how the amplitude and SNRs are weighted
       if( ! AmpSNRSummation( spr[ipth].disp_pf, spr[ipth].snr_pf, spr[ipth].pdisp_g, spr[ipth].pdisp_p, &snrsig_pos, &ampsig_pos, &datapos ) ) continue;
       if( ! AmpSNRSummation( spr[ipth].disp_nf, spr[ipth].snr_nf, spr[ipth].pdisp_g, spr[ipth].pdisp_p, &snrsig_neg, &ampsig_neg, &dataneg ) ) continue;
    // compute averaged timeshift and its uncertainty
-      fprintf(ff, "%s %f %f  %s %f %f  %lf %lf %lf %f : %f %g  %f %g\n", sta[isp].name, sta[isp].lat, sta[isp].lon, sta[isn].name, sta[isn].lat, sta[isn].lon, dist, azi1, azi2, spr[ipth].daynum, snrsig_pos, ampsig_pos/spr[ipth].daynum, snrsig_neg, ampsig_neg/spr[ipth].daynum);
+      TimeShift( &datapos, &dataneg, dist, &TShift, &sigma );
+      fprintf(ff, "%s %f %f  %s %f %f  %lf %lf %lf %f : %f %g  %f %g %f %f\n", sta[isp].name, sta[isp].lat, sta[isp].lon, sta[isn].name, sta[isn].lat, sta[isn].lon, dist, azi1, azi2, spr[ipth].daynum, snrsig_pos, ampsig_pos/spr[ipth].daynum, snrsig_neg, ampsig_neg/spr[ipth].daynum, TShift, sigma);
    }
    fclose(ff);
 
