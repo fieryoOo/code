@@ -20,7 +20,7 @@ using namespace std;
 
 #define NSTA 2000
 #define BLKs 5000
-#define NFRQ 100
+#define NFRQ 300
 
 float perl, perh, ghlgrv, ghlphv, alphagrv, alphaphv, snrmin;
 
@@ -46,7 +46,7 @@ struct LAG_DATA {
 };
 
 struct TIMING_DATA {
-   float logper[NFRQ*2];
+   float logper[NFRQ*2], snreff[NFRQ*2]; // snreff is simply the smaller of the 2 lags
    float weigrv[NFRQ*2], weiphv[NFRQ*2];
    float tdiffgrv[NFRQ*2], tdiffphv[NFRQ*2];
    float Qfactor; // overall quality factor for measurements on this particular path ('Qfactor=1' == perfect)
@@ -76,11 +76,20 @@ void InserSort2(float *arr, float *dat1, float *dat2, int n) {
 
 // compute distance% in the freq-vel domain
 float FVDist(float per0, float vel0, float *per, float *vel, int n) {
-   float dx, dy, dis, dismin = 9999999.;
+   float dx, dy, dis, dismin, logper0 = log(per0);
    int i;
+   // interpolate to get the vertical distance
+   for(i=0;per[i]<per0;i++){};
+   if( i < n ) {
+      float veli = vel[i-1] + (vel[i]-vel[i-1]) * (logper0-log(per[i-1]))/(log(per[i])-log(per[i-1]));
+      dismin = fabs(veli-vel0)/veli;
+   }
+   else { dismin = 1.e25; }
+   // check for smaller (non-interpolated) distance
    for(i=0;i<n;i++) {
+      dx = 1.-logper0/log(per[i]);
+      if( fabs(dx) > dismin ) continue;
       dy = 1.-vel0/vel[i];
-      dx = 1.-per0/per[i];
       dis = dx*dx + dy*dy;
       if(dismin>dis) dismin = dis;
    }
@@ -93,7 +102,7 @@ int AmpSNRSummation( char *fdisp, char *fsnr, char *fgrvpred, char *fphvpred, fl
    int i, nfgrv, nfphv;
    float pergrv[NFRQ], grvpred[NFRQ], perphv[NFRQ], phvpred[NFRQ];
    // read predicted group disp
-   if((fin1=fopen(fgrvpred, "r")) == NULL) return 0;
+   if((fin1=fopen(fgrvpred, "r")) == NULL) return -1;
    for(i=0;fgets(buff1, 300, fin1)!=NULL;) {
       if(sscanf(buff1, "%f %f", &pergrv[i], &grvpred[i])!=2) continue;
       i++;
@@ -109,7 +118,7 @@ int AmpSNRSummation( char *fdisp, char *fsnr, char *fgrvpred, char *fphvpred, fl
    if( perlow<perl ) perlow = perl;
    if( perhigh>perh ) perhigh = perh;
    // read predicted phase disp and define period range
-   if((fin1=fopen(fphvpred, "r")) == NULL) return 0;
+   if((fin1=fopen(fphvpred, "r")) == NULL) return -1;
    for(i=0;fgets(buff1, 300, fin1)!=NULL;) {
       if(sscanf(buff1, "%f %f", &perphv[i], &phvpred[i])!=2) continue;
       i++;
@@ -122,7 +131,7 @@ int AmpSNRSummation( char *fdisp, char *fsnr, char *fgrvpred, char *fphvpred, fl
    float ftmp, weit = 0., weight, disgrv, disphv;
    float percur, grvcur, phvcur, snrcur, ampcur;
    float perlowO = 999999., perhighO = 0.;
-   if((fin1=fopen(fdisp, "r")) == NULL || ((fin2=fopen(fsnr, "r"))==NULL)) return 0;
+   if((fin1=fopen(fdisp, "r")) == NULL || ((fin2=fopen(fsnr, "r"))==NULL)) return -1;
    while(fgets(buff1, 300, fin1) && fgets(buff2, 300, fin2)) {
       if( sscanf(buff1, "%f %f %f %f %f", &ftmp, &ftmp, &percur, &grvcur, &phvcur) != 5 ) continue;
       if( sscanf(buff2, "%f %f %f %f %f", &ftmp, &ampcur, &snrcur) != 3 ) continue;
@@ -152,7 +161,7 @@ int AmpSNRSummation( char *fdisp, char *fsnr, char *fgrvpred, char *fphvpred, fl
    fclose(fin1); fclose(fin2);
    data->ndat = ndat;
    // compute effective signal snr and amp in the period range
-   if( neff == 0 ) return 1;
+   if( neff == 0 ) return 0;
    data->effperc = (log(perhighO)-log(perlowO))/(log(perhigh)-log(perlow))*neff/ndat;
    ftmp = data->effperc/weit;
    *snr *= ftmp; *amp *= ftmp;
@@ -180,48 +189,54 @@ void ComputeDiff( struct LAG_DATA *datacurve, int ilow, int ihigh, struct LAG_DA
    float disphv = disphv_curve + datapoint->disphv[ipoint];
    float ftmp = sqrt(snreff/snrmin);
    datadiff->logper[idiff] = logper;
+   datadiff->snreff[idiff] = snreff;
    datadiff->weigrv[idiff] = exp(alphagrv*disgrv*disgrv)*ftmp;
    datadiff->weiphv[idiff] = exp(alphaphv*disphv*disphv)*ftmp;
    datadiff->tdiffgrv[idiff] = dist/grv_curve - dist/datapoint->grv[ipoint];
    datadiff->tdiffphv[idiff] = dist/phv_curve - dist/datapoint->phv[ipoint];
    datadiff->npair += 1;
-
+cerr<<datapoint->per[ipoint]<<" "<<grv_curve<<" "<<datapoint->grv[ipoint]<<" "<<datadiff->tdiffgrv[idiff]<<" "<<snreff<<" "<<datadiff->weigrv[idiff]<<endl;
 }
 
 void AverageTimeShift(struct TIMING_DATA *datadiff, float *TShift, float *sigma) {
    int i, npair = datadiff-> npair;
-   float weit = 0.;
+   float weitphv = 0., weitgrv = 0., snravg = 0.;
    *TShift = 0.;
    for(i=0;i<npair;i++) {
       *TShift += (datadiff->tdiffgrv[i]) * (datadiff->weigrv[i]);
       *TShift += (datadiff->tdiffphv[i]) * (datadiff->weiphv[i]);
-      weit += (datadiff->weigrv[i]) + (datadiff->weiphv[i]);
+      snravg += (datadiff->snreff[i]) * (datadiff->weigrv[i]);
+      weitgrv += (datadiff->weigrv[i]); weitphv += (datadiff->weiphv[i]);
    }
-   *TShift /= weit;
+   float V1 = weitgrv + weitphv;
+   *TShift /= V1;
+   snravg /= weitgrv;
    *sigma = 0.;
-   float V1=0., V2=0., ftmp, weight;
+   float V2=0., ftmp, weight;
    for(i=0;i<npair;i++) {
       //grv
       weight = datadiff->weigrv[i];
       ftmp = (datadiff->tdiffgrv[i]) - *TShift;
       *sigma += weight*ftmp*ftmp;
-      V1 += weight; V2 += weight*weight;
+      V2 += weight*weight;
       //phv
       weight = datadiff->weiphv[i];
       ftmp = (datadiff->tdiffphv[i]) - *TShift;
       *sigma += weight*ftmp*ftmp;
-      V1 += weight; V2 += weight*weight;
+      V2 += weight*weight;
    }
    *sigma *= V1 / (V1*V1-V2);
    // sigma increase (, which means the computed TimeShift is less believable, ) when effperc (period band) is small
-   *sigma *= sqrt(snrmin/snravg)/Qfactor;
+   datadiff->Qfactor *= sqrt(snravg/snrmin);
+   *sigma *= sqrt(snrmin/snravg)/(datadiff->Qfactor);
 }
 
 void TimeShift( struct LAG_DATA *datapos, struct LAG_DATA *dataneg, double dist, float *TShift, float *sigma ) {
    int ii, ip, in, np=datapos->ndat, nn=dataneg->ndat;
    struct TIMING_DATA datadiff;
-   if(datapos->effperc < dataneg->effperc) datadiff->Qfactor = datapos->effperc;
-   else datadiff->Qfactor = dataneg->effperc;
+   if(datapos->effperc < dataneg->effperc) datadiff.Qfactor = datapos->effperc;
+   else datadiff.Qfactor = dataneg->effperc;
+   datadiff.npair = 0;
    // compute timeshift and weight at each point
    for(ip=0,in=0; ip<np,in<nn; ) {
       if( datapos->per[ip] < dataneg->per[in] ) {
@@ -250,7 +265,7 @@ Gaussian halflength as percentage for group and phase dispersion shift
 defines how the amplitude and SNRs are weighted
 */
    FILE *ff;
-   char buff[300];
+   char buff[500];
    int i, nsta, npth, nblk;
    struct STATION sta[NSTA];
    struct STAPAIR *spr = NULL;
@@ -259,27 +274,40 @@ defines how the amplitude and SNRs are weighted
       cout<<"Cannot open file "<<arg[1]<<endl;
       return -1;
    }
-   for(i=0;fgets(buff, 300, ff)!=NULL;i++) {
+   for(i=0;fgets(buff, 500, ff)!=NULL;i++) {
       sscanf(buff,"%s %f %f", sta[i].name, &sta[i].lon, &sta[i].lat);
       if(sta[i].lon<0) sta[i].lon += 360.;
    }
    nsta=i;
    fclose(ff);
+   if( nsta == 0 ) {
+      cerr<<"Error(main): empty station list!"<<endl;
+      exit(0);
+   }
 
-/* read in sta1, sta2, dispf, snrf from file list */
+/* read in sta1, sta2, dispf, snrf pdisp_g pdisp_p from file list */
    if((ff=fopen(arg[2],"r"))==NULL) {
       cout<<"Cannot open file "<<arg[2]<<endl;
       return -1;
    }
-   for(nblk=0,i=0;fgets(buff, 300, ff)!=NULL;i++) {
+   for(nblk=0,i=0;fgets(buff, 500, ff)!=NULL;) {
       if( nblk*BLKs <= i ) spr = (struct STAPAIR *) realloc (spr, (++nblk)*BLKs * sizeof(struct STAPAIR));
-      sscanf(buff,"%s %s %s %s %s %s %f %s %s", spr[i].sta1, spr[i].sta2, spr[i].disp_pf, spr[i].snr_pf, spr[i].disp_nf, spr[i].snr_nf, &(spr[i].daynum), spr[i].pdisp_g, spr[i].pdisp_p);
+      if( sscanf(buff,"%s %s %s %s %s %s %f %s %s", spr[i].sta1, spr[i].sta2, spr[i].disp_pf, spr[i].snr_pf, spr[i].disp_nf, spr[i].snr_nf, &(spr[i].daynum), spr[i].pdisp_g, spr[i].pdisp_p) != 9 ) {
+	 cerr<<"Warning(main): format error in file "<<arg[2]<<endl;
+	 continue;
+      }
+      i++;
    }
    npth = i;
    fclose(ff);
+   if( npth == 0 ) {
+      cerr<<"Error(main): empty file list!"<<endl;
+      exit(0);
+   }
+
 /* main loop. Process data from each path. Compute dist and snr, and as an indicator of FTAN quality,
    compute summation of SNR&amp weighted by distance between observed and predicted dispersion curves */
-   int ipth, isp, isn, skip=1;
+   int ipth, isp, isn, nlag;
    int flagp, flagn;
    float snrsig_pos, snrsig_neg, ampsig_pos, ampsig_neg;
    double dist, azi1, azi2;
@@ -305,15 +333,16 @@ defines how the amplitude and SNRs are weighted
       calc_azimuth(sta[isp].lat, sta[isp].lon, sta[isn].lat, sta[isn].lon, &azi1);
       calc_azimuth(sta[isn].lat, sta[isn].lon, sta[isp].lat, sta[isp].lon, &azi2);
    // compute weights and averaged SNR&amp for each lag
-      skip=0;
-      if( ! AmpSNRSummation( spr[ipth].disp_pf, spr[ipth].snr_pf, spr[ipth].pdisp_g, spr[ipth].pdisp_p, &snrsig_pos, &ampsig_pos, &datapos ) ) skip=1;
-      if( ! AmpSNRSummation( spr[ipth].disp_nf, spr[ipth].snr_nf, spr[ipth].pdisp_g, spr[ipth].pdisp_p, &snrsig_neg, &ampsig_neg, &dataneg ) ) skip=1;
-      if( skip ) {
-	 cout<<" Missing input file(s). Skiped!"<<endl;
+      nlag=0;
+      if( AmpSNRSummation( spr[ipth].disp_pf, spr[ipth].snr_pf, spr[ipth].pdisp_g, spr[ipth].pdisp_p, &snrsig_pos, &ampsig_pos, &datapos ) ) nlag++;
+      if( AmpSNRSummation( spr[ipth].disp_nf, spr[ipth].snr_nf, spr[ipth].pdisp_g, spr[ipth].pdisp_p, &snrsig_neg, &ampsig_neg, &dataneg ) ) nlag++;
+      if( nlag == 0 ) {
+	 cout<<" Bad measurements in both lags. Skiped!"<<endl;
 	 continue;
       }
    // compute averaged timeshift and its uncertainty
-      TimeShift( &datapos, &dataneg, dist, &TShift, &sigma );
+      if( nlag == 2 ) TimeShift( &datapos, &dataneg, dist, &TShift, &sigma );
+      else { TShift = -1; sigma = -1; }
       fprintf(ff, "%s %f %f  %s %f %f  %lf %lf %lf %f : %f %g  %f %g %f %f\n", sta[isp].name, sta[isp].lat, sta[isp].lon, sta[isn].name, sta[isn].lat, sta[isn].lon, dist, azi1, azi2, spr[ipth].daynum, snrsig_pos, ampsig_pos/spr[ipth].daynum, snrsig_neg, ampsig_neg/spr[ipth].daynum, TShift, sigma);
    }
    fclose(ff);
