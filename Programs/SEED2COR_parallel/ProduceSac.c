@@ -52,7 +52,7 @@ int Resampling(char *sacname, float **sig2, SAC_HD *sd, int ithread) {
    }
 */
    if(iinc!=1) {
-      double f1 = -1., f2 = -1., f3 = sps/2.2, f4 = f3*1.2;
+      double f1 = -1., f2 = -1., f3 = sps/2.2, f4 = sps/2.01;
       Filter(f1, f2, f3, f4, (double)shd.delta, shd.npts, sig1, sig1);
    }
 

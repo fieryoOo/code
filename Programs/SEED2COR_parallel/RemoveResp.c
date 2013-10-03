@@ -155,6 +155,13 @@ int TransferEvr(int ne, int ns, float **sig, SAC_HD *sd, int ithread) {
    int nf = 100;
    char buff[300], sta[8], ch[8], net[8];
    float f2 = 1./perh*0.7, f1 = f2*0.8, f3 = 1./perl*1.3, f4 = f3*1.2;
+   float fmax = 0.499/(sd->delta);
+   if( f4 > fmax ){ 
+      f4 = fmax; 
+      if( f3 >= fmax ) f3 = fmax/1.1;
+      if( f2 >= f3 ) f2 = f3;
+      reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: Filter band out of range. Filter reshaped! ***");
+   }
    double pi=4*atan(1.0), pio180=pi/180.;
    sscanf(sd->kstnm, "%s", sta);
    sscanf(sd->kcmpnm, "%s", ch);

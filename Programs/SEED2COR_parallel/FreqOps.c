@@ -103,8 +103,8 @@ void TaperB( double f1, double f2, double f3, double f4, double dom, int nk, fft
 
 void Filter (double f1, double f2, double f3, double f4, double dt, int n, float *seis_in, float *seis_out) {
    if(f4 > 0.5/dt) {
-      fprintf(stdout, "*** Warning: filter band out of range! ***");
-      return;
+      fprintf(stdout, "\n*** Warning(Filter): filter band out of range! ***\n");
+      f4 = 0.49999/dt;
    }
    fftw_plan planF = NULL;
    //backward FFT: s ==> sf
@@ -184,8 +184,9 @@ void fDiv(double dom, int nsig, fftw_complex *sf, double *freq, double *amp, dou
 
 void FDivide (double f1, double f2, double f3, double f4, double dt, int n, float *seis_in, float *seis_out, double *freq, double *amp, double *pha, int nf) {
    if(f4 > 0.5/dt) {
-      fprintf(stdout, "*** Warning: filter band out of range! ***");
-      return;
+      fprintf(stdout, "\n*** Warning(FDivide): filter band out of range! ***\n");
+      f4 = 0.4999/dt;
+      if( f3 >= f4 ) f3 = f4/1.1;
    }
    fftw_plan planF = NULL;
    //backward FFT: s ==> sf
