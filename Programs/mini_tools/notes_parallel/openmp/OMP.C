@@ -35,7 +35,7 @@ int main(int argc, char *argcv[])
       fprintf(stdout, "Thread %d started at %f ms.  i = %d\n", tid, (ClockGetTime()-ts)/1.e3, i);
       for(j=0;j<NARR;j++){
 	 //#pragma omp critical
-	 #pragma omp atomic write
+	 #pragma omp atomic
 	 a[j] += 1;
       }
       fprintf(stdout, "Thread %d ended at %f ms.  i = %d\n", tid, (ClockGetTime()-ts)/1.e3, i);

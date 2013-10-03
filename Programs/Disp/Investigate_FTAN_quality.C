@@ -16,6 +16,7 @@ Input 2: input-file list ( staname1 staname2 fDisppos fAmppos fDispneg fAmpneg d
 #include <unistd.h>
 #include <stdlib.h>
 #include "/home/tianye/MyLib/Dis_Azi.h"
+#include "omp.h"
 using namespace std;
 
 #define NSTA 2000
@@ -23,6 +24,7 @@ using namespace std;
 #define NFRQ 300
 
 float perl, perh, ghlgrv, ghlphv, alphagrv, alphaphv, snrmin;
+omp_lock_t readlock;
 
 struct STATION {
    char name[6];
@@ -76,15 +78,24 @@ void InserSort2(float *arr, float *dat1, float *dat2, int n) {
 
 // compute distance% in the freq-vel domain
 float FVDist(float per0, float vel0, float *per, float *vel, int n) {
-   float dx, dy, dis, dismin, logper0 = log(per0);
+   float dx, dy, dis, logper0 = log(per0);
    int i;
    // interpolate to get the vertical distance
+   /*
    for(i=0;per[i]<per0;i++){};
    if( i < n ) {
       float veli = vel[i-1] + (vel[i]-vel[i-1]) * (logper0-log(per[i-1]))/(log(per[i])-log(per[i-1]));
       dismin = fabs(veli-vel0)/veli;
    }
    else { dismin = 1.e25; }
+   */
+   float veli, dismin = 1.e25;
+   for(i=1;i<n;i++) {
+      if( per[i-1]>per0 || per[i]<per0 ) continue;
+      veli = vel[i-1] + (vel[i]-vel[i-1]) * (logper0-log(per[i-1]))/(log(per[i])-log(per[i-1]));
+      dis = fabs(veli-vel0)/veli;
+      if( dismin > dis ) dismin = dis;
+   }
    // check for smaller (non-interpolated) distance
    for(i=0;i<n;i++) {
       dx = 1.-logper0/log(per[i]);
@@ -101,6 +112,7 @@ int AmpSNRSummation( char *fdisp, char *fsnr, char *fgrvpred, char *fphvpred, fl
    char buff1[300], buff2[300];
    int i, nfgrv, nfphv;
    float pergrv[NFRQ], grvpred[NFRQ], perphv[NFRQ], phvpred[NFRQ];
+  // omp_set_lock(&readlock);
    // read predicted group disp
    if((fin1=fopen(fgrvpred, "r")) == NULL) return -1;
    for(i=0;fgets(buff1, 300, fin1)!=NULL;) {
@@ -125,6 +137,7 @@ int AmpSNRSummation( char *fdisp, char *fsnr, char *fgrvpred, char *fphvpred, fl
    }
    fclose(fin1);
    nfphv = i;
+  // omp_unset_lock(&readlock);
    // read observed parameters and weighted-sum amp and snr
    *snr = 0.; *amp = 0.;
    int ndat = 0, neff = 0;
@@ -195,50 +208,59 @@ void ComputeDiff( struct LAG_DATA *datacurve, int ilow, int ihigh, struct LAG_DA
    datadiff->tdiffgrv[idiff] = dist/grv_curve - dist/datapoint->grv[ipoint];
    datadiff->tdiffphv[idiff] = dist/phv_curve - dist/datapoint->phv[ipoint];
    datadiff->npair += 1;
-cerr<<datapoint->per[ipoint]<<" "<<grv_curve<<" "<<datapoint->grv[ipoint]<<" "<<datadiff->tdiffgrv[idiff]<<" "<<snreff<<" "<<datadiff->weigrv[idiff]<<endl;
+   //cerr<<datapoint->per[ipoint]<<" "<<grv_curve<<" "<<datapoint->grv[ipoint]<<" "<<datadiff->tdiffgrv[idiff]<<" "<<snreff<<" "<<datadiff->weigrv[idiff]<<endl;
 }
 
-void AverageTimeShift(struct TIMING_DATA *datadiff, float *TShift, float *sigma) {
+void AverageTimeShift(struct TIMING_DATA *datadiff, float *TShiftG, float *sigmaG, float *TShiftP, float *sigmaP) {
    int i, npair = datadiff-> npair;
-   float weitphv = 0., weitgrv = 0., snravg = 0.;
-   *TShift = 0.;
+   float V1phv = 0., V1grv = 0., snravg = 0.;
+   *TShiftG = 0.; *TShiftP = 0.;
    for(i=0;i<npair;i++) {
-      *TShift += (datadiff->tdiffgrv[i]) * (datadiff->weigrv[i]);
-      *TShift += (datadiff->tdiffphv[i]) * (datadiff->weiphv[i]);
+      *TShiftG += (datadiff->tdiffgrv[i]) * (datadiff->weigrv[i]);
+      *TShiftP += (datadiff->tdiffphv[i]) * (datadiff->weiphv[i]);
       snravg += (datadiff->snreff[i]) * (datadiff->weigrv[i]);
-      weitgrv += (datadiff->weigrv[i]); weitphv += (datadiff->weiphv[i]);
+      V1grv += (datadiff->weigrv[i]); V1phv += (datadiff->weiphv[i]);
    }
-   float V1 = weitgrv + weitphv;
-   *TShift /= V1;
-   snravg /= weitgrv;
-   *sigma = 0.;
-   float V2=0., ftmp, weight;
+   if( V1grv < 1. ) { 
+      *TShiftG = -1.; *sigmaG = -1.; 
+      *TShiftP = -1.; *sigmaP = -1.;
+      return;
+   }
+   *TShiftG /= V1grv; *TShiftP /= V1phv;
+   snravg /= V1grv;
+   *sigmaG = 0.; *sigmaP = 0.;
+   float V2grv=0., V2phv=0., ftmp, weight;
    for(i=0;i<npair;i++) {
       //grv
       weight = datadiff->weigrv[i];
-      ftmp = (datadiff->tdiffgrv[i]) - *TShift;
-      *sigma += weight*ftmp*ftmp;
-      V2 += weight*weight;
+      ftmp = (datadiff->tdiffgrv[i]) - *TShiftG;
+      *sigmaG += weight*ftmp*ftmp;
+      V2grv += weight*weight;
       //phv
       weight = datadiff->weiphv[i];
-      ftmp = (datadiff->tdiffphv[i]) - *TShift;
-      *sigma += weight*ftmp*ftmp;
-      V2 += weight*weight;
+      ftmp = (datadiff->tdiffphv[i]) - *TShiftP;
+      *sigmaP += weight*ftmp*ftmp;
+      V2phv += weight*weight;
    }
-   *sigma *= V1 / (V1*V1-V2);
-   // sigma increase (, which means the computed TimeShift is less believable, ) when effperc (period band) is small
+   *sigmaG = sqrt(*sigmaG / (V1grv*V1grv-V2grv)); // this is std of the mean ( std/sqrt(V1) )
+   *sigmaP = sqrt(*sigmaP / (V1phv*V1phv-V2phv));
+   // sigma decrease (, which means the computed TimeShift is more beliveable, ) when snravg is high
+   datadiff->Qfactor *= 2.;
+   //datadiff->Qfactor = 1.; // may exclude the effect of effperc because it has already been included in computing std of the mean
    datadiff->Qfactor *= sqrt(snravg/snrmin);
-   *sigma *= sqrt(snrmin/snravg)/(datadiff->Qfactor);
+   *sigmaG /= (datadiff->Qfactor);
+   *sigmaP /= (datadiff->Qfactor);
+   if( V1phv < 1. ) { *TShiftP = -1.; *sigmaP = -1.; }
 }
 
-void TimeShift( struct LAG_DATA *datapos, struct LAG_DATA *dataneg, double dist, float *TShift, float *sigma ) {
+void TimeShift( struct LAG_DATA *datapos, struct LAG_DATA *dataneg, double dist, float *TShiftG, float *sigmaG, float *TShiftP, float *sigmaP ) {
    int ii, ip, in, np=datapos->ndat, nn=dataneg->ndat;
    struct TIMING_DATA datadiff;
    if(datapos->effperc < dataneg->effperc) datadiff.Qfactor = datapos->effperc;
    else datadiff.Qfactor = dataneg->effperc;
    datadiff.npair = 0;
    // compute timeshift and weight at each point
-   for(ip=0,in=0; ip<np,in<nn; ) {
+   for(ip=0,in=0; ip<np&&in<nn; ) {
       if( datapos->per[ip] < dataneg->per[in] ) {
 	 for(ii=in; dataneg->per[ii]<=datapos->per[ip+1]; ii++) ComputeDiff(datapos, ip, ip+1, dataneg, ii, dist, &datadiff);
 	 ip++;
@@ -249,7 +271,7 @@ void TimeShift( struct LAG_DATA *datapos, struct LAG_DATA *dataneg, double dist,
       }
    }
    // compute averaged timeshift and uncertainty for this sta-pair
-   AverageTimeShift(&datadiff, TShift, sigma);
+   AverageTimeShift(&datadiff, TShiftG, sigmaG, TShiftP, sigmaP);
 
 }
 
@@ -312,15 +334,17 @@ defines how the amplitude and SNRs are weighted
    float snrsig_pos, snrsig_neg, ampsig_pos, ampsig_neg;
    double dist, azi1, azi2;
    struct LAG_DATA datapos, dataneg;
-   float TShift, sigma;
+   float TShiftG, sigmaG, TShiftP, sigmaP;
    perl = atof(arg[3]); perh = atof(arg[4]); 
    ghlgrv = atof(arg[5]); ghlphv = atof(arg[6]);
    snrmin = atof(arg[7]);
    alphagrv = -0.5/(ghlgrv*ghlgrv); alphaphv = -0.5/(ghlphv*ghlphv);
 
-   sprintf(buff, "Disp_quality_%f_%f", perl, perh);
+   sprintf(buff, "Disp_quality_%.1f_%.1f", perl, perh);
    ff = fopen(buff, "w");
-   fprintf(ff, "sta1 lat1 lon1  sta2 lat2 lon2  dist azi1 azi2 dnum : snrsig_pos ampsig_pos/dnum snrsig_neg ampsig_neg/dnum TimeShift Uncertainty_in_Timeshift\n");
+   fprintf(ff, "sta1(1) lat1(2) lon1(3)  sta2(4) lat2(5) lon2(6)  dist(7) azi1(8) azi2(9) dnum(10) : snrsig_pos(12) ampsig_pos/dnum(13) snrsig_neg(14) ampsig_neg/dnum(15) GrvTimeShift(16) GrvUncertainty(17) PhvTimeShift(18) PhvUnvertainty(19)\n");
+   //omp_init_lock(&readlock);
+   //#pragma omp parallel for lastprivate(ipth) schedule (static,1)
    for(ipth=0;ipth<npth;ipth++) {
    // Search for sta1 and sta2 in station list
       for(isp=0;isp<nsta;isp++) if(strcmp(spr[ipth].sta1, sta[isp].name)==0) break;
@@ -337,15 +361,18 @@ defines how the amplitude and SNRs are weighted
       if( AmpSNRSummation( spr[ipth].disp_pf, spr[ipth].snr_pf, spr[ipth].pdisp_g, spr[ipth].pdisp_p, &snrsig_pos, &ampsig_pos, &datapos ) ) nlag++;
       if( AmpSNRSummation( spr[ipth].disp_nf, spr[ipth].snr_nf, spr[ipth].pdisp_g, spr[ipth].pdisp_p, &snrsig_neg, &ampsig_neg, &dataneg ) ) nlag++;
       if( nlag == 0 ) {
-	 cout<<" Bad measurements in both lags. Skiped!"<<endl;
+	 cout<<"   Bad measurements in both lags. Skiped!"<<endl;
 	 continue;
       }
    // compute averaged timeshift and its uncertainty
-      if( nlag == 2 ) TimeShift( &datapos, &dataneg, dist, &TShift, &sigma );
-      else { TShift = -1; sigma = -1; }
-      fprintf(ff, "%s %f %f  %s %f %f  %lf %lf %lf %f : %f %g  %f %g %f %f\n", sta[isp].name, sta[isp].lat, sta[isp].lon, sta[isn].name, sta[isn].lat, sta[isn].lon, dist, azi1, azi2, spr[ipth].daynum, snrsig_pos, ampsig_pos/spr[ipth].daynum, snrsig_neg, ampsig_neg/spr[ipth].daynum, TShift, sigma);
+      if( nlag == 2 ) TimeShift( &datapos, &dataneg, dist, &TShiftG, &sigmaG, &TShiftP, &sigmaP );
+      else { TShiftG = -1; sigmaG = -1; TShiftP = -1; sigmaP = -1; }
+      cout<<"   Done"<<endl;
+      //#pragma omp critical
+      fprintf(ff, "%s %f %f  %s %f %f  %lf %lf %lf %f : %f %g  %f %g %f %f %f %f\n", sta[isp].name, sta[isp].lat, sta[isp].lon, sta[isn].name, sta[isn].lat, sta[isn].lon, dist, azi1, azi2, spr[ipth].daynum, snrsig_pos, ampsig_pos/spr[ipth].daynum, snrsig_neg, ampsig_neg/spr[ipth].daynum, TShiftG, sigmaG, TShiftP, sigmaP);
    }
    fclose(ff);
+   //omp_destroy_lock(&readlock);
 
    free(spr);
  
