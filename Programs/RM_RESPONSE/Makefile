@@ -2,7 +2,7 @@ INST_DIR = $(HOME)/bin
 BIN  = RemoveRESP
 
 fflags = -O2 -Wall
-cflags = -O2 -Wall
+cflags = -O3 -Wall
 
 LDLIBS = -lfftw3 -lgfortran -lstdc++
 

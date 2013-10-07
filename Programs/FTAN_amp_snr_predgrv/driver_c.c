@@ -223,25 +223,30 @@ notice that amp_snrs are always measured based on
   static double pred[2][300];
   static int npred;
   if( (inv=fopen(argv[3], "r")) == NULL ) {
-     perror("Failed to open file ");
-     exit(-1);
+     //use grv from 1st iteration:
+     npred = nfout2;
+     tmin = arr2[0][1];
+     tmax = arr2[nfout2-1][1];
+     for(i = 0; i < nfout2; i++) {
+         pred[0][i] = arr2[i][1];   // apparent periods
+         pred[1][i] = arr2[i][2];   // group velocities
+     }
   }
-  npred = 0; 
-  float tminp = 9999., tmaxp = -1.;
-  while( fgets(buff,300,inv) != NULL ) {
-     if( sscanf(buff,"%lf %lf",&pred[0][npred],&pred[1][npred]) < 2) break;
-     if(pred[1][npred] != pred[1][npred]) continue;
-     if( pred[0][npred] < tmin || pred[0][npred] > tmax ) continue;
-     if(tminp>pred[0][npred]) tminp = pred[0][npred];
-     if(tmaxp<pred[0][npred]) tmaxp = pred[0][npred];
-    // printf("%d %lf %lf\n", npred, pred[0][npred], pred[1][npred]);
-     npred++;
+  else {
+     npred = 0; 
+     float tminp = 9999., tmaxp = -1.;
+     while( fgets(buff,300,inv) != NULL ) {
+        if( sscanf(buff,"%lf %lf",&pred[0][npred],&pred[1][npred]) < 2) break;
+        if(pred[1][npred] != pred[1][npred]) continue;
+        if( pred[0][npred] < tmin || pred[0][npred] > tmax ) continue;
+        if(tminp>pred[0][npred]) tminp = pred[0][npred];
+        if(tmaxp<pred[0][npred]) tmaxp = pred[0][npred];
+       // printf("%d %lf %lf\n", npred, pred[0][npred], pred[1][npred]);
+        npred++;
+     }
+     fclose(inv);
+     tmin = tminp; tmax = tmaxp;
   }
-  fclose(inv);
-  //printf("%f %f  %f %f\n", tmin, tmax, tminp, tmaxp); exit(0);
-  //if( tminp > tmin ) tmin = tminp;
-  //if( tmaxp < tmax ) tmax = tmaxp;
-  tmin = tminp; tmax = tmaxp;
 
 /* Pre-whiten and record the amp factor */
   f1=1./(tmax*1.25);
