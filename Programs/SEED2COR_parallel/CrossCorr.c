@@ -69,6 +69,7 @@ void ReadGroup(int size, int ig, struct mstarec *stag) {
    if( ftype ) iread = 0; //fprintf(stdout, "### Reading in records for station group %d: ", ig+1);
    else fprintf(stdout, "\n  *Reading in records for the %d(/%d)th station: ", ig+1, sdbnew->nst);
    for(i=0, nst=0; i<size; i++, ist++) {
+   //cerr<<"ReadGroup:  reading ist="<<ist<<endl;
       if(ftype) iread = i;
       else fprintf(stdout, "\n   %s: ", sdbnew->st[ist].name);
       for(iev=0; iev<NEVENTS; iev++) {
@@ -492,13 +493,13 @@ void CrossCorr() {
       if ( cortype == 0 ) fprintf(stdout, "### Cross-Correlating "); //cout<<"### Cross-Correlating ";
       else if ( cortype == 1 ) fprintf(stdout, "### Deconvolution(1o2) ");
       else if ( cortype == 2 ) fprintf(stdout, "### Deconvolution(2o1) ");
-      fprintf(stdout, "for month %s between group %d(/%d) stations and other stations: ", sdbnew->mo[imonth].name, ig1+1, ng);
+      fprintf(stdout, "for month %s between group %d(/%d) stations (%d - %d) and other stations: ", sdbnew->mo[imonth].name, ig1+1, ng, ig1*size, ig1*size+size-1);
       npair = 0; nrec = 0;
       for(is2=ig1*size; is2<sdbnew->nst; is2++) {
 	 i2 = is2-ig1*size;
 	 //if(i2<size) starec2[0] = stag[i2]; need modification here!
 	 ReadGroup(-1, is2, starec2);
-	 while( i2 > iread ) sleep(1);
+	 while( iread<size && i2>iread ) {  fprintf(stdout, "\n   Waiting for file readin\n" ); sleep(1); }
          for(i1=0; i1<size; i1++) {
 	    if(i1>i2) break;
             is1 = i1+ig1*size;
