@@ -1,10 +1,7 @@
-# This reference_hw1 file is for your reference only. Any modifications or changes
-# to this code will not affect or alter your program's execution.
-
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
-#include "utils.h"
+//#include "utils.h"
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <string>
@@ -27,7 +24,7 @@ void preProcess(uchar4 **inputImage, unsigned char **greyImage,
                 uchar4 **d_rgbaImage, unsigned char **d_greyImage,
                 const std::string &filename) {
   //make sure the context initializes ok
-  checkCudaErrors(cudaFree(0));
+  cudaFree(0);//checkCudaErrors(cudaFree(0));
 
   cv::Mat image;
   image = cv::imread(filename.c_str(), CV_LOAD_IMAGE_COLOR);
@@ -53,12 +50,12 @@ void preProcess(uchar4 **inputImage, unsigned char **greyImage,
 
   const size_t numPixels = numRows() * numCols();
   //allocate memory on the device for both input and output
-  checkCudaErrors(cudaMalloc(d_rgbaImage, sizeof(uchar4) * numPixels));
-  checkCudaErrors(cudaMalloc(d_greyImage, sizeof(unsigned char) * numPixels));
-  checkCudaErrors(cudaMemset(*d_greyImage, 0, numPixels * sizeof(unsigned char))); //make sure no memory is left laying around
+  cudaMalloc(d_rgbaImage, sizeof(uchar4) * numPixels); // checkCudaErrors
+  cudaMalloc(d_greyImage, sizeof(unsigned char) * numPixels); // checkCudaErrors
+  cudaMemset(*d_greyImage, 0, numPixels * sizeof(unsigned char)); //make sure no memory is left laying around; checkCudaErrors
 
   //copy input array to the GPU
-  checkCudaErrors(cudaMemcpy(*d_rgbaImage, *inputImage, sizeof(uchar4) * numPixels, cudaMemcpyHostToDevice));
+  cudaMemcpy(*d_rgbaImage, *inputImage, sizeof(uchar4) * numPixels, cudaMemcpyHostToDevice); // checkCudaErrors
 
   d_rgbaImage__ = *d_rgbaImage;
   d_greyImage__ = *d_greyImage;
@@ -67,7 +64,7 @@ void preProcess(uchar4 **inputImage, unsigned char **greyImage,
 void postProcess(const std::string& output_file) {
   const int numPixels = numRows() * numCols();
   //copy the output back to the host
-  checkCudaErrors(cudaMemcpy(imageGrey.ptr<unsigned char>(0), d_greyImage__, sizeof(unsigned char) * numPixels, cudaMemcpyDeviceToHost));
+  cudaMemcpy(imageGrey.ptr<unsigned char>(0), d_greyImage__, sizeof(unsigned char) * numPixels, cudaMemcpyDeviceToHost); // checkCudaErrors
 
   //output the image
   cv::imwrite(output_file.c_str(), imageGrey);

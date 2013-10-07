@@ -1,9 +1,6 @@
-# This main file is for your reference only. Any modifications or changes
-# to this code will not affect or alter your program's execution.
-
 #include <iostream>
-#include "timer.h"
-#include "utils.h"
+//#include "timer.h"
+//#include "utils.h"
 #include <string>
 #include <stdio.h>
 
@@ -20,7 +17,7 @@ void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_r
                             unsigned char* const d_greyImage, size_t numRows, size_t numCols);
 
 //include the definitions of the above functions for this homework
-#include "HW1.cpp"
+//#include "rgb2grey.cu"
 
 int main(int argc, char **argv) {
   uchar4        *h_rgbaImage, *d_rgbaImage;
@@ -39,13 +36,14 @@ int main(int argc, char **argv) {
   //load the image and give us our input and output pointers
   preProcess(&h_rgbaImage, &h_greyImage, &d_rgbaImage, &d_greyImage, input_file);
 
-  GpuTimer timer;
-  timer.Start();
+  //GpuTimer timer;
+  //timer.Start();
   //call the students' code
   your_rgba_to_greyscale(h_rgbaImage, d_rgbaImage, d_greyImage, numRows(), numCols());
-  timer.Stop();
-  cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
+  //timer.Stop();
+  cudaDeviceSynchronize(); //checkCudaErrors(cudaGetLastError());
   printf("\n");
+/*
   int err = printf("%f msecs.\n", timer.Elapsed());
 
   if (err < 0) {
@@ -53,7 +51,7 @@ int main(int argc, char **argv) {
     std::cerr << "Couldn't print timing information! STDOUT Closed!" << std::endl;
     exit(1);
   }
-
+*/
   //check results and output the grey image
   postProcess(output_file);
 
