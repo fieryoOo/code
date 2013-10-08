@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
   //GpuTimer timer;
   //timer.Start();
   //call the students' code
-std::cerr<<"Before blur"<<std::endl;
+std::cout<<"Input Size: "<<" "<<numCols()<<" x "<<numRows()<<std::endl;
   your_rgba_to_greyscale(h_rgbaImage, d_rgbaImage, d_greyImage, numRows(), numCols());
   //timer.Stop();
   cudaDeviceSynchronize(); //checkCudaErrors(cudaGetLastError());
@@ -53,7 +53,6 @@ std::cerr<<"Before blur"<<std::endl;
   }
 */
   //check results and output the grey image
-std::cerr<<"Before out"<<std::endl;
   postProcess(output_file);
 
   return 0;

@@ -36,7 +36,7 @@ void preProcess(uchar4 **inputImage, uchar4 **blurImage,
   cv::cvtColor(image, imageRGBA, CV_BGR2RGBA);
 
   //allocate memory for the output
-  imageOut.create(image.rows, image.cols, CV_8UC1);
+  imageOut.create(image.rows, image.cols, CV_8UC4);
 
   //This shouldn't ever happen given the way the images are created
   //at least based upon my limited understanding of OpenCV, but better to check
@@ -64,7 +64,7 @@ void preProcess(uchar4 **inputImage, uchar4 **blurImage,
 void postProcess(const std::string& output_file) {
   const int numPixels = numRows() * numCols();
   //copy the output back to the host
-  cudaMemcpy(imageOut.ptr<unsigned char>(0), d_blurImage__, sizeof(uchar4) * numPixels, cudaMemcpyDeviceToHost); // checkCudaErrors
+  cudaMemcpy(imageOut.ptr<uchar4>(0), d_blurImage__, sizeof(uchar4) * numPixels, cudaMemcpyDeviceToHost); // checkCudaErrors
 
   //output the image
   cv::imwrite(output_file.c_str(), imageOut);

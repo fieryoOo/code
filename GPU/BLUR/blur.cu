@@ -56,12 +56,15 @@ void blur_image(const uchar4* const rgbaImage,
   //calculate a 1D offset
     int idx, idxc, npt=0;
     int ix, x = blockIdx.x * 32 + threadIdx.x;
+    if( x >= numCols ) return;
     int iy, y = blockIdx.y * 16 + threadIdx.y;
+    if( y >= numRows ) return;
     uchar4 rgbain;
     idxc = x + y * numCols;
-    for(ix=x-1; ix<x+2; ix++) 
-       for(iy=y-1; iy<y+2; iy++) {
-          if( ix<0 || ix>=numCols || iy<0 || iy>=numRows ) continue;
+    for(ix=x-0; ix<x+1; ix++) {
+       if( ix<0 || ix>numCols ) continue;
+       for(iy=y-0; iy<y+1; iy++) {
+          if( iy<0 || iy>=numRows ) continue;
           idx = ix + iy * numCols;
           rgbain = rgbaImage[idx];
           greyImage[idxc].x += rgbain.x;
@@ -69,11 +72,11 @@ void blur_image(const uchar4* const rgbaImage,
           greyImage[idxc].z += rgbain.z;
 	  npt++;
        }
+    }
     greyImage[idxc].x /= npt;
     greyImage[idxc].y /= npt; 
-    greyImage[idxc].z /= npt;
+    greyImage[idxc].z /= npt; 
     greyImage[idxc].w = rgbaImage[idxc].w;
-	
 }
 
 void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_rgbaImage,
@@ -83,10 +86,7 @@ void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_r
   //currently only one block with one thread is being launched
   const dim3 blockSize(32, 16, 1);  //TODO
   const dim3 gridSize( numCols/32+1, numRows/16+1, 1);  //TODO
-std::cerr<<" before blur_image"<<std::endl;
   blur_image<<<gridSize, blockSize>>>(d_rgbaImage, d_greyImage, numRows, numCols);
-std::cerr<<" after blur_image"<<std::endl;
  
   cudaDeviceSynchronize(); //checkCudaErrors(cudaGetLastError());
-std::cerr<<"aa"<<std::endl;
 }
