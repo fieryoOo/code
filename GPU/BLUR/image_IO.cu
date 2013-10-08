@@ -69,7 +69,7 @@ void postProcess(const std::string& output_file) {
   //output the image
   cv::Mat imageOut2;
   imageOut2.create(imageOut.rows, imageOut.cols, CV_8UC4);
-  cv::cvtColor(imageOut2, imageOut, CV_RGBA2BGR);
+  cv::cvtColor(imageOut, imageOut2, CV_RGBA2BGR);
   cv::imwrite(output_file.c_str(), imageOut2);
 
   //cleanup
