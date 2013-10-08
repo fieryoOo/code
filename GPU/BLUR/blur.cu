@@ -60,6 +60,7 @@ void blur_image(const uchar4* const rgbaImage,
     int iy, y = blockIdx.y * 16 + threadIdx.y;
     if( y >= numRows ) return;
     uchar4 rgbain;
+    float valx = 0., valy = 0., valz = 0.;
     idxc = x + y * numCols;
     for(ix=x-0; ix<x+1; ix++) {
        if( ix<0 || ix>=numCols ) continue;
@@ -67,15 +68,15 @@ void blur_image(const uchar4* const rgbaImage,
           if( iy<0 || iy>=numRows ) continue;
           idx = ix + iy * numCols;
           rgbain = rgbaImage[idx];
-          greyImage[idxc].x += rgbain.x;
-          greyImage[idxc].y += rgbain.y; 
-          greyImage[idxc].z += rgbain.z;
+          valx += rgbain.x;
+          valy += rgbain.y; 
+          valz += rgbain.z;
 	  npt++;
        }
     }
-    //greyImage[idxc].x /= npt;
-    //greyImage[idxc].y /= npt; 
-    //greyImage[idxc].z /= npt; 
+    greyImage[idxc].x = int(valx/npt+0.5);
+    greyImage[idxc].y = int(valy/npt+0.5); 
+    greyImage[idxc].z = int(valz/npt+0.5); 
     greyImage[idxc].w = rgbaImage[idxc].w;
    //greyImage[idxc] = rgbaImage[idxc];
 }
