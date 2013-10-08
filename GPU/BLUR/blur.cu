@@ -73,10 +73,11 @@ void blur_image(const uchar4* const rgbaImage,
 	  npt++;
        }
     }
-    greyImage[idxc].x /= npt;
-    greyImage[idxc].y /= npt; 
-    greyImage[idxc].z /= npt; 
-    greyImage[idxc].w = rgbaImage[idxc].w;
+    //greyImage[idxc].x /= npt;
+    //greyImage[idxc].y /= npt; 
+    //greyImage[idxc].z /= npt; 
+    //greyImage[idxc].w = rgbaImage[idxc].w;
+    greyImage[idxc] = rgbaImage[idxc];
 }
 
 void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_rgbaImage,
