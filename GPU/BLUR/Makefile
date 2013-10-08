@@ -1,7 +1,7 @@
 EXECUTABLE = BLUR
 
 NVCC = nvcc
-cflags = -O3 
+cflags =
 
 LDLIBS = `pkg-config opencv --cflags --libs`
 

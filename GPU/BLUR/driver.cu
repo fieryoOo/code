@@ -14,7 +14,7 @@ void preProcess(uchar4 **h_rgbaImage, uchar4 **h_greyImage,
 void postProcess(const std::string& output_file);
 
 void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_rgbaImage,
-                            uchar4* const d_greyImage, size_t numRows, size_t numCols);
+                            uchar4* d_greyImage, size_t numRows, size_t numCols);
 
 //include the definitions of the above functions for this homework
 //#include "rgb2grey.cu"
@@ -39,10 +39,10 @@ int main(int argc, char **argv) {
   //GpuTimer timer;
   //timer.Start();
   //call the students' code
+std::cerr<<"Before blur"<<std::endl;
   your_rgba_to_greyscale(h_rgbaImage, d_rgbaImage, d_greyImage, numRows(), numCols());
   //timer.Stop();
   cudaDeviceSynchronize(); //checkCudaErrors(cudaGetLastError());
-  printf("\n");
 /*
   int err = printf("%f msecs.\n", timer.Elapsed());
 
@@ -53,6 +53,7 @@ int main(int argc, char **argv) {
   }
 */
   //check results and output the grey image
+std::cerr<<"Before out"<<std::endl;
   postProcess(output_file);
 
   return 0;
