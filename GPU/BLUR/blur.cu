@@ -62,9 +62,9 @@ void blur_image(const uchar4* const rgbaImage,
     uchar4 rgbain;
     float valx = 0., valy = 0., valz = 0.;
     idxc = x + y * numCols;
-    for(ix=x-0; ix<x+1; ix++) {
+    for(ix=x-1; ix<x+2; ix++) {
        if( ix<0 || ix>=numCols ) continue;
-       for(iy=y-0; iy<y+1; iy++) {
+       for(iy=y-1; iy<y+2; iy++) {
           if( iy<0 || iy>=numRows ) continue;
           idx = ix + iy * numCols;
           rgbain = rgbaImage[idx];
