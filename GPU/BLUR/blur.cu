@@ -61,9 +61,9 @@ void blur_image(const uchar4* const rgbaImage,
     if( y >= numRows ) return;
     uchar4 rgbain;
     idxc = x + y * numCols;
-    for(ix=x-1; ix<x+2; ix++) {
+    for(ix=x-0; ix<x+1; ix++) {
        if( ix<0 || ix>=numCols ) continue;
-       for(iy=y-1; iy<y+2; iy++) {
+       for(iy=y-0; iy<y+1; iy++) {
           if( iy<0 || iy>=numRows ) continue;
           idx = ix + iy * numCols;
           rgbain = rgbaImage[idx];
@@ -73,11 +73,11 @@ void blur_image(const uchar4* const rgbaImage,
 	  npt++;
        }
     }
-    greyImage[idxc].x /= npt;
-    greyImage[idxc].y /= npt; 
-    greyImage[idxc].z /= npt; 
+    //greyImage[idxc].x /= npt;
+    //greyImage[idxc].y /= npt; 
+    //greyImage[idxc].z /= npt; 
     greyImage[idxc].w = rgbaImage[idxc].w;
-   greyImage[idxc] = rgbaImage[idxc];
+   //greyImage[idxc] = rgbaImage[idxc];
 }
 
 void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_rgbaImage,
