@@ -36,7 +36,7 @@ void preProcess(uchar4 **inputImage, uchar4 **blurImage,
   cv::cvtColor(image, imageRGBA, CV_BGR2RGBA);
 
   //allocate memory for the output
-  imageOut.create(image.rows, image.cols, CV_32FC4); //CV_8UC1
+  imageOut.create(image.rows, image.cols, CV_8UC4); //CV_8UC1
 
   //This shouldn't ever happen given the way the images are created
   //at least based upon my limited understanding of OpenCV, but better to check
