@@ -212,45 +212,66 @@ void ComputeDiff( struct LAG_DATA *datacurve, int ilow, int ihigh, struct LAG_DA
 }
 
 void AverageTimeShift(struct TIMING_DATA *datadiff, float *TShiftG, float *sigmaG, float *TShiftP, float *sigmaP) {
-   int i, npair = datadiff-> npair;
-   float V1phv = 0., V1grv = 0., snravg = 0.;
-   *TShiftG = 0.; *TShiftP = 0.;
-   for(i=0;i<npair;i++) {
+   //cerr<<"Before: "<<*TShiftG<<" "<<*sigmaG<<"    "<<*TShiftP<<" "<<*sigmaP<<endl;
+   int i, npair = datadiff-> npair, npef;
+ // group
+   float V1grv = 0., snravg = 0.;
+   *TShiftG = 0.;
+   for(npef=0,i=0;i<npair;i++) {
+      if( (datadiff->weigrv[i]) < 1.e-10 ) continue;
       *TShiftG += (datadiff->tdiffgrv[i]) * (datadiff->weigrv[i]);
-      *TShiftP += (datadiff->tdiffphv[i]) * (datadiff->weiphv[i]);
       snravg += (datadiff->snreff[i]) * (datadiff->weigrv[i]);
-      V1grv += (datadiff->weigrv[i]); V1phv += (datadiff->weiphv[i]);
+      V1grv += (datadiff->weigrv[i]); 
+      npef++;
    }
-   if( V1grv < 1. ) { 
+   if( npef<3 || V1grv < 1. ) { 
       *TShiftG = -1.; *sigmaG = -1.; 
       *TShiftP = -1.; *sigmaP = -1.;
       return;
    }
-   *TShiftG /= V1grv; *TShiftP /= V1phv;
-   snravg /= V1grv;
-   *sigmaG = 0.; *sigmaP = 0.;
-   float V2grv=0., V2phv=0., ftmp, weight;
+   *TShiftG /= V1grv; snravg /= V1grv;
+   *sigmaG = 0.;
+   float V2grv=0., ftmp, weight;
    for(i=0;i<npair;i++) {
       //grv
       weight = datadiff->weigrv[i];
+      if( weight < 1.e-10 ) continue;
       ftmp = (datadiff->tdiffgrv[i]) - *TShiftG;
       *sigmaG += weight*ftmp*ftmp;
       V2grv += weight*weight;
-      //phv
-      weight = datadiff->weiphv[i];
-      ftmp = (datadiff->tdiffphv[i]) - *TShiftP;
-      *sigmaP += weight*ftmp*ftmp;
-      V2phv += weight*weight;
    }
    *sigmaG = sqrt(*sigmaG / (V1grv*V1grv-V2grv)); // this is std of the mean ( std/sqrt(V1) )
-   *sigmaP = sqrt(*sigmaP / (V1phv*V1phv-V2phv));
    // sigma decrease (, which means the computed TimeShift is more beliveable, ) when snravg is high
    datadiff->Qfactor *= 2.;
    //datadiff->Qfactor = 1.; // may exclude the effect of effperc because it has already been included in computing std of the mean
    datadiff->Qfactor *= sqrt(snravg/snrmin);
    *sigmaG /= (datadiff->Qfactor);
+ // phase
+   float V1phv = 0.;
+   *TShiftP = 0.;
+   for(npef=0,i=0;i<npair;i++) {
+      if( (datadiff->weiphv[i]) < 1.e-10 ) continue;
+      *TShiftP += (datadiff->tdiffphv[i]) * (datadiff->weiphv[i]);
+      V1phv += (datadiff->weiphv[i]);
+      npef++;
+   }
+   if( npef < 3 || V1phv < 1. ) { 
+      *TShiftP = -1.; *sigmaP = -1.; 
+      return;
+   }
+   *TShiftP /= V1phv; 
+   *sigmaP = 0.;
+   float V2phv=0.;
+   for(i=0;i<npair;i++) {
+      //phv
+      weight = datadiff->weiphv[i];
+      if( weight < 1.e-10 ) continue;
+      ftmp = (datadiff->tdiffphv[i]) - *TShiftP;
+      *sigmaP += weight*ftmp*ftmp;
+      V2phv += weight*weight;
+   }
+   *sigmaP = sqrt(*sigmaP / (V1phv*V1phv-V2phv));
    *sigmaP /= (datadiff->Qfactor);
-   if( V1phv < 1. ) { *TShiftP = -1.; *sigmaP = -1.; }
 }
 
 void TimeShift( struct LAG_DATA *datapos, struct LAG_DATA *dataneg, double dist, float *TShiftG, float *sigmaG, float *TShiftP, float *sigmaP ) {
@@ -262,17 +283,18 @@ void TimeShift( struct LAG_DATA *datapos, struct LAG_DATA *dataneg, double dist,
    // compute timeshift and weight at each point
    for(ip=0,in=0; ip<np&&in<nn; ) {
       if( datapos->per[ip] < dataneg->per[in] ) {
-	 for(ii=in; dataneg->per[ii]<=datapos->per[ip+1]; ii++) ComputeDiff(datapos, ip, ip+1, dataneg, ii, dist, &datadiff);
+	 for(ii=in; ii<nn && dataneg->per[ii]<=datapos->per[ip+1]; ii++) ComputeDiff(datapos, ip, ip+1, dataneg, ii, dist, &datadiff);
+	 if( ii == nn ) break;
 	 ip++;
       }
       else {
-	 for(ii=ip; datapos->per[ii]<dataneg->per[in+1]; ii++) ComputeDiff(dataneg, in, in+1, datapos, ii, -dist, &datadiff);
+	 for(ii=ip; ii<np && datapos->per[ii]<dataneg->per[in+1]; ii++) ComputeDiff(dataneg, in, in+1, datapos, ii, -dist, &datadiff);
+	 if( ii == np ) break;
          in++;
       }
    }
    // compute averaged timeshift and uncertainty for this sta-pair
    AverageTimeShift(&datadiff, TShiftG, sigmaG, TShiftP, sigmaP);
-
 }
 
 main(int na, char *arg[])

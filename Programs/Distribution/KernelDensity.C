@@ -28,19 +28,20 @@ int readdata( char* fname ) {
          cerr<<"Warning(main): format error: "<<buff<<endl;
          continue;
       }
+      data[ndat].sigma = 1. / sqrt(data[ndat].sigma);
       ndat++;
    }
    fclose(fin);
    return ndat;
 }
 
-float AvgSTD(struct DATA *data, int ndat, float *stdo) {
+float STD(struct DATA *data, int ndat, float *avgo) {
    int i;
    // first iteration
    float avg=0., std=0., V1=0., V2=0.;
    float ftmp, weight[ndat];
    for(i=0;i<ndat;i++) {
-      weight[i] = 1. / sqrt(data[i].sigma);
+      weight[i] = data[i].sigma;
       V1 += weight[i]; V2 += weight[i] * weight[i];
    }
    for(i=0; i<ndat; i++) avg += data[i].val * weight[i];
@@ -68,9 +69,9 @@ float AvgSTD(struct DATA *data, int ndat, float *stdo) {
    }
    std = sqrt(std * V1 / (V1*V1-V2) );
    nwstd = sqrt(nwstd / (ndat-1));
-   *stdo = std;
+   *avgo = avg;
    //cerr<<avg<<" "<<std<<endl;
-   return nwstd;
+   return std;
 }
 
 void KernelDensity(struct DATA *data, int ndat, float std, float h, char *outname) {
@@ -96,8 +97,17 @@ void KernelDensity(struct DATA *data, int ndat, float std, float h, char *outnam
 	 density[iden] += amp*exp(-alpha*ftmp*ftmp);
       }
    }
+   struct DATA densi[nden]; // wrong! not val!
+   for(iden=0;iden<nden;iden++) { densi[iden].val = (iden-n5sig)*step; densi[iden].sigma = density[iden]; }
+   float xcord, davg, dstd = STD(densi, ndat, &davg);
+   amp = osqrt2pi/dstd;
+   alpha = 0.5/(dstd*dstd);
    FILE *fout = fopen(outname, "w");
-   for(iden=0;iden<nden;iden++) fprintf(fout, "%f %f\n", (iden-n5sig)*step, density[iden]/ndat);
+   for(iden=0;iden<nden;iden++) {
+      xcord = (iden-n5sig)*step;
+      ftmp = davg - xcord;
+      fprintf(fout, "%f %f %f\n", xcord, density[iden]/ndat, amp*exp(-alpha*ftmp*ftmp));
+   }
    fclose(fout);
 }
 
@@ -109,9 +119,8 @@ int main(int argc, char *argv[]) {
    // read in data
    int ndat = readdata(argv[1]);
    // compute bandwidth using Gaussian approximation
-   float std, nwstd = AvgSTD(data, ndat, &std);
+   float avg, std = STD(data, ndat, &avg);
    float h = std*pow(1.3333333/ndat, 0.2);
-   cout<<std<<" "<<nwstd<<" "<<h<<endl;
    // estimate kernel density and write to file
    char outname[100];
    sprintf(outname, "%s_kd", argv[1]);

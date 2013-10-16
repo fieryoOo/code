@@ -75,6 +75,33 @@ void write_sac (char *fname, float *sig, SAC_HD *SHD) {
         fclose (fsac);
 }
 
+void RTrend(float *sig, SAC_HD *shd) {
+   // fit a*x+b
+   int i, npts = shd->npts;
+   float X = 0., Y = 0., X2 = 0., Y2 = 0., XY = 0.;
+   for(i=0;i<npts;i++) {
+      X += i;
+      Y += sig[i];
+      X2 += i*i;
+      Y2 += sig[i]*sig[i];
+      XY += i*sig[i];
+   }
+   float a = (npts*XY-X*Y)/(npts*X2-X*X);
+   float b = (-X*XY+X2*Y)/(npts*X2-X*X);
+   // correct sig and DEPMEN
+   float mean = 0., max = sig[0], min = sig[0];
+   float shift = b;
+   for(i=0;i<npts;i++,shift+=a) {
+      sig[i] -= shift;
+      mean += sig[i];
+      if ( min > sig[i] ) min = sig[i];
+      else if ( max < sig[i] ) max = sig[i];
+   }
+   shd->depmin = min;
+   shd->depmax = max;
+   shd->depmen = mean / npts;
+}
+
 int TransferEvr(char *fname, char *fresp, char *erexe, float perl, float perh, float **sig, SAC_HD *sd) {
    // read in sac file
    SAC_HD shd;
@@ -140,6 +167,8 @@ int TransferEvr(char *fname, char *fresp, char *erexe, float perl, float perh, f
    }
    fclose(fam); fclose(fph);
    fRemove(nameam); fRemove(nameph);
+   // remove trend ( and mean )
+   RTrend(*sig, &shd);
    // run rmresponse
    FDivide (f1, f2, f3, f4, (double)shd.delta, shd.npts, *sig, *sig, freq, amp, pha, nf);
    return 1;
@@ -147,15 +176,15 @@ int TransferEvr(char *fname, char *fresp, char *erexe, float perl, float perh, f
 
 int main (int argc, char *argv[])
 {
-  if(argc != 4) {
-    printf("Usage: %s [in_sac] [RESP_file] [out_sac]\n", argv[0]);
+  if(argc != 6) {
+    printf("Usage: %s [in_sac] [RESP_file] [out_sac] [perl] [perh]\n", argv[0]);
     exit(-1);
   }
   float *sig;
   SAC_HD sd;
   //double pi = 4*atan(1.0);
 
-  float perl = 1., perh = 80.;
+  float perl = atof(argv[4]), perh = atof(argv[5]);
   char erexe[100] = "/home/tianye/Software/evalresp/evalresp-3.3.3/evalresp";
   if( TransferEvr(argv[1], argv[2], erexe, perl, perh, &sig, &sd)!=1 ) {
      cerr<<"Transfer failed!"<<endl;
