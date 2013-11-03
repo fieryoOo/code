@@ -4,7 +4,7 @@
 #include <math.h>
 using namespace std;
 
-#define NSTA 5000
+#define NSTA 30000
 
 int calc_dist(double lati1, double long1, double lati2, double long2, double *dist)
 {
@@ -126,6 +126,7 @@ int Gauss_Smoothing(char *fname, double hdis)
    double dist[nsta], data[nsta], dsmd[nsta];
 
    for(i=0;i<nsta;i++){
+cerr<<i<<"/"<<nsta<<endl;
       ndata=0;
       for(j=0;j<nsta;j++){
          calc_dist(lat[i], lon[i], lat[j], lon[j], &dis);

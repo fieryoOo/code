@@ -123,9 +123,10 @@ void Filter (double f1, double f2, double f3, double f4, double dt, int n, float
 
    //forming final result
    int k;
+   float ftmp = 2./ns;
    for(k=0; k<n; k++) {
       if( seis_in[k]==0 ) seis_out[k] = 0.;
-      else seis_out[k] *= 2./ns;
+      else seis_out[k] *= ftmp;
    }
 
    return;
@@ -205,10 +206,11 @@ void FDivide (double f1, double f2, double f3, double f4, double dt, int n, floa
 
    //forming final result
    int k;
+   float ftmp = 2./ns;
    for(k=0; k<n; k++) {
       //if( seis_in[k]==0 ) seis_out[k] = 0.;
       //else 
-      seis_out[k] *= 2./ns;
+      seis_out[k] *= ftmp;
    }
 
    return;

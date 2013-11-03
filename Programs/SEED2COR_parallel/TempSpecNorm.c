@@ -305,6 +305,7 @@ void * TSNormEntrance (void *tid) {
 }
 
 void TempSpecNorm () {
+cerr<<"In TempSpecNorm"<<endl;
    int ithread;
    //initialize report arrays
    reports = (struct NOTE *) malloc ( NTHRDS * sizeof(struct NOTE));

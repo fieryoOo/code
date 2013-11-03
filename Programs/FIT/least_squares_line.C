@@ -4,59 +4,106 @@
 #include<math.h>
 #include <string>
 #include <unistd.h>
+#include <float.h>
 using namespace std;
 
 #define NDAT 2000
 
-int main (int argc, char *argv[])
-{
-   if(argc != 3){
-      printf("Usage: least_squares_line.C [input file] [indep var (0 for x, 1 for y)]\n");
-      exit(-1);
+void least_square_fit(int type, double *datx, double *daty, double *sigma, int ndat, double *aout, double *sigmaaout, double *bout, double *sigmabout ) {
+   if( ndat < 2 ) {
+      *aout = *bout = *sigmaaout = *sigmabout = -12345.;
+      return;
    }
 
-   FILE *ff;
-   char buff[300];
-   int i, ndat;
-   double datx[NDAT], daty[NDAT], std;
-
-   if((ff=fopen(argv[1],"r"))==NULL) {
-      cout<<"Can't open file: "<<argv[1]<<endl;
-      exit(0);
-   }
-   for(i=0;;i++) {
-      if(fgets(buff,300,ff)==NULL) break;
-      sscanf(buff,"%lf %lf",&datx[i],&daty[i]);
-   }
-   fclose(ff);
-   ndat=i;
-
-   double a, b, X=0, Y=0, X2=0, Y2=0, XY=0;
+   int i;
+   double a, b, w, x, y, W=0, WX=0, WY=0, WX2=0, WY2=0, WXY=0;
    for(i=0;i<ndat;i++) {
-      X += datx[i];
-      Y += daty[i];
-      X2 += pow(datx[i],2);
-      Y2 += pow(daty[i],2);
-      XY += datx[i]*daty[i];
+      w = 1./( sigma[i] * sigma[i] );
+      x = datx[i]; y = daty[i];
+      W += w;
+      WX += w * x; WY += w * y;
+      WX2 += w * x * x; WY2 += w * y * y;
+      WXY += w * x * y; 
    }
-   if(atoi(argv[2])==0) {
-      a = (ndat*XY-X*Y)/(ndat*X2-X*X);
-      b = (-X*XY+X2*Y)/(ndat*X2-X*X);
+
+   // determine a b accordingly
+   if(type == 0) {
+      w = 1./(W*WX2-WX*WX);
+      a = (W*WXY-WX*WY) * w;
+      b = (-WX*WXY+WX2*WY) * w;
    }
-   else if(atoi(argv[2])==1) {
-      a=(ndat*Y2-Y*Y)/(ndat*XY-X*Y);
-      b=(Y*XY-Y2*X)/(ndat*XY-X*Y);
+   else if(type == 1) {
+      w = 1./(W*WXY-WX*WY);
+      a=(W*WY2-WY*WY) * w;
+      b=(WY*WXY-WY2*WX) * w;
    }
    else {
       cout<<"Line_fit: Wrong input for indep var, stopped!"<<endl;
       exit(0);
    }
-   std=0;
-   for(i=0;i<ndat;i++) std += pow(daty[i]-a*datx[i]-b,2);
-   if(atoi(argv[2])==1) std /= a*a;
-   std = sqrt(std/(ndat-1));
+   *aout = a; *bout = b;
 
-   cout<<a<<" "<<b<<" "<<std<<endl;
+   if( ndat == 2 ) {
+      *sigmaaout = *sigmabout = DBL_MAX;
+      return;
+   }
+   // compute uncertainty in each parameter
+   double S2 = 0., k; 
+   double dtmp;
+   // define k according to ndat from t distribution
+   // assuming a 95% conf is equivalent to 2 sigma conf
+   if( ndat == 3 ) k = 12.706;
+   else if ( ndat == 4 ) k = 4.303;
+   else if ( ndat == 5 ) k = 3.182;
+   else if ( ndat == 6 ) k = 2.776;
+   else k = 1.960+13.8/pow((double)ndat, 1.6); // this could be made better
+   k *= 0.5; // now this is 1 sigma
+   // compute uncertainties
+   for(i=0;i<ndat;i++) {
+      dtmp = daty[i] - a * datx[i] - b;
+      S2 += dtmp * dtmp;
+   }
+   S2 /= ndat-2.;
+   if( type == 0 ) {
+      *sigmaaout = k * sqrt(S2 * W * w);
+      *sigmabout = k * sqrt(S2 * WX2 * w);
+   }
+   else {
+      S2 /= a*a;
+      *sigmaaout = k * sqrt(S2 * W * w);
+      *sigmabout = k * sqrt(S2 * WY2 * w);
+   }
+}
+
+
+int main (int argc, char *argv[])
+{
+   if(argc != 3){
+      printf("Usage: least_squares_line.C [input file (x y sigma)] [indep var (0 for x, 1 for y)]\n");
+      exit(-1);
+   }
+
+   FILE *ff;
+   char buff[300];
+   int i, itmp, ndat;
+   double datx[NDAT], daty[NDAT], sigma[NDAT];
+
+   if((ff=fopen(argv[1],"r"))==NULL) {
+      cout<<"Can't open file: "<<argv[1]<<endl;
+      exit(0);
+   }
+   for(i=0; fgets(buff, 300, ff); ) {
+      itmp = sscanf(buff,"%lf %lf %lf", &datx[i], &daty[i], &sigma[i]);
+      if( itmp == 2 ) sigma[i]=1.;
+      else if (itmp != 3) continue;
+      i++;
+   }
+   fclose(ff);
+   ndat=i;
+
+   double a, b, sigmaa, sigmab;
+   least_square_fit(atoi(argv[2]), datx, daty, sigma, ndat, &a, &sigmaa, &b, &sigmab);
+   cout<<a<<" "<<b<<" "<<sigmaa<<" "<<sigmab<<endl;
 
    return 1;
 }

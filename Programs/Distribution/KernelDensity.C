@@ -9,6 +9,7 @@ using namespace std;
 struct DATA {
    float val;
    float sigma;
+   float weight;
 };
 
 struct DATA *data;
@@ -28,20 +29,20 @@ int readdata( char* fname ) {
          cerr<<"Warning(main): format error: "<<buff<<endl;
          continue;
       }
-      data[ndat].sigma = 1. / sqrt(data[ndat].sigma);
+      data[ndat].weight = 1. / sqrt(data[ndat].sigma);
       ndat++;
    }
    fclose(fin);
    return ndat;
 }
 
-float STD(struct DATA *data, int ndat, float *avgo) {
+float STD(struct DATA *data, int ndat, float dfactor, float *avgo) {
    int i;
    // first iteration
    float avg=0., std=0., V1=0., V2=0.;
    float ftmp, weight[ndat];
    for(i=0;i<ndat;i++) {
-      weight[i] = data[i].sigma;
+      weight[i] = data[i].weight;
       V1 += weight[i]; V2 += weight[i] * weight[i];
    }
    for(i=0; i<ndat; i++) avg += data[i].val * weight[i];
@@ -55,7 +56,7 @@ float STD(struct DATA *data, int ndat, float *avgo) {
    // second iteration
    V1=0., V2=0.;
    for(i=0;i<ndat;i++) {
-      if( fabs(data[i].sigma - avg) > std*2 ) weight[i] = 0.;
+      if( fabs(data[i].val - avg) > std*dfactor ) weight[i] = 0.;
       else { V1 += weight[i]; V2 += weight[i] * weight[i]; }
    }
    avg=0., std=0.;
@@ -97,30 +98,35 @@ void KernelDensity(struct DATA *data, int ndat, float std, float h, char *outnam
 	 density[iden] += amp*exp(-alpha*ftmp*ftmp);
       }
    }
-   struct DATA densi[nden]; // wrong! not val!
-   for(iden=0;iden<nden;iden++) { densi[iden].val = (iden-n5sig)*step; densi[iden].sigma = density[iden]; }
-   float xcord, davg, dstd = STD(densi, ndat, &davg);
+   struct DATA densi[nden]; 
+   for(iden=0;iden<nden;iden++) { 
+      density[iden] /= ndat;
+      densi[iden].val = (iden-n5sig)*step; 
+      densi[iden].weight = density[iden]; 
+   }
+   float xcord, davg, dstd = STD(densi, nden, 1.5, &davg);
    amp = osqrt2pi/dstd;
    alpha = 0.5/(dstd*dstd);
    FILE *fout = fopen(outname, "w");
    for(iden=0;iden<nden;iden++) {
       xcord = (iden-n5sig)*step;
       ftmp = davg - xcord;
-      fprintf(fout, "%f %f %f\n", xcord, density[iden]/ndat, amp*exp(-alpha*ftmp*ftmp));
+      fprintf(fout, "%f %f %f\n", xcord, density[iden], amp*exp(-alpha*ftmp*ftmp));
    }
    fclose(fout);
+   cout<<davg<<" "<<dstd<<endl;
 }
 
 int main(int argc, char *argv[]) {
-   if(argc != 2) {
-      cerr<<"Usage: "<<argv[0]<<" [input_file (col1=value col2=uncertainty)]"<<endl;
+   if(argc != 3) {
+      cerr<<"Usage: "<<argv[0]<<" [input_file (col1=value col2=uncertainty)] [smoothing factor (=1 for Gaussian approximation)]"<<endl;
       exit(-1);
    }
    // read in data
    int ndat = readdata(argv[1]);
    // compute bandwidth using Gaussian approximation
-   float avg, std = STD(data, ndat, &avg);
-   float h = std*pow(1.3333333/ndat, 0.2);
+   float avg, std = STD(data, ndat, 2, &avg);
+   float h = std*pow(1.3333333/ndat, 0.2) * atof(argv[2]);
    // estimate kernel density and write to file
    char outname[100];
    sprintf(outname, "%s_kd", argv[1]);

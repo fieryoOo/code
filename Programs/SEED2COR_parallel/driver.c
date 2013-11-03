@@ -74,6 +74,7 @@ using namespace std;
    int fskip2;		//skip RmRESP() when set to 2, skip upon existence of target file when set to 1
    int fskip3;		//skip TempSpecNorm() when set to 2, skip upon existence of target file when set to 1
    int fskip4;		//skip CrossCorr() if target file exists when set to 1
+   int CorOutflag;      //controls the output of cross-corellation results: 0=monthly, 1=daily, 2=both
 //---------------------------------------------------------------------------------------------------------------------------------//
 
 void FillStations();
@@ -342,6 +343,24 @@ int GetParameters(char *fname) {
    if(fskip4==2) cout<<"skip"<<endl;
    else if(fskip4==1) cout<<"skip if target file exists"<<endl;
    else cout<<"overwrite if target file exists"<<endl;
+   //CorOutflag
+   if( (fgets(buff, 300, fparam)) == NULL ) return 0;
+   sscanf(buff, "%d", &CorOutflag);
+   cout<<"CC Output: \t\t";
+   switch( CorOutflag ) {
+      case 0:
+	 cout<<"monthly"<<endl;
+	 break;
+      case 1:
+	 cout<<"daily"<<endl;
+	 break;
+      case 2:
+	 cout<<"monthly + daily"<<endl;
+	 break;
+      default:
+	 cerr<<endl<<"   Error: unknow outflag("<<CorOutflag<<")!"<<endl;
+	 ERR = 1;
+   }
    //check for EOF
    if( (fgets(buff, 300, fparam)) != NULL ) cout<<"   Warning: End of file not reached!"<<endl;
 

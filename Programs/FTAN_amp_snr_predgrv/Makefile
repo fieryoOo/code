@@ -17,7 +17,7 @@ CC = gcc
 
 DBG =
 
-FOBJS = driver_c.o swapn.o aftanpg.o aftanipg.o ftfilt.o gaufilt.o fmax.o \
+FOBJS = driver_c.o swapn.o aftanpg.o aftanipg.o ftfilt.o Filter.o fmax.o \
         taper.o trigger.o tapers.o tgauss.o mspline.o pred_cur.o misc.o \
         phtovel.o whiten_phamp.o get_snr.o
 

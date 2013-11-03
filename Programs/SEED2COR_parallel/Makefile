@@ -38,5 +38,8 @@ FreqOps.o : FreqOps.c
 install : $(EXECUTABLE)
 	install -s $(EXECUTABLE) $(INST_DIR)
 
+install_ariadne : $(EXECUTABLE)
+	cp $(EXECUTABLE) $(INST_DIR)/$(EXECUTABLE)_ariadne
+
 clean :
 	rm -f $(EXECUTABLE) core $(FOBJS)
