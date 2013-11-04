@@ -1,0 +1,12 @@
+# GMT common arguments shelf
+-Ba2f1:T, s:/a.5f.1:Vel, km/s:WnSe
+-JX10
+-R0/10/0/10
+-X1
+-x1
+-Y6
+-y-5
+-jX10
+EOF
+OF
+F
