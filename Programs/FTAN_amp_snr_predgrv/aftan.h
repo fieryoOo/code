@@ -23,11 +23,12 @@ void printres(double dt,int nfout1,double arr1[100][8],int nfout2,
 void readdata(int sac,char *name,int *n,double *dt,double *delta,
               double *t0,float sei[32768]);
 void swapn(unsigned char *b, int N, int nn);
-void gaufilt_(double *alpha,double *c_per,
-              double *dt,int *n, float seis_in[], float seis_out[]);
 
 void filter4_(double *f1,double *f2,double *f3,double *f4,
               double *dt,int *n, float seis_in[],
               int *ns,double *dom,float amp_rec[]);
 
 #endif /* !AFTAN_H */
+//void gaufilt_(double *alpha,double *c_per,
+//              double *dt,int *n, float seis_in[], float seis_out[]);
+

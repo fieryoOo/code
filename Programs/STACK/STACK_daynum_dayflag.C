@@ -190,14 +190,13 @@ int main (int argn, char *argv[]) {
  
   int i,j,k,nsta,ndir,npath,ii,jj,jjj,jjjj,flag;
   short day_fs[32];
-  char staname[NSTA][10],outname[100],dirlist[100][300],outfname[300],lst_name[300],outdir1[300],tstr[300],buff[300],dstr[32],pstr[NSTA*NSTA/2][100];
+  char staname[NSTA][10],outname[100],dirlist[100][300],outfname[300],lst_name[300],outdir1[300],tstr[300],buff[300],dstr[32];
   char tname1[300],tname2[300],tname3[300],tname4[300], stnm1[6], stnm2[6];
   float stalat[NSTA],stalon[NSTA],*fsig;
   FILE *ff1, *flst;  
 
   struct stat st;
   SAC_HD shd,shd1;
-
 
   if (argn != 5) {
     fprintf (stderr,"input [station.lst] [dir.lst] [type(COR or DCV)] [out.dir]\n");
@@ -219,13 +218,17 @@ int main (int argn, char *argv[]) {
     return 0;
     }
 
-  for (i=0;fgets(buff, 300, ff1)!=NULL;i++)
+  for (i=0;i<NSTA&&fgets(buff, 300, ff1)!=NULL;i++)
     if (sscanf(buff,"%s %g %g", &staname[i], &stalon[i], &stalat[i]) != 3) {
        cout<<"Warning: format error in stations list: "<<buff<<". Skipped!"<<endl;
        continue;
     }
   nsta = i;
-  fclose(ff1);  
+  fclose(ff1);
+  if( i >= NSTA ) {
+     fprintf(stderr, "num of stations exceeds the limit! Increase NSTA!\n");
+     exit(0);
+  }
 
   if ((ff1 = fopen(argv[2],"r"))==NULL) {
     fprintf(stderr,"cannot open file %s\n",argv[1]);
@@ -241,6 +244,12 @@ int main (int argn, char *argv[]) {
 
   char tmpc[9], day_fc[nsta][nsta][9*ndir+1];
   int sflag[nsta][nsta], daynum[nsta][nsta];
+
+  char *pstr[NSTA*NSTA]; // define 2 times of the possible max # of paths to be safe
+  for(i=0; i<NSTA*NSTA; i++) pstr[i] = new char[300];
+
+
+
 /*
   char ***day_fc = (char ***) malloc(nsta * sizeof(char **));
   for(i=0;i<nsta;i++) {day_fc[i] = (char **) malloc(nsta * sizeof(char *));}
@@ -253,6 +262,7 @@ int main (int argn, char *argv[]) {
   for(i=0;i<nsta;i++) for(j=0;j<nsta;j++) {if( day_fc[i][j] == NULL )return 0;}
 */
   for(j=0;j<nsta;j++)for(k=j;k<nsta;k++) daynum[j][k] = 0;
+
   for (i=0;i<ndir;i++) {
      for(j=0;j<nsta;j++)for(k=j;k<nsta;k++) sflag[j][k] = -1;
      sprintf(tname1,"%s/Cor_dayflag.lst",dirlist[i]);
@@ -261,7 +271,8 @@ int main (int argn, char *argv[]) {
         return 0;
      }
      for(j=0;;j++) {
-        if( (fgets(pstr[j], 300, ff1)) == NULL ) break; }
+        if( (fgets(pstr[j], 300, ff1)) == NULL ) break; 
+     }
      fclose(ff1);
      npath=j;
      for(j=0;j<npath;j++){
@@ -295,6 +306,7 @@ int main (int argn, char *argv[]) {
      for(j=0;j<nsta;j++) for(k=j+1;k<nsta;k++)
         if( sflag[j][k] == -1 ) sprintf(&day_fc[j][k][i*9],"00000000 "); 
   }
+  for(i=0; i<nsta*nsta; i++) delete [] pstr[i];
 
   sprintf(tname1,"%s/Cor_dayflag.lst\0",argv[4]);
   if ((flst = fopen(tname1,"w"))==NULL) {
@@ -303,7 +315,7 @@ int main (int argn, char *argv[]) {
   }
   for(i=0;i<nsta;i++) for(j=i+1;j<nsta;j++){
      sprintf(lst_name,"%s/%s_%s_%s.SAC",staname[i],type,staname[i],staname[j]);
-     fprintf(flst,"%s\t%s\t%d\n",lst_name, day_fc[i][j], daynum[i][j]);
+     fprintf(flst,"%-30s\t%s\t%4d\n",lst_name, day_fc[i][j], daynum[i][j]);
   }
   fclose(flst);
 

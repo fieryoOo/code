@@ -197,11 +197,12 @@ notice that amp_snrs are always measured based on
       }
 
   // Pre-whiten and record the amp factor
-  f1=1./tmax/1.25;
+  f1=1./(tmax*1.25);
   f2=1./tmax;
   f3=1./tmin;
-  f4=1./tmin/1.25;
-  //filter4_(&f1,&f2,&f3,&f4,&dt,&n,sei,&n_am,&dom_am);
+  f4=1./tmin*1.25;
+  float amprec[NMAX], ampavg;
+  //filter4_(&f1,&f2,&f3,&f4,&dt,&n,sei,&n_am,&dom_am,amprec);
 
   // set parameters
   nfin    = 32;
@@ -223,16 +224,18 @@ notice that amp_snrs are always measured based on
   static double pred[2][300];
   static int npred;
   if( (inv=fopen(argv[3], "r")) == NULL ) {
-     //use grv from 1st iteration:
+     fprintf(stdout, "use grv from 1st iteration!\n");
      npred = nfout2;
      tmin = arr2[0][1];
      tmax = arr2[nfout2-1][1];
+fprintf(stderr,"tmin=%f tmax=%f\n", tmin, tmax);
      for(i = 0; i < nfout2; i++) {
          pred[0][i] = arr2[i][1];   // apparent periods
          pred[1][i] = arr2[i][2];   // group velocities
      }
   }
   else {
+     fprintf(stdout, "use grv from prediction!\n");
      npred = 0; 
      float tminp = 9999., tmaxp = -1.;
      while( fgets(buff,300,inv) != NULL ) {
@@ -241,7 +244,7 @@ notice that amp_snrs are always measured based on
         if( pred[0][npred] < tmin || pred[0][npred] > tmax ) continue;
         if(tminp>pred[0][npred]) tminp = pred[0][npred];
         if(tmaxp<pred[0][npred]) tmaxp = pred[0][npred];
-       // printf("%d %lf %lf\n", npred, pred[0][npred], pred[1][npred]);
+        //printf("%d %lf %lf\n", npred, pred[0][npred], pred[1][npred]);
         npred++;
      }
      fclose(inv);
@@ -253,8 +256,7 @@ notice that amp_snrs are always measured based on
   f2=1./tmax;
   f3=1./tmin;
   f4=1./tmin*1.25;
-  float amprec[NMAX], ampavg;
-  filter4_(&f1,&f2,&f3,&f4,&dt,&n,sei,&n_am,&dom_am,amprec);
+  //filter4_(&f1,&f2,&f3,&f4,&dt,&n,sei,&n_am,&dom_am,amprec);
 /*
   int ib = (int)ceil(f1/dom_am);
   for(i=ib;i<n_am;i++) {

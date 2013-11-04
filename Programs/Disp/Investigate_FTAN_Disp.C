@@ -16,7 +16,7 @@ Input 2: input-file list (STA1 STA2 Disp_File_Positive SNR_File_Positive Disp_Fi
 using namespace std;
 
 #define NSTA 1000
-#define NSPR 1000
+#define BLKSIZE 1000
 
 struct STATION {
    char name[6];
@@ -100,16 +100,16 @@ main(int na, char *arg[])
    }
  
    FILE *ff;
-   char buff[300];
+   char buff[500];
    int i, nsta, npth;
    struct STATION sta[NSTA];
-   struct STAPAIR spr[NSPR];
+   struct STAPAIR *spr = NULL;
 //read in sta.name, sta.lon, sta.lat from station list
    if((ff=fopen(arg[1],"r"))==NULL) {
       cout<<"Cannot open file "<<arg[1]<<endl;
       return -1;
    }
-   for(i=0;fgets(buff, 300, ff)!=NULL;i++) {
+   for(i=0;fgets(buff, 500, ff)!=NULL;i++) {
       sscanf(buff,"%s %f %f", sta[i].name, &sta[i].lon, &sta[i].lat);
       if(sta[i].lon<0) sta[i].lon += 360.;
    }
@@ -121,8 +121,11 @@ main(int na, char *arg[])
       cout<<"Cannot open file "<<arg[2]<<endl;
       return -1;
    }
-   for(i=0;fgets(buff, 300, ff)!=NULL;i++)
+   int nblk = 0;
+   for(i=0;fgets(buff, 500, ff)!=NULL;i++) {
+      if( nblk*BLKSIZE <= i ) spr = (struct STAPAIR *) realloc ( spr, (++nblk)*BLKSIZE * sizeof(struct STAPAIR));
       sscanf(buff,"%s %s %s %s %s %s %f", spr[i].sta1, spr[i].sta2, spr[i].disp_pf, spr[i].snr_pf, spr[i].disp_nf, spr[i].snr_nf, &(spr[i].daynum));
+   }
    npth = i;
    fclose(ff);
 //read in dispersion data from each path, check for dist and snr
@@ -133,7 +136,7 @@ main(int na, char *arg[])
    float pero = atof(arg[3]), snrmin = atof(arg[4]), vmisf = atof(arg[5]);
    sprintf(buff, "Disp_info_%.1fsec", pero);
    ff = fopen(buff, "w");
-   fprintf(ff, "sta1 lat1 lon1  sta2 lat2 lon2  dist azi1 azi2 dnum : snrp ampp/dnum grvp phvp  snrn ampn/dnum grvn phvn\n");
+   fprintf(ff, "sta1(1) lat1(2) lon1(3)  sta2(4) lat2(5) lon2(6)  dist(7) azi1(8) azi2(9) dnum(10) : snrp(12) ampp/dnum(13) grvp(14) phvp(15)  snrn(16) ampn/dnum(17) grvn(18) phvn(19)\n");
    for(ipth=0;ipth<npth;ipth++) {
       //search for sta1 and sta2 in station list
       for(isp=0;isp<nsta;isp++) if(strcmp(spr[ipth].sta1, sta[isp].name)==0) break;
@@ -167,6 +170,7 @@ main(int na, char *arg[])
       fprintf(ff, "%s %f %f  %s %f %f  %lf %lf %lf %f : %f %g %f %f  %f %g %f %f\n", sta[isp].name, sta[isp].lat, sta[isp].lon, sta[isn].name, sta[isn].lat, sta[isn].lon, dist, azi1, azi2, spr[ipth].daynum, snrp, ampp/spr[ipth].daynum, grvp, phvp, snrn, ampn/spr[ipth].daynum, grvn, phvn);
    }
    fclose(ff);
-  
+ 
+   free(spr); 
    return 1;
 }

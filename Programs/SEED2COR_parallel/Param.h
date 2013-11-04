@@ -49,6 +49,7 @@ extern   int fskip1;
 extern   int fskip2;
 extern   int fskip3;
 extern   int fskip4;
+extern   int CorOutflag;
 
 /* Finction prorotypes */ 
 void fRemove (const char *fname);

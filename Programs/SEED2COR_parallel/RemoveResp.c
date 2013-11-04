@@ -205,26 +205,30 @@ int TransferEvr(int ne, int ns, float **sig, SAC_HD *sd, int ithread) {
    int nlist;
    char *list = List(".", nameam, 0, &nlist);
    if( nlist!=1 ) {
-      cerr<<"ERROR(TransferEvr): "<<nlist<<" AMP file(s) found!"<<endl;
-      exit(0);
+      cerr<<"ERROR(TransferEvr): "<<nlist<<" AMP file(s) found with pattern "<<nameam<<endl;
+      pthread_mutex_unlock(&evrlock);
+      free(*sig); return 0; //exit(0);
    }
    sscanf(list, "%s", nameam);
    free(list);
    if( (fam = fopen(nameam, "r")) == NULL ) {
       cerr<<"ERROR(TransferEvr): Cannot open file "<<nameam<<endl;
-      exit(0);
+      pthread_mutex_unlock(&evrlock);
+      free(*sig); return 0; //exit(0);
    }
    // find ph file
    list = List(".", nameph, 0, &nlist);
    if( nlist!=1 ) {
-      cerr<<"ERROR(TransferEvr): "<<nlist<<" PHASE file(s) found!"<<endl;
-      exit(0);
+      cerr<<"ERROR(TransferEvr): "<<nlist<<" PHASE file(s) found with pattern !"<<nameph<<endl;
+      pthread_mutex_unlock(&evrlock);
+      free(*sig); return 0; //exit(0);
    }
    sscanf(list, "%s", nameph);
    free(list);
    if( (fph = fopen(nameph, "r")) == NULL ) {
       cerr<<"ERROR(TransferEvr): Cannot open file "<<nameph<<endl;
-      exit(0);
+      pthread_mutex_unlock(&evrlock);
+      free(*sig); return 0; //exit(0);
    }
    // read in am and ph data
    double freq[nf], dtmp, amp[nf], pha[nf];
@@ -296,6 +300,7 @@ void * RmRESPEntrance( void * tid ) {
       reports[ithread].tail += sprintf(reports[ithread].tail, "\n   %d stations processed. ###\n", nst);
       cout<<reports[ithread].head;
       reports[ithread].tail = reports[ithread].head;
+cerr<<"RmRESP done for "<<sdb->ev[ne].name<<" from thread "<<ithread<<endl;
    }
    fRemove("sac_bp_respcor"); fRemove("RESP_tmp");
 
@@ -327,10 +332,12 @@ void RmRESP(){
          exit(0);
       }
    }
+cerr<<"wait for all threads"<<endl;
    //Wait for all threads to finish
    for(ithread=0;ithread<NTHRDS;ithread++) pthread_join(tid[ithread], NULL);
 
    pthread_mutex_destroy(&evrlock);
+cerr<<"all threads done"<<endl;
 
    //free report arrays
    for(ithread=0;ithread<NTHRDS;ithread++) free(reports[ithread].head);

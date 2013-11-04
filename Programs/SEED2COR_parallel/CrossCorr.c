@@ -232,7 +232,7 @@ int InitCor(int is1, struct starec *dayrec2) {
    return 1;
 }
 
-int DoCor (struct starec *stag1, struct starec *stag2, short *dnum, short *dflag) {
+int DoCor (struct starec *stag1, struct starec *stag2, short *dnum, short *dflag, char *outname) {
    //fprintf(stderr, "%s-%s ", sdbnew->st[is1].name, sdbnew->st[is2].name);
    float dt1 = stag1->dtrec;
    if( !ComprRec(stag1, stag2) ) {
@@ -285,6 +285,13 @@ int DoCor (struct starec *stag1, struct starec *stag2, short *dnum, short *dflag
    }
    cor[lag] = seis_out[0]/cor_rec[lag];
    delete [] seis_out; seis_out = NULL;
+
+   //output daily cross-correlations
+   if( CorOutflag > 0 ) {
+      SAC_HD shdcorD = shdcor;
+      shdcorD.user0 = 1;
+      write_sac (outname, cor, &shdcorD);
+   }
 
    //Update sigcor & shdcor
    if( fprcs ) if( !CheckPrecNoise(lag, dt1, cor, shdcor.dist) ) return 0;
@@ -348,7 +355,7 @@ int ExtractFlag(char *dirname, char *str, int *is1, int *is2, char *pflagout) {
    return 1;
 }
 
-void PrepareCor(char *dirname, short ***dnum, short ****dflag) {
+void PrepareCor(char *dirname, char *dirnameD, short ***dnum, short ****dflag) {
    char str[300];
    FILE *fd;
    int is1, is2, iev;
@@ -367,6 +374,15 @@ void PrepareCor(char *dirname, short ***dnum, short ****dflag) {
 	 else if( sdbnew->st[is1].flag * sdbnew->st[is2].flag != 0 ) (*dnum)[is1][is2]=-1; //skip if in different groups that are both not group 0
          (*dflag)[is1][is2] = (short *) malloc (NEVENTS * sizeof(short));
          for( iev = 0; iev < NEVENTS; iev++ ) (*dflag)[is1][is2][iev]=0;
+      }
+   }
+
+   //make dir for daily correlation
+   if( CorOutflag > 0 ) {
+      if( access(dirnameD, 0) != 0 ) MKDir(dirnameD);
+      for(is1=0; is1<sdbnew->nst; is1++) {
+	 sprintf(str, "%s/%s", dirnameD, sdbnew->st[is1].name);
+	 MKDir(str);
       }
    }
 
@@ -421,9 +437,10 @@ void PrepareCor(char *dirname, short ***dnum, short ****dflag) {
    fclose(fd);
 }
 
-void * DoCorEntrance ( void * tid ) {
+void * DoCorEntrance ( void * outnameD ) {
    //int ithread = *((int *)tid);
    int iev;
+   char outname[300];
    for(;;) {
       //get/update current event number
       pthread_mutex_lock(&cevlock);
@@ -434,8 +451,9 @@ void * DoCorEntrance ( void * tid ) {
       //Do Correlation
       if( stag[i1].dayrec[iev].nr==0 || starec2[0].dayrec[iev].nr==0) { continue; }
       fprintf(stdout, " %d", iev+1);
+      sprintf(outname, "%s_%d.SAC", (char *)outnameD, iev+1);
       if( DoCor(&(stag[i1].dayrec[iev]), &(starec2[0].dayrec[iev]),
-          &(dnum[is1][is2]), &(dflag[is1][is2][iev])) ) {
+          &(dnum[is1][is2]), &(dflag[is1][is2][iev]), outname) ) {
          nrec++;
          //if( npair%10 == 0) fprintf(stderr, "\n   ");
       }
@@ -447,7 +465,7 @@ void CrossCorr() {
    if(fskip4==2) return;
    cortype = 0;
    int iev, npair;
-   char dirname[200];
+   char dirnameM[200], dirnameD[200];
 
    //Update SAC_DB for target month (remove empty stations and records)
    sdbnew = new SAC_DB;
@@ -471,15 +489,16 @@ void CrossCorr() {
    }
 
    //Initialize day-num-flag list
-   sprintf(dirname, "%s/COR", sdbnew->mo[imonth].name);
-   PrepareCor(dirname, &dnum, &dflag);
+   sprintf(dirnameM, "%s/COR", sdbnew->mo[imonth].name);
+   sprintf(dirnameD, "%s/COR_D", sdbnew->mo[imonth].name);
+   PrepareCor(dirnameM, dirnameD, &dnum, &dflag);
 
    //Thread id and locks
    pthread_t tid[NTHRDS+1];
    pthread_mutex_init(&(addlock), NULL);
    int ithread, rc;
    int targs[NTHRDS+1];
-   char filename[200];
+   char filename[200], outnameD[200];
    //do cross-correlatings for each group pairs
    setvbuf(stdout, NULL, _IOLBF, 0);
    for ( ig1 = 0; ig1 < ng; ig1++ ) {
@@ -501,27 +520,27 @@ void CrossCorr() {
 	 ReadGroup(-1, is2, starec2);
 	 while( iread<size && i2>iread ) {  fprintf(stdout, "\n   Waiting for file readin\n" ); sleep(1); }
          for(i1=0; i1<size; i1++) {
+	    //initialize cross-correlation info
 	    if(i1>i2) break;
             is1 = i1+ig1*size;
             if(dnum[is1][is2]==-1) continue;
 	    if( ! InitCor(is1, starec2[0].dayrec) ) continue;
+	    sprintf(outnameD, "%s/%s/COR_%s_%s", dirnameD, sdbnew->st[is1].name, sdbnew->st[is1].name, sdbnew->st[is2].name);
+	    sprintf(filename, "%s/%s/COR_%s_%s.SAC", dirnameM, sdbnew->st[is1].name, sdbnew->st[is1].name, sdbnew->st[is2].name);
 	    npair++;
 	    fprintf(stdout, "\n   %s-%s: ", sdbnew->st[is1].name, sdbnew->st[is2].name);
 	    //create threads to work on each event
 	    currevn = 0;
 	    for( ithread=0;ithread<NTHRDS;ithread++ ) {
 	       targs[ithread] = ithread;
-	       rc = pthread_create( &tid[ithread], &attr_j, DoCorEntrance, (void *) (&(targs[ithread])) );
+	       rc = pthread_create( &tid[ithread], &attr_j, DoCorEntrance, (void *) (outnameD)); //(void *) (&(targs[ithread])) );
 	       if(rc) {
 	          cerr<<"ERROR(CrossCorr): Creation failed! ERR: "<<strerror(rc)<<endl;
 	          exit(0);
 	       }
 	    }
 	    for(ithread=0;ithread<NTHRDS;ithread++) pthread_join(tid[ithread], NULL);
-	    if( shdcor.user0 > 0 ) {
-	       sprintf(filename, "%s/%s/COR_%s_%s.SAC", dirname, sdbnew->st[is1].name, sdbnew->st[is1].name, sdbnew->st[is2].name);
-	       write_sac (filename, sigcor, &shdcor);
-	    }
+	    if( CorOutflag != 1 && shdcor.user0 > 0 ) write_sac (filename, sigcor, &shdcor);
             delete [] sigcor; sigcor = NULL;
          }
       }
@@ -546,7 +565,7 @@ void CrossCorr() {
    //output/cleanup day-num-flag list
    char str[300];
    FILE *frec;
-   sprintf(filename, "%s/Cor_dayflag.lst", dirname);
+   sprintf(filename, "%s/Cor_dayflag.lst", dirnameM);
    sprintf(str, "%s_tmp", filename);
    Move(str, filename);
    frec = fopen(filename,"a");

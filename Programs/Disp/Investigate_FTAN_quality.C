@@ -240,7 +240,7 @@ void AverageTimeShift(struct TIMING_DATA *datadiff, float *TShiftG, float *sigma
       *sigmaG += weight*ftmp*ftmp;
       V2grv += weight*weight;
    }
-   *sigmaG = sqrt(*sigmaG / (V1grv*V1grv-V2grv)); // this is std of the mean ( std/sqrt(V1) )
+   *sigmaG = sqrt(*sigmaG * V1grv) / (V1grv*V1grv-V2grv); // this is std of the mean
    // sigma decrease (, which means the computed TimeShift is more beliveable, ) when snravg is high
    datadiff->Qfactor *= 2.;
    //datadiff->Qfactor = 1.; // may exclude the effect of effperc because it has already been included in computing std of the mean
@@ -270,7 +270,7 @@ void AverageTimeShift(struct TIMING_DATA *datadiff, float *TShiftG, float *sigma
       *sigmaP += weight*ftmp*ftmp;
       V2phv += weight*weight;
    }
-   *sigmaP = sqrt(*sigmaP / (V1phv*V1phv-V2phv));
+   *sigmaP = sqrt(*sigmaP * V1phv) / (V1phv*V1phv-V2phv);
    *sigmaP /= (datadiff->Qfactor);
 }
 
