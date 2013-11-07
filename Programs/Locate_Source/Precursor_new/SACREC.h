@@ -27,12 +27,35 @@ public:
       read_sac(fsac, &sig, &shd); 
       if( shd.dist <= 0. ) { calc_dist(shd.evla, shd.evlo, shd.stla, shd.stlo, &shd.dist); }
    }
+
    const SAC_HD &GetHeader() { return shd; }
+
+   /* compute aamplitude and rms noise */
    float amp(float time) { 
       if( sig == NULL ) return -12345.; 
       int i = (int)floor((time-shd.b)/shd.delta+0.5);
       if( i < 0 || i >= shd.npts ) return -12345.;
       return sig[i]; 
+   }
+
+   float noise() {
+      if( sig == NULL ) { return -12345.; }
+      float maxT, minT = shd.dist/grv + cper*5. + 500.; //move out of the signal tail
+      if( (shd.e - minT) < 50. ) { // no enough noise for computing rms
+         return -1.;
+      }
+      else if( (shd.e - minT) < 600. ) { maxT = shd.e - 10.; }
+      else {
+         minT = shd.e - 600.;
+         maxT = shd.e - 100.;
+      }
+      // compute rms noise
+      int ib = (int)floor(minT/shd.delta);
+      int ie = (int)ceil(maxT/shd.delta);
+      float noiserms=0.;
+      for(int i=ib;i<ie;i++) noiserms += sig[i] * sig[i];
+      noiserms=sqrt(noiserms/(ie-ib-1.));
+      return noiserms;
    }
 
    /* station locations and distance */

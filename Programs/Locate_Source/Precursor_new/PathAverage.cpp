@@ -1,5 +1,6 @@
 #include "PathAverage.h"
 #include <stdio.h>
+#include <cstdlib>
 #include <math.h>
 #include <iostream>
 #include <errno.h>

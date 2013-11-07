@@ -2,6 +2,7 @@
 #define PATHAVERAGE_H
 
 #include "DisAzi.h"
+#include <cstdio>
 #include <iostream>
 #include <ostream>
 

@@ -1,5 +1,6 @@
 #include "PathAverage.h"
 #include "SACREC.h"
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <new>
@@ -29,7 +30,8 @@ int main(int argc, char *argv[])
    Point<float> loccur, P1, P2;
    /* Output data matrix built with vector */
    const int nlon = (int)ceil((lonmax-lonmin)/lonstep)+1, nlat = (int)ceil((latmax-latmin)/latstep)+1; 
-   std::vector< std::vector<float> > Probability(nlon, std::vector<float>(nlat, 0.));
+   std::vector< std::vector<float> > Probability_add(nlon, std::vector<float>(nlat, 0.));
+   std::vector< std::vector<float> > Probability_mul(nlon, std::vector<float>(nlat, 1.));
    //Probability.resize(nlon);
    //for(int i=0; i<nlon; i++) Probability[i].resize(nlat);
    
@@ -70,7 +72,7 @@ int main(int argc, char *argv[])
       /* search for largest precursoring signal */
       //if( ! sigcur->Precursor(&precamp, &prectime) ) continue;
       int i, j, idone = 0;
-      float ftmp = 100./nlon;
+      float ftmp;
       #pragma omp parallel for private(j, loccur, pathcur)
       for( i=0; i<nlon; i++ ) {
 	 loccur.SetLon(lonmin + i*lonstep);
@@ -88,9 +90,11 @@ int main(int argc, char *argv[])
 	    if( fabs(t2-t1) * 1.05 > sigcur->Dist() / grv - cper ) continue;
 	    #pragma omp critical
 	    {
-	    Probability[i][j] += sigcur->amp(t2-t1);
+	    ftmp = sigcur->amp(t2-t1)/sigcur->noise();
+	    Probability_add[i][j] += ftmp;
+	    Probability_mul[i][j] *= ftmp;
 	    }
-	    //std::cerr<<loccur<<": P="<<Probability[i][j]<<" T(precursor)="<<t2-t1<<" T(surface wave)="<<sigcur->Dist()/grv<<std::endl;
+	    //std::cerr<<loccur<<": P="<<Probability_add[i][j]<<" T(precursor)="<<t2-t1<<" T(surface wave)="<<sigcur->Dist()/grv<<std::endl;
 	 }
 	 std::cout.precision(3);
          /*
@@ -106,12 +110,21 @@ int main(int argc, char *argv[])
    }
    fsaclst.close();
 
-   /* output */
+   char outname[300];
    std::fstream fout;
-   fout.open("TestProb.txt", std::ios::out);
    int i, j;
+   /* output Probability_add*/
+   sprintf(outname, "%s_Precursor_Probability_Add", argv[1]);
+   fout.open(outname, std::ios::out);
    for( i=0,loccur=LL; loccur.Lon()<lonmax; loccur.move(lonstep, 0.),i++ )
-      for( j=0,loccur.SetLat(latmin); loccur.Lat()<latmax; loccur.move(0., latstep),j++ ) fout<<loccur.Lon()<<" "<<loccur.Lat()<<" "<<Probability[i][j]<<std::endl;
+      for( j=0,loccur.SetLat(latmin); loccur.Lat()<latmax; loccur.move(0., latstep),j++ ) fout<<loccur.Lon()<<" "<<loccur.Lat()<<" "<<Probability_add[i][j]<<std::endl;
+   fout.close();
+
+   /* output Probability_mul*/
+   sprintf(outname, "%s_Precursor_Probability_Mul", argv[1]);
+   fout.open(outname, std::ios::out);
+   for( i=0,loccur=LL; loccur.Lon()<lonmax; loccur.move(lonstep, 0.),i++ )
+      for( j=0,loccur.SetLat(latmin); loccur.Lat()<latmax; loccur.move(0., latstep),j++ ) fout<<loccur.Lon()<<" "<<loccur.Lat()<<" "<<Probability_mul[i][j]<<std::endl;
    fout.close();
 
    return 0;
