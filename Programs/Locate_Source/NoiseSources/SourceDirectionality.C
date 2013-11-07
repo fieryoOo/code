@@ -27,7 +27,7 @@ struct RESULTS {
 char finname[300];
 int ibindebug = -1;
 struct DATA *data;
-float hwbin, alpazi, hdis, alpdis;
+float hwbin, alpazi, hdis, alpdis, refdis;
 
 void Merge(struct DATA *arr, int p, int q, int r) {
    int i, j, k, n1 = q-p+1, n2 = r-q;
@@ -195,8 +195,8 @@ int CorrectDecay(struct DATA *data, int npt, struct RESULTS *results) {
    }
    float a, sigmaa, b, sigmab;
    least_square_fit(0, datx, daty, weight, npt, &a, &sigmaa, &b, &sigmab);
-   // correct amplitudes for distance ( to a distance of hdis )
-   for(i=0;i<npt;i++) data[i].val *= exp( a * (hdis-data[i].dis) );
+   // correct amplitudes for distance ( to a distance of refdis )
+   for(i=0;i<npt;i++) data[i].val *= exp( a * (refdis-data[i].dis) );
    // parameters and uncertainties
    results->amp = exp(b);
    results->alpdec = -a;
@@ -313,13 +313,16 @@ void PrintResults(struct RESULTS *results) {
 
 int main(int argc, char *argv[])
 {
-   if( argc != 4 ){
-      std::cerr<<"Usage: "<<argv[0]<<" [input file (azimuth distance value)] [hdist] [correct decay? (0=no, 1=fit, 2=geometric)]"<<std::endl;
+   if( argc != 4 && argc != 5 ){
+      std::cerr<<"Usage: "<<argv[0]<<" [input file (azimuth distance value)] [hdist] [correct decay? (0=no, 1=fit, 2=geometric)] [optional refdis (normalize SNR to the refdis. refdis=hdist if not provided)]"<<std::endl;
       exit(-1);
    }
 
  // read in and sort by azimuth
    hdis = atof(argv[2]); alpdis = -0.5/(hdis*hdis);
+   if( argc == 4 ) refdis = hdis;
+   else refdis = atof(argv[4]);
+   //std::cout<<"Normalizing SNR to an refdis of "<<refdis<<"km"<<std::endl;
    sprintf(finname, "%s", argv[1]);
    int i, ndat = ReadData(argv[1], hdis*3.);
    if( ndat <= 0 ) exit(-1);

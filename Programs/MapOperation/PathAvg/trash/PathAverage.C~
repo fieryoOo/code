@@ -2,21 +2,31 @@
 #include <math.h>
 #include <iostream>
 #include <errno.h>
-#include "PathAverage.h"
 using namespace std;
 
-double Path::PathAverage(double lamda) {
-   double Nmin = 3.; //(2 ~ 20?) Don't know much about sw kernel
+int calc_dist(double lati1, double long1, double lati2, double long2, double *dist);
+
+int main(int argc, char *argv[])
+{
+   if (argc!=7) {
+      cout<<"Usage: "<<argv[0]<<" [Input_Map (lon lat value)] [lon1] [lat1] [lon2] [lat2] [wavelength (km)]"<<endl;
+      return -1;
+   }
+
+   double dist, Nmin = 3.; //(2 ~ 20?) Don't know much about sw kernel
+   double lon1 = atof(argv[2]), lat1 = atof(argv[3]), lon2 = atof(argv[4]), lat2 = atof(argv[5]);
+   calc_dist(lat1, lon1, lat2, lon2, &dist);
    // define ellipse
-   double f = dist/2.; // known values
+   double f = dist/2., lamda = atof(argv[6]); // known values
    double bsqrmax = pow(f+lamda/2./Nmin, 2)-f*f; //maximum affective b from Nmin
    //double asqr = pow(f+lamda/2./N, 2), bsqr = asqr-f*f;
 
    char buff[300];
    float wmax = sqrt(bsqrmax); // project using wmax
-   char ftmpname[20];
+   char fname[100], ftmpname[20];
+   sprintf(fname, "%s", argv[1]);
    sprintf(ftmpname, "./projecttmp.txt");
-   sprintf(buff, "project %s -Dg -C%lf/%lf -E%lf/%lf -Lw -Q -S -W-%f/%f -Fpqz > %s", fname, P1.Lon(), P1.Lat(), P2.Lon(), P2.Lat(), wmax, wmax, ftmpname);
+   sprintf(buff, "project %s -Dg -C%lf/%lf -E%lf/%lf -Lw -Q -S -W-%f/%f -Fpqz > %s", fname, lon1, lat1, lon2, lat2, wmax, wmax, ftmpname);
    system(buff);
 
    // read in project data
@@ -44,27 +54,7 @@ double Path::PathAverage(double lamda) {
    remove(ftmpname);
    if(weit==0.) zsum = -12345.;
    else zsum /= weit;
-   return zsum;
- 
-}
-
-
-int main(int argc, char *argv[])
-{
-   if (argc!=7) {
-      cout<<"Usage: "<<argv[0]<<" [Input_Map (lon lat value)] [lon1] [lat1] [lon2] [lat2] [wavelength (km)]"<<endl;
-      return -1;
-   }
-
-   /* get input parameters */
-   char fname[100]; sprintf(fname, "%s", argv[1]);
-   double lamda = atof(argv[6]);
-   Point<double> P1(atof(argv[2]), atof(argv[3])), P2(atof(argv[4]), atof(argv[5]));
-   cerr<<P1<<" "<<P2<<endl;  
-
-   /* read in the map */
-   Path pathcur(fname, P1, P2);
-   cout<<pathcur.PathAverage(lamda)<<endl;
-
+   cout<<zsum<<endl;
+   
    return 0;
 }
