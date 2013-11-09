@@ -13,6 +13,15 @@ inline omp_int_t omp_get_num_threads() { return 1;}
 #endif
 using namespace std;
 
+static void fRemove (const char *fname) {
+   //cerr<<"Removing "<<fname<<endl;
+   if( remove( fname ) == 0 ) return; //succeed
+   int ersv = errno;
+   if( ersv == ENOENT ) return; //file not exists
+   //if( fdprompt>0 ) return; fdprompt++;
+   perror("### Warning: Deleting failed"); //failed. prompt to continue
+   //TimedContinue(10);
+}
 double Path::PathAverage(double lamda) {
    double Nmin = 3.; //(2 ~ 20?) Don't know much about sw kernel
    // define ellipse
@@ -52,7 +61,7 @@ double Path::PathAverage(double lamda) {
          //cerr<<xdat<<" "<<ydat<<" "<<zdat<<"   "<<weight<<" "<<zsum<<endl;
       }
       fclose(fproj);
-      remove(ftmpname);
+      fRemove(ftmpname);
    }
    if(weit==0.) zsum = -12345.;
    else zsum /= weit;

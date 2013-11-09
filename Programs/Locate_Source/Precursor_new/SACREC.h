@@ -23,9 +23,11 @@ public:
    void setGrv( float &grvin ) { grv = grvin; }
 
    /* load and access sac header and signal */
-   void load() { 
+   bool load() { 
       read_sac(fsac, &sig, &shd); 
+      if( shd.depmin != shd.depmin || shd.depmax != shd.depmax ) return false;
       if( shd.dist <= 0. ) { calc_dist(shd.evla, shd.evlo, shd.stla, shd.stlo, &shd.dist); }
+      return true;
    }
 
    const SAC_HD &GetHeader() { return shd; }
@@ -58,7 +60,9 @@ public:
       return noiserms;
    }
 
-   /* station locations and distance */
+   /* station names, locations, and distance */
+   char * Sta1() { return shd.kevnm; }
+   char * Sta2() { return shd.kstnm; }
    Point<float> P1() { return Point<float>(shd.evlo, shd.evla); }
    Point<float> P2() { return Point<float>(shd.stlo, shd.stla); }
    double Dist() { return shd.dist; }

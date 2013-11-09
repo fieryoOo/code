@@ -18,6 +18,13 @@ public:
    void SetLat(T latin) { lat = latin; }
    void SetLon(T lonin) { lon = lonin; }
    void move(T dlon, T dlat) { lon += dlon; lat += dlat; }
+
+   /* operator overloadings */
+   friend bool operator==( const Point& a, const Point& b ) { 
+      if( a.lon==b.lon && a.lat==b.lat ) return true;
+      return false;
+   }
+   friend bool operator!=( const Point& a, const Point& b ) { return !(a==b); }
    friend std::ostream& operator << (std::ostream& o, Point a) { o << a.lon << " " << a.lat; return o; }
 };
 
