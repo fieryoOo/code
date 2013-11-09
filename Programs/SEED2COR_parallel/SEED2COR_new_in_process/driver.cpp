@@ -11,7 +11,9 @@ int main(int argc, char *argv[]) {
    /* Initialize the CC Database with the input parameter file */
    CCDatabase cdb(argv[1]);
 
-   //std::cerr<<cdb.GetParams().sps<<std::endl;
+   const CCPARAM cdbParams = cdb.GetParams();
+   std::cerr<<cdbParams.sps<<std::endl;
+   
 
    return 0;
 }

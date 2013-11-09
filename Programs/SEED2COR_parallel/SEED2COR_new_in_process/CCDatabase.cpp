@@ -10,8 +10,8 @@ static int isTermi(int deno) {
    while(deno%5==0) deno /= 5;
    return deno==1;
 }
-/* Constructor: read in parameters from the inputfile */
-CCDatabase::CCDatabase( char *fname ) {
+/* read in parameters for the CC Database from the inputfile */
+static void LoadParams( char *fname, CCPARAM& CCParams ) {
    FILE *fparam, *filetmp;
    char buff[300], ctmp[200];
    int ERR=0, itmp;
@@ -284,5 +284,11 @@ CCDatabase::CCDatabase( char *fname ) {
    sscanf(buff, "%c", &cin);
    if( cin!='Y' && cin!='y' ) exit(0);
 
+}
+
+/* Constructor: read in parameters -> fill in seed file list -> fill in station list */
+CCDatabase::CCDatabase( char *fname ) {
+   LoadParams( fname, CCParams );
+   FillSta();
 }
 
