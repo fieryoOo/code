@@ -1,6 +1,7 @@
 #ifndef CCDATABASE_H
 #define CCDATABASE_H
 
+/* CC parameter wrapper */
 struct CCPARAM {
    //SAC_DB *sdb;
    int imonth;
@@ -36,17 +37,25 @@ struct CCPARAM {
    //---------------------------------------------------------------------------------------------------------------------------------//
 };
 
+/* struct for seed list to be used by the CCDatabase class */
+struct FSEED {
+   int year, month, day;
+   char name[200];
+};
+
 
 class CCDatabase {
 private:
-   // input parameters
+   /* input parameters */
    CCPARAM CCParams;
+   /* seed records */
+   FSEED fseed[];
 
 public:
    /* constructor (read in parameters and station/seed list. Create DailyRecs for all stations all days) */
    CCDatabase(char *inname);
 
-   /* return an unchangable copy of the CC Parameters */
+   /* return a copy of the CC Parameters */
    const CCPARAM GetParams() { return CCParams; }
 /*
    int GetParameters(char *fname);
