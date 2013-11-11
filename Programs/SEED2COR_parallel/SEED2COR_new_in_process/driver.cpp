@@ -15,5 +15,7 @@ int main(int argc, char *argv[]) {
    std::cerr<<cdbParams.sps<<std::endl;
    
 
+   cdb.NextRec();
+
    return 0;
 }
