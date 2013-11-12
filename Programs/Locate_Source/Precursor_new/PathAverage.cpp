@@ -31,9 +31,9 @@ double Path::PathAverage(double lamda) {
 
    char buff[300];
    float wmax = sqrt(bsqrmax); // project using wmax
-   double Nhaf = 12., Ncur, weight, weit=0., zsum=0.;
+   double Nhaf = 12., ooNhaf = 1./Nhaf, Ncur, weight, weit=0., zsum=0.;
    FILE *fproj = NULL;
-   char ftmpname[20];
+   char ftmpname[50];
    sprintf(ftmpname, "./projecttmp_thread%d.txt", omp_get_thread_num());
 
    sprintf(buff, "project %s -Dg -C%f/%f -E%f/%f -Lw -Q -S -W-%f/%f -Fpqz > %s", fname, P1.Lon(), P1.Lat(), P2.Lon(), P2.Lat(), wmax, wmax, ftmpname);
@@ -47,14 +47,15 @@ double Path::PathAverage(double lamda) {
       zsum = -1;
    }
    else {
-      float a, xdat, ydat, zdat;
+      float a, xdat, ydat, zdat, ftmp1, ftmp2;
       while( fgets(buff, 300, fproj)!=NULL ) {
          sscanf(buff, "%f %f %f", &xdat, &ydat, &zdat);
          if( zdat != zdat ) continue;
-        xdat -= f;
-          // compute N from xdat, ydat, f, lamda
-         a = 0.5 * (sqrt(pow((xdat-f),2)+ydat*ydat) + sqrt(pow((xdat+f),2)+ydat*ydat));
-         Ncur = lamda/2./(a-f)/Nhaf;
+         xdat -= f;
+         // compute N from xdat, ydat, f, lamda
+	 ftmp1 = xdat-f; ftmp2 = xdat+f;
+         a = 0.5 * (sqrt(ftmp1*ftmp1+ydat*ydat) + sqrt(ftmp2*ftmp2+ydat*ydat));
+         Ncur = 0.5*lamda/(a-f)*ooNhaf;
          weight = exp(-0.5*Ncur*Ncur);
          weit += weight;
          zsum += (zdat * weight);

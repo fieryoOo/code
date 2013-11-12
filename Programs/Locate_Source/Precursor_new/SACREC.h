@@ -15,7 +15,7 @@ protected:
    float cper, grv;
 public:
    /* initialize by setting sac file name, center period and group speed */
-   SACREC( char *inname = NULL, float cperin = 0., float grvin = 0. ) {
+   SACREC( const char *inname = NULL, const float cperin = 0., const float grvin = 0. ) {
       sig = NULL;
       sprintf(fsac, "%s", inname);
       cper = cperin; grv = grvin;
@@ -24,7 +24,7 @@ public:
 
    /* load and access sac header and signal */
    bool load() { 
-      read_sac(fsac, &sig, &shd); 
+      if( ! read_sac(fsac, &sig, &shd) ) return false; 
       if( shd.depmin != shd.depmin || shd.depmax != shd.depmax ) return false;
       if( shd.dist <= 0. ) { calc_dist(shd.evla, shd.evlo, shd.stla, shd.stlo, &shd.dist); }
       return true;

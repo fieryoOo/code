@@ -1,33 +1,35 @@
 INST_DIR = $(HOME)/bin
-BIN  = LocatePrecursor
+BIN1 = LocatePrecursor
+BIN2 = PredictPrecursor
 
-fflags = -O2 -Wall
 cflags = -O3 -Wall
 
 LDLIBS = -lstdc++ -fopenmp
 
-FFLAGS = $(DBG) $(fflags)
-
 CFLAGS = $(DBG) $(cflags)
-
-FC = gfortran
 
 CC = g++
 
 DBG = -g
 
-all : $(BIN)
+all : $(BIN1) $(BIN2)
 
-FOBJS = DisAzi.o SacOps.o PathAverage.o driver.o 
+FOBJS1 = DisAzi.o SacOps.o PathAverage.o $(BIN1).o 
 
-$(BIN) : $(FOBJS)
-	$(CC) $(LDLIBS) $(CFLAGS) $(FOBJS) -o $(BIN)
+FOBJS2 = DisAzi.o SacOps.o PathAverage.o $(BIN2).o
+
+$(BIN1) : $(FOBJS1)
+	$(CC) $(LDLIBS) $(CFLAGS) $(FOBJS1) -o $(BIN1)
+
+$(BIN2) : $(FOBJS2)
+	$(CC) $(LDLIBS) $(CFLAGS) $(FOBJS2) -o $(BIN2)
 
 %.o: %.cpp
 	$(CC) $(LDLIBS) $(CFLAGS) -c $^
 
-install : $(BIN)
-	install -s $(BIN) $(INST_DIR)
+install : $(BIN1) $(BIN2)
+	install -s $(BIN1) $(INST_DIR)
+	install -s $(BIN2) $(INST_DIR)
 
 clean :
-	rm -f $(BIN) core $(FOBJS)
+	rm -f $(BIN1) $(BIN2) $(FOBJS1) $(FOPBS2)
