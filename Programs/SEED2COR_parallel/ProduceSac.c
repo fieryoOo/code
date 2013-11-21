@@ -217,7 +217,7 @@ int merge_sac(float * sig[], SAC_HD *sd, int nfile, int ne, int ns, int ithread)
       sdb->rec[ne][ns].n = sd[0].npts;
       sdb->rec[ne][ns].t0 = abs_time (sd[0].nzyear, sd[0].nzjday, sd[0].nzhour, sd[0].nzmin, sd[0].nzsec, sd[0].nzmsec );
       sdb->rec[ne][ns].dt = sd[0].delta;
-      write_sac (sdb->rec[ne][ns].fname, sig[0], &sd[0]);
+      write_sac ((sdb->rec[ne][ns].fname), sig[0], &sd[0]);
       return 1;
    }
 
@@ -292,7 +292,7 @@ int merge_sac(float * sig[], SAC_HD *sd, int nfile, int ne, int ns, int ithread)
       sig0[j] = av;
    }
 
-   write_sac (sdb->rec[ne][ns].fname, sig0, &s0);
+   write_sac ((sdb->rec[ne][ns].fname), sig0, &s0);
 
    free(sig0);
 

@@ -64,7 +64,7 @@ char * List(const char *dir, const char *pattern, int type, int *nfile);
 
 SAC_HD *read_sac (char *fname, float **sig, SAC_HD *SHD);
 
-void write_sac (char *fname, float *sig, SAC_HD *SHD);
+void write_sac (const char *fname, float *sig, SAC_HD *SHD);
 
 SAC_HD *read_shd (char *fname);
 

@@ -219,6 +219,7 @@ int GetParameters(char *fname) {
    else if(tnorm_flag==1) cout<<"One-bit"<<endl;
    else if(tnorm_flag==2) cout<<"Running average"<<endl;
    else if(tnorm_flag==3) cout<<"Earthquake cutting"<<endl;
+   else if(tnorm_flag==4) cout<<"Earthquake cutting + Running average"<<endl;
    else {
       cerr<<endl<<"   Error: Unknow method. integer between 0 - 3 is expected"<<endl;
       ERR = 1;
@@ -272,10 +273,7 @@ int GetParameters(char *fname) {
    if( (fgets(buff, 300, fparam)) == NULL ) return 0;
    sscanf(buff, "%d", &ftlen);
    if(ftlen<=0) cout<<"cor-time-len correction\toff"<<endl;
-   else {
-      cout<<"cor-time-len correction\ton"<<endl;
-      if(tnorm_flag==3) ftlen = 2;
-   }
+   else { cout<<"cor-time-len correction\ton"<<endl;  /*if(tnorm_flag==3) ftlen = 2;*/  }
    //fprcs
    if( (fgets(buff, 300, fparam)) == NULL ) return 0;
    sscanf(buff, "%d", &fprcs);

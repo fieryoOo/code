@@ -4,7 +4,7 @@ BIN2 = PredictPrecursor
 
 cflags = -O3 -Wall
 
-LDLIBS = -lstdc++ -fopenmp
+LDLIBS = -fopenmp
 
 CFLAGS = $(DBG) $(cflags)
 

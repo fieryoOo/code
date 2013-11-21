@@ -106,10 +106,10 @@ int CutRec(int ne, int ns, float *sig1, SAC_HD shd1, int ithread) {
    shd1.nzmsec = (int)floor(t1*1000+0.5);
    UpdateTime(&shd1);
    if( flag ) {
-      write_sac(sdb->rec[ne][ns].ft_fname, sig2, &shd1 );
+      write_sac((const char*)(sdb->rec[ne][ns].ft_fname), sig2, &shd1 );
       free(sig2);
    }
-   else write_sac(sdb->rec[ne][ns].ft_fname, &(sig1[nstt]), &shd1 );
+   else write_sac((const char*)(sdb->rec[ne][ns].ft_fname), &(sig1[nstt]), &shd1 );
    free(sig1);
 
    return 1;
@@ -300,7 +300,6 @@ void * RmRESPEntrance( void * tid ) {
       reports[ithread].tail += sprintf(reports[ithread].tail, "\n   %d stations processed. ###\n", nst);
       cout<<reports[ithread].head;
       reports[ithread].tail = reports[ithread].head;
-cerr<<"RmRESP done for "<<sdb->ev[ne].name<<" from thread "<<ithread<<endl;
    }
    fRemove("sac_bp_respcor"); fRemove("RESP_tmp");
 
@@ -332,12 +331,10 @@ void RmRESP(){
          exit(0);
       }
    }
-cerr<<"wait for all threads"<<endl;
    //Wait for all threads to finish
    for(ithread=0;ithread<NTHRDS;ithread++) pthread_join(tid[ithread], NULL);
 
    pthread_mutex_destroy(&evrlock);
-cerr<<"all threads done"<<endl;
 
    //free report arrays
    for(ithread=0;ithread<NTHRDS;ithread++) free(reports[ithread].head);
