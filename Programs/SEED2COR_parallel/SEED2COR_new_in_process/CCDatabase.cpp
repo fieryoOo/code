@@ -3,16 +3,17 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <cstring>
 #include <cmath>
 #include <algorithm>
 
 /*-------------------------------------- CCDatabase ----------------------------------------*/
 /* Constructor: read in parameters -> fill in seed file list -> fill in station list */
-CCDatabase::CCDatabase( char *fname ) {
+CCDatabase::CCDatabase( const char *fname ) {
    CCParams.Load( fname );
-   seedlst.Load( CCParams.seedfname );
-   stalst.Load( CCParams.stafname );
+   seedlst.Load( CCParams.seedfname.c_str() );
+   stalst.Load( CCParams.stafname.c_str() );
 }
 
 /* pull out the next daily record from the database */
@@ -37,81 +38,83 @@ static int isTermi(int deno) {
 }
 /* read in parameters for the CC Database from the inputfile */
 void CCPARAM::Load( const char* fname ) {
-   FILE *fparam, *filetmp;
-   char buff[300], ctmp[200];
-   int ERR=0, itmp;
-   float ftmp;
-   if((fparam=fopen(fname,"r"))==NULL) {
+   /* load param file input a vector */
+   std::ifstream fparam(fname);
+   if( ! fparam ) {
       std::cerr<<"Error(GetParam): Cannot open parameter file "<<fname<<std::endl;
       exit(0);
    }
+   std::vector<std::string> filevec;
+   for(std::string line; std::getline(fparam, line); ) filevec.push_back(line);
+   fparam.close();
+   if( filevec.size() < 29 ) { std::cerr<<"   Error(CCPARAM::Load): No enough param lines in file "<<fname<<std::endl; exit(0); }
+
+   /* load/check one parameter at a time */
+   int ERR=0, itmp;
+   float ftmp;
+   std::vector<std::string>::iterator fveciter = filevec.begin();
    std::cout<<"---------------------------Checking input parameters---------------------------"<<std::endl;
    //rdsexe
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%s", rdsexe);
+   rdsexe = (*fveciter).substr( 0, (*fveciter).find_first_of(" \t") ); fveciter++;
    std::cout<<"rdseed excutable:\t"<<rdsexe<<std::endl;
-   if( ! strstr(rdsexe, "rdseed") ) std::cout<<"   Warning: Are you sure this is an rdseed excutable?"<<std::endl;
-   if( access(rdsexe, R_OK)!=0 ) {
+   if( ! rdsexe.find("rdseed") ) std::cout<<"   Warning: Are you sure this is an rdseed excutable?"<<std::endl;
+   if( access(rdsexe.c_str(), R_OK)!=0 ) {
      std::cerr<<"   Error: cannot access rdseed through "<<rdsexe<<std::endl;
      ERR = 1;
    }
    //evrexe
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%s", evrexe);
+   evrexe = (*fveciter).substr( 0, (*fveciter).find_first_of(" \t") ); fveciter++;
    std::cout<<"evalresp excutable:\t"<<evrexe<<std::endl;
-   if( ! strstr(evrexe, "evalresp") ) std::cout<<"   Warning: Are you sure this is an evalresp excutable?"<<std::endl;
-   if( access(evrexe, R_OK)!=0 ) {
+   if( ! evrexe.find("evalresp") ) std::cout<<"   Warning: Are you sure this is an evalresp excutable?"<<std::endl;
+   if( access(evrexe.c_str(), R_OK)!=0 ) {
      std::cerr<<"   Error: cannot access evalresp through "<<evrexe<<std::endl;
      ERR = 1;
    }
    //stafname
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%s", stafname);
+   stafname = (*fveciter).substr( 0, (*fveciter).find_first_of(" \t") ); fveciter++;
    std::cout<<"station list:\t\t"<<stafname<<std::endl;
-   if((filetmp=fopen(stafname,"r"))==NULL) {
+   std::ifstream filetmp(stafname.c_str());
+   if( ! filetmp ) {
       std::cerr<<"   Error: cannot access file "<<stafname<<std::endl;
       ERR = 1;
    }
-   else { 
-      fgets(buff, 300, filetmp);
-      if(sscanf(buff,"%s %f %f", ctmp, &ftmp, &ftmp)!=3) {
+   else {
+      std::string buff;
+      std::getline(filetmp, buff);
+      char stmp[buff.length()];
+      if( sscanf(buff.c_str(), "%s %f %f", stmp, &ftmp, &ftmp) != 3 ) {
          std::cerr<<"   Error: incorrect format in file "<<stafname<<"! Shoud be (sta lon lat)"<<std::endl;
          ERR = 1;
       }
-      fclose(filetmp);
+      filetmp.close();
    }
    //seedfname
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%s", seedfname);
+   seedfname = (*fveciter).substr( 0, (*fveciter).find_first_of(" \t") ); fveciter++;
    std::cout<<"seed list:\t\t"<<seedfname<<std::endl;
-   if((filetmp=fopen(seedfname,"r"))==NULL) {
+   filetmp.open(seedfname.c_str(), std::ifstream::in);
+   if( ! filetmp ) {
       std::cerr<<"   Error: cannot access file "<<seedfname<<std::endl;
       ERR = 1;
    }
    else {
-      fgets(buff, 300, filetmp);
-      if(sscanf(buff,"%s %d %d %d", ctmp, &itmp, &itmp, &itmp)!=4) {
+      std::string buff;
+      std::getline(filetmp, buff);
+      char stmp[buff.length()];
+      if( sscanf(buff.c_str(), "%s %d %d %d", stmp, &itmp, &itmp, &itmp) != 4 ) {
          std::cerr<<"   Error: incorrect format in file "<<seedfname<<"! (path/seedfile yyyy mm dd) is expected"<<std::endl;
          ERR = 1;
       }
-      fclose(filetmp);
+      filetmp.close();
    }
    //chlst
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   char channel[100];
-   int offset = 0;
-   std::cout<<"channel list:\t\t";
-   for(; sscanf(&(buff[offset]), "%s%n", channel, &itmp)==1 && channel[0]!='#'; ) { 
-      chlst.push_back(channel);
-      offset += itmp;
-   }
-   std::cout<<chlst.size()<<" channels in the list ( ";
-   for(int i=0; i<chlst.size(); i++) std::cout<<chlst.at(i)<<" ";
-   std::cout<<")"<<std::endl;
+   std::stringstream ss( *(fveciter++) );
+   std::string channel;
+   while( (ss >> channel) && (channel.at(0) != '#') ) chlst.push_back(channel);
+   std::cout<<"channel list:\t\t"<<chlst.size()<<" channels in the list ( ";
+   for(int i=0; i<chlst.size(); i++) std::cout<<chlst.at(i)<<" "; std::cout<<")"<<std::endl;
    //sps
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%f", &ftmp);
-   sps = (int)ftmp;
+   sscanf((*(fveciter++)).c_str(), "%f", &ftmp);
+   sps = static_cast<int>(ftmp);
    std::cout<<"target sampling rate:\t"<<ftmp<<std::endl;
    if( sps!=ftmp || sps <= 0 ) {
       std::cerr<<"   Error: a positive integer is expected!"<<std::endl;
@@ -122,29 +125,24 @@ void CCPARAM::Load( const char* fname ) {
       ERR = 1;
    }
    //gapfrac
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%f", &gapfrac);
+   sscanf((*(fveciter++)).c_str(), "%f", &gapfrac);
    std::cout<<"max gap fraction:\t"<<gapfrac*100<<"%"<<std::endl;
    if( gapfrac<0 || gapfrac>1 ) {
       std::cerr<<"   Error: a number between 0. - 1. is expected!"<<std::endl;
       ERR = 1;
    }
    //t1
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%f", &t1);
+   sscanf((*(fveciter++)).c_str(), "%f", &t1);
    std::cout<<"cutting begining:\t"<<t1<<"sec"<<std::endl;
    if( fabs(t1) > 86400 ) std::cout<<"   Warning: "<<t1<<"sec exceeds one day."<<std::endl;
    //tlen
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%f", &tlen);
+   sscanf((*(fveciter++)).c_str(), "%f", &tlen);
    std::cout<<"time-rec length:\t"<<tlen<<"sec"<<std::endl;
    ftmp = t1+tlen;
    if( ftmp>86400 || ftmp<0 ) std::cout<<"   Warning: ending time '"<<ftmp<<"sec' out of range."<<std::endl;
    //perl perh
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%f", &perl);
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%f", &perh);
+   sscanf((*(fveciter++)).c_str(), "%f", &perl);
+   sscanf((*(fveciter++)).c_str(), "%f", &perh);
    std::cout<<"signal per band:\t"<<perl<<" - "<<perh<<"sec"<<std::endl;
    if( perl<0 || perh<0 ) {
       std::cerr<<"   Error: period band can not go below 0."<<std::endl;
@@ -156,8 +154,7 @@ void CCPARAM::Load( const char* fname ) {
    }
    if(perl<5./sps) std::cout<<"   Warning: signal at "<<perl<<"sec might be lost at a sampling rate of "<<sps<<std::endl;
    //tnorm_flag
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%d", &tnorm_flag);
+   sscanf((*(fveciter++)).c_str(), "%d", &tnorm_flag);
    std::cout<<"t-norm method:\t\t";
    if(tnorm_flag==0) std::cout<<"none"<<std::endl;
    else if(tnorm_flag==1) std::cout<<"One-bit"<<std::endl;
@@ -168,10 +165,8 @@ void CCPARAM::Load( const char* fname ) {
       ERR = 1;
    }
    //Eperl Eperh
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%f", &Eperl);
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%f", &Eperh);
+   sscanf((*(fveciter++)).c_str(), "%f", &Eperl);
+   sscanf((*(fveciter++)).c_str(), "%f", &Eperh);
    if(tnorm_flag!=1) {
       if( Eperl == -1. ) std::cout<<"Eqk filter:\t\toff"<<std::endl;
       else {
@@ -183,8 +178,7 @@ void CCPARAM::Load( const char* fname ) {
       }
    }
    //timehlen
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%f", &timehlen);
+   sscanf((*(fveciter++)).c_str(), "%f", &timehlen);
    if(tnorm_flag!=1) {
       std::cout<<"t-len for run-avg:\t"<<timehlen<<std::endl;
       if(timehlen<0) {
@@ -193,8 +187,7 @@ void CCPARAM::Load( const char* fname ) {
       }
    }
    //frechlen
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%f", &frechlen);
+   sscanf((*(fveciter++)).c_str(), "%f", &frechlen);
    std::cout<<"t-len for whitening:\t"<<frechlen<<"  ";
    if(frechlen==-1) std::cout<<"input smoothing file will be used";
    else if(frechlen<0) {
@@ -203,39 +196,31 @@ void CCPARAM::Load( const char* fname ) {
    }
    std::cout<<std::endl;
    //fwname
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%s", fwname);
+   fwname = (*fveciter).substr( 0, (*fveciter).find_first_of(" \t") ); fveciter++;
    if(frechlen==-1) {
       std::cout<<"spec reshaping file:\t"<<fwname<<std::endl;
-      if( access(fwname, R_OK)!=0 ) {
+      if( access(fwname.c_str(), R_OK)!=0 ) {
          std::cerr<<"   Error: cannot access file "<<fwname<<std::endl;
          ERR = 1;
       }  
    }
    //ftlen
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%d", &ftlen);
+   sscanf((*(fveciter++)).c_str(), "%d", &ftlen);
    if(ftlen<=0) std::cout<<"cor-time-len correction\toff"<<std::endl;
-   else {
-      std::cout<<"cor-time-len correction\ton"<<std::endl;
-      if(tnorm_flag==3) ftlen = 2;
-   }
+   else { std::cout<<"cor-time-len correction\ton"<<std::endl; /*if(tnorm_flag==3) ftlen = 2;*/ }
    //fprcs
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%d", &fprcs);
+   sscanf((*(fveciter++)).c_str(), "%d", &fprcs);
    if(fprcs<=0) std::cout<<"prcsr-signal checking\toff"<<std::endl;
    else std::cout<<"prcsr-signal checking\ton"<<std::endl;
    //memomax
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%f", &memomax);
+   sscanf((*(fveciter++)).c_str(), "%f", &memomax);
    std::cout<<"memory fraction:\t"<<memomax*100<<"%"<<std::endl;
    if( memomax<0 || memomax>1 ) {
       std::cerr<<"   Error: a number between 0. - 1. is expected!"<<std::endl;
       ERR = 1;
    }
    //lagtime
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%d", &lagtime);
+   sscanf((*(fveciter++)).c_str(), "%d", &lagtime);
    std::cout<<"cor lag time:\t\t"<<lagtime<<"sec"<<std::endl;
    if(lagtime<0) {
       std::cerr<<"   Error: negative lagtime!"<<std::endl;
@@ -243,53 +228,45 @@ void CCPARAM::Load( const char* fname ) {
    }
    else if(lagtime>524288) std::cout<<"   Warning: lag time exceeds the maximum"<<std::endl;
    //mintlen
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%d", &mintlen);
+   sscanf((*(fveciter++)).c_str(), "%d", &mintlen);
    std::cout<<"min time len:\t\t"<<mintlen<<"sec"<<std::endl;
    if( mintlen>86400 ) std::cout<<"   Warning: allowed minimum time length larger than a day."<<std::endl;
    //fdelosac
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%d", &fdelosac);
+   sscanf((*(fveciter++)).c_str(), "%d", &fdelosac);
    std::cout<<"Delete orig sacs?\t";
    if(fdelosac==1) std::cout<<"Yes"<<std::endl;
    else std::cout<<"No"<<std::endl;
    //fdelamph
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%d", &fdelamph);
+   sscanf((*(fveciter++)).c_str(), "%d", &fdelamph);
    std::cout<<"Delete am&ph files?\t";
    if(fdelamph==1) std::cout<<"Yes"<<std::endl;
    else std::cout<<"No"<<std::endl;
    //fskipesac
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%d", &fskipesac);
+   sscanf((*(fveciter++)).c_str(), "%d", &fskipesac);
    std::cout<<"ExtractSac()\t\t";
    if(fskipesac==2) std::cout<<"skip"<<std::endl;
    else if(fskipesac==1) std::cout<<"skip if target file exists"<<std::endl;
    else std::cout<<"overwrite if target file exists"<<std::endl;
    //fskipresp
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%d", &fskipresp);
+   sscanf((*(fveciter++)).c_str(), "%d", &fskipresp);
    std::cout<<"RmRESP()\t\t";
    if(fskipresp==2) std::cout<<"skip"<<std::endl;
    else if(fskipresp==1) std::cout<<"skip if target file exists"<<std::endl;
    else std::cout<<"overwrite if target file exists"<<std::endl;
    //fskipamph
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);} 
-   sscanf(buff, "%d", &fskipamph);
+   sscanf((*(fveciter++)).c_str(), "%d", &fskipamph);
    std::cout<<"TempSpecNorm()\t\t";
    if(fskipamph==2) std::cout<<"skip"<<std::endl;
    else if(fskipamph==1) std::cout<<"skip if target file exists"<<std::endl;
    else std::cout<<"overwrite if target file exists"<<std::endl;
    //fskipcrco
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%d", &fskipcrco);
+   sscanf((*(fveciter++)).c_str(), "%d", &fskipcrco);
    std::cout<<"CrossCorr()\t\t";
    if(fskipcrco==2) std::cout<<"skip"<<std::endl;
    else if(fskipcrco==1) std::cout<<"skip if target file exists"<<std::endl;
    else std::cout<<"overwrite if target file exists"<<std::endl;
    //CorOutflag
-   if( (fgets(buff, 300, fparam)) == NULL ) {std::cerr<<"   Error: No enough parameters read in from the input file!"<<std::endl; exit(0);}
-   sscanf(buff, "%d", &CorOutflag);
+   sscanf((*(fveciter++)).c_str(), "%d", &CorOutflag);
    std::cout<<"CC Output: \t\t";
    switch( CorOutflag ) {
       case 0:
@@ -306,15 +283,15 @@ void CCPARAM::Load( const char* fname ) {
 	 ERR = 1;
    }
    //check for EOF
-   if( (fgets(buff, 300, fparam)) != NULL ) std::cout<<"   Warning: End of file not reached!"<<std::endl;
-
+   if( fveciter != filevec.end() ) std::cout<<"   Warning: End of file not reached!"<<std::endl;
    std::cout<<"-------------------------------Checking completed-------------------------------"<<std::endl;
-   fclose(fparam);
    if(ERR==1) exit(0);
+   /* prompt to continue */
    char cin;
+   std::string line;
    std::cout<<"Continue?  ";
-   fgets(buff, 300, stdin);
-   sscanf(buff, "%c", &cin);
+   std::getline(std::cin, line);
+   sscanf(line.c_str(), "%c", &cin);
    if( cin!='Y' && cin!='y' ) exit(0);
 
 }
@@ -336,13 +313,15 @@ void Seedlist::Load( const char* fname ) {
       std::cerr<<"ERROR(Seedlist::Load): Cannot open file "<<fname<<std::endl;
       exit(-1);
    }
-   char buff[300];
+   std::string buff;
    SeedRec SRtmp;
-   for(;fseed.getline(buff, 300);) {
-      if( (sscanf(buff,"%s %d %d %d", SRtmp.fname, &(SRtmp.year), &(SRtmp.month), &(SRtmp.day))) != 4 ) { 
+   for(;std::getline(fseed, buff);) {
+      char stmp[buff.length()];
+      if( (sscanf(buff.c_str(),"%s %d %d %d", stmp, &(SRtmp.year), &(SRtmp.month), &(SRtmp.day))) != 4 ) { 
 	 std::cerr<<"Warning(Seedlist::Load): format error in file "<<fname<<std::endl; 
 	 continue;
       }
+      SRtmp.fname = stmp;
       seedrec.push_back(SRtmp);
       //std::cerr<<seedrec.back()<<std::endl;
    }
@@ -370,7 +349,7 @@ bool Seedlist::ReLocate( int year, int month, int day ) {
 struct StaFinder {
    StaRec a;
    StaFinder(StaRec b) : a(b) {}
-   bool operator()(StaRec b) { return strcmp(a.fname, b.fname)==0; }
+   bool operator()(StaRec b) { return a.fname.compare(b.fname)==0; }
 };
 void Stationlist::Load( const char* fname ) {
    //starec = new std::vector<StaRec>;
@@ -379,13 +358,15 @@ void Stationlist::Load( const char* fname ) {
       std::cerr<<"ERROR(Stationlist::Load): Cannot open file "<<fname<<std::endl;
       exit(-1);
    }
-   char buff[300];
+   std::string buff;
    StaRec SRtmp;
-   for(;fsta.getline(buff, 300);) {
-      if( (sscanf(buff,"%s %f %f", SRtmp.fname, &(SRtmp.lon), &(SRtmp.lat))) != 3 ) { 
+   for(;std::getline(fsta, buff);) {
+      char stmp[buff.length()];
+      if( (sscanf(buff.c_str(),"%s %f %f", stmp, &(SRtmp.lon), &(SRtmp.lat))) != 3 ) { 
 	 std::cerr<<"Warning(Stationlist::Load): format error in file "<<fname<<std::endl; 
 	 continue;
       }
+      SRtmp.fname = stmp;
       icurrent = find_if(starec.begin(), starec.end(), StaFinder(SRtmp) );
       if( icurrent != starec.end() ) {
 	 if( *icurrent == SRtmp ) { 

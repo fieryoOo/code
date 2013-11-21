@@ -100,7 +100,7 @@ SAC_HD *read_sac (char *fname, float **sig, SAC_HD *SHD) {
    return SHD;
 }
 
-void write_sac (char *fname, float *sig, SAC_HD *SHD) {
+void write_sac (const char *fname, float *sig, SAC_HD *SHD) {
    FILE *fsac;
    if( (fsac = fopen(fname, "wb"))==NULL ) {
       cerr<<"ERROR(write_sac): Cannot open file "<<fname<<endl;

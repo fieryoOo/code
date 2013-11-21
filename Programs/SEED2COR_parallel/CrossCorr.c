@@ -97,7 +97,7 @@ void ReadGroup(int size, int ig, struct mstarec *stag) {
          }
          stag[i].dayrec[iev].shd = shdam;
          stag[i].dayrec[iev].dtrec = sdbnew->rec[iev][ist].dt;
-         if(ftlen==2) sprintf(recname, "%s_rec2", sdbnew->rec[iev][ist].ft_fname);
+         if( tnorm_flag==3 || tnorm_flag==4 ) sprintf(recname, "%s_rec2", sdbnew->rec[iev][ist].ft_fname);
          else sprintf(recname, "%s_rec", sdbnew->rec[iev][ist].ft_fname);
          if( ! read_rec(ftlen, recname, sdbnew->rec[iev][ist].n, stag[i].dayrec[iev].rec[0], stag[i].dayrec[iev].rec[1], &(stag[i].dayrec[iev].nr)) ) {
             if( !ftype ) fprintf(stdout, "*** Warning: Cannot open file %s ***", recname );

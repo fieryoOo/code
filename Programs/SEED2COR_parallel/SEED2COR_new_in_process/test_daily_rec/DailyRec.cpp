@@ -1,12 +1,14 @@
+#include "DailyRec.h"
+
 double abs_time ( int yy, int jday, int hh, int mm, int ss, int ms );
 
 char * wMove (const char *odir, const char *pattern, const char *tdir, int retlst, int *nfile);
 
 
 
-static int CheckExistence(int ithread) {
+int DailyRec::CheckExistence(int ithread) {
    //check for sac file
-   SAC_HD *shd = read_shd(.sacname);
+   SAC_HD *shd = read_shd(fosac);
    if( shd==NULL ) return 0;
    .n = shd->npts;
    .t0 = abs_time (shd->nzyear, shd->nzjday, shd->nzhour, shd->nzmin, shd->nzsec, shd->nzmsec );

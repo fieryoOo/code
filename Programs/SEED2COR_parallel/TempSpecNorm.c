@@ -1,4 +1,6 @@
 #include "Param.h"
+#include <vector>
+#include <algorithm>
 
 int Whiten( double f1, double f2, double f3, double f4, double dt, int n, float hlen, float *seis_in, float *seissm, float **outam, float **outph, int *nk, double *dom);
 
@@ -31,13 +33,36 @@ void UpdateRec(char *name, int *rec_b, int *rec_e, int nrec, int ithread) {
 void OneBit(float *sig, SAC_HD *shd) {
    int i;
    for(i=0;i<shd->npts;i++) {
-      if(sig[i]>0) sig[i] = 1.;
-      else sig[i] = -1.;
+      if(sig[i]>0.) sig[i] = 1.;
+      else if(sig[i]<0.) sig[i] = -1.;
    }
 }
 
-void RunAvg(float *sig, SAC_HD *shd) {
+void RunAvgNorm( float *sig, SAC_HD *shd, float *sigw ) {
+   int i, j, wb, we, n = shd->npts;
+   float wsum, dt = shd->delta;
+   int half_l = (int)floor(timehlen/dt+0.5);
 
+   if(half_l*2>n-1) half_l = (n-1)/2;
+   for(i=0,wsum=0.;i<=half_l;i++) wsum += fabs(sigw[i]);
+   wb = 0; we = i;
+   for(i=1;i<=half_l;i++,we++) {
+      if(wsum!=0.) sig[i-1] *= ((double)we/wsum);
+      wsum += fabs(sigw[we]);
+   }
+   for(j=we;i<n-half_l;i++,wb++,we++) {
+//if( i>80000/dt && i<82000/dt ) std::cerr<<(i-1)*dt<<" "<<sig[i-1]<<" "<<wsum<<" / "<<j<<std::endl;
+      if(wsum!=0.) sig[i-1] *= ((double)j/wsum);
+      wsum += ( fabs(sigw[we]) - fabs(sigw[wb]) );
+   }
+   for(;i<n;i++,wb++) {
+      if(wsum!=0.) sig[i-1] *= ((double)(we-wb)/wsum);
+      wsum -= fabs(sigw[wb]);
+   }
+   if(wsum!=0.) sig[n-1] *= ((double)(we-wb)/wsum);
+}
+
+void RunAvg(float *sig, SAC_HD *shd) {
    int n = shd->npts;
    float *sigw, dt = shd->delta;
    sigw = new float[n];
@@ -46,33 +71,21 @@ void RunAvg(float *sig, SAC_HD *shd) {
    if( Eperl == -1 ) memcpy(sigw, sig, n*sizeof(float));
    else Filter(f1, f2, f3, f4, (double)dt, n, sig, sigw);
 
-   int i, j, wb, we;
-   int half_l = (int)floor(timehlen/dt+0.5);
-   float wsum;
+   // normalize sig by a running average of sigw
+   RunAvgNorm( sig, shd, sigw );
 
-   // fast running average before whitening
-
-   if(half_l*2>n-1) half_l = (n-1)/2;
-   for(i=0,wsum=0.;i<=half_l;i++) wsum += fabs(sigw[i]);
-   wb = 0; we = i;
-   for(i=1;i<=half_l;i++,we++) {
-      if(wsum!=0.) sig[i-1] /= (wsum/we);
-      wsum += fabs(sigw[we]);
-   }
-   for(j=we;i<n-half_l;i++,wb++,we++) {
-      if(wsum!=0.) sig[i-1] /= (wsum/j);
-      wsum += fabs(sigw[we]) - fabs(sigw[wb]);
-   }
-   for(;i<n;i++,wb++) {
-      if(wsum!=0.) sig[i-1] /= (wsum/(we-wb));
-      wsum -= fabs(sigw[wb]);
-   }
-   if(wsum!=0.) sig[n-1] /= (wsum/(we-wb));
    delete [] sigw; sigw = NULL;
    //write_sac("temp1.sac", sig, shd );
    //exit(0);
 }
 
+
+inline void TaperCos(float *sig, int winb, int wine) {
+   int step = 1;
+   if( wine < winb ) step = -1;
+   float pi=4.0*atan(1.0), dtmp = pi / (wine-winb);
+   for( int i=winb; i!=wine; i+=step ) sig[i] *= ( 0.5 * ( cos( (i-winb) * dtmp ) + 1 ) );
+}
 int EqkCut(float *sig, SAC_HD *shd, char *recname, int ithread) {
 
    int i, n = shd->npts, ninc = n/1000, npole=0;
@@ -82,106 +95,115 @@ int EqkCut(float *sig, SAC_HD *shd, char *recname, int ithread) {
       return 0;
    }
 
-   float sigw[n];
+   float* sigw = new float[n];
    double f2 = 1./Eperh, f1 = f2*0.8, f3 = 1./Eperl, f4 = f3*1.2;
    double dt = (double)(shd->delta);
    if( Eperl == -1 ) memcpy(sigw, sig, shd->npts*sizeof(float));
    else Filter( f1, f2, f3, f4, dt, n, sig, sigw);
 
-   //compute noise level
-   int   ii, j, is, s1k, flag;
-   s1k=(int)floor(1000./dt+0.5);
-   int rec_i,rec_b[1000],rec_e[1000];
+   /* compute noise level */
+   int   ii, is;
+   int s1k=(int)floor(1000./dt+0.5); // npts of a 1000 sec window
+   int nos1k = (int)(n/s1k);
 
-   double win_max[s1k+1],win_min,window_avg,window_std;
+   // for (each of) the ith 1000 sec window, search for maximum amplitude and store into win_max[i]
+   double win_max[nos1k];
    for(i=0;i<n;i++) sigw[i] = fabs(sigw[i]);
-   for( is=0, i=0; i<= n-s1k; is++,i+=s1k){
-      win_max[is]=0;
-      for( ii=i; ii<i+s1k; ii++ )
+   for( ii=0,is=0; is<nos1k; is++ ){
+      for( ; ii<(is+1)*s1k; ii++ )
          if(win_max[is]<sigw[ii]) win_max[is]=sigw[ii];
    }
-   flag=0;
-   if(i<n) flag=1;
    for( ii=i;ii<n;ii++ )
       if(win_max[is]<sigw[ii]) win_max[is]=sigw[ii];
 
-   window_avg=0;ii=0;
-   win_min = 1e20;
-   for(i=0; i<(int)(n/s1k); i++) if(win_max[i]>1e-20 && win_min>win_max[i]) win_min=win_max[i];
+   // sort win_max
+   std::vector<double> win_max_sorted( win_max, win_max+nos1k );
+   std::sort( win_max_sorted.begin(), win_max_sorted.end() );
 
-   for( i =0; i< (int)(n/s1k); i++){
-      if(win_max[i]>win_min*2.0 || win_max[i]<1e-20) continue;
-      window_avg+=win_max[i];
-      ii+=1;
+   // and define max noise level as 2 times the smallest 10 average max
+   double noisemax = 0.;
+   std::vector<double>::iterator iter, itermin;
+   for(itermin=win_max_sorted.begin(); itermin<win_max_sorted.end(); itermin++) if( *itermin > 1.e-20 ) break;
+   if( itermin < win_max_sorted.end() ) {
+      for(iter=itermin; iter<win_max_sorted.end() && iter<itermin+60; iter++) noisemax += *iter;
+      noisemax *= 2./(iter-itermin);
    }
-   if( ii < 20 ) {
-      reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: Time length not enough after removing earthquakes. ***");
-      return 0;
-   }
-   window_avg=window_avg/ii;
-   window_std=0;
-   for( i =0; i< (int)(n/s1k); i++){
-      if(win_max[i]>win_min*2.0 || win_max[i]<1e-20)continue;
-      window_std+=(window_avg-win_max[i])*(window_avg-win_max[i]);
+
+   /* compute noise average and noise std between windows */
+   double window_avg = 0.;
+   for(iter=itermin; iter<win_max_sorted.end() && *iter<noisemax; iter++) window_avg += *iter;
+   ii = iter-itermin;
+   window_avg /= ii;
+   double window_std=0., dtmp;
+   for(iter=itermin; iter<itermin+ii; iter++) {
+      dtmp = window_avg-*iter;
+      window_std += dtmp * dtmp;
    }
    window_std=sqrt(window_std/(ii-1));
 
-   ii=0;
-   for( i =0; i < (int)(n/s1k); i++){
-      if(win_max[i]>window_avg+2.0*window_std){  // || win_max[i]<1e-20){
-         for ( j=0; j<s1k; j++ ) sig[i*s1k+j]=0;
-         sigw[i]=0;
-      }
-      else sigw[i]=1;
-      ii+=1;
-   }
-   if(win_max[i]>window_avg+2.0*window_std) {
-      for ( j=i*s1k; j<n; j++ ) sig[j]=0;
-      sigw[i]=0;
-   }
-   else sigw[i]=1;
+   /* mark windows with a max amp > window_avg+2.0*window_std to be 'zero' */
+   dtmp = window_avg+2.0*window_std;
+   short keep[nos1k];
+   for( i =0; i < nos1k; i++) keep[i] = win_max[i] > dtmp ? 1 : 0;
 
+   /* check if there's enough data left */
+   for(ii=0,i=0; i<nos1k; i++) ii += keep[i];
    if( ii < 20 ) {
       reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: Time length not enough after removing earthquakes. Skipped. ***");
       return 0;
    }
 
-   rec_i=0;
+   /* and zero out invalidated windows */
+   for( i=0; i < nos1k; i++)
+      if( keep[i] == 0 ) for( ii=i*s1k; ii<(i+1)*s1k; ii++) sig[ii] = 0.;
+
+   /* locate contigious valid windows and apply a cosine taper */
+   int rec_b[1000], rec_e[1000], rec_i=0;
+   int winlen_min = (int)ceil(2500./dt);
+   /* locate all rec_begin and rec_end pairs 
+      zero out the windows that are shorter than winlen_min */
    rec_b[0]=0;
-   for( i=1; i<(int)(n/s1k)+flag;){
-      if(sigw[i]-sigw[i-1]==1) rec_b[rec_i]=i*s1k;
-      else if(sigw[i]-sigw[i-1]==-1) {
+   for( i=1; i<nos1k; i++){ 
+      if(keep[i]-keep[i-1] == 1) rec_b[rec_i]=i*s1k; // a new window begins
+      else if(keep[i]-keep[i-1] == -1) { // the current window ends
          rec_e[rec_i]=i*s1k;
-         if ((rec_e[rec_i]-rec_b[rec_i])<2500/dt)
-            for(ii=rec_b[rec_i];ii<rec_e[rec_i];ii++) sig[ii]=0;
+	 /* invalidate the current window if it is shorter than winlen_min */
+         if ((rec_e[rec_i]-rec_b[rec_i]) < winlen_min)
+            for(ii=rec_b[rec_i]; ii<rec_e[rec_i]; ii++) sig[ii] = 0.;
          else rec_i++;
       }
-      i++;
    }
-   if(sigw[i-1]==1) {
-      rec_e[rec_i]=n;
-      if((rec_e[rec_i]-rec_b[rec_i])<1500/dt)
-         for(ii=rec_b[rec_i];ii<rec_e[rec_i];ii++) sig[ii]=0;
-      else rec_i++;
+   /* mark the last rec_end and check its window length */
+   if(keep[nos1k-1]==1) {
+      if( (n-rec_b[rec_i]) < winlen_min*0.6 )
+         for(ii=rec_b[rec_i]; ii<n; ii++) sig[ii]=0;
+      else { rec_e[rec_i] = n; rec_i++; }
    }
+
+   /* taper 300 sec of data on each side of each window just to be safe */
+   int taperhl = (int)ceil(150./dt);
    for(i=0;i<rec_i;i++) {
       if(rec_b[i]!=0){
-         rec_b[i]+=300;
-         for(ii=rec_b[i]-300;ii<rec_b[i];ii++) sig[ii]=0;
+	 TaperCos( sig, rec_b[i] + 2*taperhl, rec_b[i]-1 ); 
+	 rec_b[i] += taperhl;
       }
       if(rec_e[i]!=n){
-         rec_e[i]-=300;
-         for(ii=rec_e[i]+1;ii<=rec_e[i]+300;ii++) sig[ii]=0;
+	 TaperCos( sig, rec_e[i] - 2*taperhl, rec_e[i]+1 );
+         rec_e[i] -= taperhl;
       }
    }
 
+   /* produce a new rec file named ft_name_rec2 */
    UpdateRec(recname, rec_b, rec_e, rec_i, ithread);
 
+   /* norm by running average if required */
+   if( tnorm_flag == 4 ) RunAvgNorm( sig, shd, sigw );
+
+   delete [] sigw; sigw = NULL;
    return 1;
 }
 
 int TemperalNorm( char *fname, float **sig, SAC_HD *shd, int ithread) {
-
    *sig = NULL;
    if( read_sac(fname, sig, shd) == NULL ) {
       reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: Cannot open file %s ***", fname);
@@ -192,27 +214,25 @@ int TemperalNorm( char *fname, float **sig, SAC_HD *shd, int ithread) {
 
    if( tnorm_flag==1 ) OneBit(*sig, shd);
    else if( tnorm_flag==2 ) RunAvg(*sig, shd);
-   else if( tnorm_flag==3 ) { if(!EqkCut(*sig, shd, recname, ithread)) return 0; }
+   else if( tnorm_flag==3 || tnorm_flag==4 ) { if(!EqkCut(*sig, shd, recname, ithread)) return 0; }
    else if( tnorm_flag!=0 ) {  
       cerr<<"ERROR(TemperalNorm): Undefined normalization method!"<<endl; 
       exit(0); 
    }
 
 /*
-   char ftmp[100], *fp;
-   sprintf(ftmp, "%s", fname);
-   strtok(ftmp, "_");
-   fp = strtok(NULL, "\n");
-   sprintf(ftmp, "temp/ft_%s", fp);
-   write_sac(ftmp, *sig, shd );
+   //check norm results
+   std::string outname( (shd->kstnm) );
+   outname.replace(outname.begin()+4, outname.end(), "_check_eqkcut.SAC");
+   write_sac(outname.c_str(), *sig, shd);
+   std::cerr<<outname<<std::endl;
+   exit(0);
 */
-// exit(0);
 
    return 1;
 }
 
 int SpectralNorm(char *fname, float *sig, SAC_HD shd, int ithread) {
-
    int nk, flag_whiten;
    double dom;
    double dt = (double)shd.delta;
@@ -288,12 +308,14 @@ void * TSNormEntrance (void *tid) {
          sprintf(phname, "%s.ph", sdb->rec[iev][ist].ft_fname);
          if( fskip3==2 || (fskip3==1 && access( amname, R_OK) != -1 && access( phname, R_OK) != -1) ) continue;
          if(sdb->rec[iev][ist].n <= 0) continue;
+	 /* report */
+	 if( nst%20 == 0 ) reports[ithread].tail += sprintf(reports[ithread].tail, "\n   ");
+	 reports[ithread].tail += sprintf(reports[ithread].tail, "%s ", sdb->st[ist].name);
+	 /* normalizing */	
          if( !TemperalNorm( sdb->rec[iev][ist].ft_fname, &sig, &shd, ithread) )
             { sdb->rec[iev][ist].n = 0; continue; }
          if( !SpectralNorm( sdb->rec[iev][ist].ft_fname, sig, shd, ithread ) )
             { sdb->rec[iev][ist].n = 0; continue; }
-         if( nst%20 == 0 ) reports[ithread].tail += sprintf(reports[ithread].tail, "\n   ");
-         reports[ithread].tail += sprintf(reports[ithread].tail, "%s ", sdb->st[ist].name);
          nst++;
       }
       reports[ithread].tail += sprintf(reports[ithread].tail, "\n   %d stations processed. ###\n", nst);
@@ -305,7 +327,6 @@ void * TSNormEntrance (void *tid) {
 }
 
 void TempSpecNorm () {
-cerr<<"In TempSpecNorm"<<endl;
    int ithread;
    //initialize report arrays
    reports = (struct NOTE *) malloc ( NTHRDS * sizeof(struct NOTE));

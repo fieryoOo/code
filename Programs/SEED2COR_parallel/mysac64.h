@@ -152,6 +152,6 @@ static SAC_HD sac_null = {
 
 
 	SAC_HD *read_sac (char *fname, float *sig, SAC_HD *SHD);
-	void write_sac (char *fname, float *sig, SAC_HD *SHD);
+	void write_sac (const char *fname, float *sig, SAC_HD *SHD);
 
 #endif

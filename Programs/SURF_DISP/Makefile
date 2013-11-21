@@ -11,7 +11,7 @@ FFLAGS = $(DBG) $(fflags)
 
 CFLAGS = $(DBG) $(cflags)
 
-FC = g77
+FC = gfortran
 
 CC = g++
 
@@ -20,7 +20,7 @@ DBG =
 FOBJS = SURF_DISP.o flat1.o surfa.o calcul_deep.o init_deep.o
 
 $(BIN) : $(FOBJS)
-	$(FC) $(CFLAGS) $(FOBJS) -static -o $(BIN)
+	$(FC) $(CFLAGS) $(FOBJS) -o $(BIN)
 
 install :: $(BIN)
 	install -s $(BIN) $(INST_DIR)

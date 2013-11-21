@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <new>
 #include <vector>
 
 int main( int argc, char* argv[] ) 
@@ -56,8 +57,8 @@ int main( int argc, char* argv[] )
       double t2 = pathcur->Dist() / pathcur->PathAverage(20.);
       delete pathcur; pathcur = NULL;
       /* compute a time range of the precursor arrival and store */
-      timetmp[0] = (t2-t1) * (1.-unc);
-      timetmp[1] = (t2-t1) * (1.+unc);
+      timetmp[0] = t2*(1.+unc) - t1*(1.-unc);
+      timetmp[1] = t2*(1.-unc) - t1*(1.+unc);
       arrtime.push_back(timetmp);
 
       delete sigcur; sigcur = NULL;
