@@ -5,13 +5,13 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
-#include <pthread.h>
+//#include <pthread.h>
 
+/*
 #define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
 #define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
 
 pthread_mutex_t fiolock;
-
 int jday ( int y, int m, int d ) {
    int i, jd = 0;
    for( i = 1; i < m; i++ ) {
@@ -34,7 +34,9 @@ double abs_time ( int yy, int jday, int hh, int mm, int ss, int ms ) {
    }
    return 24.*3600.*(nyday+jday) + 3600.*hh + 60.*mm + ss + 0.001*ms;
 }
+*/
 
+/* reformat header time if shd.nzmsec is modified and is out of the range [0,1000) */
 void SacRec::UpdateTime() {
    if(shd.nzmsec < 1000 && shd.nzmsec>=0) return;
    int i = (int)floor(shd.nzmsec/1000);
@@ -57,7 +59,8 @@ void SacRec::UpdateTime() {
    shd.nzyear++;
 }
 
-bool SacRec::read_shd () {
+/* load sac header from file 'fname' */
+bool SacRec::LoadHD () {
    std::ifstream fsac(fname.c_str());
    if( ! fsac ) return false;
    //pthread_mutex_lock(&fiolock);
@@ -68,69 +71,72 @@ bool SacRec::read_shd () {
    return true;
 }
 
-SAC_HD* SacRec::read_sac () {
-   FILE *fsac;
-   if((fsac = fopen(fname, "rb"))==NULL) return NULL;
-   pthread_mutex_lock(&fiolock);
-   if ( !SHD ) SHD = &SAC_HEADER;
-   fread(SHD,sizeof(SAC_HD),1,fsac);
-   if( *sig == NULL) *sig = (float *) malloc (SHD->npts * sizeof(float));
-   //else *sig = (float *) realloc (*sig, SHD->npts * sizeof(float));
-   fread(*sig,sizeof(float),SHD->npts,fsac);
-   fclose (fsac);
-   pthread_mutex_unlock(&fiolock);
+/* load sac header+signal from file 'fname', memory is allocated on heap */
+bool SacRec::Load () {
+   std::ifstream fsac(fname.c_str());
+   if( ! fsac ) return false;
+   //pthread_mutex_lock(&fiolock);
+   fsac.read( reinterpret_cast<char *>(&shd), sizeof(SAC_HD) );
+   //sig = std::make_shared<float>( new float[shd.npts*sizeof(float)] );
+   float* sigtmp = new float[shd.npts];
+   fsac.read( reinterpret_cast<char *>(sigtmp), sizeof(float)*shd.npts );
+   fsac.close();
+   sig = std::unique_ptr<float[]>(sigtmp);
+   //pthread_mutex_unlock(&fiolock);
 
-   /*-------------  calcule de t0  ----------------*/
-   {
-        int eh, em ,i;
-        float fes;
-        char koo[9];
+   /* calculate t0 */
+   char koo[9];
+   for ( int i=0; i<8; i++ ) koo[i] = shd.ko[i]; koo[8] = 0;
+   float fes;
+   int eh, em;
+   sscanf(koo,"%d%*[^0123456789]%d%*[^.0123456789]%g",&eh,&em,&fes);
+   shd.o = shd.b + (shd.nzhour-eh)*3600. + (shd.nzmin-em)*60. + shd.nzsec-fes + shd.nzmsec*.001;
 
-        for ( i = 0; i < 8; i++ ) koo[i] = SHD->ko[i];
-        koo[8] = 0;
-
-        SHD->o = SHD->b + SHD->nzhour*3600. + SHD->nzmin*60 +
-         SHD->nzsec + SHD->nzmsec*.001;
-
-        sscanf(koo,"%d%*[^0123456789]%d%*[^.0123456789]%g",&eh,&em,&fes);
-
-        SHD->o  -= (eh*3600. + em*60. + fes);
-   /*-------------------------------------------*/}
-   return SHD;
+   return true;
 }
 
-void write_sac (const char *fname, float *sig, SAC_HD *SHD) {
-   FILE *fsac;
-   if( (fsac = fopen(fname, "wb"))==NULL ) {
-      std::cerr<<"ERROR(write_sac): Cannot open file "<<fname<<std::endl;
-      return;
+/* write to file '*outfname' */
+bool SacRec::Write (const char *outfname) {
+   /* check if signal is loaded */
+   if( ! sig ) {
+      std::cerr<<"ERROR(write_sac): No signal loaded in the memory! "<<outfname<<std::endl;
+      return false;
+   }
+   /* open file */
+   std::ofstream fsac(outfname);
+   if( ! fsac ) {
+      std::cerr<<"ERROR(write_sac): Cannot open file "<<outfname<<std::endl;
+      return false;
+   }
+   /* update header */
+   shd.iftype = (int)ITIME;
+   shd.leven = (int)TRUE;
+   shd.lovrok = (int)TRUE;
+   shd.internal4 = 6L;
+
+  /* search min and max amplitude */
+   shd.depmin = sig[0];
+   shd.depmax = sig[0];
+   for ( int i = 0; i < shd.npts ; i++ ) {
+       if ( shd.depmin > sig[i] ) shd.depmin = sig[i];
+       else if ( shd.depmax < sig[i] ) shd.depmax = sig[i];
    }
 
-   if ( !SHD ) SHD = &SAC_HEADER;
-   SHD->iftype = (int)ITIME;
-   SHD->leven = (int)TRUE;
-   SHD->lovrok = (int)TRUE;
-   SHD->internal4 = 6L;
+   /* check and re-format header time if necessary */
+   UpdateTime();
 
-  /*+++++++++++++++++++++++++++++++++++++++++*/
-   SHD->depmin = sig[0];
-   SHD->depmax = sig[0];
-   int i;
-   for ( i = 0; i < SHD->npts ; i++ )
-   {
-    if ( SHD->depmin > sig[i] ) SHD->depmin = sig[i];
-    else if ( SHD->depmax < sig[i] ) SHD->depmax = sig[i];
-   }
+   //pthread_mutex_lock(&fiolock);
+   fsac.write( reinterpret_cast<char *>(&shd), sizeof(SAC_HD) );
+   fsac.write( reinterpret_cast<char *>(sig.get()), sizeof(float)*shd.npts );
+   //pthread_mutex_unlock(&fiolock);
 
-//memset(SHD, 0, sizeof(SAC_HD));
-	 pthread_mutex_lock(&fiolock);
-         fwrite(SHD,sizeof(SAC_HD),1,fsac);
-         fwrite(sig,sizeof(float),SHD->npts,fsac);
-	 pthread_mutex_unlock(&fiolock);
-
-        fclose (fsac);
+   fsac.close();
 }
 
+bool SacRec::MinMax () {
+
+}
+/*
 int read_rec(int rec_flag, char *fname, int len, int *rec_b, int *rec_e, int *nrec) {
    FILE *frec;
    int irec;
@@ -150,4 +156,4 @@ int read_rec(int rec_flag, char *fname, int len, int *rec_b, int *rec_e, int *nr
    }
    return 1;
 }
-
+*/
