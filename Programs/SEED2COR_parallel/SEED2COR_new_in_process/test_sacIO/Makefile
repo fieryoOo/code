@@ -1,6 +1,8 @@
 BIN = test
 
-LIBS = -L/usr/lib/gcc/x86_64-redhat-linux6E/4.4.7 -I/usr/lib/gcc/x86_64-redhat-linux6E/4.4.7/include
+LIBCC = -L/usr/lib/gcc/x86_64-redhat-linux6E/4.4.7 -I/usr/lib/gcc/x86_64-redhat-linux6E/4.4.7/include
+
+LIBS = -L${HOME}/usr/lib -lfftw3 -lpthread -fopenmp 
 
 OBJS = driver.o SacRec.o
 
@@ -9,10 +11,10 @@ cflags = -lstdc++ -std=c++0x -O3
 all : $(BIN)
 
 $(BIN) : $(OBJS)
-	g++44 $(cflags) -o $(BIN) $^
+	g++ $(LIBS) $(cflags) -o $(BIN) $^
 
 %.o : %.cpp
-	g++44 $(cflags) -c $^
+	g++ $(LIBS) $(cflags) -c $^
 
 clean:
 	rm -f $(OBJS) $(BIN)
