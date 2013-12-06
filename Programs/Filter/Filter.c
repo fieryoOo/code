@@ -220,7 +220,7 @@ void Filter (double f1, double f2, double f3, double f4, double dt, int n, float
    //make tapering
    int nk = ns/2+1;
    double dom = 1./dt/ns;
-   if( f2 == -1. && f3>0 && f4>0 ) TaperL( f3, f4, dom, nk, sf );
+   if( (f1==-1. || f2==-1.) && (f3>0. && f4>0.) ) TaperL( f3, f4, dom, nk, sf );
    else if( f1>=0 && f2>0 && f3>0 && f4>0 ) TaperB( f1, f2, f3, f4, dom, nk, sf );
    else if( f1==-1. && f4==-1. ) TaperGaussian( f2, f3, dom, nk, sf );
    else {
@@ -234,9 +234,10 @@ void Filter (double f1, double f2, double f3, double f4, double dt, int n, float
 
    //forming final result
    int k;
+   float ftmp = 2./ns;
    for(k=0; k<n; k++) {
       if( seis_in[k]==0 ) seis_out[k] = 0.;
-      else seis_out[k] *= 2./ns;
+      else seis_out[k] *= ftmp;
    }
 
    return;

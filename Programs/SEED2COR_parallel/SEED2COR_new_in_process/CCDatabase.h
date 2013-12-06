@@ -1,3 +1,13 @@
+/* An implementation of the Cross-Correlation database */
+/* Consists of 3 data structs: CCPARAM, Seedlist, and Stationlist */
+
+/* It reads in and checks all CC parameters through an input parameter file and
+ * loads in the seed and station list provided by the parameter file on initialization*/
+
+/* The methods 'NextRec()' and 'Relocate()' are used to extract and initialize
+ * daily records from the database, which can then be processed and saved as needed */
+
+
 #ifndef CCDATABASE_H
 #define CCDATABASE_H
 
