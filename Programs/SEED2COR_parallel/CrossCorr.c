@@ -317,7 +317,7 @@ int GroupSize(int *spnpts) {
          if(sdbnew->rec[iev][ist].n > nmax) nmax = sdbnew->rec[iev][ist].n;
    npts = (int)pow(2., floor(log(nmax)/log(2.)))+10;
    *spnpts = npts;
-   int size = (int)floor((memomax*MemAvail-2*sizeof(SAC_DB)-(10000000.+18.*npts)*sizeof(float)-(0.5*(sdbnew->nst)*(sdbnew->nst-1)*(NEVENTS+1)*sizeof(short)))/NEVENTS/(sizeof(starec)+2.*npts*sizeof(float))) - 1;
+   int size = (int)floor((memomax*MemAvail*0.8-2*sizeof(SAC_DB)-(10000000.+18.*npts)*sizeof(float)-(0.5*(sdbnew->nst)*(sdbnew->nst-1)*(NEVENTS+1)*sizeof(short)))/NEVENTS/(sizeof(starec)+2.*npts*sizeof(float))) - 1;
    if( size < 1 ) {
       cerr<<"ERROR(GroupSize): No enough memory for Crosscorrelating!! Increase max memmory% or switch to CrossCor_old.c "<<endl;
       exit(0);
