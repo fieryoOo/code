@@ -53,7 +53,7 @@ void FFTW_B(int type, float *seis, int n, fftw_complex **in, fftw_complex **out,
       (*out)[k][0] = 0.;
       (*out)[k][1] = 0.;
    }
-   (*out)[0][0] /= 2.; (*out)[0][1] /= 2.;
+   (*out)[0][0] *= 0.5; (*out)[0][1] *= 0.5;
    (*out)[nk-1][1] = 0.;
 }
 
@@ -62,7 +62,7 @@ void TaperL( double f3, double f4, double dom, int nk, fftw_complex *sf ) {
 
    int i = (int)ceil(f3/dom);
    for(f=i*dom; f<f4; i++, f+=dom) {
-      ss = ( 1. + cos(PI*(f3-f)/(f4-f3)) ) / 2.;
+      ss = ( 1. + cos(PI*(f3-f)/(f4-f3)) ) * 0.5;
       sf[i][0] *= ss;
       sf[i][1] *= ss;
    }
@@ -83,13 +83,13 @@ void TaperB( double f1, double f2, double f3, double f4, double dom, int nk, fft
       sf[i][1] = 0.;
    }
    for(; f<f2; i++, f+=dom) {
-      ss = ( 1. - cos(PI*(f1-f)/(f2-f1)) ) / 2.;
+      ss = ( 1. - cos(PI*(f1-f)/(f2-f1)) ) * 0.5;
       sf[i][0] *= ss;
       sf[i][1] *= ss;
    }
    i = (int)ceil(f3/dom);
    for(f=i*dom; f<f4; i++, f+=dom) {
-      ss = ( 1. + cos(PI*(f3-f)/(f4-f3)) ) / 2.;
+      ss = ( 1. + cos(PI*(f3-f)/(f4-f3)) ) * 0.5;
       sf[i][0] *= ss;
       sf[i][1] *= ss;
    }
