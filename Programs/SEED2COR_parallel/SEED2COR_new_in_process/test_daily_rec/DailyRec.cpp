@@ -1,93 +1,113 @@
 #include "DailyRec.h"
-
+#include "SysTools.h"
 double abs_time ( int yy, int jday, int hh, int mm, int ss, int ms );
 
-char * wMove (const char *odir, const char *pattern, const char *tdir, int retlst, int *nfile);
+//char * wMove (const char *odir, const char *pattern, const char *tdir, int retlst, int *nfile);
 
 
+class DailyRec::DRimpl {
+private:
+   std::string rdsexe, evrexe;
+   std::string fseed, fresp, fosac, ffsac;
+   std::string staname, chname, outdir;
+   std::ostringstream reports;
+   char *resp_fname;
+   float lon, lat;
+   int year, month, day;
+   int fskipesac;
+   int npts;
+   float t0, delta;
 
-int DailyRec::CheckExistence(int ithread) {
-   //check for sac file
-   SAC_HD *shd = read_shd(fosac);
-   if( shd==NULL ) return 0;
-   .n = shd->npts;
-   .t0 = abs_time (shd->nzyear, shd->nzjday, shd->nzhour, shd->nzmin, shd->nzsec, shd->nzmsec );
-   .dt = shd->delta;
-   int nlist;
-   //check for RESP file
-   char dir[150], respname[150];
-   char *list = List(dir, respname, 0, &nlist);
-   if(list==NULL) return 0;
-   if(nlist>1) reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: more than one RESP files found ***");
-   .resp_fname = new char[150];
-   sscanf(list, "%s", .resp_fname);
-   free(list);
-   return 1;
-}
 
-char *Seed2Sac(int ne, int ns, char *nseed, int *nfile, int ithread) {
-   char tdir[100];
-   sprintf(tdir, "./Working_Thread_%d", ithread);
-
-   char fname[100], str[300];
-   sprintf(fname, "%s/from_seed", tdir);
-   FILE *ff = fopen(fname,"w");
-   fprintf (ff, "%s <<END\n", rdsexe);
-   fprintf (ff, "%s\n", nseed);
-   fprintf(ff,"\n");                             /* out file */
-   fprintf(ff,"\n");                             /* volume */
-   fprintf(ff,"d\n");                            /* option */
-   fprintf(ff,"\n");                             /* summary file */
-   fprintf(ff,"%s\n", sdb->st[ns].name );        /* station list */
-   fprintf(ff,"%s\n", ch );                      /* channel list */
-   fprintf(ff,"\n");                             /* network list */
-   fprintf(ff,"\n");                             /* Loc Ids */
-   fprintf(ff,"1\n");                            /* out format */
-   fprintf(ff,"N\n");                            // new version!!!!!!!!!!
-   fprintf(ff,"N\n");                            /* Output poles & zeroes */
-   fprintf(ff,"0\n");                            /* Check Reversal */
-   fprintf(ff,"\n");                             /* Select Data Type */
-   fprintf(ff,"\n");                             /* Start Time */
-   fprintf(ff,"\n");                             /* End Time */
-   fprintf(ff,"\n");                             /* Sample Buffer Length  */
-   fprintf(ff,"Y\n");                            /* Extract Responses */
-   fprintf(ff,"quit\n");
-   fprintf(ff,"END\n");
-   fclose(ff);
-
-   //extract SAC&RESP and mv into thread working directory
-   pthread_mutex_lock(&rdslock); //lock for rdseed and shell operations
-   sprintf(str,"sh %s >& /dev/null", fname);
-   system(str);
-
-   /*---------- mv response file -----------*/   
-   sprintf(str, "RESP.*.%s.*.%s", sdb->st[ns].name, ch);
-   int nlist = 0;
-   char *list = List(".", str, 0, &nlist); //list RESP files in the current depth
-   if(list==NULL) {
-      pthread_mutex_unlock(&rdslock);
-      return NULL;
+public:
+   bool CheckExistence() {
+      //check for sac file
+      SacRec sacrec(fosac.c_str());
+      /* load header */
+      if( ! sacrec.LoadHD() ) return false;
+      //SAC_HD *shd = read_shd(fosac);
+      //if( shd==NULL ) return 0;
+      npts = sacrec.shd.npts;
+      t0 = abs_time (sacrec.shd.nzyear, sacrec.shd.nzjday, sacrec.shd.nzhour, sacrec.shd.nzmin, sacrec.shd.nzsec, sacrec.shd.nzmsec );
+      delta = sacrec.shd.delta;
+      int nlist;
+      //check for RESP file
+      char respname[150];//, dir[150];
+      //sprintf(dir, "%s/%s", sdb->mo[imonth].name, sdb->ev[ne].name);
+      sprintf(respname, "RESP.*.%s.*.%s", staname.c_str(), chname.c_str());
+      char *list = List(outdir.c_str(), respname, 0, &nlist);
+      if(list==NULL) return 0;
+      if(nlist>1) reports << "*** Warning: more than one RESP files found *** "; //reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: more than one RESP files found ***");
+      resp_fname = new char[150];
+      sscanf(list, "%s", resp_fname);
+      free(list);
+      return 1;
    }
-   char list_name[150];
-   int offset, curp = 0;
-   while( (sscanf(&list[curp], "%s%n", list_name, &offset)) == 1 ) {
-      if(curp==0) {
-	 sdb->rec[ne][ns].resp_fname = new char[150];
-	 sprintf(sdb->rec[ne][ns].resp_fname,"%s/%s/%s", sdb->mo[imonth].name, sdb->ev[ne].name, list_name);
-	 Move(list_name, sdb->rec[ne][ns].resp_fname);
+
+   char* Seed2Sac( int *nfile ) {
+      char tdir[100];
+      int ithread = 1;
+      sprintf(tdir, "./Working_Thread_%d", ithread);
+
+      char fname[100], str[300];
+      sprintf(fname, "%s/from_seed", tdir);
+      FILE *ff = fopen(fname,"w");
+      fprintf (ff, "%s <<END\n", rdsexe.c_str());
+      fprintf (ff, "%s\n", fseed.c_str());
+      fprintf(ff,"\n");				/* out file */
+      fprintf(ff,"\n");				/* volume */
+      fprintf(ff,"d\n");			/* option */
+      fprintf(ff,"\n");				/* summary file */
+      fprintf(ff,"%s\n", staname.c_str() );	/* station list */
+      fprintf(ff,"%s\n", chname.c_str() );	/* channel list */
+      fprintf(ff,"\n");				/* network list */
+      fprintf(ff,"\n");				/* Loc Ids */
+      fprintf(ff,"1\n");			/* out format */
+      fprintf(ff,"N\n");			// new version!!!!!!!!!!
+      fprintf(ff,"N\n");			/* Output poles & zeroes */
+      fprintf(ff,"0\n");			/* Check Reversal */
+      fprintf(ff,"\n");				/* Select Data Type */
+      fprintf(ff,"\n");				/* Start Time */
+      fprintf(ff,"\n");				/* End Time */
+      fprintf(ff,"\n");				/* Sample Buffer Length  */
+      fprintf(ff,"Y\n");			/* Extract Responses */
+      fprintf(ff,"quit\n");
+      fprintf(ff,"END\n");
+      fclose(ff);
+
+      //extract SAC&RESP and mv into thread working directory
+      //pthread_mutex_lock(&rdslock); //lock for rdseed and shell operations
+      sprintf(str,"sh %s >& /dev/null", fname);
+      system(str);
+
+      /*---------- mv response file -----------*/   
+      sprintf(str, "RESP.*.%s.*.%s", staname.c_str(), chname.c_str());
+      int nlist = 0;
+      char *list = List(".", str, 0, &nlist); //list RESP files in the current depth
+      if(list==NULL) {
+	 //pthread_mutex_unlock(&rdslock);
+	 return NULL;
       }
-      else fRemove(list_name);
-      curp += offset;
-   }
-   free(list);
-   /*---------mv sac files and produce saclst---------*/
-   //list SAC files
-   sprintf(str, "*%s*%s*SAC", sdb->st[ns].name, ch);
-   char *filelst = wMove(".", str, tdir, 1, nfile);
+      char list_name[150];
+      int offset, curp = 0;
+      while( (sscanf(&list[curp], "%s%n", list_name, &offset)) == 1 ) {
+	 if(curp==0) {
+	    resp_fname = new char[150];
+	    sprintf(resp_fname,"%s/%s", outdir.c_str(), list_name);
+	    Move(list_name, resp_fname);
+	 }
+	 else fRemove(list_name);
+	 curp += offset;
+      }
+      free(list);
+      /*---------mv sac files and produce saclst---------*/
+      //list SAC files
+      sprintf(str, "*%s*%s*SAC", staname.c_str(), chname.c_str());
+      char *filelst = wMove(".", str, tdir, 1, nfile);
    
-   pthread_mutex_unlock(&rdslock); //unlock
-   return filelst;
-}
+      //pthread_mutex_unlock(&rdslock); //unlock
+      return filelst;
+   }
 
 float av_sig (float *sig, int i, int N, int nwin ) {
    int n1, n2, j, nav = 0;
@@ -114,10 +134,10 @@ float av_sig (float *sig, int i, int N, int nwin ) {
 int merge_sac(float * sig[], SAC_HD *sd, int nfile, int ne, int ns, int ithread)
 {
    if(nfile == 1) {
-      sdb->rec[ne][ns].n = sd[0].npts;
-      sdb->rec[ne][ns].t0 = abs_time (sd[0].nzyear, sd[0].nzjday, sd[0].nzhour, sd[0].nzmin, sd[0].nzsec, sd[0].nzmsec );
-      sdb->rec[ne][ns].dt = sd[0].delta;
-      write_sac (sdb->rec[ne][ns].fname, sig[0], &sd[0]);
+      npts = sd[0].npts;
+      t0 = abs_time (sd[0].nzyear, sd[0].nzjday, sd[0].nzhour, sd[0].nzmin, sd[0].nzsec, sd[0].nzmsec );
+      delta = sd[0].delta;
+      write_sac (fosac.c_str(), sig[0], &sd[0]);
       return 1;
    }
 
@@ -140,22 +160,24 @@ int merge_sac(float * sig[], SAC_HD *sd, int nfile, int ne, int ns, int ithread)
    double dt = (int)floor(s0.delta*1e8+0.5)/1e8, tshift;
    N = (int)floor((T2-T1)/s0.delta+0.5)+1;
    s0.npts = N;
-   sdb->rec[ne][ns].n = N;
-   sdb->rec[ne][ns].t0 = T1;
-   sdb->rec[ne][ns].dt = dt;
+   npts = N;
+   t0 = T1;
+   delta = dt;
 
    sig0 = (float *) malloc (N * sizeof(float));
    for (j=0;j<N;j++) sig0[j] = 1.e30;
 
    for(i=0;i<nfile;i++) {
       if( fabs(sd[i].delta-s0.delta)>.0001 ) {
-          reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: sps mismatch! ***");
+          //reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: sps mismatch! ***");
+          reports << "*** Warning: sps mismatch! *** ";
           continue;
       }
       nb = (int)floor((t1[i]-T1)/dt+0.5);
       tshift = fabs((sd[i].b-s0.b) + (nb*dt-(t1[i]-T1)));
       if( tshift > 1.e-3 ) {
-         reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: signal shifted by %fsec when merging! ***", tshift);
+         //reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: signal shifted by %fsec when merging! ***", tshift);
+	 reports << "*** Warning: signal shifted by " << tshift << "sec when merging! *** ";
       }
       for(j=0,jj=nb;j<sd[i].npts;j++,jj++) if(sig0[jj] > 1.e29) sig0[jj] = sig[i][j];
    }
@@ -164,7 +186,7 @@ int merge_sac(float * sig[], SAC_HD *sd, int nfile, int ne, int ns, int ithread)
       if(sig0[j]>1.e29) Nholes++;
    }
    if( (float)Nholes/(float)N > gapfrac ) {
-      sdb->rec[ne][ns].n = -1;
+      npts = -1;
       return 0;
    }
 
@@ -176,7 +198,7 @@ int merge_sac(float * sig[], SAC_HD *sd, int nfile, int ne, int ns, int ithread)
       else if(sig0[i]>1.e29) rec_e[j++] = i;
    }
    if(sig0[N-1]<1.e29) rec_e[j++] = N;
-   sprintf(recname, "%s_rec1", sdb->rec[ne][ns].ft_fname);
+   sprintf(recname, "%s_rec1", ffsac.c_str());
    FILE *frec = fopen(recname, "w");
    for(i=0;i<j;i++) fprintf(frec, "%d %d\n", rec_b[i], rec_e[i]);
    fclose(frec);
@@ -192,7 +214,7 @@ int merge_sac(float * sig[], SAC_HD *sd, int nfile, int ne, int ns, int ithread)
       sig0[j] = av;
    }
 
-   write_sac (sdb->rec[ne][ns].fname, sig0, &s0);
+   write_sac (fosac.c_str(), sig0, &s0);
 
    free(sig0);
 
@@ -240,7 +262,8 @@ static int Resampling(char *sacname, float **sig2, SAC_HD *sd, int ithread) {
          }
    }
    else { //sps isn't a factor, slower way
-      reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: sps isn't a factor of %d, watch out for rounding error! ***", (int)floor(1/shd.delta+0.5));
+      //reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: sps isn't a factor of %d, watch out for rounding error! ***", (int)floor(1/shd.delta+0.5));
+      reports << "*** Warning: sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << ", watch out for rounding error! *** ";
       long double ti, tj;
       iinc = (int)floor(dt/shd.delta);
       ti = i*shd.delta+shd.nzmsec*0.001+shd.b;
@@ -267,6 +290,12 @@ static int Resampling(char *sacname, float **sig2, SAC_HD *sd, int ithread) {
    return 1;
 }
 
+} //pimpl
+
+DailyRec::DailyRec( std::string rdsexein, std::string evrexein, std::string fseedin, std::string stanamein, std::string chnamein, std::string fosacin, std::string ffsacin, std::string outdirin )
+   : rdsexe(rdsexein), evrexe(evrexein), fseed(fseedin), staname(stanamein), chname(chnamein), fosac(fosacin), ffsac(ffsacin), outdir(outdirin), pimpl(new DRimpl()) {}
+
+DailyRec::~DailyRec() {}
 
 void DailyRec::ExtractSac() {
    /* set up working directory */
@@ -278,14 +307,14 @@ void DailyRec::ExtractSac() {
 
    /* check for file existence */
    if( fskipesac==2 || fskipesac==1 ) {
-      int flag = CheckExistence(iev, ist, ithread);
+      bool flag = pimpl->CheckExistence(iev, ist, ithread);
       if(fskipesac==2) continue;
       else if(flag) continue;
    }
 
    /* extract sacs from the seed */
    int nfile;
-   char *filelst = Seed2Sac(ne, ns, sdb->mo[imonth].seedf[ne], &nfile, ithread);
+   char *filelst = Seed2Sac( &nfile );
    if(filelst==NULL) return 0;
 
    /* read sacfile names from the filelst and resample */
@@ -297,8 +326,16 @@ void DailyRec::ExtractSac() {
    while( (sscanf(&filelst[curp], "%s%n", sacname, &offset)) == 1 ) {
       curp += offset;
       Resampling(sacname, &sigrspd[i], &sd[i], ithread); i++;
+      //sacrec.merge(sacnew);
       fRemove(sacname);
    }
+   //sacrec.arrange();
+   /*
+   if( (float)Nholes/(float)N > gapfrac ) {
+      npts = -1;
+      return false;
+   }
+   */
    delete [] filelst;
 
    /* merge all resampled sac files and write to disk */
@@ -310,8 +347,9 @@ void DailyRec::ExtractSac() {
 
    /* report */
    if( MakeRecord(iev, ist, ithread) ) {
-      if( nst%20 == 0 ) reports[ithread].tail += sprintf(reports[ithread].tail, "\n   ");
-      reports[ithread].tail += sprintf(reports[ithread].tail, "%s ", sdb->st[ist].name);
+      if( nst%20 == 0 ) reports << "\n   "; //reports[ithread].tail += sprintf(reports[ithread].tail, "\n   ");
+      //reports[ithread].tail += sprintf(reports[ithread].tail, "%s ", sdb->st[ist].name);
+      reports << staname << " ";
       nst++;
    }
 

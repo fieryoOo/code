@@ -9,10 +9,12 @@ int main(int argc, char *argv[]) {
    }
 
    /* test time */
+/*
    for(int i=0; i<0; i++) {
       CCDatabase* cdbtmp = new CCDatabase(argv[1]);
       delete cdbtmp;
    }
+*/
 
    /* Initialize the CC Database with the input parameter file */
    CCDatabase cdb( argv[1] );
@@ -20,8 +22,9 @@ int main(int argc, char *argv[]) {
    const CCPARAM cdbParams = cdb.GetParams();
    std::cerr<<cdbParams.sps<<std::endl;
    
-
-   cdb.NextRec();
+   //cdb.NextRecTest(); // testing the function
+   cdb.GetRec();
+   while( cdb.NextRec() ) { cdb.GetRec(); }
 
    return 0;
 }

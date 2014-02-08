@@ -64,7 +64,7 @@ struct SeedRec {
    int year, month, day;
    SeedRec() { year=0; month=0; day=0; }
    SeedRec(const char* inname, const int& yy, const int& mm, const int& dd) { if(inname)fname.assign(inname); year=yy; month=mm; day=dd; }
-   friend std::ostream& operator<< (std::ostream& o, const SeedRec& sr) { o<<"( "<<sr.fname<<" "<<sr.year<<" "<<sr.month<<" "<<sr.day<<" )"; }
+   friend std::ostream& operator<< (std::ostream& o, const SeedRec& sr) { o<<"( "<<sr.fname<<" "<<sr.year<<" "<<sr.month<<" "<<sr.day<<" )"; return o; }
 };
 /* seed list with the 'NextRec' and the 'ReLocate' operation */
 class Seedlist {
@@ -76,10 +76,16 @@ public:
    Seedlist( const char* fname ) { Load(fname); }
    /* load station records from an input file */
    void Load( const char* );
+   /* check if icurrent is meaningful */
+   bool NotEnded() { return icurrent<seedrec.end() && icurrent>=seedrec.begin(); }
+   /* return an iterator to the current seedrec */
+   std::vector<SeedRec>::iterator GetRec() { return icurrent; }
+   /* rewind */
+   void Rewind() { icurrent = seedrec.begin(); }
    /* get to the next record and return true on success */
-   bool NextRec( std::vector<SeedRec>::iterator& sriter) {
+   bool NextRec() {
+      icurrent++;
       if( icurrent<seedrec.begin() || icurrent>=seedrec.end() ) return false;
-      sriter = icurrent++;
       return true; 
    }
    /* search for the first match of the input SeedRec and return true on success 
@@ -97,7 +103,7 @@ struct StaRec{
    StaRec() { lon=0.; lat=0.; }
    StaRec(const char* inname, const float& lonin, const float& latin) { if(inname)fname.assign(inname); lon=lonin; lat=latin; }
    friend bool operator== (StaRec& a, StaRec& b) { return ( a.fname.compare(b.fname)==0 && a.lon==b.lon && a.lat==b.lat ); }
-   friend std::ostream& operator<< (std::ostream& o, const StaRec& sr) { o<<"( "<<sr.fname<<" "<<sr.lon<<" "<<sr.lat<<" "<<" )"; }
+   friend std::ostream& operator<< (std::ostream& o, const StaRec& sr) { o<<"( "<<sr.fname<<" "<<sr.lon<<" "<<sr.lat<<" "<<" )"; return o; }
 };
 /* station list with the 'NextRec' and the 'ReLocate' operation */
 class Stationlist {
@@ -108,11 +114,17 @@ public:
    Stationlist( const char* fname ) { Load(fname); }
    /* load station records from an input file */
    void Load( const char* );
+   /* check if icurrent is meaningful */
+   bool NotEnded() { return icurrent<starec.end() && icurrent>=starec.begin(); }
+   /* return an iterator to the current starec */
+   std::vector<StaRec>::iterator GetRec() { return icurrent; }
+   /* rewind */
+   void Rewind() { icurrent = starec.begin(); }
    /* get to the next record and return true on success */
-   bool NextRec( std::vector<StaRec>::iterator& sriter) {
+   bool NextRec() {
+      icurrent++;
       if( icurrent<starec.begin() || icurrent>=starec.end() ) return false;
-      sriter = icurrent++;
-      return true; 
+      return true;
    }
    /* search for the first match of the input SeedRec and return true on success 
       icurrent=.end() if no such match is found */
@@ -138,7 +150,9 @@ public:
    const CCPARAM GetParams() const { return CCParams; }
 
    /* Get the next daily record from the database. Assign file names and make directory if necessary */
+   bool NextRecTest();
    bool NextRec();
+   void GetRec();
 /*
    void InitialPthread();
    void FillMonths();

@@ -6,11 +6,16 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <limits>
+#include <chrono>
+#include <random>
 //#include <pthread.h>
 
 
 /* ---------------------------------------- Pimpl handle struct ---------------------------------------- */
 struct SacRec::SRimpl {
+
+   /* ---------- FFT operations ---------- */
    #define PI 3.14159265358979323846
    // forward FFT 
    void FFTW_F(fftw_plan plan, fftw_complex *out, int ns, float *seis, int n) {
@@ -141,6 +146,64 @@ struct SacRec::SRimpl {
       }
    }
 
+   float FillGap( float *pbeg, float *pend, float amp, int hlen, int step ) {
+      // defube random number generator
+      unsigned timeseed = std::chrono::system_clock::now().time_since_epoch().count();
+      std::default_random_engine generator (timeseed);
+      std::uniform_real_distribution<float> distribution(-amp, amp);
+      auto rand = std::bind ( distribution, generator );
+      // parameters
+      float oostep = 1./step, slope;
+      float *p, *pmid = pbeg + reinterpret_cast<long>( (pend-pbeg) / 2 );
+      float alpha = -0.5 / (hlen * hlen);
+      // generate tapered random numbers for the 1st half
+      *pbeg = rand();
+      for(p=pbeg+step; p<pmid; p+=step) { 
+	 int ndiff = (p-pbeg);
+	 float gdamp = exp( alpha * ndiff * ndiff );
+	 *p = rand() * gdamp;
+	 slope = ( *p - *(p-step) ) * oostep;
+	 for(int i=1; i<step; i++) *(p+i) = *p + slope * i;
+      }
+      // generate tapered random numbers for the 2nd half
+      for(; p<pend; p+=step) { 
+	 int ndiff = (pend-p);
+	 float gdamp = exp( alpha * ndiff * ndiff );
+	 *p = rand() * gdamp; 
+	 slope = ( *p - *(p-step) ) * oostep;
+	 for(int i=1; i<step; i++) *(p+i) = *p + slope * i;
+      }
+      // connect the last several points
+      *pend = rand();
+      p = p-step;
+      slope = ( *pend - *p ) / ( pend - p );
+      for(p=p+1; p<pend; p++) *p = *(p-1) + slope;
+
+   }
+
+   float av_sig (float *sig, int i, int N, int nwin ) {
+      int n1, n2, j, nav = 0;
+      float av = 0.;
+
+      if ( nwin > N ) nwin = N;
+      n1 = i - nwin/2;
+      if ( n1 < 0 ) n1 = 0;
+      n2 = n1 + nwin - 1;
+      if ( n2 > N-1 ) n2 = N-1;
+      n1 = n2 - nwin + 1;
+
+      for ( j = n1; j <= n2; j++ ) 
+         if ( sig[j] < 1.e29 ) {
+            av += sig[j];
+            nav++;
+         }
+
+      if ( nav < 1 ) av = std::numeric_limits<float>::max();
+      else av = av/(float)nav;
+
+      return av;
+   }
+
 };
 
 
@@ -265,36 +328,23 @@ int read_rec(int rec_flag, char *fname, int len, int *rec_b, int *rec_e, int *nr
 }
 */
 
+/* ---------- sac operations ---------- */
+//#define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
+//#define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
 
-/* ---------------------------------------- sac operations ---------------------------------------- */
-/*
-#define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
-#define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
+//pthread_mutex_t fiolock;
 
-pthread_mutex_t fiolock;
-int jday ( int y, int m, int d ) {
-   int i, jd = 0;
-   for( i = 1; i < m; i++ ) {
-      if ( (i==1) || (i==3) || (i==5) || (i==7) || (i==8) || (i==10) ) jd += 31;
-      else if (i==2) {
-         if ( (y%400==0) || (y%100!=0&&y%4==0) ) jd += 29;
-         else jd += 28;
-      }
-      else jd += 30;
-   }
-   return jd + d;
-}
-
-double abs_time ( int yy, int jday, int hh, int mm, int ss, int ms ) {
-     //computes time in s relative to 1900
-   int nyday = 0, i;
-   for( i = 1901; i < yy; i++ ) {
+double SacRec::AbsTime () {
+   if( ! sig ) return -1.;
+   //computes time in s relative to 1900
+   int nyday = 0;
+   for( int i=1901; i<shd.nzyear; i++ ) {
       if ( (i%400==0) || (i%100!=0&&i%4==0) ) nyday += 366;
       else nyday += 365;
    }
-   return 24.*3600.*(nyday+jday) + 3600.*hh + 60.*mm + ss + 0.001*ms;
+   return 24.*3600.*(nyday+shd.nzjday) + 3600.*shd.nzhour + 60.*shd.nzmin + shd.nzsec + 0.001*shd.nzmsec;
 }
-*/
+
 
 /* reformat header time if shd.nzmsec is modified and is out of the range [0,1000) */
 void SacRec::UpdateTime() {
@@ -337,12 +387,18 @@ bool SacRec::MinMax (float tbegin, float tend, float& tmin, float& min, float& t
 
 
 /* compute the root-mean-square average in a given window */
-bool SacRec::RMSAvg ( float tbegin, float tend, float& rms ) {
+bool SacRec::RMSAvg ( float tbegin, float tend, int step, float& rms ) {
    if( ! sig ) return false;
-   int i, ibeg = nint((tbegin-shd.b)/shd.delta);
-   for ( rms=0.,i = ibeg; i < nint((tend-shd.b)/shd.delta+1.) ; i++ )
+
+   rms = 0.;
+   float maxfloat = std::numeric_limits<float>::max();
+   int neff = 0, ibeg = nint((tbegin-shd.b)/shd.delta), iend = nint((tend-shd.b)/shd.delta+1.);
+   for ( int i = ibeg; i < iend ; i+=step ) {
+      if( sig[i] >= maxfloat ) continue;
       rms += sig[i] * sig[i];
-   rms = sqrt(rms/(i-ibeg-1.));
+      neff++;
+   }
+   rms = sqrt(rms/(neff-1));
    return true;
 }
 
@@ -392,4 +448,132 @@ bool SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout 
    return true;
 }
 
+
+/* ---------------------------------------- cut and merge ---------------------------------------- */
+
+bool SacRec::merge( SacRec sacrec2 ) {
+   // make sure that both signals are loaded
+   if( !sig || !sacrec2.sig ) return false;
+   
+   SAC_HD& shd2 = sacrec2.shd;
+   // starting and ending time
+   double t1b = this->AbsTime();
+   double t2b = sacrec2.AbsTime();
+   double t1e = t1b + (shd.npts-1)*shd.delta;
+   double t2e = t2b + (shd2.npts-1)*shd2.delta;
+   double T1 = std::min(t1b, t2b), T2 = std::max(t1e, t2e);
+
+   double dt = (int)floor(shd.delta*1e8+0.5)/1e8, tshift;
+   int N = (int)floor((T2-T1)/shd.delta+0.5)+1;
+
+   /* pre-merging checks */
+   if( N > 2.6e7 ) {
+      std::cerr<<" Error(SacRec::merge): The merged signal will be larger than 100M. Stopped! " <<std::endl;
+      return false;
+   }
+   if( (shd.delta-shd2.delta) > 0.0001 ) {
+      std::cerr<<" Error(SacRec::merge): sps mismatch! Stopped! " <<std::endl;
+      return false;
+   }
+
+   /* allocate new space */
+   std::unique_ptr<float[]> sig0(new float[N]);
+   std::fill(&(sig0[0]), &(sig0[N]), std::numeric_limits<float>::max()); // initialize the array to max float
+   //for (j=0;j<N;j++) sig0[j] = 1.e30;
+   //std::copy(&(sig1[0]), &(sig1[0])+5, &(sig0[0]));
+
+   /* compute merge locations */
+   int nb;
+   bool reversed;
+   if( t1b > t2b ) {
+      reversed = true;
+      nb = (int)floor((t1b-t2b)/dt+0.5);
+      tshift = (shd.b-shd2.b) + (nb*dt-(t1b-t2b));
+   }
+   else {
+      reversed = false;
+      nb = (int)floor((t2b-t1b)/dt+0.5);
+      tshift = (shd2.b-shd.b) + (nb*dt-(t2b-t1b));
+   }
+   if( fabs(tshift) > 1.e-3 )
+      std::cerr << "*** Warning: signal shifted by " << tshift << "sec when merging! *** " << std::endl;
+
+
+   /* copy in the signals */
+   if( reversed ) {
+      std::copy(&(sacrec2.sig[0]), &(sacrec2.sig[0])+shd2.npts, &(sig0[0]));
+      std::copy(&(sig[0]), &(sig[0])+shd.npts, &(sig0[nb]));
+   }
+   else {
+      std::copy(&(sig[0]), &(sig[0])+shd.npts, &(sig0[0]));
+      std::copy(&(sacrec2.sig[0]), &(sacrec2.sig[0])+shd2.npts, &(sig0[nb]));
+   } 
+
+   /* resign sig pointer and update sac header */
+   sig = std::move(sig0);
+   if( reversed ) shd = shd2;
+   shd.npts = N;
+}
+
+int SacRec::arrange(const char* recname) {
+   // count holes
+   float maxfloat = std::numeric_limits<float>::max();
+   int Nholes=0;
+   for(int i=0;i<shd.npts;i++)
+      if(sig[i]>=maxfloat) Nholes++;
+
+   // produce record file for holes if a recname is given
+   if( recname ) {
+      int rec_b[1000], rec_e[1000];
+      //char recname[200];
+      rec_b[0] = 0;
+      int j=0;
+      for(int i=1;i<shd.npts;i++) {
+         if(sig[i-1] >= maxfloat) { if(sig[i] < maxfloat) rec_b[j] = i; }
+         else if(sig[i] >= maxfloat) rec_e[j++] = i;
+      }
+      if(sig[shd.npts-1]<maxfloat) rec_e[j++] = shd.npts;
+      //sprintf(recname, "%s_rec1", ffsac.c_str());
+      std::ofstream frec(recname);
+      for(int i=0;i<j;i++) frec << rec_b[i] << " " << rec_e[i] << std::endl;
+      //fprintf(frec, "%d %d\n", rec_b[i], rec_e[i]);
+      frec.close();
+   }
+
+   // fill gaps with random numbers
+   int ib, hlen = 100./shd.delta, step = std::min(0.5/shd.delta, 1.);
+   float sigrms;
+   this->RMSAvg(shd.b, shd.e, 50./shd.delta, sigrms);
+   bool isgap = false;
+   for (int i=0; i<shd.npts; i++ ) {
+      if( isgap ) {
+	 if ( sig[i] < maxfloat ) {
+	    pimpl->FillGap(&(sig[ib]), &(sig[i]), sigrms, hlen, step );
+	    isgap = false;
+	 }
+      }
+      else {
+	 if ( sig[i] >= maxfloat ) {
+	    ib = i;
+	    isgap = true;
+	 }
+      }
+   }
+   if( isgap ) pimpl->FillGap(&(sig[ib]), &(sig[0])+shd.npts, sigrms, hlen, step );
+
+   /*
+   float av;
+   int npart;
+   for (int i=0; i<shd.npts; i++ ) if ( sig[i] > 1.e29 ) {
+      for(npart=256;npart>1;npart*=0.5) {
+         av = pimpl->av_sig (&(sig[0]), i, shd.npts, shd.npts/npart );
+         if ( av < 1.e29 ) break;
+      }
+      if(npart==1) av=0.;
+      sig[i] = av;
+   }
+   */
+
+   return Nholes;
+}
 

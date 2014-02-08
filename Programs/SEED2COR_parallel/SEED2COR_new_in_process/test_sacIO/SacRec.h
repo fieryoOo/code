@@ -43,12 +43,22 @@ public:
    bool Load ();
    /* write to file '*fname' */
    bool Write ( const char *fname );
+   /* compute the absolute time in sec relative to 1900.01.00 */
+   double AbsTime ();
    /* update/reformat header time if shd.nzmsec is modified and is out of the range [0,1000) */
    void UpdateTime();
    /* search for min&max signal positions and amplitudes */
    bool MinMax ( float tbegin, float tend, float& tmin, float& min, float& tmax, float& max );
    /* compute the root-mean-square average in a given window */
-   bool RMSAvg ( float tbegin, float tend, float& rms );
+   bool RMSAvg ( float tbegin, float tend, float& rms) { return RMSAvg( tbegin, tend, 1, rms); }
+   bool RMSAvg ( float tbegin, float tend, int step, float& rms);
+   /* merge a second sacrec to the current */
+   bool Merge( SacRec sacrec2 ) {
+      merge( sacrec2 );
+      arrange();
+   }
+   bool merge( SacRec sacrec2 );
+   int arrange( const char *recname = NULL );
    /* method that performs 3 different types of filters
     * lowpass when ( (f1==-1. || f2==-1.) && (f3>0. && f4>0.) )
     * bandpass when ( f1>=0. && f2>0. && f3>0. && f4>0. )
