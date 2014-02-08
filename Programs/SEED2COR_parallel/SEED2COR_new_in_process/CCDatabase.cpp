@@ -1,6 +1,7 @@
 #include "CCDatabase.h"
 #include <cstdio>
 #include <cstdlib>
+#include <unistd.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -17,23 +18,42 @@ CCDatabase::CCDatabase( const char *fname ) {
 }
 
 /* pull out the next daily record from the database */
-bool CCDatabase::NextRec() {
-   std::vector<SeedRec>::iterator iseed;
-   if( seedlst.NextRec( iseed ) ) std::cerr<<*iseed<<std::endl;
-   if( seedlst.ReLocate( 2012, 1, 26 ) ) { seedlst.NextRec( iseed ); std::cerr<<*iseed<<std::endl; }
-   if( seedlst.ReLocate( 2011, 2, 26 ) ) { seedlst.NextRec( iseed ); std::cerr<<*iseed<<std::endl; }
+bool CCDatabase::NextRecTest() {
+   std::cerr<<*(seedlst.GetRec())<<std::endl;
+   if( seedlst.ReLocate( 2012, 1, 26 ) ) { std::cerr<<*(seedlst.GetRec())<<std::endl; }
+   if( seedlst.NextRec() ) std::cerr<<*(seedlst.GetRec())<<std::endl;
+   if( seedlst.ReLocate( 2011, 2, 26 ) ) { std::cerr<<*(seedlst.GetRec())<<std::endl; }
+   if( seedlst.NotEnded() ) std::cerr<<*(seedlst.GetRec())<<std::endl;
+   if( seedlst.ReLocate( 2012, 2, 26 ) ) { std::cerr<<*(seedlst.GetRec())<<std::endl; }
+   if( seedlst.NotEnded() ) std::cerr<<*(seedlst.GetRec())<<std::endl;
 
-   std::vector<StaRec>::iterator ista;
-   if( stalst.NextRec( ista) ) std::cerr<<*ista<<std::endl;
-   if( stalst.ReLocate( "J23A" ) ) { stalst.NextRec( ista ); std::cerr<<*ista<<std::endl; }
-   if( stalst.ReLocate( "SAO" ) ) { stalst.NextRec( ista ); std::cerr<<*ista<<std::endl; }
+   std::cerr<<*(stalst.GetRec())<<std::endl;
+   if( stalst.ReLocate( "J23A" ) ) { std::cerr<<*(stalst.GetRec())<<std::endl; }
+   if( stalst.ReLocate( "SAO" ) ) { std::cerr<<*(stalst.GetRec())<<std::endl; }
+   if( stalst.NextRec() ) std::cerr<<*(stalst.GetRec())<<std::endl;
+   if( stalst.ReLocate( "CMA" ) ) { std::cerr<<*(stalst.GetRec())<<std::endl; }
+   if( stalst.NotEnded() ) std::cerr<<*(stalst.GetRec())<<std::endl;
+
+   return true;
+}
+
+bool CCDatabase::NextRec() {
+   if( stalst.NextRec() ) return true;
+   stalst.Rewind();
+   if( seedlst.NextRec() ) return true;
+   return false;
+}
+
+void CCDatabase::GetRec() {
+   std::cerr<<*(seedlst.GetRec());
+   std::cerr<<"  "<<*(stalst.GetRec())<<std::endl;
 }
 
 
 /*-------------------------------------- CCPARAM ----------------------------------------*/
 static int isTermi(int deno) {
-   while(deno%2==0) deno /= 2;
-   while(deno%5==0) deno /= 5;
+   while(deno%2==0) deno *= 0.5;
+   while(deno%5==0) deno *= 0.2;
    return deno==1;
 }
 /* read in parameters for the CC Database from the inputfile */
@@ -111,7 +131,7 @@ void CCPARAM::Load( const char* fname ) {
    std::string channel;
    while( (ss >> channel) && (channel.at(0) != '#') ) chlst.push_back(channel);
    std::cout<<"channel list:\t\t"<<chlst.size()<<" channels in the list ( ";
-   for(int i=0; i<chlst.size(); i++) std::cout<<chlst.at(i)<<" "; std::cout<<")"<<std::endl;
+   for(unsigned int i=0; i<chlst.size(); i++) std::cout<<chlst.at(i)<<" "; std::cout<<")"<<std::endl;
    //sps
    sscanf((*(fveciter++)).c_str(), "%f", &ftmp);
    sps = static_cast<int>(ftmp);

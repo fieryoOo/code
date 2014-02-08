@@ -24,8 +24,10 @@ int  main ()
 
    //int ithread; 
    /* create the DailyRec object */
-   std::string rdsexe("/home/yeti4009/usr/bin/rdseed"), evrexe("/home/yeti4009/usr/bin/evalresp"), fseed, fosac("./temp.sac"), ffsac("./temp_ft.sac");
-   DailyRec dailyrec(rdsexe, evrexe, fseed, fosac, ffsac);
+   std::string rdsexe("/home/yeti4009/usr/bin/rdseed"), evrexe("/home/yeti4009/usr/bin/evalresp"), fseed("./OBS_US_NEW_2012.JAN.1.457078.seed");
+   std::string staname("I05D"), chname("BHZ");
+   std::string fosac("./temp.sac"), ffsac("./temp_ft.sac"), outdir(".");
+   DailyRec dailyrec(rdsexe, evrexe, fseed, staname, chname, fosac, ffsac, outdir);
    dailyrec.ExtractSac();
   
    /* fetch back old files and remove temporary dir */

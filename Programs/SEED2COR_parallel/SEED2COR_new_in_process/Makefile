@@ -15,18 +15,18 @@ DBG = -g
 
 all : $(EXECUTABLE)
 
-FOBJS = driver.o CCDatabase.o driver.o
+FOBJS = driver.o CCDatabase.o
 
 $(EXECUTABLE) : $(FOBJS)
 	$(CC) $(LDLIBS) $(CFLAGS) $^ -o $@
 
-Whiten.o : Whiten.c
+Whiten.o : Whiten.cpp
 	$(CC) $(cflag2) -c $<
 
-FreqOps.o : FreqOps.c
+FreqOps.o : FreqOps.cpp
 	$(CC) $(cflag2) -c $<
 
-%.o : %.c
+%.o : %.cpp
 	$(CC) $(cflags) -c $<
 
 install : $(EXECUTABLE)

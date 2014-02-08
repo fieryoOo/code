@@ -14,9 +14,8 @@ int main( int argc, char* argv[] )
    std::cerr<<shd.delta<<" "<<shd.npts<<std::endl;
 
    /* load signal */
-   if( sacrec.sig ) std::cerr<<shd.dist<<" "<<shd.o<<" "<<sacrec.sig[0]<<" "<<sacrec.sig[shd.npts-1]<<std::endl;
    sacrec.Load();
-   if( sacrec.sig ) std::cerr<<shd.dist<<" "<<shd.o<<" "<<sacrec.sig[0]<<" "<<sacrec.sig[shd.npts-1]<<std::endl;
+   if( sacrec.sig ) std::cerr<<sacrec.shd.dist<<" "<<sacrec.shd.o<<" "<<sacrec.sig[0]<<" "<<sacrec.sig[shd.npts-1]<<std::endl;
 
    /* copy constructor */
    SacRec sacrec2( sacrec );
