@@ -47,19 +47,19 @@ void RunAvgNorm( float *sig, SAC_HD *shd, float *sigw ) {
    for(i=0,wsum=0.;i<=half_l;i++) wsum += fabs(sigw[i]);
    wb = 0; we = i;
    for(i=1;i<=half_l;i++,we++) {
-      if(wsum>1.e-15) sig[i-1] *= ((double)we/wsum);
+      if(wsum>1.e-15.) sig[i-1] *= ((double)we/wsum);
       wsum += fabs(sigw[we]);
    }
    for(j=we;i<n-half_l;i++,wb++,we++) {
 //if( i>80000/dt && i<82000/dt ) std::cerr<<(i-1)*dt<<" "<<sig[i-1]<<" "<<wsum<<" / "<<j<<std::endl;
-      if(wsum>1.e-15) sig[i-1] *= ((double)j/wsum);
+      if(wsum>1.e-15.) sig[i-1] *= ((double)j/wsum);
       wsum += ( fabs(sigw[we]) - fabs(sigw[wb]) );
    }
    for(;i<n;i++,wb++) {
-      if(wsum>1.e-15) sig[i-1] *= ((double)(we-wb)/wsum);
+      if(wsum>1.e-15.) sig[i-1] *= ((double)(we-wb)/wsum);
       wsum -= fabs(sigw[wb]);
    }
-   if(wsum>1.e-15) sig[n-1] *= ((double)(we-wb)/wsum);
+   if(wsum>1.e-15.) sig[n-1] *= ((double)(we-wb)/wsum);
 }
 
 void RunAvg(float *sig, SAC_HD *shd) {
@@ -108,13 +108,12 @@ int EqkCut(float *sig, SAC_HD *shd, char *recname, int ithread) {
 
    // for (each of) the ith 1000 sec window, search for maximum amplitude and store into win_max[i]
    double win_max[nos1k];
-   memset (win_max,0,nos1k*sizeof(double));
    for(i=0;i<n;i++) sigw[i] = fabs(sigw[i]);
    for( ii=0,is=0; is<nos1k; is++ ){
-      for( ; ii<(is+1)*s1k; ii++ ) 
-         if(win_max[is]<sigw[ii]) win_max[is]=sigw[ii]; 
+      for( ; ii<(is+1)*s1k; ii++ )
+         if(win_max[is]<sigw[ii]) win_max[is]=sigw[ii];
    }
-   for( ;ii<n;ii++ )
+   for( ii=i;ii<n;ii++ )
       if(win_max[is]<sigw[ii]) win_max[is]=sigw[ii];
 
    // sort win_max
@@ -126,7 +125,7 @@ int EqkCut(float *sig, SAC_HD *shd, char *recname, int ithread) {
    std::vector<double>::iterator iter, itermin;
    for(itermin=win_max_sorted.begin(); itermin<win_max_sorted.end(); itermin++) if( *itermin > 1.e-20 ) break;
    if( itermin < win_max_sorted.end() ) {
-      for(iter=itermin; iter<win_max_sorted.end() && iter<itermin+30; iter++) noisemax += *iter; 
+      for(iter=itermin; iter<win_max_sorted.end() && iter<itermin+50; iter++) noisemax += *iter;
       noisemax *= 2./(iter-itermin);
    }
 
@@ -145,7 +144,14 @@ int EqkCut(float *sig, SAC_HD *shd, char *recname, int ithread) {
    /* mark windows with a max amp > window_avg+2.0*window_std to be 'zero' */
    dtmp = window_avg+2.0*window_std;
    short keep[nos1k];
-   for( i =0; i < nos1k; i++) keep[i] = win_max[i] > dtmp ? 0 : 1;
+   for( i =0; i < nos1k; i++) keep[i] = win_max[i] > dtmp ? 1 : 0;
+
+   /* check if there's enough data left */
+   for(ii=0,i=0; i<nos1k; i++) ii += keep[i];
+   if( ii < 3 ) {
+      reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: Time length not enough after removing earthquakes. Skipped. ***");
+      return 0;
+   }
 
    /* and zero out invalidated windows */
    for( i=0; i < nos1k; i++)
@@ -153,7 +159,7 @@ int EqkCut(float *sig, SAC_HD *shd, char *recname, int ithread) {
 
    /* locate contigious valid windows and apply a cosine taper */
    int rec_b[1000], rec_e[1000], rec_i=0;
-   int winlen_min = (int)ceil(2500./dt);
+   int winlen_min = (int)ceil(500./dt);
    /* locate all rec_begin and rec_end pairs 
       zero out the windows that are shorter than winlen_min */
    rec_b[0]=0;
@@ -174,13 +180,6 @@ int EqkCut(float *sig, SAC_HD *shd, char *recname, int ithread) {
       else { rec_e[rec_i] = n; rec_i++; }
    }
 
-   /* check if there's enough data left */
-   for(ii=0,i=0; i<rec_i; i++) ii += rec_e[i] - rec_b[i];
-   if( ii < 0.2*n ) {
-      reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: Time length not enough after removing earthquakes. Skipped. ***");
-      return 0;
-   }
-
    /* taper 300 sec of data on each side of each window just to be safe */
    int taperhl = (int)ceil(150./dt);
    for(i=0;i<rec_i;i++) {
@@ -196,6 +195,7 @@ int EqkCut(float *sig, SAC_HD *shd, char *recname, int ithread) {
 
    /* produce a new rec file named ft_name_rec2 */
    UpdateRec(recname, rec_b, rec_e, rec_i, ithread);
+
    /* norm by running average if required */
    if( tnorm_flag == 4 ) RunAvgNorm( sig, shd, sigw );
 
