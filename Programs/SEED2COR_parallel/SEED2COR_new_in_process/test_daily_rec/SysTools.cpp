@@ -97,13 +97,13 @@ void EstimateMemAvail (long *MemAvail) {
 
 /* ------------------------- make dir ----------------------------------------------- */
 #include <sys/stat.h>
-void MKDir(const char *dirname) {
+bool MKDir(const char *dirname) {
   //create dir if not exists
   //with read/write/search permissions for owner and group, and with read/search permissions for others if not already exists
-   if( mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == 0 ) return;
+   if( mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == 0 ) return true;
    switch(errno) {
       case EEXIST:
-	 return;
+	 return false;
       default:
 	 perror("### Error: MKDir failed"); //failed. prompt to continue
 	 exit(0);
@@ -129,7 +129,7 @@ int Unlink(const char *fpath, const struct stat *sb, int typeflag, struct FTW *f
    fRemove((char *)fpath);
    return 0;
 }
-int dRemove(char *dirname) {
+int dRemove(const char *dirname) {
    return nftw(dirname, Unlink, 64, FTW_DEPTH | FTW_PHYS);
 }
 

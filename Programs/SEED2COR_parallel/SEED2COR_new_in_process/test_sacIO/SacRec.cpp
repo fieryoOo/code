@@ -181,6 +181,7 @@ struct SacRec::SRimpl {
 
    }
 
+/*
    float av_sig (float *sig, int i, int N, int nwin ) {
       int n1, n2, j, nav = 0;
       float av = 0.;
@@ -203,7 +204,7 @@ struct SacRec::SRimpl {
 
       return av;
    }
-
+*/
 };
 
 
@@ -575,5 +576,65 @@ int SacRec::arrange(const char* recname) {
    */
 
    return Nholes;
+}
+
+
+bool SacRec::Resample( float sps ) {
+   if( ! sig ) return false;
+   int ithread = 0;
+   /* anti-aliasing filter */
+   float dt = 1./sps;
+   int iinc = (int)floor(dt/shd.delta+0.5);
+   if(iinc!=1) {
+      double f1 = -1., f2 = 0., f3 = sps/2.2, f4 = sps/2.01;
+      Filter(-1., 0., f3, f4);
+   }
+
+   /* allocate space for the new sig pointer */
+   int i, j;
+   int nptst = (int)floor((shd.npts-1)*shd.delta*sps+0.5)+10;
+   float nb;
+   std::unique_ptr<float[]> sig2(new float[nptst]);
+   //if( (*sig2 = (float *) malloc (nptst * sizeof(float)))==NULL ) perror("malloc sig2");
+   long double fra1, fra2;
+   nb = ceil((shd.nzmsec*0.001+shd.b)*sps);
+   i = (int)floor((nb*dt-shd.nzmsec*0.001-shd.b)/shd.delta);
+   if(fabs(iinc*shd.delta-dt)<1.e-7) { //sps is a factor of 1/delta
+      fra2 = (nb*dt-i*shd.delta-shd.nzmsec*0.001-shd.b)/shd.delta;
+      fra1 = 1.-fra2;
+      if(fra2==0)
+         for(j=0;i<shd.npts;j++) {
+            sig2[j] = sig[i];
+            i += iinc;
+         }
+      else
+         for(j=0;i<shd.npts-1;j++) {
+            sig2[j] = sig[i]*fra1 + sig[i+1]*fra2;
+            i += iinc;
+         }
+   }
+   else { //sps isn't a factor, slower way
+      //reports << "*** Warning: sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << ", watch out for rounding error! *** ";
+      std::cerr << "*** Warning: sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << ", watch out for rounding error! *** ";
+      long double ti, tj;
+      iinc = (int)floor(dt/shd.delta);
+      ti = i*shd.delta+shd.nzmsec*0.001+shd.b;
+      tj = nb*dt;
+      for(j=0;i<shd.npts-1;j++) {
+         fra2 = tj-ti;
+         sig2[j] = sig[i] + (sig[i+1]-sig[i])*fra2;
+         tj += dt;
+         i += iinc;
+         ti += iinc*shd.delta;
+         if( ti+shd.delta <= tj ) { ti += shd.delta; i++; }//if(j%1000==0)cerr<<i<<" "<<ti<<j<<" "<<tj<<" "<<endl;}
+      }
+   }
+   sig = std::move(sig2);
+   shd.nzmsec = (int)(nb*dt*1000+0.5);
+   shd.b = 0.;
+   if(shd.nzmsec>=1000) UpdateTime();
+   shd.delta = dt;
+   shd.npts = j;
+   return true;
 }
 

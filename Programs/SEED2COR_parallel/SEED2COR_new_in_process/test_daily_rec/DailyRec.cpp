@@ -1,53 +1,104 @@
 #include "DailyRec.h"
 #include "SysTools.h"
-double abs_time ( int yy, int jday, int hh, int mm, int ss, int ms );
+#include <fstream>
+#include <cmath>
+#include <unistd.h>
+#include <chrono>
+#include <random>
+#include <omp.h>
 
-//char * wMove (const char *odir, const char *pattern, const char *tdir, int retlst, int *nfile);
 
+struct DailyRec::DRimpl {
+   //-------------------------------------------------------------parameters----------------------------------------------------------//
+   std::string rdsexe;			//rdseed excutable
+   std::string evrexe;			//evalresp excutable
+   std::string fseed;			//input seed file name
+   std::string fosac;			//output original sac name
+   std::string ffsac;			//output resped sac name
+   std::string staname;			//station list (J23A -129.6825 +44.844)
+   std::string chname;			//channel to be extracted
+   std::string outdir;			//output directory
+   int sps;				//target sampling rate
+   float gapfrac;			//maximum allowed gap fraction in input sac record
+   float t1;				//cutting begining time in sec
+   float tlen;				//time-record length in sec
+   float perl, perh;			//signal period band
+   int tnorm_flag;			//temperal normalization method. (1 for onebit, 2 for running average, 3 for earthquake cutting)
+   float Eperl, Eperh;			//estimated earthquake period band (no effect when tnorm_flag==1; set Eperl=-1 to turn off the filter)
+   float timehlen;			//half len of time window for running average (temperal normalization) (no effect when tnorm_flag==1)
+   float frechlen;			//half len of frec window for whitenning. recommended: 0.0002; 0: no norm; -1: use input-smoothing file.
+   std::string fwname;			//input spectrum reshaping signal file (takes effect only when frechlen==-1)
+/*
+   int ftlen;				//turn on/off (1/0) cross-correlation-time-length correction for amplitude
+   int fprcs;				//turn on/off (1/0) precursor signal checking
+   float memomax;			//maximum memory fraction to be used. (set according to number of threads)
+   int lagtime;				//cross-correlation signal half length in sec
+   int mintlen;				//allowed minimum time length for cross-correlation (takes effect only when ftlen = 1)
+   int fdelosac;			//delete original sac files after removing response when set to 1
+   int fdelamph;			//delete am&ph files after cross-correlation when set to 1
+   int fskipesac;			//skip ExtractSac() when set to 2, skip upon existence of target file when set to 1
+   int fskipresp;			//skip RmRESP() when set to 2, skip upon existence of target file when set to 1
+   int fskipamph;			//skip TempSpecNorm() when set to 2, skip upon existence of target file when set to 1
+   int fskipcrco;			//skip CrossCorr() if target file exists when set to 1
+   int CorOutflag;     		 	//controls the output of cross-corellation results: 0=monthly, 1=daily, 2=both
+*/
+   //---------------------------------------------------------------------------------------------------------------------------------//
+   
+   std::string fresp;			//extracted resp file name
+   std::string tdir;			//temp dir for running rdseed and evalresp
 
-class DailyRec::DRimpl {
-private:
-   std::string rdsexe, evrexe;
-   std::string fseed, fresp, fosac, ffsac;
-   std::string staname, chname, outdir;
-   std::ostringstream reports;
-   char *resp_fname;
    float lon, lat;
    int year, month, day;
-   int fskipesac;
    int npts;
    float t0, delta;
 
-
 public:
-   bool CheckExistence() {
+   inline int isTermi(int deno) {
+      while(deno%2==0) deno /= 2;
+      while(deno%5==0) deno /= 5;
+      return deno==1;
+   }
+
+   bool CheckExistence( SacRec& sacrec ) {
       //check for sac file
-      SacRec sacrec(fosac.c_str());
+      //SacRec sacrec(fosac.c_str());
       /* load header */
-      if( ! sacrec.LoadHD() ) return false;
+      std::string sacname(outdir);
+      sacname.append("/"); sacname.append(fosac);
+      if( ! ( sacrec.LoadHD(sacname.c_str()) ) ) return false;
       //SAC_HD *shd = read_shd(fosac);
       //if( shd==NULL ) return 0;
       npts = sacrec.shd.npts;
-      t0 = abs_time (sacrec.shd.nzyear, sacrec.shd.nzjday, sacrec.shd.nzhour, sacrec.shd.nzmin, sacrec.shd.nzsec, sacrec.shd.nzmsec );
+      //t0 = abs_time (sacrec.shd.nzyear, sacrec.shd.nzjday, sacrec.shd.nzhour, sacrec.shd.nzmin, sacrec.shd.nzsec, sacrec.shd.nzmsec );
+      t0 = sacrec.AbsTime();
       delta = sacrec.shd.delta;
       int nlist;
       //check for RESP file
       char respname[150];//, dir[150];
       //sprintf(dir, "%s/%s", sdb->mo[imonth].name, sdb->ev[ne].name);
       sprintf(respname, "RESP.*.%s.*.%s", staname.c_str(), chname.c_str());
-      char *list = List(outdir.c_str(), respname, 0, &nlist);
-      if(list==NULL) return 0;
-      if(nlist>1) reports << "*** Warning: more than one RESP files found *** "; //reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: more than one RESP files found ***");
-      resp_fname = new char[150];
-      sscanf(list, "%s", resp_fname);
-      free(list);
-      return 1;
+      char *list_result = List(outdir.c_str(), respname, 0, &nlist);
+      if(list_result==NULL) return false;
+      if(nlist>1) std::cerr << "Warning(CheckExistence): more than one RESP files found for station "<<staname.c_str()<<" on "<<year<<"/"<<month<<"/"<<day<<std::endl; //reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: more than one RESP files found ***");
+      //resp_fname = new char[150];
+      //sscanf(list, "%s", resp_fname);
+      std::istringstream list( list_result );
+      list >> fresp;
+      free(list_result);
+      return true;
    }
 
-   char* Seed2Sac( int *nfile ) {
+   char* Seed2Sac( const char *tdir, int *nfile ) {
+      unsigned timeseed = std::chrono::system_clock::now().time_since_epoch().count();
+      std::default_random_engine generator (timeseed);
+      std::uniform_real_distribution<float> distribution(0., 1.);
+      auto rand = std::bind ( distribution, generator );
+
+/*
       char tdir[100];
       int ithread = 1;
       sprintf(tdir, "./Working_Thread_%d", ithread);
+*/
 
       char fname[100], str[300];
       sprintf(fname, "%s/from_seed", tdir);
@@ -78,18 +129,22 @@ public:
       //extract SAC&RESP and mv into thread working directory
       //pthread_mutex_lock(&rdslock); //lock for rdseed and shell operations
       sprintf(str,"sh %s >& /dev/null", fname);
+      #pragma omp critical
+      {
       system(str);
+      }
 
       /*---------- mv response file -----------*/   
       sprintf(str, "RESP.*.%s.*.%s", staname.c_str(), chname.c_str());
       int nlist = 0;
-      char *list = List(".", str, 0, &nlist); //list RESP files in the current depth
-      if(list==NULL) {
+      char *list_result = List(".", str, 0, &nlist); //list RESP files in the current depth
+      if(list_result==NULL) {
 	 //pthread_mutex_unlock(&rdslock);
 	 return NULL;
       }
       char list_name[150];
       int offset, curp = 0;
+/*
       while( (sscanf(&list[curp], "%s%n", list_name, &offset)) == 1 ) {
 	 if(curp==0) {
 	    resp_fname = new char[150];
@@ -99,7 +154,18 @@ public:
 	 else fRemove(list_name);
 	 curp += offset;
       }
-      free(list);
+*/
+      /*--------------take the 1st resp name----------------*/
+      std::stringstream list( list_result );
+      std::string stmp;
+      fresp = outdir;
+      list >> stmp;
+      fresp.append("/"); fresp.append(stmp);
+      Move(stmp.c_str(), fresp.c_str());
+      /*--------------and remove the rest----------------*/
+      while( list >> stmp ) fRemove(stmp.c_str());
+      free(list_result);
+
       /*---------mv sac files and produce saclst---------*/
       //list SAC files
       sprintf(str, "*%s*%s*SAC", staname.c_str(), chname.c_str());
@@ -109,251 +175,295 @@ public:
       return filelst;
    }
 
-float av_sig (float *sig, int i, int N, int nwin ) {
-   int n1, n2, j, nav = 0;
-   float av = 0.;
+}; //pimpl
 
-   if ( nwin > N ) nwin = N;
-   n1 = i - nwin/2;
-   if ( n1 < 0 ) n1 = 0;
-   n2 = n1 + nwin - 1;
-   if ( n2 > N-1 ) n2 = N-1;
-   n1 = n2 - nwin + 1;
 
-   for ( j = n1; j <= n2; j++ ) 
-      if ( sig[j] < 1.e29 ) {
-         av += sig[j];
-         nav++;
-      }
-
-   if ( nav < 1 ) av = 1.e30;
-   else av = av/(float)nav;
-
-   return av;
-}
-int merge_sac(float * sig[], SAC_HD *sd, int nfile, int ne, int ns, int ithread)
-{
-   if(nfile == 1) {
-      npts = sd[0].npts;
-      t0 = abs_time (sd[0].nzyear, sd[0].nzjday, sd[0].nzhour, sd[0].nzmin, sd[0].nzsec, sd[0].nzmsec );
-      delta = sd[0].delta;
-      write_sac (fosac.c_str(), sig[0], &sd[0]);
-      return 1;
-   }
-
-   int i, nb, j, jj, N, nfirst, Nholes;
-   float *sig0;
-   double t1[1000], t2[1000], T1 = 1.e25, T2 = -100.;
-   SAC_HD s0;
-
-   for(i=0; i<nfile; i++) {
-      t1[i] = abs_time (sd[i].nzyear, sd[i].nzjday, sd[i].nzhour, sd[i].nzmin, sd[i].nzsec, sd[i].nzmsec );
-      t2[i] = t1[i] + (sd[i].npts-1)*sd[i].delta;
-      if ( t1[i] < T1 ) {
-         T1 = t1[i];
-         nfirst = i;
-      }
-      if ( t2[i] > T2 ) T2 = t2[i];
-   }
-
-   memcpy(&s0, &(sd[nfirst]), sizeof(SAC_HD) );
-   double dt = (int)floor(s0.delta*1e8+0.5)/1e8, tshift;
-   N = (int)floor((T2-T1)/s0.delta+0.5)+1;
-   s0.npts = N;
-   npts = N;
-   t0 = T1;
-   delta = dt;
-
-   sig0 = (float *) malloc (N * sizeof(float));
-   for (j=0;j<N;j++) sig0[j] = 1.e30;
-
-   for(i=0;i<nfile;i++) {
-      if( fabs(sd[i].delta-s0.delta)>.0001 ) {
-          //reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: sps mismatch! ***");
-          reports << "*** Warning: sps mismatch! *** ";
-          continue;
-      }
-      nb = (int)floor((t1[i]-T1)/dt+0.5);
-      tshift = fabs((sd[i].b-s0.b) + (nb*dt-(t1[i]-T1)));
-      if( tshift > 1.e-3 ) {
-         //reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: signal shifted by %fsec when merging! ***", tshift);
-	 reports << "*** Warning: signal shifted by " << tshift << "sec when merging! *** ";
-      }
-      for(j=0,jj=nb;j<sd[i].npts;j++,jj++) if(sig0[jj] > 1.e29) sig0[jj] = sig[i][j];
-   }
-
-   for(Nholes=0,j=0;j<N;j++) {
-      if(sig0[j]>1.e29) Nholes++;
-   }
-   if( (float)Nholes/(float)N > gapfrac ) {
-      npts = -1;
-      return 0;
-   }
-
-   int rec_b[1000], rec_e[1000];
-   char recname[200];
-   rec_b[0] = 0;
-   for(i=1,j=0;i<N;i++) {
-      if(sig0[i-1]>1.e29) { if(sig0[i]<1.e29) rec_b[j] = i; }
-      else if(sig0[i]>1.e29) rec_e[j++] = i;
-   }
-   if(sig0[N-1]<1.e29) rec_e[j++] = N;
-   sprintf(recname, "%s_rec1", ffsac.c_str());
-   FILE *frec = fopen(recname, "w");
-   for(i=0;i<j;i++) fprintf(frec, "%d %d\n", rec_b[i], rec_e[i]);
-   fclose(frec);
-
-   float av;
-   int npart;
-   for ( j = 0; j < N; j++ ) if ( sig0[j] > 1.e29 ) {
-      for(npart=16;npart!=1;npart/=2) {
-         av = av_sig (sig0, j, N, N/npart );
-         if ( av < 1.e29 ) break;
-      }
-      if(npart==1) av=0.;
-      sig0[j] = av;
-   }
-
-   write_sac (fosac.c_str(), sig0, &s0);
-
-   free(sig0);
-
-   return 1;
+DailyRec::DailyRec( const char *fname )
+   : pimpl(new DRimpl()) { 
+   if( fname ) Load(fname); 
 }
 
+DailyRec::DailyRec( DailyRec& DRin )
+   : pimpl(new DRimpl(*DRin.pimpl)) {}
 
-static int Resampling(char *sacname, float **sig2, SAC_HD *sd, int ithread) {
-   SAC_HD shd=sac_null;
-   float *sig1=NULL;
-   if (read_sac(sacname, &sig1, &shd)==NULL) return 0;
-   float dt = 1./sps;
-   int iinc = (int)floor(dt/shd.delta+0.5);
-   //shd.delta = 1./(int)floor(1./shd.delta+0.5);
-/*
-   if(fabs(iinc*shd.delta-dt)>1e-7) {
-      cerr<<"Error: "<<sps<<" is not a factor of "<<int(1/shd.delta)<<endl;
-      exit(0);
+DailyRec::~DailyRec() { dRemove(pimpl->tdir.c_str()); }
+
+
+int DailyRec::Set( const char *input ) {
+   std::istringstream buff(input);
+   std::string stmp;
+   if( ! (buff>>stmp) ) return -1;
+   bool succeed=false;
+   if( stmp == "rdsexe" ) succeed = buff >> pimpl->rdsexe;
+   else if( stmp == "evrexe" ) succeed = buff >> pimpl->evrexe;
+   else if( stmp == "fseed" ) succeed = buff >> pimpl->fseed;
+   else if( stmp == "fosac" ) succeed = buff >> pimpl->fosac;
+   else if( stmp == "ffsac" ) succeed = buff >> pimpl->ffsac;
+   else if( stmp == "staname" ) succeed = buff >> pimpl->staname;
+   else if( stmp == "chname" ) succeed = buff >> pimpl->chname;
+   else if( stmp == "outdir" ) succeed = buff >> pimpl->outdir;
+   else if( stmp == "sps" ) succeed = buff >> pimpl->sps;
+   else if( stmp == "gapfrac" ) succeed = buff >> pimpl->gapfrac;
+   else if( stmp == "t1" ) succeed = buff >> pimpl->t1;
+   else if( stmp == "tlen" ) succeed = buff >> pimpl->tlen;
+   else if( stmp == "perl" ) succeed = buff >> pimpl->perl;
+   else if( stmp == "perh" ) succeed = buff >> pimpl->perh;
+   else if( stmp == "tnorm_flag" ) succeed = buff >> pimpl->tnorm_flag;
+   else if( stmp == "Eperl" ) succeed = buff >> pimpl->Eperl;
+   else if( stmp == "Eperh" ) succeed = buff >> pimpl->Eperh;
+   else if( stmp == "timehlen" ) succeed = buff >> pimpl->timehlen;
+   else if( stmp == "frechlen" ) succeed = buff >> pimpl->frechlen;
+   else if( stmp == "fwname" ) succeed = buff >> pimpl->fwname;
+   else std::cerr<<"Warning(DailyRec::Load): Unknown parameter name: "<<stmp<<std::endl;
+   if( succeed ) return 1;
+   return 0;
+}
+
+bool DailyRec::Load( const char *fname ) {
+   /* open param file */
+   std::ifstream fparam(fname);
+   if( !fparam ) {
+      //std::cerr<<"ERROR(DailyRec::Load): Cannot open file "<<fname<<std::endl;
+      return false;
    }
-*/
-   if(iinc!=1) {
-      double f1 = -1., f2 = -1., f3 = sps/2.2, f4 = sps/2.01;
-      Filter(f1, f2, f3, f4, (double)shd.delta, shd.npts, sig1, sig1);
+   /* read line by line for parameters */
+   //std::cout<<"### Loading parameters from input file... ###"<<std::endl;
+   int nparam = 0;
+   std::string stmp;
+   while( std::getline(fparam, stmp) ) {
+      int retval = Set( stmp.c_str() );
+      if( retval == -1 ) continue; // empty input
+      else if( retval == 0 ) std::cerr<<"Warning(DailyRec::Load): Empty parameter field for "<<stmp<<std::endl;
+      else nparam++;
+   }
+   fparam.close();
+   std::cout<<"### "<<nparam<<" parameters loaded from param file "<<fname<<". ###"<<std::endl;
+   return true;
+}
+
+bool DailyRec::CheckPreExtract() {
+   /* Check each parameters. Return true only if all params look good */
+   //std::cout<<"### Checking parameters for extracting sac... ###"<<std::endl;
+   // rdsexe
+   if( access( pimpl->rdsexe.c_str(), R_OK ) == -1 ) {
+      std::cerr<<"Error(DailyRec::CheckPreExtract): Cannot access rdseed excutable at "<<pimpl->rdsexe.c_str()<<std::endl;
+      return false;
+   }
+   // evrexe
+   if( access( pimpl->evrexe.c_str(), R_OK ) == -1 ) {
+      std::cerr<<"Error(DailyRec::CheckPreExtract): Cannot access evalresp excutable at "<<pimpl->evrexe.c_str()<<std::endl;
+      return false;
+   }
+   // fseed
+   if( access( pimpl->fseed.c_str(), R_OK ) == -1 ) {
+      std::cerr<<"Error(DailyRec::CheckPreExtract): Cannot access input seed file at "<<pimpl->fseed.c_str()<<std::endl;
+      return false;
+   }
+   // fosac
+   if( pimpl->fosac.empty() ) {
+      std::cerr<<"Error(DailyRec::CheckPreExtract): output osac name is empty"<<std::endl;
+      return false;
+   }
+   // staname
+   if( pimpl->staname.empty() ) {
+      std::cerr<<"Error(DailyRec::CheckPreExtract): station name is empty"<<std::endl;
+      return false;
+   }
+   // chname
+   if( pimpl->chname.empty() ) {
+      std::cerr<<"Error(DailyRec::CheckPreExtract): channel name is empty"<<std::endl;
+      return false;
+   }
+   // outdir
+   if( pimpl->outdir.empty() ) {
+      std::cerr<<"Error(DailyRec::CheckPreExtract): output directory name is empty"<<std::endl;
+      return false;
+   }
+   // sps
+   if( ! ( pimpl->sps>0 && pimpl->isTermi(pimpl->sps) ) ) {
+      std::cerr<<"Error(DailyRec::CheckPreExtract): 1/"<<pimpl->sps<<" isn't a terminating decimal"<<std::endl;
+      return false;
+   }
+   // gapfrac
+   if( pimpl->gapfrac<=0. || pimpl->gapfrac>1. ) {
+      std::cerr<<"Error(DailyRec::CheckPreExtract): gapfrac("<<pimpl->gapfrac<<") is out of the range (0,1] "<<std::endl;
+      return false;
    }
 
-   int i, j;
-   int nptst = (int)floor((shd.npts-1)*shd.delta*sps+0.5)+10;
-   float nb;
-   if( (*sig2 = (float *) malloc (nptst * sizeof(float)))==NULL ) perror("malloc sig2");
-   long double fra1, fra2;
-   nb = ceil((shd.nzmsec*0.001+shd.b)*sps);
-   i = (int)floor((nb*dt-shd.nzmsec*0.001-shd.b)/shd.delta);
-   if(fabs(iinc*shd.delta-dt)<1.e-7) { //sps is a factor of 1/delta
-      fra2 = (nb*dt-i*shd.delta-shd.nzmsec*0.001-shd.b)/shd.delta;
-      fra1 = 1.-fra2;
-      if(fra2==0)
-         for(j=0;i<shd.npts;j++) {
-            (*sig2)[j] = sig1[i];
-            i += iinc;
+   std::cout<<"### Done(DailyRec::CheckPreExtract): all parameters checked. ###"<<std::endl;
+   return true;
+}
+
+bool DailyRec::CheckPreRmRESP() {
+   // ffsac
+   if( pimpl->ffsac.empty() ) {
+      std::cerr<<"Error(DailyRec::CheckPreRmRESP): output fsac name is empty"<<std::endl;
+      return false;
+   }
+   // outdir
+   if( pimpl->outdir.empty() ) {
+      std::cerr<<"Error(DailyRec::CheckPreRmRESP): output directory name is empty"<<std::endl;
+      return false;
+   }
+   // t1
+   if( fabs(pimpl->t1) > 86400 ) std::cerr<<"Warning(DailyRec::CheckPreRmRESP): "<<pimpl->t1<<"sec exceeds one day."<<std::endl;
+   // tlen
+   float ftmp = pimpl->t1+pimpl->tlen;
+   if( ftmp>86400 || ftmp<0 ) std::cerr<<"Warning(DailyRec::CheckPreRmRESP): ending time '"<<ftmp<<"sec' out of range."<<std::endl;
+   // perl perh
+   if( pimpl->perl<=0 || pimpl->perh<=0 ) {
+      std::cerr<<"Error(DailyRec::CheckPreRmRESP): period band can not fall below 0."<<std::endl;
+      return false;
+   }
+   if(pimpl->perl<2./pimpl->sps) {
+      std::cerr<<"Error(DailyRec::CheckPreRmRESP): "<<pimpl->perl<<"sec is out of the lower limit at sps "<<pimpl->sps<<std::endl;
+      return false;
+   }
+   if(pimpl->perl<5./pimpl->sps) std::cerr<<"Warning(DailyRec::CheckPreRmRESP): signal at "<<pimpl->perl<<"sec might be lost at a sampling rate of "<<pimpl->sps<<std::endl;
+
+   std::cout<<"### Done(DailyRec::CheckPreRmRESP): all parameters checked. ###"<<std::endl;
+   return true;
+}
+
+bool DailyRec::CheckPreTSNorm() {
+   // tnorm_flag
+   if( pimpl->tnorm_flag<0 || pimpl->tnorm_flag>4 ) {
+      std::cerr<<"Error(DailyRec::CheckPreTSNorm): Unknow temperal norm method. Integer between 0 - 4 is expected"<<std::endl;
+      return false;
+   }
+   // Eperl Eperh
+   if(pimpl->tnorm_flag!=1) {
+      if( pimpl->Eperl == -1. ) {}//std::cout<<"Eqk filter:\t\toff"<<std::endl;
+      else {
+         //cout<<"Eqk filter:\t\t"<<Eperl<<" - "<<Eperh<<"sec"<<endl;
+         if( pimpl->Eperl<=0. || pimpl->Eperh<=0. ) {
+            std::cerr<<"Error(DailyRec::CheckPreTSNorm): period band can not fall below 0."<<std::endl;
+            return false;
          }
-      else
-         for(j=0;i<shd.npts-1;j++) {
-            (*sig2)[j] = sig1[i]*fra1 + sig1[i+1]*fra2;
-            i += iinc;
-         }
-   }
-   else { //sps isn't a factor, slower way
-      //reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: sps isn't a factor of %d, watch out for rounding error! ***", (int)floor(1/shd.delta+0.5));
-      reports << "*** Warning: sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << ", watch out for rounding error! *** ";
-      long double ti, tj;
-      iinc = (int)floor(dt/shd.delta);
-      ti = i*shd.delta+shd.nzmsec*0.001+shd.b;
-      tj = nb*dt;
-      for(j=0;i<shd.npts-1;j++) {
-         fra2 = tj-ti;
-         (*sig2)[j] = sig1[i] + (sig1[i+1]-sig1[i])*fra2;
-         tj += dt;
-         i += iinc;
-         ti += iinc*shd.delta;
-         if( ti+shd.delta <= tj ) { ti += shd.delta; i++; }//if(j%1000==0)cerr<<i<<" "<<ti<<j<<" "<<tj<<" "<<endl;}
       }
    }
-   free(sig1);
-   shd.nzmsec = (int)(nb*dt*1000+0.5);
-   shd.b = 0.;
-   if(shd.nzmsec>=1000) UpdateTime(&shd);
-   shd.delta = dt;
-   shd.npts = j;
-   *sd = shd;
-//   sprintf(sacname,"temp.sac");
-//   write_sac(sacname,*sig2,&shd);
-//exit(0);
-   return 1;
+   // timehlen
+   if(pimpl->tnorm_flag!=1) {
+      //std::cout<<"t-len for run-avg:\t"<<timehlen<<std::endl;
+      if(pimpl->timehlen<0.) {
+         std::cerr<<"Error(DailyRec::CheckPreTSNorm): expecting a positive number for timehlen"<<std::endl;
+         return false;
+      }
+   }
+   // frechlen
+   if(pimpl->frechlen==-1) {}//std::cout<<"input smoothing file will be used";
+   else if(pimpl->frechlen<0.) {
+      std::cerr<<"Error(DailyRec::CheckPreTSNorm): expecting a non-negative number for frechlen"<<std::endl;
+      return false;
+   }
+   // fwname
+   if(pimpl->frechlen==-1) {
+      //std::cout<<"spec reshaping file:\t"<<pimpl->fwname<<std::endl;
+      if( access(pimpl->fwname.c_str(), R_OK) == -1 ) {
+         std::cerr<<"Error(DailyRec::CheckPreTSNorm): Cannot access the spec reshaping file "<<pimpl->fwname<<std::endl;
+         return false;
+      }
+   }
+
+   std::cout<<"### Done(DailyRec::CheckPreTSNorm): all parameters checked. ###"<<std::endl;
+   return true;
 }
 
-} //pimpl
+bool DailyRec::ExtractSac( int fskipesac, bool writeout ) {
+   std::ostringstream reports( std::ios_base::app );
+   //std::ostringstream reports;
+   bool bltmp = extractSac( fskipesac, writeout, reports );
+   std::cout<<reports.str();
+   return bltmp;
+}
+bool DailyRec::extractSac( int fskipesac, bool writeout, std::ostringstream& reports ) {
+   /* random number generator */
+   unsigned timeseed = std::chrono::system_clock::now().time_since_epoch().count();
+   std::default_random_engine generator (timeseed);
+   std::uniform_real_distribution<float> distribution(0., 1.);
+   auto rand = std::bind ( distribution, generator );
 
-DailyRec::DailyRec( std::string rdsexein, std::string evrexein, std::string fseedin, std::string stanamein, std::string chnamein, std::string fosacin, std::string ffsacin, std::string outdirin )
-   : rdsexe(rdsexein), evrexe(evrexein), fseed(fseedin), staname(stanamein), chname(chnamein), fosac(fosacin), ffsac(ffsacin), outdir(outdirin), pimpl(new DRimpl()) {}
-
-DailyRec::~DailyRec() {}
-
-void DailyRec::ExtractSac() {
    /* set up working directory */
-   int ithread = 1;
-   char tdir[100];
-   sprintf(tdir, "./Working_Thread_%d", ithread);
-   MKDir(tdir);
+   //std::string tdir;
+   pimpl->tdir = "Working_" + std::to_string(rand());
+   while( ! MKDir( pimpl->tdir.c_str() ) ) pimpl->tdir = "Working_" + std::to_string(rand());
    setvbuf(stdout, NULL, _IOLBF, 0);
 
    /* check for file existence */
+   reports << "   Extracting Sac for station "<<pimpl->staname<<" on "<<pimpl->year<<"/"<<pimpl->month<<"/"<<pimpl->day<<": ";
    if( fskipesac==2 || fskipesac==1 ) {
-      bool flag = pimpl->CheckExistence(iev, ist, ithread);
-      if(fskipesac==2) continue;
-      else if(flag) continue;
+      bool flag = pimpl->CheckExistence( sacT );
+      if(fskipesac==2) {
+	 reports << " skipped! "<<std::endl;
+	 return true;
+      }
+      if(flag) {
+	 reports << " skipped on existense! "<<std::endl;
+	 return true;
+      }
    }
 
    /* extract sacs from the seed */
    int nfile;
-   char *filelst = Seed2Sac( &nfile );
-   if(filelst==NULL) return 0;
-
-   /* read sacfile names from the filelst and resample */
-   char sacname[150];
-   int offset, curp = 0;
-   float *sigrspd[nfile];
-   SAC_HD sd[nfile];
-   i = 0;
-   while( (sscanf(&filelst[curp], "%s%n", sacname, &offset)) == 1 ) {
-      curp += offset;
-      Resampling(sacname, &sigrspd[i], &sd[i], ithread); i++;
-      //sacrec.merge(sacnew);
-      fRemove(sacname);
-   }
-   //sacrec.arrange();
-   /*
-   if( (float)Nholes/(float)N > gapfrac ) {
-      npts = -1;
+   char *filelst = pimpl->Seed2Sac( pimpl->tdir.c_str(), &nfile );
+   if(filelst==NULL) {
+      reports << " sac record not found from "<<pimpl->fseed<<"! "<<std::endl;
       return false;
    }
-   */
+
+   /* read sacfile names from the filelst,
+    * resample and merge one at a time */
+   char sacname[150];
+   int offset, curp = 0;
+   sscanf(&filelst[curp], "%s%n", sacname, &offset);
+   curp += offset;
+   //SacRec sacrec(sacname);
+   sacT.Load(sacname);
+   sacT.Resample(pimpl->sps);
+   fRemove(sacname);
+   bool merged = false;
+   while( (sscanf(&filelst[curp], "%s%n", sacname, &offset)) == 1 ) {
+      curp += offset;
+      SacRec sacnew(sacname);
+      sacnew.Load();
+      sacnew.Resample(pimpl->sps);
+      sacT.merge(sacnew);
+      fRemove(sacname);
+      merged = true;
+   }
    delete [] filelst;
 
-   /* merge all resampled sac files and write to disk */
-   int rc = merge_sac(sigrspd, sd, nfile, ne, ns, ithread);
-   //cleanup
-   for(i=0;i<nfile;i++) free(sigrspd[i]);
-   if( ! rc ) return 0;
-   return 1;
+   /* arrange the signal and check for percentage of poles if merged */
+   if( merged ) {
+      std::string recname(pimpl->fosac);
+      recname.append("_rec1");
+      int Nholes = sacT.arrange(recname.c_str());
+      if( (float)Nholes/(float)sacT.shd.npts > pimpl->gapfrac ) {
+         pimpl->npts = -1;
+	 reports << " too many holes detected! "<<std::endl;
+         return false;
+      }
+   }
 
-   /* report */
+   /* output the merged sac file */
+   if( writeout ) {
+      std::string outname(pimpl->outdir);
+      outname.append("/"); outname.append(pimpl->fosac);
+      sacT.Write(outname.c_str());
+   }
+
+   //dRemove(pimpl->tdir.c_str());
+   reports << " done. "<<std::endl;
+   return true;
+
+/*
    if( MakeRecord(iev, ist, ithread) ) {
       if( nst%20 == 0 ) reports << "\n   "; //reports[ithread].tail += sprintf(reports[ithread].tail, "\n   ");
       //reports[ithread].tail += sprintf(reports[ithread].tail, "%s ", sdb->st[ist].name);
       reports << staname << " ";
       nst++;
    }
-
-   dRemove(tdir);
+*/
 }
 
 

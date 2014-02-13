@@ -4,7 +4,7 @@ OBJS = driver.o SysTools.o DailyRec.o SacRec.o
 
 LIBS = -L${HOME}/usr/lib -lfftw3 -lpthread
 
-cflags = -lstdc++ -std=c++0x -O3
+cflags = -lstdc++ -std=c++0x -fopenmp -O3
 
 all : $(BIN)
 

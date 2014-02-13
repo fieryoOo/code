@@ -7,14 +7,15 @@ void TimedContinue (int time);
 /* read and compute the currently available RAM from file '/proc/meminfo' */
 void EstimateMemAvail (long *MemAvail);
 
-/* create a directory named '*dirname', exit upon failure (and not exist) */
-void MKDir(const char *dirname);
+/* create a directory named '*dirname', exit upon failure
+ * returns true if dir is made successfully and false if already exist */
+bool MKDir(const char *dirname);
 
 /* delete the file (or empty dir) named '*fname', prompt to continue upon failure */
 void fRemove (const char *fname);
 
 /* descend into the directory '*dirname' and remove everything recursively */
-int dRemove(char *dirname);
+int dRemove(const char *dirname);
 
 /* rename a file or a directory, prompt to continue upon failure */
 void Move (const char *oldname, const char *newname);

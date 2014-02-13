@@ -65,7 +65,8 @@ public:
     * gaussian when ( f1==-1. && f4==-1. ) where f2 = center freqency and f3 = frequency half length */
    bool Filter ( double f1, double f2, double f3, double f4 ) { return Filter(f1, f2, f3, f4, *this); }	// in-place
    bool Filter ( double f1, double f2, double f3, double f4, SacRec& srout );				// out-of-place
-
+   /* resample (with anti-aliasing filter) the signal to given sps */
+   bool Resample( float sps );
    /* destructor */
    ~SacRec(); 
 };
