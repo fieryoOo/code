@@ -38,13 +38,15 @@ public:
    /* operators */
    SacRec &operator= ( const SacRec& recin );	// assignment
    /* load sac header from file 'fname' */
+   bool LoadHD( const char* fnamein ) { if( fnamein ) fname = fnamein; return LoadHD(); }
    bool LoadHD ();
    /* read sac header+signal from file 'fname', memory is allocated on heap */
+   bool Load( const char* fnamein ) { if( fnamein ) fname = fnamein; return Load(); }
    bool Load ();
    /* write to file '*fname' */
    bool Write ( const char *fname );
    /* compute the absolute time in sec relative to 1900.01.00 */
-   double AbsTime ();
+   double AbsTime();
    /* update/reformat header time if shd.nzmsec is modified and is out of the range [0,1000) */
    void UpdateTime();
    /* search for min&max signal positions and amplitudes */
@@ -65,7 +67,8 @@ public:
     * gaussian when ( f1==-1. && f4==-1. ) where f2 = center freqency and f3 = frequency half length */
    bool Filter ( double f1, double f2, double f3, double f4 ) { return Filter(f1, f2, f3, f4, *this); }	// in-place
    bool Filter ( double f1, double f2, double f3, double f4, SacRec& srout );				// out-of-place
-
+   /* resample (with anti-aliasing filter) the signal to given sps */
+   bool Resample( float sps );
    /* destructor */
    ~SacRec(); 
 };

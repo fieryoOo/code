@@ -1,0 +1,20 @@
+rdsexe /home/yeti4009/usr/bin/rdseed
+evrexe /home/yeti4009/usr/bin/evalresp
+fseed ./OBS_US_NEW_2012.JAN.1.457078.seed
+fosac I05D.sac
+ffsac I05D_ft.sac
+staname I05D
+chname BHZ
+outdir TEST_OUT
+sps 5
+gapfrac 0.2
+t1 1000
+tlen 83000
+perl 1
+perh 80
+tnorm_flag 2
+Eperl 10
+Eperh 50
+timehlen 40
+frechlen 0.0002
+fwname

@@ -221,7 +221,7 @@ int GetParameters(char *fname) {
    else if(tnorm_flag==3) cout<<"Earthquake cutting"<<endl;
    else if(tnorm_flag==4) cout<<"Earthquake cutting + Running average"<<endl;
    else {
-      cerr<<endl<<"   Error: Unknow method. integer between 0 - 3 is expected"<<endl;
+      cerr<<endl<<"   Error: Unknow method. integer between 0 - 4 is expected"<<endl;
       ERR = 1;
    }
    //Eperl Eperh

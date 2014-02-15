@@ -1,15 +1,17 @@
 #include "SysTools.h"
-#define _XOPEN_SOURCE 500
+//#define _XOPEN_SOURCE 500
 #include <stdio.h>
 #include <stdlib.h>
 #include <ftw.h>
 #include <unistd.h>
 #include <errno.h>
-#include <string.h>
+#include <cstring>
 #include <iostream>
 #include <sys/sysinfo.h>
 #include <sys/time.h>
 #include <math.h>
+#include <vector>
+#include <string>
 using namespace std;
 
 /* -------------- Read memory info from /proc/meminfo -------------------- */
@@ -20,10 +22,10 @@ struct SYSINFO {
    long Cached;
 };
 
-int GetSysinfo (long *MemAvail) {
+int GetSysinfo (long &MemAvail) {
    struct sysinfo SysInfoSTD;
    sysinfo(&SysInfoSTD);
-   *MemAvail = SysInfoSTD.freeram;
+   MemAvail = SysInfoSTD.freeram;
 
    FILE *fmem;
    if( ! (fmem=fopen("/proc/meminfo", "r")) ) return 0;
@@ -60,7 +62,7 @@ int GetSysinfo (long *MemAvail) {
    fclose(fmem);
 
    if( SysInfo.MemFree==-1 || SysInfo.Cached==-1 ) return 0;
-   *MemAvail = SysInfo.MemFree + SysInfo.Cached;
+   MemAvail = SysInfo.MemFree + SysInfo.Cached;
    return 1;
 }
 
@@ -86,12 +88,12 @@ void TimedContinue (int time) {
    }
 }
 
-void EstimateMemAvail (long *MemAvail) {
+void EstimateMemAvail (long &MemAvail) {
    //Estimating succeed
    if( GetSysinfo(MemAvail) ) return;
    //else
    cout<<"### Warning: Failed to get cached memory size from /proc/meminfo!! ###"<<endl;
-   cout<<"### The current freeRAM ("<<*MemAvail/1024./1024.<<" Mb) will be used ###"<<endl;
+   cout<<"### The current freeRAM ("<<MemAvail/1024./1024.<<" Mb) will be used ###"<<endl;
    TimedContinue(10); 
 }
 
@@ -151,26 +153,31 @@ void Move (const char *oldname, const char *newname) {
 
 // Wildcards Moving
 #include <libgen.h>
-char * List(const char *dir, const char *pattern, int type, int *nfile) ;
-char * wMove (const char *odir, const char *pattern, const char *tdir, int retlst, int *nfile) {
+//char * List(const char *dir, const char *pattern, int type, int *nfile);
+bool List(const char *dir, const char *pattern, int type, std::vector<std::string> &filelist);
+bool wMove (const char *odir, const char *pattern, const char *tdir, std::vector<std::string> &outlist) {
   // return a list of moved files when retlst==1
    //list files matching pattern
-   char *list = List(odir, pattern, 0, nfile);
-   if(list==NULL) return NULL;
+   //char *list = List(odir, pattern, 0, nfile);
+   //if(list==NULL) return NULL;
+   std::vector<std::string> list;
+   if( ! List(odir, pattern, 0, list) ) return false;
    //move and rename;
    char *filelst = NULL;
-   if( retlst == 1 ) filelst = new char[strlen(list) + *nfile*(strlen(tdir)+3)];
+   //if( retlst == 1 ) filelst = new char[strlen(list) + *nfile*(strlen(tdir)+3)];
    char list_name[PLENMAX], tname[PLENMAX], *path, *bname;
    int offset, curp = 0, sleng = 0;
-   while( (sscanf(&list[curp], "%s%n", list_name, &offset)) == 1 ) {
-      path = strdup(list_name); bname = basename(path);
+   //while( (sscanf(&list[curp], "%s%n", list_name, &offset)) == 1 ) {
+   for(int i=0; i<list.size(); i++) {
+      path = strdup(list.at(i).c_str()); bname = basename(path);
       sprintf(tname, "%s/%s", tdir, bname);
-      Move(list_name, tname);
-      if( retlst == 1 ) sleng += sprintf(&filelst[sleng], "%s\n", tname);
+      Move(list.at(i).c_str(), tname);
+      //if( retlst == 1 ) sleng += sprintf(&filelst[sleng], "%s\n", tname);
+      outlist.push_back(tname);
       curp += offset;
    }
-   free(list);
-   return filelst;
+   //free(list);
+   return true;
 }
 
 /* ------------------------ copy a file ------------------------------- */
@@ -200,19 +207,18 @@ void Copy(char *oldname, char *newname) {
 #include <sys/types.h>
 #include <fts.h>
 #include <fnmatch.h>
-
-#define BLKSIZE 1024
+//#define BLKSIZE 1024
 //int namecmp(const FTSENT **f1, const FTSENT **f2) { return strcmp((*f1)->fts_name, (*f2)->fts_name); }
-char * List(const char *dir, const char *pattern, int type, int *nfile) {
+bool List(const char *dir, const char *pattern, int type, std::vector<std::string> &filelist) {
    /* type value decides how sub-directories are handdled
-   0: list files int the root dir only
-   1: list files and dir names in the root dir
-   2: list all files
-   3: list all files and directories */
-   *nfile = 0;
+   0: list files in the root dir only
+   1: list files in the root dir with dir paths
+   2: list all file names
+   3: list all files with dir paths */
+   //*nfile = 0;
    if( type>3 || type<0 ) {
       cerr<<"ERROR(List): Unknow list type: "<<type<<endl;
-      return NULL;
+      return false;
    }
    FTS *tree;
    FTSENT *file;
@@ -222,8 +228,10 @@ char * List(const char *dir, const char *pattern, int type, int *nfile) {
    tree = fts_open(dirlist, FTS_LOGICAL | FTS_NOSTAT | FTS_NOCHDIR, 0);
    if (tree == NULL) perror("fts_open");
 
-   char *sblk = NULL;
-   int sleng = 0, bsize = 0;
+   //char *sblk = NULL;
+   //int sleng = 0, bsize = 0;
+   //empty the input filelist
+   filelist.clear();
    int outflag = 1; // if listing within current directory
    if( type<2 && strcmp(dir, ".")==0 ) outflag=0; // path will not be printed
    //ignores '.' and '..' as FTS_SEEDOT is not set
@@ -252,18 +260,24 @@ char * List(const char *dir, const char *pattern, int type, int *nfile) {
       }
 
       if (fnmatch(pattern, file->fts_name, FNM_PERIOD) == 0) {
+	 /*
          if( sleng > bsize-PLENMAX ) {
             bsize += BLKSIZE;
             sblk = (char *) realloc (sblk, bsize * sizeof(char));
          }
          if(outflag) sleng += sprintf(&sblk[sleng], "%s\n", file->fts_path);
          else sleng += sprintf(&sblk[sleng], "%s\n", file->fts_name);
-	 *nfile = *nfile+1;
+	 */
+	 if(outflag) filelist.push_back(file->fts_path);
+	 else filelist.push_back(file->fts_name);
+	 //*nfile = *nfile+1;
       }
    }
 
    if (errno != 0) perror("fts_read");
    if (fts_close(tree) < 0) perror("fts_close");
-   return sblk;
+   if( filelist.size() == 0 ) return false;
+   return true;
+   //return sblk;
 }
 
