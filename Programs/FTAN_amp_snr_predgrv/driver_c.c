@@ -232,6 +232,7 @@ fprintf(stderr,"tmin=%f tmax=%f\n", tmin, tmax);
      for(i = 0; i < nfout2; i++) {
          pred[0][i] = arr2[i][1];   // apparent periods
          pred[1][i] = arr2[i][2];   // group velocities
+fprintf(stderr, "%lf %lf\n", pred[0][i], pred[1][i]);
      }
   }
   else {
@@ -250,7 +251,7 @@ fprintf(stderr,"tmin=%f tmax=%f\n", tmin, tmax);
      fclose(inv);
      tmin = tminp; tmax = tmaxp;
   }
-
+printf("%d\n",npred);
 /* Pre-whiten and record the amp factor */
   f1=1./(tmax*1.25);
   f2=1./tmax;
