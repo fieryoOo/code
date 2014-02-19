@@ -19,7 +19,7 @@
 # if deemed necessary by the user.
 #
 ##################################################
-F90=ifort
+F90=gfortran
 ##################################################
 #
 # Enter the directory called "source" and compile

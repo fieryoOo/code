@@ -1195,6 +1195,7 @@ CHARACTER (LEN=30) :: grid
 !
 ! Open the grid file and read in the velocity grid.
 !
+WRITE(*,*) grid
 OPEN(UNIT=10,FILE=grid,STATUS='old')
 READ(10,*)nvx,nvz
 READ(10,*)goxd,gozd

@@ -34,11 +34,12 @@ double Path::PathAverage(double lamda) {
       xdat -= f;
       // compute N from xdat, ydat, f, lamda
       a = 0.5 * (sqrt(pow((xdat-f),2)+ydat*ydat) + sqrt(pow((xdat+f),2)+ydat*ydat));
-      Ncur = lamda/2./(a-f)/Nhaf;
+      Ncur = lamda/(2*(a-f)); // the closer to the great circle path the larger
+      Ncur = Nhaf/Ncur;
       weight = exp(-0.5*Ncur*Ncur);
       weit += weight;
       zsum += (zdat * weight);
-//cerr<<xdat<<" "<<ydat<<" "<<zdat<<"   "<<weight<<" "<<zsum<<endl;
+//cerr<<xdat<<" "<<ydat<<" "<<zdat<<"   "<<weight<<" "<<zsum<<" "<<Ncur<<" "<<Nhaf<<endl;
    }
    fclose(fproj);
    remove(ftmpname);
@@ -59,8 +60,11 @@ int main(int argc, char *argv[])
    /* get input parameters */
    char fname[100]; sprintf(fname, "%s", argv[1]);
    double lamda = atof(argv[6]);
-   Point<double> P1(atof(argv[2]), atof(argv[3])), P2(atof(argv[4]), atof(argv[5]));
-   cerr<<P1<<" "<<P2<<endl;  
+   double lon1 = atof(argv[2]), lon2 = atof(argv[4]);
+   if( lon1 < 0. ) lon1 += 360.;
+   if( lon2 < 0. ) lon2 += 360.;
+   Point<double> P1(lon1, atof(argv[3])), P2(lon2, atof(argv[5]));
+   //cerr<<P1<<" "<<P2<<endl;  
 
    /* read in the map */
    Path pathcur(fname, P1, P2);
