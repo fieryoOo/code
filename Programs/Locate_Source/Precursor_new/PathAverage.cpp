@@ -55,7 +55,8 @@ double Path::PathAverage(double lamda) {
          // compute N from xdat, ydat, f, lamda
 	 ftmp1 = xdat-f; ftmp2 = xdat+f;
          a = 0.5 * (sqrt(ftmp1*ftmp1+ydat*ydat) + sqrt(ftmp2*ftmp2+ydat*ydat));
-         Ncur = 0.5*lamda/(a-f)*ooNhaf;
+         Ncur = 0.5*lamda/(a-f);//*ooNhaf;
+	 Ncur = Nhaf/Ncur;
          weight = exp(-0.5*Ncur*Ncur);
          weit += weight;
          zsum += (zdat * weight);
