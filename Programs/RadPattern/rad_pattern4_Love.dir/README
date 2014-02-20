@@ -1,0 +1,25 @@
+Program rad_pattern4_Love generates files AMP/Az PHA/Az T/Az 
+for azimuths between 0 and 360 with increment 2 degree
+
+Input: file inname.L and file inname.L.phv from the output of SURF_DISP
+       file perlist (column of periods)
+SURF_DISP model inname L 0 0 Tbegin Tend dT or
+SURF_DISP model inname L 0 0 Tbegin Tend dT -a  (model with Qs)
+SURF_DISP model inname L 0 0 Tbegin Tend dT -f  (flattening)
+SURF_DISP model inname L 0 0 Tbegin Tend dT -f -a  (flattening+attenuation)
+
+Command
+rad_pattern4_Love infile perlist strike dip rake depth [-o]
+
+option -o for output files for each period from perlist
+Without this option all periods in one file (with gaps for gnuplot)
+
+Output: with option -o
+
+files 
+inname.L_AMP_AZ_s(strike)_d(dip)_r(rake)_h(depth)_p(period) amplitudes
+inname.L_PHA_AZ_s(strike)_d(dip)_r(rake)_h(depth)_p(period) phases (radians)
+inname.L_T_AZ_s(strike)_d(dip)_r(rake)_h(depth)_p(period) group time delay (s)
+
+
+PS. Amplitudes are just factor in calculation  of real amplitudes for displacement

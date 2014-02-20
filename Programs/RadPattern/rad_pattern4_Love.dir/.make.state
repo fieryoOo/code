@@ -1,0 +1,48 @@
+.MAKE_VERSION:	VERSION-1.0
+0@all:
+	DIRS="`find * -type d \( ! -name SCCS ! -name CVS ! -name \*- ! -name TC.Cache -print \) -prune`" ;\
+	for i in $DIRS ; do \
+	                ( cd $i && make -e all ; ) \
+	        done
+.BUILT_LAST_MAKE_RUN:
+surfread.o:
+	f77 -g -Nl400 -e -g -Nl30  -I/index/dsap/solaris/dsap/include -I/usr/openwin/include -KPIC -R/opt/SUNWspro/lib  -c  surfread.f
+.BUILT_LAST_MAKE_RUN:
+rad_pattern4_Love.o:
+	f77 -g -Nl400 -e -g -Nl30  -I/index/dsap/solaris/dsap/include -I/usr/openwin/include -KPIC -R/opt/SUNWspro/lib  -c  rad_pattern4_Love.f
+purge:	0@purge 1@purge 
+install:	0@install 1@install 
+localInclude:	0@localInclude 
+localpf:	0@localpf 
+Include:	0@Include 1@Include 
+.BUILT_LAST_MAKE_RUN:
+pha.o:
+	f77 -g -Nl400 -e -g -Nl30  -I/index/dsap/solaris/dsap/include -I/usr/openwin/include -KPIC -R/opt/SUNWspro/lib  -c  pha.f
+clean:	0@clean 1@clean 
+.BUILT_LAST_MAKE_RUN:
+intpol.o:
+	f77 -g -Nl400 -e -g -Nl30  -I/index/dsap/solaris/dsap/include -I/usr/openwin/include -KPIC -R/opt/SUNWspro/lib  -c  intpol.f
+.BUILT_LAST_MAKE_RUN:
+rad_pattern4_Love:	/usr/lib/libmp.so.2 /usr/openwin/lib/libXext.so.0 /usr/lib/libdl.so.1 /usr/lib/libnsl.so.1 /usr/lib/libsocket.so.1 /usr/lib/libc.so /index/SUNWspro/SC4.2/lib/libcx.a /index/SUNWspro/lib/libsunmath.so /index/SUNWspro/lib/libF77.so /index/dsap/solaris/dsap/lib/libmap.a /index/dsap/solaris/dsap/lib/libio.a /index/dsap/solaris/dsap/lib/libev.a /usr/lib/libm.so /usr/openwin/lib/libX11.so /index/dsap/solaris/dsap/lib/libmath.a 
+	f77 -g -Nl400 -e -g -Nl30  -I/index/dsap/solaris/dsap/include -I/usr/openwin/include -KPIC -R/opt/SUNWspro/lib -D_REENTRANT -g -I  -I/index/dsap/solaris/dsap/include -I/usr/openwin/include -KPIC  rad_pattern4_Love.o source.o surfread.o unwrap_contin.o intpol.o pha.o  angles2tensor.o -o rad_pattern4_Love  -xildoff  -L/index/dsap/solaris/dsap/lib -R/index/dsap/solaris/dsap/lib -L/usr/openwin/lib -R/usr/openwin/lib  -lmath   -lX11 -lm  -lev    -lio -lmap
+.BUILT_LAST_MAKE_RUN:
+unwrap_contin.o:
+	f77 -g -Nl400 -e -g -Nl30  -I/index/dsap/solaris/dsap/include -I/usr/openwin/include -KPIC -R/opt/SUNWspro/lib  -c  unwrap_contin.f
+relink:	0@relink 1@relink 
+depends:	0@depends 1@depends 
+export:	0@export 
+.BUILT_LAST_MAKE_RUN:
+angles2tensor.o:
+	f77 -g -Nl400 -e -g -Nl30  -I/index/dsap/solaris/dsap/include -I/usr/openwin/include -KPIC -R/opt/SUNWspro/lib  -c  angles2tensor.f
+MAN:	0@MAN 1@MAN 
+pf:	0@pf 
+1@clean:
+	rm -f .print .all *.o *.a *~ *- tags *.trace rad_pattern4_Love    .make.state
+.BUILT_LAST_MAKE_RUN:
+source.o:
+	f77 -g -Nl400 -e -g -Nl30  -I/index/dsap/solaris/dsap/include -I/usr/openwin/include -KPIC -R/opt/SUNWspro/lib  -c  source.f
+0@clean:
+	DIRS="`find * -type d \( ! -name SCCS ! -name CVS ! -name \*- ! -name TC.Cache -print \) -prune`" ;\
+	for i in $DIRS ; do \
+	                ( cd $i && make -e clean ; ) \
+	        done
