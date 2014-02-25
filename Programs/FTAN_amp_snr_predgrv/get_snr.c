@@ -8,7 +8,7 @@ void Filter (double f1, double f2, double f3, double f4, double dt, int n, float
 int get_snr(float *sei, int nsample, double dt, double dist, double b, double *c_per, double *g_vel, int nper, double *amp_max, double *snr2)
 {
   double minT, maxT, signalmax, noiserms;
-  double fhlen=0.025,num,e;
+  double fhlen=0.008,num,e;
   int k, i, ib, ie;
   float seis_out[SLEN];
   e=b+(nsample-1)*dt;

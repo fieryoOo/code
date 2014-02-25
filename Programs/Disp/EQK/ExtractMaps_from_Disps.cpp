@@ -1,7 +1,9 @@
 /*
-This code extracts information (distance, azimuth, velocity, amplitude, and snr) from FTAN results of earthquakes.
+This code extracts information (distance, azimuth, traveltime, amplitude, and snr) from FTAN results of earthquakes.
+( !!! Note that the input (dist_in_sac) and output distance could be different, whereas the input is expected to be the one 
+used by the aFTAN (which is usually read from sac header) and the output is computed from the input source-station location !!! )
 Input 1: station.lst (STANM LON LAT)
-Input 2: input-file list (STA1 STA2 Disp_File SNR_File)
+Input 2: input-file list (STA1 STA2 Disp_File SNR_File dist_in_sac)
 */
 #include <cstdio>
 #include <cstdlib>
@@ -73,24 +75,24 @@ class Path {
 public:
    bool loaded;
    Point src, sta;
-   double dist, azi1, azi2;
-   float snr, amp, grv, phv;
+   double distsac, dist, azi1, azi2;
+   float snr, amp, grT, phT;
 
    /* con/destructors and operators */
-   Path( std::vector<Point> &stalstin, std::vector<Point> &evelstin, const char *fdispin, const char *fsnrin, const char *srcname, const char *staname )
+   Path( std::vector<Point> &stalstin, std::vector<Point> &evelstin, const char *fdispin, const char *fsnrin, const char *srcname, const char *staname, double& distin )
       : stalst(&stalstin), evelst(&evelstin)
-      , fdisp(fdispin), fsnr(fsnrin) {
+      , fdisp(fdispin), fsnr(fsnrin), distsac(distin) {
       Initialize();
       loaded = FillSrc( srcname ) && FillSta( staname );
    }
 
    const char* Format() {
-      std::string format("evname(1) evlon(2) evlat(3)  staname(4) stalon(5) stalat(6)  dist(7) azi1(8) azi2(9) : snr(11) amp(12) grv(13) phv(14)");
+      std::string format("evname(1) evlon(2) evlat(3)  staname(4) stalon(5) stalat(6)  dist(7) azi1(8) azi2(9) : snr(11) amp(12) grT(13) phT(14)");
       return format.c_str();
    }
 
    friend std::ostream& operator<< (std::ostream& o, const Path& path) {
-      o<<path.src<<"  "<<path.sta<<"  "<<path.dist<<" "<<path.azi1<<" "<<path.azi2<<" : "<<path.snr<<" "<<path.amp<<" "<<path.grv<<" "<<path.phv;
+      o<<path.src<<"  "<<path.sta<<"  "<<path.dist<<" "<<path.azi1<<" "<<path.azi2<<" : "<<path.snr<<" "<<path.amp<<" "<<path.grT<<" "<<path.phT;
       return o;
    }
 
@@ -100,13 +102,13 @@ public:
       Initialize();
       std::stringstream sin(info);
       std::string staname, srcname;
-      sin >> srcname >> staname >> fdisp >> fsnr;
+      sin >> srcname >> staname >> fdisp >> fsnr >> distsac;
       loaded = FillSrc( srcname.c_str() ) && FillSta( staname.c_str() );
    }
 
    /* Initialize */
    void Initialize() {
-      dist = azi1 = azi2 = snr = amp = grv = phv = -12345.;
+      dist = azi1 = azi2 = snr = amp = grT = phT = -12345.;
    }
 
    /* compute/extract all available info */
@@ -116,7 +118,7 @@ public:
       if(azi1 == -12345.) azi1 = Azi1();
       if(azi2 == -12345.) azi2 = Azi2();
       bool suc1 = Get_Amp_SNR( per );
-      bool suc2 = Get_Grv_Phv( per );
+      bool suc2 = Get_GrT_PhT( per );
       return suc1 && suc2;
    }
 
@@ -125,7 +127,6 @@ public:
       if( ! loaded ) return -12345.;
       double dist;
       calc_dist(src.lat, src.lon, sta.lat, sta.lon, &dist); 
-std::cerr<<src.lat<<" "<<src.lon<<" "<<sta.lat<<" "<<sta.lon<<"  "<<dist<<std::endl;
       return dist;
    }
 
@@ -163,8 +164,8 @@ std::cerr<<src.lat<<" "<<src.lon<<" "<<sta.lat<<" "<<sta.lon<<"  "<<dist<<std::e
       return true;
    }
 
-   /* compute group and phase velocity at period per from file fdisp */
-   bool Get_Grv_Phv( float per ) {
+   /* compute group and phase travel time at period per from file fdisp */
+   bool Get_GrT_PhT( float per ) {
       std::ifstream fin(fdisp.c_str());
       if( ! fin ) return false;
       float perlst[300], grvlst[300], phvlst[300], ftmp;
@@ -178,8 +179,8 @@ std::cerr<<src.lat<<" "<<src.lon<<" "<<sta.lat<<" "<<sta.lon<<"  "<<dist<<std::e
       int i;
       for(i=0;i<n && perlst[i]<per; i++) {}
       if(i==0 || i==n) return false;
-      grv = grvlst[i-1]+(per-perlst[i-1])/(perlst[i]-perlst[i-1])*(grvlst[i]-grvlst[i-1]);
-      phv = phvlst[i-1]+(per-perlst[i-1])/(perlst[i]-perlst[i-1])*(phvlst[i]-phvlst[i-1]);
+      grT = distsac / ( grvlst[i-1]+(per-perlst[i-1])/(perlst[i]-perlst[i-1])*(grvlst[i]-grvlst[i-1]) );
+      phT = distsac / ( phvlst[i-1]+(per-perlst[i-1])/(perlst[i]-perlst[i-1])*(phvlst[i]-phvlst[i-1]) );
       return true;
 }
 
@@ -190,7 +191,7 @@ std::cerr<<src.lat<<" "<<src.lon<<" "<<sta.lat<<" "<<sta.lon<<"  "<<dist<<std::e
 int main( int argc, char *argv[] ) {
    /* check input */
    if(argc!=5) {
-      std::cerr<<"Usage: "<<argv[0]<<" [event.lst] [station.lst] [event-sta-fdisp-fsnr list] [period]"<<std::endl;
+      std::cerr<<"Usage: "<<argv[0]<<" [event.lst] [station.lst] [event-sta-fdisp-fsnr-distsac list] [period]"<<std::endl;
       exit(-1);
    }
 

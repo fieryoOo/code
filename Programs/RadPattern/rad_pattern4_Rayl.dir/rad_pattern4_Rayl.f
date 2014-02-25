@@ -1,7 +1,7 @@
 c To calculate group_delay as a function of azimuth and period
       real*4 v(3,200),dvdz(3,200),ampr(200)
       real*4 tm(6),du(3),vu(3),wvn(2),period(20),ampl_max(200)
-      complex*8 br(6),sumr
+      complex*8 br(6),bl(6),sumr
       character*80 infile,perlist
       character*40  bred,word
       character*10 symbol1,symbol2,symbol,symbo
@@ -118,6 +118,7 @@ C-----------reading OLD_SURF_DEEP output---E
 C@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 c----------Source term calculations-----------------S
 C----------period loop---------------------------S
+           write(*,*) "1: ", nt
            DO j=1,nt
            ampl_max(j)=0.0
            fr(j)=1./t(j)
@@ -137,7 +138,9 @@ C-----------azimuthal loop--S
            cs=cos(AZ_rad)
            sc=sin(AZ_rad)
 C----convolution with moment tensor -----S
+c           write(*,*) "inner1: ", nt
        call source(sigR,sigL,cs,sc,wvn,vu,du,br,bl)
+c           write(*,*) "inner2: ", nt
            sumr=(0.0,0.0)
                   do m=1,6
            sumr= sumr+tm(m)*br(m)
@@ -152,6 +155,7 @@ C----convolution with moment tensor -----E
 C-----------azimuthal loop--E
 C           PRint*,j,ampr(j)*const,aq
 1          ENDDO
+           write(*,*) "2: ", nt
 C-----------period loop---------------------------E
 c----------Source term calculations-----------------E
 C@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -197,7 +201,7 @@ C--------------patch for weak amplitudes---E
            write(18,'(F7.2,1X,E12.5,1X,F7.1)'),2.*(jkl-1),tcorr,t(jpa)
            enddo
                                              endif
-           endDO
+           endDo
 C---------------selection and output -----------------------E
            if(lout)then
            close(15)

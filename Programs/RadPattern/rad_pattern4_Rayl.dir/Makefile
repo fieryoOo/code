@@ -1,14 +1,23 @@
-#
-BIN=rad_pattern4_Rayl        
+BIN = rad_pattern4_Rayl
 
-fflags = -e -g -Nl30 
-FC=f77
+fflags = -e -g -ffixed-line-length-132
+# -Nl30
+FC = f77
 cflags = -I$(X11_INCLUDE)
 
-ldlibs =  -lmath   -lX11 -lm  -lev    -lio -lmap 
+ldlibs = -lmath -lX11 -lm -lev -lio -lmap
+
+OBJS = $(BIN).o source.o surfread.o intpol.o angles2tensor.o pha.o new_unwrap.o
+#unwrap_contin.o
 
 include $(DSAPMAKE)
 DBG=-g
 
-$(BIN) : $(BIN).o source.o surfread.o unwrap_contin.o intpol.o angles2tensor.o pha.o
-	$(FC) $(FFLAGS) $(CFLAGS)  $(BIN).o source.o surfread.o unwrap_contin.o intpol.o pha.o  angles2tensor.o -o $(BIN) $(LDFLAGS) $(LDLIBS)
+$(BIN) : $(OBJS)
+	$(FC) $(FFLAGS) $(CFLAGS) $^ -o $(BIN) $(LDFLAGS) $(LDLIBS)
+
+%.o : %.f
+	$(FC) $(fflags) -c $^
+
+clean :
+	rm -f $(OBJS) $(BIN)

@@ -184,17 +184,17 @@ int main(int na, char *arg[])
      //cout<<dis-distmp<<endl;
      temp=dis/velh;
      //fprintf(ff,"%lf %lf %lf\n",lon[i],lat[i],time[i]-temp);
-     time[i] -= 4.06;
+     //time[i] -= 4.06;
      for(;;) {
-        if(time[i]-temp>per/4.)
-           time[i]-=per/1.;
-        else if(time[i]-temp<-per*3./4.)
-           time[i]+=per/1.;
+        if(time[i]-temp>per*0.5) //0.25
+           time[i]-=per;
+        else if(time[i]-temp<-per*0.5) //0.75
+           time[i]+=per;
         else break;
      }
      time2[i] = time[i];
-     if(time2[i]-temp<-per/4.) time2[i]+=per/2.;
-     if(fabs(time2[i]-temp)>per/6.) YesNo[i]=-1;
+     if(time2[i]-temp<-0.*per) time2[i]+=per*0.5; // -0.25
+     //if(fabs(time2[i]-temp)>per/6.) { YesNo[i]=-1; std::cerr<<"threw!"<<std::endl; }
 //cout<<perl<<" "<<per<<" "<<perh<<endl;
      vel[i]=dis/time2[i];
 //     if(fabs(time[i]-temp)>per/4.) YesNo[i]=-1; 

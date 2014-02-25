@@ -13,8 +13,8 @@ c-  du   - output increment
 c-  ierr - error message: 0-no errors,>0 -error in arguments
 c-  am   - working field
 c----------------------------------------------------------------------
-	real*4 x(1),y(1),v(1),dv(1)
-	real*4 am1(3000)
+	real*4 x(ninp),y(ninp),v(nout),dv(nout)
+	real*4 am1(ninp)
 	logical iord
 c--------------initialization-----------------------------------------
       ierr=0
@@ -47,7 +47,7 @@ c-----------------------------------------------------------------------
       subroutine SPLINE (n,x,y,m,ind1,d1,ind2,d2)
 c-----------------------------------------------------------------------
 	real*4 q(3000)
-        real x(1),y(1),m(1)
+        real x(n),y(n),m(n)
 c-----------------------------------------------------------------------
       ibit(i)=iabs((i-1)*(i-2))
       fsig(x1,x2,r)=(x1-r)*(x2-r)
