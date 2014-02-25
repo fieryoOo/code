@@ -43,8 +43,10 @@ public:
 
    /* ------------------------------ sac file read/write ------------------------------ */
    /* load sac header from file 'fname' */
+   bool LoadHD( const char* fnamein ) { if( fnamein ) fname = fnamein; return LoadHD(); }
    bool LoadHD ();
    /* read sac header+signal from file 'fname', memory is allocated on heap */
+   bool Load( const char* fnamein ) { if( fnamein ) fname = fnamein; return Load(); }
    bool Load ();
    /* write to file '*fname' */
    bool Write ( const char *fname );
