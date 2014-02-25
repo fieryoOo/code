@@ -1,12 +1,12 @@
 #define MAIN
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 //#include <unistd.h>
-#include <string.h>
+#include <cstring>
 #include <iostream>
 //#include <iomanip.h>
-#include <math.h>
-#include "/home/tianye/code/Programs/head/mysac64.h"
+#include <cmath>
+#include "mysac64.h"
 #define fMax 2000
 using namespace std;
 

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstring>
 #include <vector>
+#include <string>
 #include <omp.h>
 
 /*
@@ -24,11 +25,14 @@ int  main ( int argc, char *argv[] )
    }
 
    /* store old SAC and RESP files if there's any */
-   bool oldfiles = false;
+   //bool oldfiles = false;
    MKDir("old_sac_files");
-   int nfmvd;
-   wMove(".", "*.SAC", "old_sac_files", 0, &nfmvd); if( nfmvd > 0 ) oldfiles = true;
-   wMove(".", "RESP.*", "old_sac_files", 0, &nfmvd); if( nfmvd > 0 ) oldfiles = true;
+   //wMove(".", "*.SAC", "old_sac_files", 0, &nfmvd); if( nfmvd > 0 ) oldfiles = true;
+   //wMove(".", "RESP.*", "old_sac_files", 0, &nfmvd); if( nfmvd > 0 ) oldfiles = true;
+   std::vector<std::string> filelst;
+   bool oldsac = wMove(".", "*.SAC", "old_sac_files", filelst);
+   bool oldresp = wMove(".", "RESP.*", "old_sac_files", filelst);
+
 
    //int ithread; 
    /* create the DailyRec object, load in parameters from the input file */
@@ -43,16 +47,14 @@ int  main ( int argc, char *argv[] )
       // copy params from dailyrec
       DailyRec DRtmp(dailyrec);
       // set staname
-      std::string stmp("staname ");
-      stmp += stalst.at(i);
+      std::string stmp = "staname " + stalst.at(i);
       DRtmp.Set(stmp.c_str());
       // set fosac
-      stmp = "fosac ";
-      stmp += stalst.at(i);
-      stmp += ".sac";
+      stmp = "fosac " + stalst.at(i) + ".sac";
       DRtmp.Set(stmp.c_str());
       // extract sac, donot skip | write to disc
-      DRtmp.ExtractSac(0, true);
+      if( ! DRtmp.ExtractSac(0, true) ) continue;
+      //DRtmp.sacT.RmRESP();
    }
   
    if( ! dailyrec.CheckPreRmRESP() ) return -1;
@@ -60,10 +62,14 @@ int  main ( int argc, char *argv[] )
    if( ! dailyrec.CheckPreTSNorm() ) return -1;
 
    /* fetch back old files and remove temporary dir */
+   /*
    if( oldfiles ) {
       wMove("old_sac_files", "*.SAC", ".", 0, &nfmvd);
       wMove("old_sac_files", "RESP.*", ".", 0, &nfmvd);
    }
+   */
+   if( oldsac ) wMove("old_sac_files", "*.SAC", ".", filelst);
+   if( oldresp ) wMove("old_sac_files", "RESP.*", ".", filelst);
    fRemove("old_sac_files");
 
    return 0;

@@ -3,7 +3,7 @@
 int NTHRDS;
 long MemAvail;
 
-void EstimateMemAvail (long *MemAvail);
+void EstimateMemAvail (long &MemAvail);
 
 void InitialPthread() {
    size_t stacksize = 16777216;
@@ -17,7 +17,7 @@ void InitialPthread() {
    pthread_mutex_init(&cevlock, NULL);
    pthread_mutex_init(&fftlock, NULL);
    pthread_mutex_init(&fiolock, NULL);
-   EstimateMemAvail (&MemAvail);
+   EstimateMemAvail (MemAvail);
    cout<<"*** Estimated total available memory = "<<MemAvail/(1024.*1024.)<<"Mb. ***"<<endl;
 }
 

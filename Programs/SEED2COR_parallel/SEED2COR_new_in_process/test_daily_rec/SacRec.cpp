@@ -1,7 +1,9 @@
 #include "SacRec.h"
+#include "SysTools.h"
 #include <fftw3.h>
 #include <cstdio>
 #include <cstdlib>
+#include <unistd.h>
 #include <cmath>
 #include <iostream>
 #include <fstream>
@@ -181,6 +183,7 @@ struct SacRec::SRimpl {
 
    }
 
+/*
    float av_sig (float *sig, int i, int N, int nwin ) {
       int n1, n2, j, nav = 0;
       float av = 0.;
@@ -202,6 +205,65 @@ struct SacRec::SRimpl {
       else av = av/(float)nav;
 
       return av;
+   }
+*/
+
+   /* divide the current spectrum by the input freq-amp and freq-phase array */
+   void fDiv(double dom, int nsig, fftw_complex *sf, double *freq, double *amp, double *pha, int ntra) {
+      int isig, itra = 1;
+      double f, ampcur, phacur, realsig, imagsig;
+      double sintmp, costmp;
+      for(isig=(int)ceil(freq[0]/dom); isig<nsig; isig++) {
+         f = isig*dom;
+         while(f > freq[itra]) {
+	    itra++;
+	    if(itra >= ntra) break;
+         }
+         //interpolate to get current amp and pha
+         sintmp = (f-freq[itra-1]) / (freq[itra]-freq[itra-1]);
+         ampcur = amp[itra-1] + (amp[itra]-amp[itra-1]) * sintmp;
+         phacur = pha[itra-1] + (pha[itra]-pha[itra-1]) * sintmp;
+         //divide sf by (ampcur, phacur)
+         realsig = sf[isig][0]; imagsig = sf[isig][1];
+         sintmp = sin(phacur); costmp = cos(phacur);
+         sf[isig][0] = (realsig*costmp - imagsig*sintmp) / ampcur;
+         sf[isig][1] = (imagsig*costmp + realsig*sintmp) / ampcur;
+      }
+   }
+
+   bool FDivide (double f1, double f2, double f3, double f4, double *freq, double *amp, double *pha, int nf, SAC_HD &shd, float *seis_in) {
+      double dt = shd.delta;
+      int n = shd.npts;
+      if(f4 > 0.5/dt) {
+         fprintf(stderr, "### Warning: filter band out of range! ###");
+         return false;
+      }
+      fftw_plan plan1;
+      //backward FFT: s ==> sf
+      int ns;
+      fftw_complex *s, *sf;
+      FFTW_B(FFTW_ESTIMATE, seis_in, n, &s, &sf, &ns, &plan1, 1);
+      //make tapering
+      int nk = ns/2+1;
+      double dom = 1./dt/ns;
+      fDiv(dom, nk, sf, freq, amp, pha, nf);
+      TaperB( f1, f2, f3, f4, dom, nk, sf );
+
+      //forward FFT: sf ==> s
+      //fftw_plan plan2;
+      FFTW_F(plan1, s, ns, seis_in, n);
+      free(s); free(sf);
+
+      //forming final result
+      int k;
+      float ftmp = 2./ns;
+      for(k=0; k<n; k++) {
+         //if( seis_in[k]==0 ) seis_out[k] = 0.;
+         //else 
+	 seis_in[k] *= ftmp;
+      }
+
+      return true;
    }
 
 };
@@ -468,11 +530,11 @@ bool SacRec::merge( SacRec sacrec2 ) {
 
    /* pre-merging checks */
    if( N > 2.6e7 ) {
-      std::cerr<<"Error(SacRec::merge): The merged signal will be larger than 100M. Stopped! " <<std::endl;
+      std::cerr<<" Error(SacRec::merge): The merged signal will be larger than 100M. Stopped! " <<std::endl;
       return false;
    }
    if( (shd.delta-shd2.delta) > 0.0001 ) {
-      std::cerr<<"Error(SacRec::merge): sps mismatch! Stopped! " <<std::endl;
+      std::cerr<<" Error(SacRec::merge): sps mismatch! Stopped! " <<std::endl;
       return false;
    }
 
@@ -496,7 +558,7 @@ bool SacRec::merge( SacRec sacrec2 ) {
       tshift = (shd2.b-shd.b) + (nb*dt-(t2b-t1b));
    }
    if( fabs(tshift) > 1.e-3 )
-      std::cerr << "Warning(SacRec::merge): signal shifted by " << tshift << "sec when merging ("<< fname.c_str() << ") !" << std::endl;
+      std::cerr << "*** Warning: signal shifted by " << tshift << "sec when merging! *** " << std::endl;
 
 
    /* copy in the signals */
@@ -578,6 +640,101 @@ int SacRec::arrange(const char* recname) {
 }
 
 
+/* remove mean and trend */
+void SacRec::RTrend() {
+   // fit a*x+b
+   int i, npts = shd.npts;
+   float X = 0., Y = 0., X2 = 0., Y2 = 0., XY = 0.;
+   for(i=0;i<npts;i++) {
+      X += i;
+      Y += sig[i];
+      X2 += i*i;
+      Y2 += sig[i]*sig[i];
+      XY += i*sig[i];
+   }
+   float a = (npts*XY-X*Y)/(npts*X2-X*X);
+   float b = (-X*XY+X2*Y)/(npts*X2-X*X);
+   // correct sig and DEPMEN
+   float mean = 0., max = sig[0], min = sig[0];
+   float shift = b;
+   for(i=0;i<npts;i++,shift+=a) {
+      sig[i] -= shift;
+      mean += sig[i];
+      if ( min > sig[i] ) min = sig[i];
+      else if ( max < sig[i] ) max = sig[i];
+   }
+   shd.depmin = min;
+   shd.depmax = max;
+   shd.depmen = mean / npts;
+}
+
+
+/* remove response and apply filter */
+bool SacRec::RmRESP( const char *evrexe, const char *fresp, float perl, float perh ) {
+   // check evrexe
+   if( access( evrexe, F_OK ) == -1 ) return false;
+   // run evalresp
+   int nf = 100;
+   char buff[300], sta[8], ch[8], net[8];
+   float f2 = 1./perh, f1 = f2*0.9, f3 = 1./perl, f4 = f3*1.1;
+   sscanf(shd.kstnm, "%s", sta);
+   sscanf(shd.kcmpnm, "%s", ch);
+   sscanf(shd.knetwk, "%s", net);
+   sprintf(buff, "%s %s %s %4d %3d %f %f %d -f %s -v >& /dev/null", evrexe, sta, ch, shd.nzyear, shd.nzjday, f1, f4, nf, fresp);
+   system(buff);
+   char nameam[50], nameph[50];
+   sprintf(nameam, "AMP.%s.%s.*.%s", net, sta, ch);
+   sprintf(nameph,"PHASE.%s.%s.*.%s", net, sta, ch);
+   // find am file
+   FILE *fam = NULL, *fph = NULL;
+   std::vector<std::string> list;
+   List(".", nameam, 0, list);
+   if( list.size()!=1 ) {
+      std::cerr<<"Error: "<<list.size()<<" AMP file(s) found!"<<std::endl;
+      return false;
+   }
+   sscanf(list.at(0).c_str(), "%s", nameam);
+   if( (fam = fopen(nameam, "r")) == NULL ) {
+      std::cerr<<"Cannot open file "<<nameam<<std::endl;
+      return false;
+   }
+   // find ph file
+   List(".", nameph, 0, list);
+   if( list.size()!=1 ) {
+      std::cerr<<"Error: "<<list.size()<<" PHASE file(s) found!"<<std::endl;
+      return false;
+   }
+   sscanf(list.at(0).c_str(), "%s", nameph);
+   if( (fph = fopen(nameph, "r")) == NULL ) {
+      std::cerr<<"Cannot open file "<<nameph<<std::endl;
+      return false;
+   }
+   // read in am and ph data
+   double pi=4*atan(1.0), pio180=pi/180.;
+   double freq[nf], dtmp, amp[nf], pha[nf];
+   int i = 0;
+   while(i<nf) {
+      if(fgets(buff, 300, fam)==NULL) break;
+      sscanf(buff, "%lf %lf", &freq[i], &amp[i]);
+      if(fgets(buff, 300, fph)==NULL) break;
+      sscanf(buff, "%lf %lf", &dtmp, &pha[i]);
+      if(dtmp!=freq[i]) {
+	 std::cerr<<"incompatible AMP - PHASE pair!"<<std::endl;
+	 continue;
+      }
+      amp[i] *= 0.000000001;
+      pha[i] *= pio180;
+      i++;
+   }
+   fclose(fam); fclose(fph);
+   fRemove(nameam); fRemove(nameph);
+   // remove trend ( and mean )
+   RTrend();
+   // run rmresponse
+   return pimpl->FDivide (f1, f2, f3, f4, freq, amp, pha, nf, shd, sig.get());
+}
+
+/* down sampling with anti-aliasing filter */
 bool SacRec::Resample( float sps ) {
    if( ! sig ) return false;
    int ithread = 0;
@@ -614,7 +771,7 @@ bool SacRec::Resample( float sps ) {
    }
    else { //sps isn't a factor, slower way
       //reports << "*** Warning: sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << ", watch out for rounding error! *** ";
-      std::cerr << "Warning(SacRec::Resample): sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << ", watch out for rounding error ("<<fname.c_str()<<") !"<<std::endl;
+      std::cerr << "*** Warning: sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << ", watch out for rounding error! *** ";
       long double ti, tj;
       iinc = (int)floor(dt/shd.delta);
       ti = i*shd.delta+shd.nzmsec*0.001+shd.b;

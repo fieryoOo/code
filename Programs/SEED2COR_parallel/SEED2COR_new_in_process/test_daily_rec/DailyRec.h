@@ -19,7 +19,9 @@ public:
    /* constructor: read in parameters through the input param file */
    DailyRec( const char *fname = NULL );
    /* copy constructor */
-   DailyRec( DailyRec& DRin );
+   DailyRec( const DailyRec& DRin );
+   /* assignment operator */
+   DailyRec& operator= ( const DailyRec& DRin );
    /* destructor */
    ~DailyRec();
    /* Load in parameters from file fname */

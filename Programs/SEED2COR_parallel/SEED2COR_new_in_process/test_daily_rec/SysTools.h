@@ -1,11 +1,13 @@
 #ifndef SYSTOOLS_H
 #define SYSTOOLS_H
+#include <vector>
+#include <string>
 
 /* prompt and continue in 'time' seconds if no input is received */
 void TimedContinue (int time);
 
 /* read and compute the currently available RAM from file '/proc/meminfo' */
-void EstimateMemAvail (long *MemAvail);
+void EstimateMemAvail (long &MemAvail);
 
 /* create a directory named '*dirname', exit upon failure
  * returns true if dir is made successfully and false if already exist */
@@ -22,7 +24,8 @@ void Move (const char *oldname, const char *newname);
 
 /* move any file in '*odir' that matches '*pattern' into '*tdir and set '*nfile' to the number 
    of files moved return a list of moved file names if retlst==1 and return NULL otherwise */ 
-char * wMove (const char *odir, const char *pattern, const char *tdir, int retlst, int *nfile);
+//char * wMove (const char *odir, const char *pattern, const char *tdir, int retlst, int *nfile);
+bool wMove (const char *odir, const char *pattern, const char *tdir, std::vector<std::string> &outlist);
 
 /* make a copy of file '*oldname' to '*newname', prompt to continue upon failure */
 void Copy(char *oldname, char *newname);
@@ -33,6 +36,7 @@ void Copy(char *oldname, char *newname);
    1: list files and directories in the root dir
    2: list all files
    3: list all files and directories */
-char * List(const char *dir, const char *pattern, int type, int *nfile);
+//char * List(const char *dir, const char *pattern, int type, int *nfile);
+bool List(const char *dir, const char *pattern, int type, std::vector<std::string> &filelist);
 
 #endif

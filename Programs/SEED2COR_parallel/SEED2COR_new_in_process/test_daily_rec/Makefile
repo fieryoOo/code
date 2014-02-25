@@ -1,6 +1,6 @@
 BIN = Seed2amph
 
-OBJS = driver.o SysTools.o DailyRec.o SacRec.o
+OBJS = $(BIN).o SysTools.o DailyRec.o SacRec.o
 
 LIBS = -L${HOME}/usr/lib -lfftw3 -lpthread
 

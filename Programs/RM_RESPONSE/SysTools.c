@@ -1,5 +1,6 @@
 #define _XOPEN_SOURCE 500
 #include <stdio.h>
+#include <cstdlib>
 #include <ftw.h>
 #include <unistd.h>
 #include <errno.h>
