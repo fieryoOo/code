@@ -1,4 +1,5 @@
 #ifndef AFTAN_H
+#define AFTAN_H
 
 /* Finction prorotypes */
 

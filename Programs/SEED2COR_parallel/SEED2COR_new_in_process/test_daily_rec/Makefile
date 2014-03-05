@@ -2,17 +2,17 @@ BIN = Seed2amph
 
 OBJS = $(BIN).o SysTools.o DailyRec.o SacRec.o
 
-LIBS = -L${HOME}/usr/lib -lfftw3 -lpthread
+LIBS = -L${HOME}/usr/lib -lfftw3 -lpthread -lstdc++ -fopenmp
 
-cflags = -lstdc++ -std=c++0x -fopenmp -O3
+cflags = -std=c++0x -fopenmp -O3
 
 all : $(BIN)
 
 $(BIN) : $(OBJS)
-	g++ $(cflags) $(LIBS) -o $@ $^
+	g++ $(LIBS) -o $@ $^
 
 %.o : %.cpp
-	g++ $(LIBS) $(cflags) -c $^
+	g++ $(cflags) -c $^
 
 clean :
 	rm -f $(BIN) $(OBJS)

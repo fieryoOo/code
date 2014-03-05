@@ -1,6 +1,6 @@
 #
 INST_DIR = $(HOME)/bin
-BIN  = aftani_c_pgl_amp
+BIN = aftani_c_pgl_amp
 
 fflags = -O2 -Wall -ffixed-line-length-none 
 cflags = -O2 -Wall 
@@ -24,8 +24,8 @@ FOBJS = driver_c.o swapn.o aftanpg.o aftanipg.o ftfilt.o Filter.o fmax.o \
 $(BIN) : $(FOBJS)
 	$(FC) $(FFLAGS) $(CFLAGS) $(FOBJS) -static -o $(BIN) $(LDLIBS) 
 
-install :: $(BIN)
+install : $(BIN)
 	install -s $(BIN) $(INST_DIR)
 
-clean ::
+clean :
 	rm -f $(BIN) core $(FOBJS)
