@@ -54,6 +54,7 @@ C-------------------------------initiation------------S
       sym2='    '
       if(irake.lt.10.and.irake.ge.0)write(sym2,'(I1)')irake
       if(irake.ge.10.and.irake.lt.100)write(sym2,'(I2)')irake
+      if(irake.ge.100)write(sym2,'(I3)')irake
       if(irake.gt.-10.and.irake.lt.0)write(sym2,'(I2)')irake
       if(irake.le.-10.and.irake.gt.-100)write(sym2,'(I3)')irake
       if(irake.le.-100)write(sym2,'(I4)')irake

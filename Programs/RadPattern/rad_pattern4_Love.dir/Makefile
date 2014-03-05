@@ -3,7 +3,7 @@ BIN=rad_pattern4_Love
 
 fflags = -e -g -ffixed-line-length-132
 # -Nl30
-FC=f77
+FC=gfortran
 cflags = -I$(X11_INCLUDE)
 
 ldlibs = -lmath -lX11 -lm -lev -lio -lmap 

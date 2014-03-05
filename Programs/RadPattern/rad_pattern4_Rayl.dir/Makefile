@@ -7,7 +7,8 @@ cflags = -I$(X11_INCLUDE)
 
 ldlibs = -lmath -lX11 -lm -lev -lio -lmap
 
-OBJS = $(BIN).o source.o surfread.o intpol.o angles2tensor.o pha.o new_unwrap.o
+OBJS = $(BIN).o source.o surfread.o angles2tensor.o pha.o new_unwrap.o 
+#intpol.o
 #unwrap_contin.o
 
 include $(DSAPMAKE)

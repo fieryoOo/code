@@ -182,7 +182,7 @@ bool wMove (const char *odir, const char *pattern, const char *tdir, std::vector
 
 /* ------------------------ copy a file ------------------------------- */
 #define BSZ 8192
-void Copy(char *oldname, char *newname) {
+void Copy(const char *oldname, const char *newname) {
    FILE *fin, *fou;
    if( (fin = fopen(oldname, "r")) == NULL ) {
       perror("### Warning from Copy (fopen)");

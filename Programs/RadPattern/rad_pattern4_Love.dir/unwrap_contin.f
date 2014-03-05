@@ -41,7 +41,7 @@ C--------------check for phase PI jump-----S
 		do i=2,n
         diff=unph(i)-unph(i-1)
         if(abs(diff).gt.3.00) then
-         unph(i)=unph(i)-pi2/2.*sign(1,diff)
+         unph(i)=unph(i)-pi2/2.*sign(1.0,diff)
 C        PRint*,' jump! ',per(i)
                               endif
                enddo
@@ -53,7 +53,7 @@ C-----q=d(T)/d(omega)-----------
 	if(i.gt.1.and.i.lt.n) grt(i)=(unph(i+1)-unph(i-1))/2./dper*q              
 	if(i.eq.1)grt(1)=(unph(2)-unph(1))/dper*q                        
 	if(i.eq.n)grt(n)=(unph(n)-unph(n-1))/dper*q                        
-        if(abs(grt(i)).gt.const)grt(i)=const*sign(1,grt(i))
+        if(abs(grt(i)).gt.const)grt(i)=const*sign(1.0,grt(i))
         if(i.eq.1)write(75,*)i,unph(i),grt(i),jkl
         if(i.gt.1)write(75,*)i,unph(i),grt(i)
 		end do

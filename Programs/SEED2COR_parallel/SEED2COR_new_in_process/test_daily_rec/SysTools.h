@@ -28,7 +28,7 @@ void Move (const char *oldname, const char *newname);
 bool wMove (const char *odir, const char *pattern, const char *tdir, std::vector<std::string> &outlist);
 
 /* make a copy of file '*oldname' to '*newname', prompt to continue upon failure */
-void Copy(char *oldname, char *newname);
+void Copy(const char *oldname, const char *newname);
 
 /* return a list of file names from '*dir' that matche '*pattern'
    the input 'type' parameter decides how sub-directories are handdled:
