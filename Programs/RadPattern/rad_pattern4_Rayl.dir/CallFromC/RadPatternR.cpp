@@ -19,7 +19,7 @@ int main() {
    float strike = 192, dip = 34, rake = -101, depth = 10;
    rad_pattern_r_( eig_fname, &eig_namelen, phv_fname, &phv_namelen,
 		   &strike, &dip, &rake, &depth, per, &nper, azi, grT, phT, amp);
-   for(int iper=0; iper<nper; iper++) for(int i=0; i<181; i++) std::cerr<<azi[i]<<" "<<phT[iper][i]<<std::endl;
+   //for(int iper=0; iper<nper; iper++) for(int i=0; i<181; i++) std::cerr<<azi[i]<<" "<<phT[iper][i]<<std::endl;
 
    return 0;
 }

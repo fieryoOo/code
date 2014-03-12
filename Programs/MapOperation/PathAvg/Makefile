@@ -1,16 +1,9 @@
 INST_DIR = $(HOME)/bin
-BIN  = PathAvg
+BIN  = MapAvg
 
-fflags = -O2 -Wall
-cflags = -O3 -Wall
+cflags = -O3 -Wall -std=c++0x -fopenmp
 
-LDLIBS = -lfftw3 -lgfortran -lstdc++ -fopenmp
-
-FFLAGS = $(DBG) $(fflags)
-
-CFLAGS = $(DBG) $(cflags)
-
-FC = gfortran
+LDLIBS = -lstdc++ -fopenmp
 
 CC = g++
 
@@ -18,10 +11,13 @@ DBG = -g
 
 all : $(BIN)
 
-FOBJS = DisAzi.o PathAverage.o
+FOBJS = driver.o DisAzi.o Map.o
 
 $(BIN) : $(FOBJS)
-	$(CC) $(LDLIBS) $(CFLAGS) $(FOBJS) -o $(BIN)
+	$(CC) $(LDLIBS) $(FOBJS) -o $(BIN)
+
+%.o : %.cpp
+	$(CC) $(cflags) -c $^ -o $@ 
 
 install : $(BIN)
 	install -s $(BIN) $(INST_DIR)
