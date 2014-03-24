@@ -32,10 +32,12 @@ int main( int argc, char* argv[] ) {
 
    /* compute map average along each path */
    Map map(argv[4], src);
-   double lamda = atof(argv[5]);
+   float lamda = atof(argv[5]);
    if( lamda < 0. ) exit(0);
    for(size_t i=0; i<reclst.size(); i++) {
-      std::cout<<map.PathAverage(reclst.at(i), lamda)<<std::endl;
+      float res, perc;
+      res = map.PathAverage(reclst.at(i), lamda, perc);
+      std::cout<<res<<" "<<perc<<std::endl;
    }
    return 0;
 }
