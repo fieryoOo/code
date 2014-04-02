@@ -5,7 +5,7 @@
 #include <cstring>
 #include <vector>
 #include <string>
-#include <omp.h>
+#include "MyOMP.h"
 
 /*
 void SetName(int ne, int ns) {
@@ -41,7 +41,7 @@ int  main ( int argc, char *argv[] )
    /* set/check parameters and extract osac */
    //dailyrec.Set("sps 20");
    if( ! dailyrec.CheckPreExtract() ) return -1;
-   std::vector<std::string> stalst = {"I05D", "G03D", "SAO", "HUMO"};
+   std::vector<std::string> stalst = {"109C", "A04A", "ACSO", "ADO"};
    #pragma omp parallel for
    for(int i=0; i<stalst.size(); i++) {
       // copy params from dailyrec
@@ -52,9 +52,13 @@ int  main ( int argc, char *argv[] )
       // set fosac
       stmp = "fosac " + stalst.at(i) + ".sac";
       DRtmp.Set(stmp.c_str());
+      // set ffsac
+      stmp = "ffsac " + stalst.at(i) + "_ft.sac";
+      DRtmp.Set(stmp.c_str());
+
       // extract sac, donot skip | write to disc
       if( ! DRtmp.ExtractSac(0, true) ) continue;
-      //DRtmp.sacT.RmRESP();
+      //DRtmp.RmRESP(true);
    }
   
    if( ! dailyrec.CheckPreRmRESP() ) return -1;

@@ -290,6 +290,11 @@ SacRec& SacRec::operator= ( const SacRec& recin ) {
    std::copy(recin.sig.get(), recin.sig.get()+npts, sig.get()); 
 }
 
+/* equal *//*
+SacRec& SacRec::operator== ( const SacRec& recin ) { 
+   return true;
+}*/
+
 /* destructor */
 SacRec::~SacRec() {}
 
@@ -397,7 +402,10 @@ int read_rec(int rec_flag, char *fname, int len, int *rec_b, int *rec_e, int *nr
 //pthread_mutex_t fiolock;
 
 double SacRec::AbsTime () {
-   if( ! sig ) return -1.;
+   //if( shd == sac_null ) return -1.; // operator== not defined yet
+   if( shd.npts <= 0 ) return -1.;
+   if( shd.nzjday == -12345. || shd.nzyear == -12345. || shd.nzhour == -12345. ||
+       shd.nzmin == -12345. || shd.nzsec == -12345. || shd.nzmsec == -12345. ) return -1;
    //computes time in s relative to 1900
    int nyday = 0;
    for( int i=1901; i<shd.nzyear; i++ ) {
@@ -512,6 +520,27 @@ bool SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout 
 
 
 /* ---------------------------------------- cut and merge ---------------------------------------- */
+bool SacRec::cut( float tb, float te ) {
+   int nb = (int)floor( (tb-shd.b) / shd.delta + 0.5 );
+   int ne = (int)floor( (te-shd.b) / shd.delta + 0.5 );
+   if( ne<0 || nb>shd.npts ) return false;
+   int nptsnew = ne - nb + 1;
+   float* signew = (float *) calloc ( nptsnew, sizeof(float) );
+   // define start positions
+   int inew, iold;
+   if( nb < 0 ) { inew = -nb; iold = 0; }
+   else { inew = 0; iold = nb; }
+   // define copy size
+   float nptscpy = std::min( nptsnew - inew, shd.npts - iold) - 1;
+   // copy data
+   memcpy( &(signew[inew]), &(sig[iold]), nptscpy * sizeof(float) );
+   // reset sacT.sig
+   sig.reset(signew);
+   // update shd
+   shd.b += nb * shd.delta;
+   shd.npts = nptsnew;
+   return true;
+}
 
 bool SacRec::merge( SacRec sacrec2 ) {
    // make sure that both signals are loaded
@@ -603,7 +632,7 @@ int SacRec::arrange(const char* recname) {
    }
 
    // fill gaps with random numbers
-   int ib, hlen = 100./shd.delta, step = std::min(0.5/shd.delta, 1.);
+   int ib, hlen = 100./shd.delta, step = std::max(0.5/shd.delta, 1.);
    float sigrms;
    this->RMSAvg(shd.b, shd.e, 50./shd.delta, sigrms);
    bool isgap = false;

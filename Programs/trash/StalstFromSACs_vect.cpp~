@@ -1,0 +1,98 @@
+#include "SacRec.h"
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+struct StaInfo {
+   std::string name;
+   float lon, lat;
+
+public:
+   StaInfo( const char* namein, float lonin, float latin )
+      : name(namein), lon(lonin), lat(latin) {}
+
+   bool IsSameSta( StaInfo& s2 ) { return (name == s2.name); }
+
+   friend bool operator== ( const StaInfo& s1, const StaInfo& s2 ) { return ( s1.name==s2.name && s1.lon==s2.lon && s1.lat==s2.lat ); }
+   friend bool operator!= ( const StaInfo& s1, const StaInfo& s2 ) { return (! (s1==s2)); }
+
+   friend std::ostream& operator<< ( std::ostream& o, const StaInfo& si ) { 
+      o<<si.name<<"  "<<std::setprecision(7)<<si.lon<<" "<<std::setprecision(7)<<si.lat; 
+      return o;
+   }
+};
+
+
+bool CompareName ( const StaInfo& s1, const StaInfo& s2 ) { return (s1.name<s2.name); }
+
+
+int main(int argc, char* argv[]) {
+   if( argc != 3 ) {
+      std::cerr<<"Usage: "<<argv[0]<<" [sac_lst] [out_name]"<<std::endl;
+      exit(-1);
+   }
+
+   /* read in sac list */
+   std::ifstream fin(argv[1]);
+   if( ! fin ) {
+      std::cerr<<"Error(main): Cannot read from file "<<argv[1]<<std::endl;
+      exit(0);
+   }
+   std::vector<std::string> saclst;
+   for(std::string line; std::getline(fin, line); ){
+      std::stringstream sin(line);
+      std::string sacname;
+      sin >> sacname;
+      saclst.push_back(sacname);
+   }
+   fin.close();
+   std::cout<<"   "<<saclst.size()<<" sac names read in."<<std::endl;
+
+   /* read station info from each sac header and store into the station list */
+   std::vector<StaInfo> stalst;
+   for(int isac=0; isac<saclst.size(); isac++) {
+      // load sac header
+      SacRec sacrec( saclst[isac].c_str() );
+      if( ! sacrec.LoadHD() ) continue;
+      SAC_HD& shd = sacrec.shd;
+      // get station name
+      std::stringstream sin(shd.kstnm);
+      std::string staname;
+      if( ! (sin >> staname) ) continue;
+      // form StaInfo
+      StaInfo SIcur(staname.c_str(), shd.stlo, shd.stla);
+      // search for this same station in stalst
+      int ista;
+      for(ista=0; ista<stalst.size(); ista++) {
+	 if( SIcur.IsSameSta( stalst[ista] ) ) break;
+      }
+      if( ista != stalst.size() ) { // found!
+	 if( SIcur != stalst[ista] ) {
+	    std::cerr<<"Warning(main): conflicted location found for station "<<SIcur.name<<" ( "<<SIcur<<" : "<<stalst[ista]<<" )"<<std::endl;
+	 }
+	 continue;
+      }
+      stalst.push_back(SIcur);
+   }
+   std::cout<<"   "<<stalst.size()<<" station infos loaded."<<std::endl;
+
+   /* sort station by alphabetic order */
+   std::sort(stalst.begin(), stalst.end(), CompareName);
+
+   /* write to file */
+   std::ofstream fout(argv[2]);
+   if( ! fout ) {
+      std::cerr<<"Error(main): Cannot write to file "<<argv[2]<<std::endl;
+      exit(0);
+   }
+   for(int ista=0; ista<stalst.size(); ista++) fout<<stalst[ista]<<std::endl;
+   fout.close();
+
+   return 0;
+}
