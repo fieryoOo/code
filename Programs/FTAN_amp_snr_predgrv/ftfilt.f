@@ -17,6 +17,7 @@ c     fs=a.*b;
          b(k)=0.0d0
          ome = (k-1)*dom
          om2 = -(ome-om0)*(ome-om0)*alpha/om0/om0
+c         om2 = -(ome-om0)*(ome-om0)*alpha
          if( dabs(om2) .le. 40.0d0 ) then
              b(k) = dexp(om2)
              fs(k) = a(k)*b(k)

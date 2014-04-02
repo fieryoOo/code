@@ -85,7 +85,7 @@ SAC_HD *read_sac (char *fname, float **sig, SAC_HD *SHD);
 
 void write_sac (char *fname, float *sig, SAC_HD *SHD);
 
-int get_snr(float *sei, int nsample, double dt, double dist, double b, double *c_per, double *g_vel, int nper, double *amp_max, double *snr2);
+int get_snr(float fhlen, float *sei, int nsample, double dt, double dist, double b, double *c_per, double *g_vel, int nper, double *amp_max, double *snr2);
 
 
 /*--------------------------------------------------------------*/
@@ -113,10 +113,13 @@ int main (int argc, char *argv[])
   SAC_HD shd;
 
 // input command line arguments treatment
-  if(argc!=4 && argc!=5 ) {
-      printf("Usage: aftan_amp [parameter file] [file_pred_phvel] [file_pred_grvel] [out_flag(optional)]\n");
+  if(argc!=5 && argc!=6 ) {
+      printf("Usage: aftan_amp [parameter file] [file_pred_phvel] [file_pred_grvel] [fhlen] [out_flag(optional)]\n");
       exit(-1);
   }
+
+/* ------------ frequency half length for gaussian filter in get_snr ------------ */
+   float fhlen = atof(argv[4]);
 /*---------------- out_flag --------------------
 controls what files to output
 0(default):	all the files
@@ -126,7 +129,7 @@ notice that amp_snrs are always measured based on
  the final dispersions (_2_DISP.1)
 -----------------------------------------------*/
    pflag = 0;
-   if(argc==5) pflag = atof(argv[4]);
+   if(argc==6) pflag = atof(argv[5]);
    if(pflag<0 && pflag>2) {
       printf("Unknow out_flag: %d\n", pflag);
       exit(-1);
@@ -164,6 +167,9 @@ notice that amp_snrs are always measured based on
 
       printf("Tresh= %lf, Filter factor= %lf, SNR= %lf, Match = %lf\nData file name=%s\n",
              tresh,ffact,snr,fmatch,name);
+//ffact *= 10.;
+//ffact2 *= 10.;
+//fhlen = sqrt( 0.5 / ( ffact * 20. ) ) / (2.*pi);
   // read SAC or ascii data 
    int sac = 1; // =1 - SAC, =0 - ftat files
    //sei_p = (float *) malloc (2*NMAX * sizeof(float));
@@ -309,8 +315,8 @@ printf("%d\n",npred);
       c_per[i]=arr2[i][0];
       g_vel[i]=arr2[i][2];
      }
-  get_snr(sei_p,n,dt,delta,t0,c_per,g_vel,nfout2,amp_p,snr_p); // positive lag
-  if(flag==1) get_snr(sei_n,n,dt,delta,t0,c_per,g_vel,nfout2,amp_n,snr_n); //negative lag if exists
+  get_snr(fhlen,sei_p,n,dt,delta,t0,c_per,g_vel,nfout2,amp_p,snr_p); // positive lag
+  if(flag==1) get_snr(fhlen,sei_n,n,dt,delta,t0,c_per,g_vel,nfout2,amp_n,snr_n); //negative lag if exists
   sprintf(amp_name,"%s_amp_snr",name);
   if((fas=fopen(amp_name,"w"))==NULL) {
      printf("Cannot open file %s to write!\n", amp_name);

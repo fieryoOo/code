@@ -115,10 +115,10 @@ void one_event (int y, int m, int d, int h, int min,int sec,int ndays )
       // if ( strlen(sta) < 8 ) break;
       if(fscanf(fst,"%s %s",sta,net)==EOF) 
 	break;
-      //sprintf(buff1,"%s %s %d %d %d %d %d %d.0 %d %d %d %d %d %d.0 1 LHE\n\0",sta, net,y2, m2, d2, h2,min2,sec, y3, m3, d3, h3,min3,sec );
-      //fputs(buff1,fre);
-      //sprintf(buff1,"%s %s %d %d %d %d %d %d.0 %d %d %d %d %d %d.0 1 LHN\n\0",sta, net,y2, m2, d2, h2,min2,sec, y3, m3, d3, h3,min3,sec );
-      //fputs(buff1,fre);
+      sprintf(buff1,"%s %s %d %d %d %d %d %d.0 %d %d %d %d %d %d.0 1 LHE\n\0",sta, net,y2, m2, d2, h2,min2,sec, y3, m3, d3, h3,min3,sec );
+      fputs(buff1,fre);
+      sprintf(buff1,"%s %s %d %d %d %d %d %d.0 %d %d %d %d %d %d.0 1 LHN\n\0",sta, net,y2, m2, d2, h2,min2,sec, y3, m3, d3, h3,min3,sec );
+      fputs(buff1,fre);
       sprintf(buff1,"%s %s %d %d %d %d %d %d.0 %d %d %d %d %d %d.0 1 LHZ\n\0",sta, net,y2, m2, d2, h2,min2,sec, y3, m3, d3, h3,min3,sec );
       fputs(buff1,fre);
 
