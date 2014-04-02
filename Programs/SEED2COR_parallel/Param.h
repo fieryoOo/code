@@ -66,7 +66,7 @@ SAC_HD *read_sac (char *fname, float **sig, SAC_HD *SHD);
 
 void write_sac (const char *fname, float *sig, SAC_HD *SHD);
 
-SAC_HD *read_shd (char *fname);
+SAC_HD *read_shd (char *fname, SAC_HD* shd);
 
 void UpdateTime(SAC_HD *shd);
 

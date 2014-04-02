@@ -56,17 +56,17 @@ void UpdateTime(SAC_HD *shd) {
    shd->nzyear++;
 }
 
-SAC_HD *read_shd (char *fname) {
+bool read_shd (char *fname, SAC_HD *SHD) {
+   if ( !SHD ) return false;//SHD = &SAC_HEADER;
    FILE *fsac;
-   SAC_HD *SHD;
-   if((fsac = fopen(fname, "r"))==NULL) return NULL;
+   //SAC_HD *SHD;
+   if((fsac = fopen(fname, "r"))==NULL) return false;
    pthread_mutex_lock(&fiolock);
-   if ( !SHD ) SHD = &SAC_HEADER;
    fread(SHD,sizeof(SAC_HD),1,fsac);
    fclose (fsac);
    pthread_mutex_unlock(&fiolock);
    
-   return SHD;
+   return true;
 }
 
 SAC_HD *read_sac (char *fname, float **sig, SAC_HD *SHD) {

@@ -1,5 +1,7 @@
 #include "DailyRec.h"
 #include "SysTools.h"
+#include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <cmath>
 #include <unistd.h>
@@ -8,7 +10,8 @@
 #include <chrono>
 #include <random>
 #include <functional>
-#include <omp.h>
+//#include <omp.h>
+#include "MyOMP.h"
 
 
 /*---------------------------------------------------- implementation details ----------------------------------------------------*/
@@ -178,6 +181,19 @@ public:
       return wMove(".", str, tdir, filelist);
    }
 
+   int Jday ( int y, int m, int d ) {
+      int i, jd = 0;
+      for( i = 1; i < m; i++ ) {
+	 if ( (i==1) || (i==3) || (i==5) || (i==7) || (i==8) || (i==10) ) jd += 31;
+	 else if (i==2) {
+	    if ( (y%400==0) || (y%100!=0&&y%4==0) ) jd += 29;
+	    else jd += 28;
+	 }
+	 else jd += 30;
+      }
+      return jd + d;
+   }
+
 }; //pimpl
 
 
@@ -194,7 +210,7 @@ DailyRec& DailyRec::operator= ( const DailyRec& DRin ) {
    pimpl.reset( new DRimpl(*DRin.pimpl) );
 }
 
-DailyRec::~DailyRec() { dRemove(pimpl->tdir.c_str()); }
+DailyRec::~DailyRec() {}//{ dRemove(pimpl->tdir.c_str()); }
 
 
 
@@ -225,6 +241,7 @@ int DailyRec::Set( const char *input ) {
    else if( stmp == "frechlen" ) succeed = buff >> pimpl->frechlen;
    else if( stmp == "fwname" ) succeed = buff >> pimpl->fwname;
    else return -1;
+
    if( succeed ) return 1;
    return 0;
 }
@@ -387,7 +404,7 @@ bool DailyRec::ExtractSac( int fskipesac, bool writeout ) {
    std::ostringstream reports( std::ios_base::app );
    //std::ostringstream reports;
    bool bltmp = extractSac( fskipesac, writeout, reports );
-   std::cout<<reports.str();
+   if( bltmp ) std::cout<<reports.str();
    return bltmp;
 }
 bool DailyRec::extractSac( int fskipesac, bool writeout, std::ostringstream& reports ) {
@@ -400,7 +417,10 @@ bool DailyRec::extractSac( int fskipesac, bool writeout, std::ostringstream& rep
    /* set up working directory */
    //std::string tdir;
    pimpl->tdir = "Working_" + std::to_string(rand());
+  #pragma omp critical
+  {
    while( ! MKDir( pimpl->tdir.c_str() ) ) pimpl->tdir = "Working_" + std::to_string(rand());
+  }
    setvbuf(stdout, NULL, _IOLBF, 0);
 
    /* check for file existence */
@@ -409,10 +429,12 @@ bool DailyRec::extractSac( int fskipesac, bool writeout, std::ostringstream& rep
       bool flag = pimpl->CheckExistence( sacT );
       if(fskipesac==2) {
 	 reports << " skipped! "<<std::endl;
+	 dRemove(pimpl->tdir.c_str());
 	 return true;
       }
       if(flag) {
 	 reports << " skipped on existense! "<<std::endl;
+	 dRemove(pimpl->tdir.c_str());
 	 return true;
       }
    }
@@ -421,8 +443,10 @@ bool DailyRec::extractSac( int fskipesac, bool writeout, std::ostringstream& rep
    std::vector<std::string> filelst;
    //char *filelst = pimpl->Seed2Sac( pimpl->tdir.c_str(), &nfile );
    //if(filelst==NULL) {
+ 
    if(! pimpl->Seed2Sac( pimpl->tdir.c_str(), filelst ) ) {
       reports << " sac record not found from "<<pimpl->fseed<<"! "<<std::endl;
+      dRemove(pimpl->tdir.c_str());
       return false;
    }
 
@@ -461,6 +485,8 @@ bool DailyRec::extractSac( int fskipesac, bool writeout, std::ostringstream& rep
       if( (float)Nholes/(float)sacT.shd.npts > pimpl->gapfrac ) {
          //pimpl->npts = -1;
 	 reports << " too many holes detected! "<<std::endl;
+	 dRemove(pimpl->tdir.c_str());
+	 fRemove(pimpl->fresp.c_str());
          return false;
       }
    }
@@ -473,6 +499,7 @@ bool DailyRec::extractSac( int fskipesac, bool writeout, std::ostringstream& rep
 
    //dRemove(pimpl->tdir.c_str());
    reports << " done. "<<std::endl;
+   dRemove(pimpl->tdir.c_str());
    return true;
 
 /*
@@ -488,3 +515,55 @@ bool DailyRec::extractSac( int fskipesac, bool writeout, std::ostringstream& rep
 
 /*---------------------------------------------------- Remove RESP ----------------------------------------------------*/
 
+bool DailyRec::RmRESP(bool writeout) {
+   if( pimpl->fresp.empty() ) return false;
+   sacT.RmRESP(pimpl->evrexe.c_str(), pimpl->fresp.c_str(), pimpl->perl, pimpl->perh);
+   fRemove(pimpl->fresp.c_str());
+   // write out
+   if( writeout ) {
+      std::string outname = pimpl->outdir + "/" + pimpl->ffsac;
+      sacT.Write(outname.c_str());
+   }
+   return true;
+}
+
+
+bool DailyRec::ZoomToEvent( std::string& ename, float evlon, float evlat, float tb, float te, bool writeout ) {
+   if( te <= tb ) return false;
+   
+   // event time info
+   SacRec sacevent;
+   SAC_HD& eshd = sacevent.shd;
+   eshd.nzyear = std::stoi( ename.substr(0, 4) );
+   float month = std::stoi( ename.substr(4, 2) );
+   float day = std::stoi( ename.substr(6, 2) );
+   eshd.nzjday = pimpl->Jday( eshd.nzyear, month, day );
+   eshd.nzhour = std::stoi( ename.substr(8, 2) );
+   eshd.nzmin = std::stoi( ename.substr(10, 2) );
+   eshd.nzsec = std::stoi( ename.substr(12, 2) );
+   eshd.nzmsec = 0.;
+   eshd.npts = 1; // so that AbsTime() won't fail
+
+   // difference in origin time
+   SAC_HD& shd = sacT.shd;
+   float shift = sacevent.AbsTime() - sacT.AbsTime();
+   // assign event time to sacrec and update shd.b
+   shd.nzyear = eshd.nzyear; shd.nzjday = eshd.nzjday;
+   shd.nzhour = eshd.nzhour; shd.nzmin = eshd.nzmin; shd.nzsec = eshd.nzsec;
+   shd.b -= shift;
+
+   // cut to tb - te
+   if( ! sacT.cut( tb, te ) ) return false;
+
+   // assign event location
+   sprintf(shd.kevnm, "%s", ename.c_str());
+   shd.evlo = evlon; shd.evla = evlat;
+
+   // write to disk
+   if( writeout ) {
+      std::string outname = pimpl->outdir + "/" + pimpl->ffsac;
+      sacT.Write(outname.c_str());
+   }
+
+   return true;
+}

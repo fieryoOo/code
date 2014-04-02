@@ -8,10 +8,10 @@ pthread_mutex_t evrlock;
 void FDivide (double f1, double f2, double f3, double f4, double dt, int n, float *seis_in, float *seis_out, double *freq, double *amp, double *pha, int nf);
 
 int CheckExistenceft(int ne, int ns) {
-   SAC_HD *shd = read_shd(sdb->rec[ne][ns].ft_fname);
-   if( shd==NULL ) return 0;
-   sdb->rec[ne][ns].n = shd->npts;
-   sdb->rec[ne][ns].dt = shd->delta;
+   SAC_HD shd;
+   if( ! read_shd(sdb->rec[ne][ns].ft_fname, &shd) ) return 0;
+   sdb->rec[ne][ns].n = shd.npts;
+   sdb->rec[ne][ns].dt = shd.delta;
    return 1;
 }
 

@@ -1,0 +1,12 @@
+/home/tianye/Software/sac/bin/sac<< END
+r merged.sac
+rmean
+rtrend
+taper
+transfer from evalresp fname resp1 to vel freqlimits 0.001000 0.001500 0.100000 0.200000
+w merged_v1.sac
+cut 0 5000
+r merged_v1.sac
+w over
+quit
+END

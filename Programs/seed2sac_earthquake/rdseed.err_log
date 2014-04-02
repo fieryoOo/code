@@ -1,0 +1,5126 @@
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 18:55:51 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 18:57:16 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 18:58:51 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:00:29 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:02:05 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:03:36 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:05:11 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:06:45 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:08:20 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:09:55 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:11:27 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:13:06 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:14:40 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:16:13 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:17:50 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:19:25 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:20:57 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:22:37 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:24:13 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:25:50 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:27:25 2012
+
+By: tianye
+WARNING (get_stn_chn_rec_Lrecl()):  station/channel station/channel %s/%s not found in station/channel tables.
+/A04A not found in station/channel tables.
+	Trying again ignoring effective times.
+Found stn/chn record
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ A04A response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:29:02 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:30:37 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:32:16 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:33:54 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:35:33 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:37:12 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:38:49 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:40:29 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:42:05 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:43:46 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:45:21 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:46:58 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:48:36 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:50:09 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:51:49 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:53:30 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:55:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:56:41 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:58:14 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 19:59:49 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:01:29 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:03:03 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:04:45 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:06:27 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:08:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:09:52 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:11:33 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:13:13 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:14:52 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:16:35 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:18:20 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:20:02 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:21:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:23:26 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:25:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:26:55 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:28:30 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:30:15 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:31:50 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:33:27 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:35:06 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:36:41 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:38:16 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:39:52 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:41:30 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:43:05 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:44:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:46:22 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:47:59 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:49:37 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:51:14 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:52:53 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:54:31 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:56:09 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:57:49 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 20:59:27 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:01:01 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:02:38 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:04:18 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:05:55 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:07:31 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:09:07 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:10:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:12:25 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:14:01 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:15:39 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:17:21 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:18:57 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:20:34 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:22:13 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:23:50 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:25:26 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:27:05 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:28:39 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:30:16 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:31:52 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:33:30 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:35:05 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:36:41 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:38:22 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:40:02 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:41:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:43:20 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:44:57 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:46:37 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:48:18 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:49:57 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:51:39 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:53:19 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:55:03 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:56:32 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 21:58:16 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:00:04 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:01:54 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:03:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:05:15 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:06:41 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:08:28 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:10:20 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:12:12 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:14:01 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:15:45 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:17:36 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:19:29 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:21:16 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:23:05 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:24:55 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:26:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:28:32 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:30:22 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:32:13 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:34:00 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:35:52 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:37:43 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:39:34 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:41:22 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:43:12 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:44:40 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:46:10 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:48:02 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:49:50 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:51:38 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:53:23 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:55:13 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:57:05 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 22:58:56 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:00:27 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:02:23 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:04:16 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:06:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:08:00 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:09:51 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:11:42 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:13:35 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:15:23 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:17:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:18:38 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:20:11 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:21:43 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:23:14 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:24:39 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:26:04 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:27:46 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:29:25 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:30:47 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:32:26 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:33:50 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:35:24 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:37:11 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:39:00 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:40:32 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:42:17 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:43:45 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:45:32 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:46:59 2012
+
+By: tianye
+WARNING (get_stn_chn_rec_Lrecl()):  station/channel station/channel %s/%s not found in station/channel tables.
+/DAN not found in station/channel tables.
+	Trying again ignoring effective times.
+Found stn/chn record
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ DAN response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ DAN response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ DAN response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ DAN response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ DAN response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ DAN response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ DAN response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ DAN response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ DAN response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ DAN response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ DAN response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ DAN response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ DAN response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ DAN response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:48:41 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:50:22 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:51:43 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:53:10 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:54:40 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:56:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:57:54 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Thu Oct 18 23:59:24 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:00:51 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:02:21 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:04:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:05:53 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:07:24 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:08:51 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:10:41 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:12:12 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:13:39 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:15:10 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:16:39 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:18:06 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:19:32 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:21:18 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:23:07 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:24:54 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:26:17 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:27:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:29:32 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:30:54 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:32:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:34:32 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:36:21 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:38:09 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:39:54 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:41:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:43:35 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:45:21 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:46:49 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:48:15 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:49:58 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:51:45 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:53:33 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:55:18 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:57:09 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 00:58:58 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:00:48 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:02:34 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:04:19 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:06:07 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:07:55 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:09:42 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:11:30 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:13:18 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:15:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:16:58 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:18:45 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:20:14 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:22:04 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:23:30 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:25:15 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:27:04 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:28:30 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:30:01 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:31:49 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:33:36 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:35:29 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:37:19 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:39:09 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:41:00 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:42:53 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:44:46 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:46:33 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:48:23 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:50:16 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:52:06 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:53:54 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:55:46 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:57:38 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 01:59:27 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:01:13 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:03:06 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:04:57 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:06:47 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:08:36 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:10:25 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:12:17 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:14:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:15:53 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:17:46 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:19:33 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:21:18 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:23:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:24:53 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:26:42 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:28:12 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:29:59 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:31:59 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:33:35 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:35:39 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:37:16 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:39:18 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:40:52 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:42:50 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:44:21 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:45:58 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:47:36 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:49:13 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:50:48 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:52:24 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:54:01 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:55:33 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:57:34 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 02:59:11 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:01:10 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:03:13 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:05:13 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:07:13 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:08:50 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:10:51 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:12:28 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:14:28 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:16:34 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:18:11 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:19:53 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:21:33 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:23:06 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:24:46 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:26:26 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:28:25 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:30:00 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:31:34 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:33:09 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:34:49 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:36:27 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:38:04 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:39:42 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:41:17 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:42:52 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:44:29 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:46:05 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:47:43 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:49:24 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:51:00 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:52:41 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:54:21 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:56:05 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:57:45 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 03:59:30 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:01:14 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:02:54 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:04:28 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:05:52 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:07:27 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:09:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:10:46 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:12:34 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:14:15 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:15:56 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:17:38 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:19:20 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:21:04 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:22:49 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:24:31 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:26:16 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:28:02 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:29:48 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:31:29 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:33:11 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:34:57 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:36:36 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:38:19 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:40:04 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:41:49 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:43:34 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:45:20 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:47:03 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:48:39 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:50:18 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:51:58 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:53:37 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:55:25 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:57:10 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 04:58:54 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:00:37 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:02:22 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:04:03 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:05:45 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:07:30 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:09:17 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:10:56 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:12:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:14:27 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:16:09 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:17:54 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:19:36 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:21:23 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:23:09 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:24:53 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:26:33 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:28:16 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:30:01 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:31:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:33:31 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:35:17 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:36:59 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:38:39 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:40:21 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:42:07 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:43:55 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:45:34 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:47:17 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:49:04 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:50:47 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:52:32 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:54:18 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:56:05 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:57:52 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 05:59:38 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:01:28 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:03:12 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:04:57 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:06:45 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:08:32 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:10:21 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:12:10 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:13:58 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:15:40 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:17:28 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:19:17 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:21:02 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:22:50 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:24:43 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:26:28 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:28:18 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:30:10 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:31:53 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:33:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:35:33 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:37:15 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:39:05 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:40:55 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:42:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:44:29 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:46:18 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:48:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:49:55 2012
+
+By: tianye
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ ERPA response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ ERPA response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ ERPA response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ ERPA response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ MNTX response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ MNTX response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ MSO response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ MSO response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ NATX response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ NATX response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ NHSC response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+WARNING (process_data):  station station %s %s response effective time not found in station table.
+ NHSC response effective time not found in station table.
+	Trying again ignoring effective times.
+Found stn/chn record.
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:51:46 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:53:34 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:55:23 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:57:13 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 06:59:05 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:00:54 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:02:40 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:04:31 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:06:17 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:08:09 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:10:03 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:11:49 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:13:41 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:15:31 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:17:22 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:19:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:21:02 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:22:53 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:24:42 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:26:35 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:28:28 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:30:17 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:32:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:34:02 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:35:54 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:37:49 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:39:43 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:41:38 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:43:29 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:45:22 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:47:14 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:49:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:51:01 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:52:52 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:54:47 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:56:43 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 07:58:32 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:00:27 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:02:20 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:04:11 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:06:04 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:08:00 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:09:52 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:11:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:13:37 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:15:27 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:17:20 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:19:16 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:21:10 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:23:02 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:24:58 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:26:49 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:28:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:30:34 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:32:25 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:34:20 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:36:14 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:38:11 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:40:10 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:42:04 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:44:03 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:45:57 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:47:52 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:49:45 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:51:43 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:53:35 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:55:30 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:57:23 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 08:59:22 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:01:22 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:03:13 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:05:06 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:07:03 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:08:56 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:10:52 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:12:50 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:14:43 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:16:39 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:18:37 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:20:34 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:22:34 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:24:36 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:26:33 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:28:31 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:30:26 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:32:20 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:34:13 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:36:09 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:38:03 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:39:58 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:41:58 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:43:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:45:30 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:47:15 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:48:57 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:50:47 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:52:35 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:54:31 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:56:30 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 09:58:17 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:00:01 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:01:48 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:03:48 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:05:48 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:07:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:09:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:11:44 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:13:32 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:15:18 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:17:04 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:18:55 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:20:57 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:22:53 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:24:51 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:26:51 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:28:50 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:30:40 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:32:38 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:34:32 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:36:30 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:38:26 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:40:08 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:41:58 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:43:53 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:45:41 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:48:02 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:50:33 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:52:39 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:54:37 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:56:29 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 10:58:16 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 11:00:28 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 11:02:29 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 11:04:33 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)
+
+==================================================
+Error logging startup
+Date: Fri Oct 19 11:06:32 2012
+
+By: tianye
+Warning... Azimuth and Dip out of Range on Warning... Azimuth and Dip out of Range on %s,%s
+,IRM
+Defaulting to subchannel identifier (for multiplexed data only)

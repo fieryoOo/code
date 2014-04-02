@@ -35,8 +35,10 @@ public:
    /* extracting sac from the seed file. */
    bool ExtractSac( int fskipesac = 0, bool writeout = false ); // extract with reporting
    bool extractSac( int fskipesac, bool writeout, std::ostringstream& reports ); // extract without reporting
-   //void RmRESP();
+   bool RmRESP(bool writeout);
    //void TempSpecNorm ();
+   // cut the record according to event origin time
+   bool ZoomToEvent( std::string& ename, float evlon, float evlat, float tb, float te, bool writeout );
 };
 
 

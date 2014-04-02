@@ -19,11 +19,11 @@ void SetName(int ne, int ns) {
 
 int CheckExistence(int ne, int ns, int ithread) {
    //check for sac file
-   SAC_HD *shd = read_shd(sdb->rec[ne][ns].fname);
-   if( shd==NULL ) return 0;
-   sdb->rec[ne][ns].n = shd->npts;
-   sdb->rec[ne][ns].t0 = abs_time (shd->nzyear, shd->nzjday, shd->nzhour, shd->nzmin, shd->nzsec, shd->nzmsec );
-   sdb->rec[ne][ns].dt = shd->delta;
+   SAC_HD shd;
+   if( ! read_shd(sdb->rec[ne][ns].fname, &shd) ) return 0;
+   sdb->rec[ne][ns].n = shd.npts;
+   sdb->rec[ne][ns].t0 = abs_time (shd.nzyear, shd.nzjday, shd.nzhour, shd.nzmin, shd.nzsec, shd.nzmsec );
+   sdb->rec[ne][ns].dt = shd.delta;
    int nlist;
    //check for RESP file
    char dir[150], respname[150];
@@ -164,6 +164,17 @@ char *Seed2Sac(int ne, int ns, char *nseed, int *nfile, int ithread) {
    //list SAC files
    sprintf(str, "*%s*%s*SAC", sdb->st[ns].name, ch);
    char *filelst = wMove(".", str, tdir, 1, nfile);
+   //check if IRIS went nuts
+   if( *nfile > 100 ) { // ignore this station if they did
+      char list_name[150];
+      int offset, curp = 0;
+      while( (sscanf(&filelst[curp], "%s%n", list_name, &offset)) == 1 ) {
+	 fRemove(list_name);
+	 curp += offset;
+      }
+      free(filelst); 
+      *nfile = 0; filelst = NULL;
+   }
 //cerr<<filelst<<endl;
 /*
    list = List(".", str, 0, &nlist); //list SAC files in the current depth
@@ -265,6 +276,7 @@ int merge_sac(float * sig[], SAC_HD *sd, int nfile, int ne, int ns, int ithread)
    }
    if( (float)Nholes/(float)N > gapfrac ) {
       sdb->rec[ne][ns].n = -1;
+      free(sig0);
       return 0;
    }
 
@@ -361,11 +373,13 @@ void * ExtractSacEntrance( void * tid ) {
             if(fskip1==2) continue;
             else if(flag) continue;
          }
+pthread_mutex_lock(&cevlock);
          if( MakeRecord(iev, ist, ithread) ) {
             if( nst%20 == 0 ) reports[ithread].tail += sprintf(reports[ithread].tail, "\n   ");
             reports[ithread].tail += sprintf(reports[ithread].tail, "%s ", sdb->st[ist].name);
             nst++;
          }
+pthread_mutex_unlock(&cevlock);
       }
       reports[ithread].tail += sprintf(reports[ithread].tail, "\n   %d stations processed. ###\n", nst);
       cout<<reports[ithread].head;
