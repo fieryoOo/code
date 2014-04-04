@@ -373,13 +373,13 @@ void * ExtractSacEntrance( void * tid ) {
             if(fskip1==2) continue;
             else if(flag) continue;
          }
-pthread_mutex_lock(&cevlock);
+//pthread_mutex_lock(&cevlock);
          if( MakeRecord(iev, ist, ithread) ) {
             if( nst%20 == 0 ) reports[ithread].tail += sprintf(reports[ithread].tail, "\n   ");
             reports[ithread].tail += sprintf(reports[ithread].tail, "%s ", sdb->st[ist].name);
             nst++;
          }
-pthread_mutex_unlock(&cevlock);
+//pthread_mutex_unlock(&cevlock);
       }
       reports[ithread].tail += sprintf(reports[ithread].tail, "\n   %d stations processed. ###\n", nst);
       cout<<reports[ithread].head;

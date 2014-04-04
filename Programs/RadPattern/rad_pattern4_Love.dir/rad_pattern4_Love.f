@@ -112,6 +112,7 @@ C-------------------------------initiation------------E
 C-----------reading OLD_SURF_DEEP output---S                  
       call surfread(infile,sigR,sigL,symbik,nt,nd,depth,t,cr,ur,wvr,
      +cl,ul,wvl,v,dvdz,ampl)
+      write(*,*) ampl(1), ampl(90), ampl(180)
 C-----------reading OLD_SURF_DEEP output---E                  
            call angles2tensor(strike,dip,rake,tm)
         write(64,*)tm

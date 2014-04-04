@@ -40,13 +40,14 @@ C----------Reading Love stuff----------------------S
 		 end do
 		 STOP 'NO LOVE'
 C----------Reading Love stuff----------------------S
-1        Do k=1,nt
+1        ires=1
+         Do k=1,nt
          if(nd_real.eq.nd)  read(1,'(a)',end=11)vzdor
            read(1, '(6(E14.7,2X))') t(k),cl(k),ul(k),wvl(k),ampl(k),qL(k)
 	   read(1,'(a)') ,vzdor
 C---------Love component---S
 	                  do l=1,nd
-           read(1,'(a)')mura
+           read(1,'(a)',end=11)mura
            if(mura(2:4).eq.'@@@')then
            nd_real=l-1 
            go to 5454
@@ -60,7 +61,7 @@ C---------Love component---S
 6666      nd_real=nd
 C---------Love component---E
 5454     			   end Do
-	   ires=1
+C	   ires=1
 		   close(1)
 		      END IF
 C----------Reading Love stuff----------------------E
