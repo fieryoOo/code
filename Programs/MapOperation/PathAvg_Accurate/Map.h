@@ -5,12 +5,14 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <vector>
 #include <memory>
 
 template < class T >
 class Point {
+protected:
    T lon, lat;
 public:
    Point(T lonin = -12345., T latin = -12345.) 
@@ -20,34 +22,32 @@ public:
    inline const T Lon() const { return lon; }
    inline	T Lon() { return lon; }
    friend std::ostream& operator << (std::ostream& o, Point a) { 
-      o << "(" << a.lon << ", " << a.lat<< ")"; 
+      //o << "(" << a.lon << ", " << a.lat<< ")"; 
+      o.setf(std::ios::fixed);
+      o << std::left << std::setprecision(3) << a.lon << " " << a.lat; 
       return o; 
    }
 };
 
-#define PIO180 0.017453292519943295
 template < class T >
-class DataPoint {
-   T dis, disa, azi, data;
+class DataPoint : public Point<T> {
+   T dis, data;
+
 public:
-   DataPoint(const T disin = -12345., const T aziin = -12345., const T datain = -12345.)
-      : dis(disin), azi(aziin), data(datain) {
-      disa = dis * azi * PIO180;
-   }
+   DataPoint(const T lonin = -12345., const T latin = -12345., const T datain = -12345., const T disin = -12345. )
+      : Point<T>(lonin, latin)
+      , dis(disin), data(datain) {}
 
    inline const T Dis() const { return dis; }
    inline	T Dis() { return dis; }
-   inline const T Disa() const { return disa; }
-   inline	T Disa() { return disa; }
-   inline const T Azi() const { return azi; }
-   inline	T Azi() { return azi; }
    inline const T Data() const { return data; }
    inline	T Data() { return data; }
 
    friend std::ostream& operator << (std::ostream& o, DataPoint a) { 
-      o << "(" << a.dis << ", " << a.disa<< "): "<<a.data; 
+      o << a.lon << " " << a.lat << " " <<a.data<<" "<<a.dis; 
       return o; 
    }
+
 };
 
 

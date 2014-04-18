@@ -14,7 +14,7 @@ extern"C" {
 
 /* implimentation */
 struct RadPattern::Rimpl {
-   FocalInfo finfo, finfoold;
+   FocalInfo<float> finfo, finfoold;
    std::string outname_mis;
    std::string feignmem, fphvnmem; // name of files of the currently-in-the-memory contents
 
@@ -38,7 +38,7 @@ RadPattern::RadPattern()
 RadPattern::~RadPattern() {}
 
 /* predict radpattern for rayleigh and love waves */
-bool RadPattern::Predict( char type, const std::string& feigname, const std::string& fphvname, const FocalInfo& finfo,
+bool RadPattern::Predict( char type, const std::string& feigname, const std::string& fphvname, const FocalInfo<float>& finfo,
 				 std::vector<float>& perlst, std::vector< std::vector<AziData> >& per_azi_pred ) {
    if( type!='R' && type!='L' ) return false;
    int nper = perlst.size();

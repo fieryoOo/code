@@ -1,32 +1,47 @@
 #ifndef RADPATTERN_H
 #define RADPATTERN_H
 
+#include <cmath>
 #include <memory>
 #include <iostream>
 #include <iomanip>
 #include <vector>
 #include <string>
 
+template< class T >
 struct FocalInfo {
-   int strike, dip, rake;
-   int depth;
-   FocalInfo( int strikein = 180, int dipin = 45, int rakein = 0, int depthin = 10 )
+   T strike, dip, rake, depth;
+
+   FocalInfo( T strikein = 180, T dipin = 45, T rakein = 0, T depthin = 10 )
       : strike(strikein), dip(dipin), rake(rakein), depth(depthin) {}
+
    friend std::ostream& operator<< ( std::ostream& o, const FocalInfo& f ) {
       o<<"( "<<std::setw(3)<<f.strike<<" "<<std::setw(2)<<f.dip<<" "<<std::setw(4)<<f.rake<<"  "<<std::setw(2)<<f.depth<<" )"; 
       return o; 
    }
+
+   friend bool operator== ( FocalInfo<T>& fi1, FocalInfo<T>& fi2 ) {
+      T dis_st = fabs(fi1.strike - fi2.strike);
+      T dis_di = fabs(fi1.dip - fi2.dip);
+      T dis_ra = fabs(fi1.rake - fi2.rake);
+      T dis_de = fabs(fi1.depth - fi2.depth);
+      return (dis_st<0.1 && dis_di<0.1 && dis_ra<0.1 && dis_de<0.1);
+   }
+
 };
 
 
 struct AziData {
+   bool valid;
    float azi;
    float misG, varG;
    float misP, varP;
    float A, varA;
-   AziData( float aziin = -12345., float misGin = -12345.,
-            float misPin = -12345., float ampin = -12345. )
-      : azi(aziin), misG(misGin), misP(misPin), A(ampin) {}
+   AziData()
+      : azi(-12345.), misG(-12345.), misP(-12345.), A(-12345.), valid(false) {}
+
+   AziData( float aziin, float misGin, float misPin, float ampin )
+      : azi(aziin), misG(misGin), misP(misPin), A(ampin), valid(true) {}
 
    friend std::ostream& operator<< ( std::ostream& o, const AziData& ad ) {
       o<<"( "<<ad.azi<<"  "<<ad.misG<<" "<<ad.varG<<"  "<<ad.misP<<" "<<ad.varP
@@ -46,8 +61,8 @@ public:
    ~RadPattern();
 
    /* Predict Rayleigh wave radiation patterns */
-   bool Predict( char type, const std::string& feigname, const std::string& fphvname, const FocalInfo& finfo,
-                 std::vector<float>& perlst, std::vector< std::vector<AziData> >& per_azi_pred );
+   bool Predict( char type, const std::string& feigname, const std::string& fphvname, const FocalInfo<float>&
+		 finfo, std::vector<float>& perlst, std::vector< std::vector<AziData> >& per_azi_pred );
 
 };
 

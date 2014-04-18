@@ -21,7 +21,7 @@ int main( int argc, char* argv[] ) {
    std::vector< Point<float> > reclst;
    for(std::string line; std::getline(fin, line); ) {
       float reclon, reclat;
-      sscanf( line.c_str(), "%f %f", &reclon, &reclat );
+      if(! sscanf( line.c_str(), "%f %f", &reclon, &reclat ) ) continue;
       if( reclon < 0. ) reclon += 360.;
       reclst.push_back( Point<float>(reclon, reclat) );
    }
@@ -33,8 +33,9 @@ int main( int argc, char* argv[] ) {
    if( hdis <= 0. ) exit(0);
    for(size_t i=0; i<reclst.size(); i++) {
       float res, weit;
-      res = map.PointAverage(reclst.at(i), hdis, weit);
-      std::cout<<res<<" "<<weit<<std::endl;
+      res = map.PointAverage(reclst[i], hdis, weit);
+      std::cout<<reclst[i]<<"\t"<<res<<" "<<weit<<std::endl;
    }
+
    return 0;
 }

@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include <errno.h>
 
 int calc_dist(double lati1, double long1, double lati2, double long2, double *dist);
@@ -46,8 +47,11 @@ struct Map::Mimpl {
 	 if( ! std::getline(fin, line) ) return false;
 	 float lon, lat, data;
 	 sscanf(line.c_str(), "%f %f %f", &lon, &lat, &data);
+	 lon = lon>90. ? lon-90. : lon+270.;
+	 lat = lat>0 ? lat-90. : lat+90.;
 	 src = Point<float>(lon, lat);
-	 dataV.push_back( DataPoint<float>(0., 0., data) );
+	 fin.seekg(0);
+	 //dataV.push_back( DataPoint<float>(0., 0., data) );
       }
       for(std::string line; std::getline(fin, line); ) {
 	 float lon, lat, data;
@@ -143,24 +147,25 @@ float Map::PointAverage(Point<float> rec, float hdis, float& weit) {
 
    // define computation area
    float dismax = hdis * 2.5, dismax_s = dismax*dismax;
-   int rowmin = (int)floor((DPrec.Dis()-dismax-dis0) / grd_dis + 0.5) - 1;
+   int rowmin = (int)floor((DPrec.Dis()-dismax-dis0) / grd_dis + 0.5);
    if( rowmin < 0 ) rowmin = 0;
    int rowmax = (int)floor((DPrec.Dis()+dismax-dis0) / grd_dis + 0.5) + 1;
    if( rowmax > dataM.NumRows() ) rowmax = dataM.NumRows();
-   int colmin = (int)floor((DPrec.Disa()-dismax-disa0) / grd_dis + 0.5) - 1;
+   int colmin = (int)floor((DPrec.Disa()-dismax-disa0) / grd_dis + 0.5);
    if( colmin < 0 ) colmin = 0;
    int colmax = (int)floor((DPrec.Disa()+dismax-disa0) / grd_dis + 0.5) + 1;
    if( colmax > dataM.NumCols() ) colmax = dataM.NumCols();
 
    weit = 0.;
-   float alpha = -0.5 / (dismax*dismax), datasum = 0.;
-   for(int irow=0; irow<rowmax; irow++) {
+   float alpha = -0.5 / (hdis*hdis), datasum = 0.;
+   for(int irow=rowmin; irow<rowmax; irow++) {
       for(int icol=colmin; icol<colmax; icol++) {
          for(size_t idata=0; idata<dataM(irow, icol).size(); idata++) {
 	    DataPoint<float> dpcur = dataM(irow, icol)[idata];
 	    //distance from dataM(irow, icol).at(idata) to DPrec.
 	    float xdis = DPrec.Dis() - dpcur.Dis(), ydis = DPrec.Disa() - dpcur.Disa();
 	    float disc_s = xdis*xdis + ydis*ydis;
+//std::cerr<<dpcur.Data()<<"  "<<disc_s<<"  "<<dpcur.Azi()<<" "<<dpcur.Dis()<<"  "<<DPrec.Azi()<<" "<<DPrec.Dis()<<std::endl;
 	    if( disc_s > dismax_s ) continue;
 	    float weight = exp( alpha * disc_s );
 	    weit += weight;
@@ -199,9 +204,9 @@ float Map::PathAverage(Point<float> rec, float lamda, float& perc) {
 
    int rowmax = (int)floor((DPrec.Dis()+dab-dis0) / grd_dis + 0.5) + 1;
    if( rowmax > dataM.NumRows() ) rowmax = dataM.NumRows();
-   int colmax = (int)floor((DPrec.Disa()+dab-disa0) / grd_dis + 0.5) + 1;
+   int colmax = (int)floor( ( std::max(DPrec.Disa(),(float)0.)+bmax-disa0 ) / grd_dis + 0.5 ) + 1;
    if( colmax > dataM.NumCols() ) colmax = dataM.NumCols();
-   int colmin = (int)floor((-bmax-disa0) / grd_dis + 0.5) - 1;
+   int colmin = (int)floor( ( std::min(DPrec.Disa(),(float)0.)-bmax-disa0 ) / grd_dis + 0.5) - 1;
    if( colmin < 0 ) colmin = 0;
    float weit = 0., datasum = 0.;
    //float Nhaf = 12.;
@@ -211,6 +216,7 @@ float Map::PathAverage(Point<float> rec, float lamda, float& perc) {
 	 // distance from (irow, icol) to the line(src, DPrec)
 	 float disP = (disa0 + grd_dis * icol) - (DPrec.Disa() * (dis0+grd_dis*irow)/DPrec.Dis());
 	 if( fabs(disP) > bmax+grd_dis ) continue;
+//std::cerr<<disa0+grd_dis*icol<<" "<<dis0+grd_dis*irow<<std::endl;
          for(size_t idata=0; idata<dataM(irow, icol).size(); idata++) {
 	    DataPoint<float> dpcur = dataM(irow, icol)[idata];
 	    //distance from dataM(irow, icol).at(idata) to line(src, DPrec);
@@ -222,7 +228,7 @@ float Map::PathAverage(Point<float> rec, float lamda, float& perc) {
 	    if( dismax < dpcur.Dis() ) dismax = dpcur.Dis();
 	    float factor = ydat / (ymax * 0.33);
 	    float weight = exp(-0.5 * factor * factor);
-	    //std::cerr<<dpcur.Dis()<<" "<<dpcur.Disa()<<" "<<weight<<std::endl; // check kernel weights
+	    //std::cerr<<dpcur.Dis()<<" "<<dpcur.Disa()<<" "<<weight<<"   "<<src<<"  "<<rec<<std::endl;
 	    weit += weight;
 	    datasum += (dpcur.Data() * weight);
          }

@@ -41,12 +41,14 @@ int main( int argc, char* argv[] ) {
    std::cout<<"### "<<perlst.size()<<" periods read in. ###"<<std::endl;
 
    /* read in focal info */
-   float strikein = atof(argv[5]), dipin = atof(argv[6]), rakein = atof(argv[7]), depin = atof(argv[8]);
+   float strike = atof(argv[5]), dip = atof(argv[6]), rake = atof(argv[7]), dep = atof(argv[8]);
+   /*
    int strike = nint(strikein), dip = nint(dipin), rake = nint(rakein), dep = nint(depin);
    if( strike!=strikein || dip!=dipin || rake!=rakein || dep!=depin ) {
       std::cerr<<"Warning(main): integer expected for strike/dip/rake/depth. Corrected to the nearest integer(s)!"<<std::endl;
    }
-   FocalInfo finfo(strike, dip, rake, dep);
+   */
+   FocalInfo<float> finfo(strike, dip, rake, dep);
    std::cout<<"### Input Focal info = "<<finfo<<". ###"<<std::endl;
 
    /* run rad_pattern_r */

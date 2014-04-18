@@ -158,7 +158,7 @@ c9797     close(1)
 
       subroutine readline80( fbuff, pos1, pos2, linetmp )
       integer*4 pos1, pos2
-      character*10000000 fbuff
+      character*20000000 fbuff
       character*80 linetmp
       pos2 = pos1+80
       read(fbuff(pos1:pos2),'(a)') linetmp
@@ -168,7 +168,7 @@ c9797     close(1)
 
       subroutine readline300( fbuff, pos1, pos2, linetmp )
       integer*4 pos1, pos2
-      character*10000000 fbuff
+      character*20000000 fbuff
       character*300 linetmp
       pos2 = pos1+300
       read(fbuff(pos1:pos2),'(a)') linetmp
