@@ -146,9 +146,9 @@ c evaluation of spline polinomial forms for phase match filter
       call pred_cur(ip,delta,dsqrt(omb*ome),npred,pred,om0,tg0)
       write(*,*)'T0= ',2.0d0*pi/om0,', tg0= ',tg0
 c seismgram tapering
-      nb = max0(2,nint((delta/vmax-t0)/dt))
+      nb = max0(2,nint((delta/vmax-t0-50.0d0)/dt))
       tamp = (nb-1)*dt+t0;
-      ne = min0(n,nint((delta/vmin-t0)/dt))
+      ne = min0(n,nint((delta/vmin-t0+50.0d0)/dt))
       nrow = nfin
       ncol = ne-nb+1
 c times for FTAN map

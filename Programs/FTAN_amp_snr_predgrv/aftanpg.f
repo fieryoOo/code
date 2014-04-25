@@ -117,9 +117,9 @@ c [omb,ome] - frequency range
       omb = 2.0d0*pi/tmax
       ome = 2.0d0*pi/tmin
 c seismgram tapering
-      nb = max0(2,nint((delta/vmax-t0)/dt))
+      nb = max0(2,nint((delta/vmax-t0-50.0d0)/dt))
       tamp = (nb-1)*dt+t0;
-      ne = min0(n,nint((delta/vmin-t0)/dt))
+      ne = min0(n,nint((delta/vmin-t0+50.0d0)/dt))
 c      print *,"nb: ", nb, " ne: ", ne
       nrow = nfin
       ncol = ne-nb+1
