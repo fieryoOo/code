@@ -426,7 +426,7 @@ int read_rec(int rec_flag, char *fname, int len, int *rec_b, int *rec_e, int *nr
 
 #include <algorithm>
 #include <cctype>
-bool SacRec::ChHdr(const char* field, char* value){
+bool SacRec::ChHdr(const char* field, const char* value){
    std::stringstream sin(value);
    std::string fstr(field);
    std::transform(fstr.begin(), fstr.end(), fstr.begin(), ::tolower);

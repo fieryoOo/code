@@ -53,7 +53,7 @@ public:
    bool Write ( const char *fname );
 
    /* ------------------------------ header operations ------------------------------ */
-   bool ChHdr(const char* field, char* value);
+   bool ChHdr(const char* field, const char* value);
 
    /* ------------------------------ header/signal information ------------------------------ */
    /* compute the absolute time in sec relative to 1900.01.00 */
