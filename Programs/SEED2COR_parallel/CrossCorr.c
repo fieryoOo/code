@@ -207,7 +207,7 @@ int ComprRec(struct starec *stag1, struct starec *stag2) {
    return 1;
 }
 
-int InitCor(int is1, struct starec *dayrec2) {
+int InitCor(int is1, int is2, struct starec *dayrec2) {
    int iev;
    for(iev=0; iev<NEVENTS && dayrec2[iev].nr==0; iev++);
    if(iev==NEVENTS) return 0;
@@ -222,6 +222,8 @@ int InitCor(int is1, struct starec *dayrec2) {
    strcpy(shdcor.kevnm, sdbnew->st[is1].name);
    shdcor.evla =  sdbnew->st[is1].lat;
    shdcor.evlo =  sdbnew->st[is1].lon;
+   shdcor.stla =  sdbnew->st[is2].lat;
+   shdcor.stlo =  sdbnew->st[is2].lon;
    calc_dist((double)(shdcor.evla), (double)(shdcor.evlo), (double)(shdcor.stla), (double)(shdcor.stlo), &distmp);
    shdcor.dist = distmp;
    shdcor.npts =  2*lag+1;
@@ -524,7 +526,7 @@ void CrossCorr() {
 	    if(i1>i2) break;
             is1 = i1+ig1*size;
             if(dnum[is1][is2]==-1) continue;
-	    if( ! InitCor(is1, starec2[0].dayrec) ) continue;
+	    if( ! InitCor(is1, is2, starec2[0].dayrec) ) continue;
 	    sprintf(outnameD, "%s/%s/COR_%s_%s", dirnameD, sdbnew->st[is1].name, sdbnew->st[is1].name, sdbnew->st[is2].name);
 	    sprintf(filename, "%s/%s/COR_%s_%s.SAC", dirnameM, sdbnew->st[is1].name, sdbnew->st[is1].name, sdbnew->st[is2].name);
 	    npair++;

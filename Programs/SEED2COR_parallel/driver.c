@@ -83,7 +83,7 @@ void FillMonths();
 
 void FillEvents();
 
-void InitialPthread();
+void InitialPthread(int);
 
 void CleanupPthread();
 
@@ -375,8 +375,8 @@ int GetParameters(char *fname) {
 
 int main (int argc, char *argv[])
 {
-   if(argc!=2) {
-      cerr<<"Usage: "<<argv[0]<<" [Parameters_file]"<<endl;
+   if(argc!=2 && argc!=3) {
+      cerr<<"Usage: "<<argv[0]<<" [Parameters_file] [num_of_threads (optinal)]"<<endl;
       return 0;
    }
 
@@ -387,7 +387,9 @@ int main (int argc, char *argv[])
    }
    FillStations();
    FillMonths();
-   InitialPthread();
+   int num_threads = -1;
+   if(argc==3) num_threads = atoi(argv[2]);
+   InitialPthread(num_threads);
    for(imonth=0;imonth<sdb->nmo;imonth++) {
       if( access(sdb->mo[imonth].name, R_OK) == -1 ) {
 	 cerr<<"Warning(main): Skipping month "<<sdb->mo[imonth].name<<". (Month directory deleted)"<<endl;

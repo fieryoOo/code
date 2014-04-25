@@ -198,8 +198,11 @@ int TransferEvr(int ne, int ns, float **sig, SAC_HD *sd, int ithread) {
    pthread_mutex_lock(&evrlock); //lock
    system(buff);
    char nameam[50], nameph[50];
-   sprintf(nameam, "AMP.%s.%s.*.%s", net, sta, ch);
-   sprintf(nameph,"PHASE.%s.%s.*.%s", net, sta, ch);
+   //sprintf(nameam, "AMP.%s.%s.*.%s", net, sta, ch);
+   //sprintf(nameph,"PHASE.%s.%s.*.%s", net, sta, ch);
+   sprintf(nameam, "AMP.*.%s.*.%s", sta, ch);
+   sprintf(nameph,"PHASE.*.%s.*.%s", sta, ch);
+
    // find am file
    FILE *fam = NULL, *fph = NULL;
    int nlist;

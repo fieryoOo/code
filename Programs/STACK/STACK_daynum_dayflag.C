@@ -139,8 +139,8 @@ cout<<"sac_add: "<<filename<<endl;
        free(fsigtmp);
     }
     if( shd->user0 == 0 ) {
-       free(fsig);
-       fsig = NULL;
+       free(*fsig);
+       *fsig = NULL;
     }
     return;
   }
@@ -348,7 +348,7 @@ int main (int argn, char *argv[]) {
        if (fmod(jj,50) == 0) fprintf(stderr,"%d %d %s %d\n",jj,jjj,outname,jjjj);
 
 
-       if (access(outfname,F_OK) == 0) continue;
+       //if (access(outfname,F_OK) == 0) continue;
 
        jjjj = 0;
        for (k=0;k<ndir;k++) {

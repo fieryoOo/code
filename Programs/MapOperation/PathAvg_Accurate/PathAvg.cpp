@@ -35,9 +35,10 @@ int main( int argc, char* argv[] ) {
    float lamda = atof(argv[5]);
    if( lamda < 0. ) exit(0);
    for(size_t i=0; i<reclst.size(); i++) {
-      float res, perc;
-      res = map.PathAverage(reclst.at(i), lamda, perc);
-      std::cout<<res<<" "<<perc<<std::endl;
+      float perc;
+      DataPoint<float> dp_res;
+      dp_res = map.PathAverage(reclst[i], lamda, perc);
+      std::cout<<dp_res<<"  "<<perc<<std::endl;
    }
    return 0;
 }

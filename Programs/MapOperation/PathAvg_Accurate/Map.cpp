@@ -203,7 +203,7 @@ float Map::PointAverage(Point<float> rec, float hdis, float& weit) {
 
 
 /* ------------ compute average value along the path src-rec ------------ */
-float Map::PathAverage(Point<float> rec, float lamda, float& perc) {
+DataPoint<float> Map::PathAverage(Point<float> rec, float lamda, float& perc) {
    // references
    Array2D< std::vector< DataPoint<float> > >& dataM = pimplM->dataM;
    float lonmin = pimplM->lonmin, latmin = pimplM->latmin;
@@ -268,7 +268,8 @@ float Map::PathAverage(Point<float> rec, float lamda, float& perc) {
       datasum /= weit;
       perc = dismax>dis ? 1 : dismax/dis;
    }
-   return datasum;
+   //return datasum;
+   return DataPoint<float>(rec, datasum, dis);
  
 }
 

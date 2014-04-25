@@ -17,14 +17,14 @@ protected:
 public:
    Point(T lonin = -12345., T latin = -12345.) 
       : lon(lonin), lat(latin) {}
-   inline const T Lat() const { return lat; }
-   inline	T Lat() { return lat; }
-   inline const T Lon() const { return lon; }
-   inline	T Lon() { return lon; }
+   inline const T& Lat() const { return lat; }
+   inline	T& Lat() { return lat; }
+   inline const T& Lon() const { return lon; }
+   inline	T& Lon() { return lon; }
    friend std::ostream& operator << (std::ostream& o, Point a) { 
       //o << "(" << a.lon << ", " << a.lat<< ")"; 
       o.setf(std::ios::fixed);
-      o << std::left << std::setprecision(3) << a.lon << " " << a.lat; 
+      o << std::left << std::setprecision(4) << a.lon << " " << a.lat; 
       return o; 
    }
 };
@@ -34,14 +34,18 @@ class DataPoint : public Point<T> {
    T dis, data;
 
 public:
+   DataPoint(const Point<T> ptin, const T datain = -12345., const T disin = -12345. )
+      : Point<T>(ptin)
+      , dis(disin), data(datain) {}
+
    DataPoint(const T lonin = -12345., const T latin = -12345., const T datain = -12345., const T disin = -12345. )
       : Point<T>(lonin, latin)
       , dis(disin), data(datain) {}
 
-   inline const T Dis() const { return dis; }
-   inline	T Dis() { return dis; }
-   inline const T Data() const { return data; }
-   inline	T Data() { return data; }
+   inline const T& Dis() const { return dis; }
+   inline	T& Dis() { return dis; }
+   inline const T& Data() const { return data; }
+   inline	T& Data() { return data; }
 
    friend std::ostream& operator << (std::ostream& o, DataPoint a) { 
       o << a.lon << " " << a.lat << " " <<a.data<<" "<<a.dis; 
@@ -77,9 +81,9 @@ public:
    /* ------------ compute average value along the path src-rec ------------ */
    float PathAverage(Point<float> Prec, float lamda) {
       float perc;
-      return PathAverage(Prec, lamda, perc);
+      return (PathAverage(Prec, lamda, perc)).Data();
    }
-   float PathAverage(Point<float> Prec, float lamda, float& perc);
+   DataPoint<float> PathAverage(Point<float> Prec, float lamda, float& perc);
    
 };
 

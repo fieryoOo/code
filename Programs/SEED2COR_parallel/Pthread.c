@@ -5,11 +5,15 @@ long MemAvail;
 
 void EstimateMemAvail (long &MemAvail);
 
-void InitialPthread() {
+void InitialPthread( int num_threads ) {
    size_t stacksize = 16777216;
-   NTHRDS = sysconf( _SC_NPROCESSORS_ONLN );
-   NTHRDS += NTHRDS/10; //NTHRDS = 1;
-   NTHRDS -= 1;
+   if( num_threads == -1 ) {
+      NTHRDS = sysconf( _SC_NPROCESSORS_ONLN );
+      NTHRDS += NTHRDS/10; //NTHRDS = 1;
+      NTHRDS -= 1;
+   } else {
+      NTHRDS = num_threads;
+   }
    cout<<"*** a total of "<<NTHRDS<<" threads will be created. ***"<<endl;
    pthread_attr_init(&attr_j);
    pthread_attr_setdetachstate(&attr_j, PTHREAD_CREATE_JOINABLE);

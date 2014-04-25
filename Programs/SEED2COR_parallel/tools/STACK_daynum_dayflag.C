@@ -139,8 +139,8 @@ cout<<"sac_add: "<<filename<<endl;
        free(fsigtmp);
     }
     if( shd->user0 == 0 ) {
-       free(fsig);
-       fsig = NULL;
+       free(*fsig);
+       *fsig = NULL;
     }
     return;
   }
@@ -249,6 +249,7 @@ int main (int argn, char *argv[]) {
   for(i=0; i<NSTA*NSTA; i++) pstr[i] = new char[300];
 
 
+
 /*
   char ***day_fc = (char ***) malloc(nsta * sizeof(char **));
   for(i=0;i<nsta;i++) {day_fc[i] = (char **) malloc(nsta * sizeof(char *));}
@@ -261,6 +262,7 @@ int main (int argn, char *argv[]) {
   for(i=0;i<nsta;i++) for(j=0;j<nsta;j++) {if( day_fc[i][j] == NULL )return 0;}
 */
   for(j=0;j<nsta;j++)for(k=j;k<nsta;k++) daynum[j][k] = 0;
+
   for (i=0;i<ndir;i++) {
      for(j=0;j<nsta;j++)for(k=j;k<nsta;k++) sflag[j][k] = -1;
      sprintf(tname1,"%s/Cor_dayflag.lst",dirlist[i]);
@@ -313,7 +315,7 @@ int main (int argn, char *argv[]) {
   }
   for(i=0;i<nsta;i++) for(j=i+1;j<nsta;j++){
      sprintf(lst_name,"%s/%s_%s_%s.SAC",staname[i],type,staname[i],staname[j]);
-     fprintf(flst,"%s\t%s\t%d\n",lst_name, day_fc[i][j], daynum[i][j]);
+     fprintf(flst,"%-30s\t%s\t%4d\n",lst_name, day_fc[i][j], daynum[i][j]);
   }
   fclose(flst);
 
@@ -346,7 +348,7 @@ int main (int argn, char *argv[]) {
        if (fmod(jj,50) == 0) fprintf(stderr,"%d %d %s %d\n",jj,jjj,outname,jjjj);
 
 
-       if (access(outfname,F_OK) == 0) continue;
+       //if (access(outfname,F_OK) == 0) continue;
 
        jjjj = 0;
        for (k=0;k<ndir;k++) {
