@@ -273,3 +273,73 @@ DataPoint<float> Map::PathAverage(Point<float> rec, float lamda, float& perc) {
  
 }
 
+
+/* ------------ compute average along the path src-rec weighted by the reciprocal of the map value ------------ */
+DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& perc) {
+   // references
+   Array2D< std::vector< DataPoint<float> > >& dataM = pimplM->dataM;
+   float lonmin = pimplM->lonmin, latmin = pimplM->latmin;
+   float grd_lon = pimplM->grd_lon, grd_lat = pimplM->grd_lat;
+
+   Point<float> src = pimplM->src;
+   /* rec parameters */
+   double dis;//, azi;
+   calc_dist( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &dis );
+   //calc_azimuth( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &azi );
+
+   int ilatmid = (int)floor( ( (rec.Lat()+src.Lat()) * 0.5 - latmin ) / grd_lat + 0.5 );
+   if( ilatmid > dataM.NumCols() ) ilatmid = dataM.NumCols();
+   else if( ilatmid < 0 ) ilatmid = 0;
+   double dis_lon1D = pimplM->dis_lon1D[ilatmid], dis_lat1D = pimplM->dis_lat1D;
+   float grd_dis_lon = grd_lon * dis_lon1D,  grd_dis_lat = grd_lat * dis_lat1D;
+   float grd_semidiag = sqrt( (grd_dis_lon * grd_dis_lon) + (grd_dis_lat * grd_dis_lat) );
+
+   /* ellipse parameters */
+   float Nmin = 3.; //(2 ~ 20?) Don't know much about sw kernel
+   // define ellipse
+   float f = dis*0.5; // known values
+   float amax = f+lamda/(2.*Nmin);// asqrmax = amax*amax;
+   //float bsqrmax = amax*amax - f*f; //maximum affective bsquare from Nmin
+   //float bmax = sqrt(bsqrmax); // maximum affective width in the perpendicular direction
+   float dab = amax - f, dab2 = dab*2.;
+   float max_2a = 2. * (amax + grd_semidiag);
+   float max_esti = 2.*amax+20.;
+
+
+   float weit = 0., datasum = 0.;
+   //float Nhaf = 12.;
+   float alpha = -1.125 / (dab*dab); //- 0.5 / (dab*2.*0.33 * dab*2.*0.33);
+   float dismax = 0.;
+   for(int irow=0; irow<dataM.NumRows(); irow++) {
+      for(int icol=0; icol<dataM.NumCols(); icol++) {
+	 // distances from (irow, icol) to src/rec
+	 float loncur = lonmin+irow*grd_lon, latcur = latmin+icol*grd_lat;
+	 float disEsrc = pimplM->estimate_dist( src, Point<float>(loncur,latcur) );
+	 float disErec = pimplM->estimate_dist( rec, Point<float>(loncur,latcur) );
+	 if( disEsrc + disErec > max_2a+20. ) continue; // 20. for estimating error
+         for(size_t idata=0; idata<dataM(irow, icol).size(); idata++) {
+	    DataPoint<float> dpcur = dataM(irow, icol)[idata];
+	    //distance from dataM(irow, icol).at(idata) to src/rec;
+	    double dis_src = dpcur.Dis(); //pimplM->estimate_dist(src, dpcur);
+	    double dis_rec = pimplM->estimate_dist(rec, dpcur);
+	    if( dis_src+dis_rec > max_esti ) continue; // 2.*dab == hdis * 3.
+	    //calc_dist(src.Lat(), src.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_src);
+	    calc_dist(rec.Lat(), rec.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_rec);
+	    float dis_ellip = dis_src + dis_rec - dis; // dis == 2.*f
+	    if( dis_ellip > dab2 ) continue; // 2.*dab == hdis * 3.
+	    if( dismax < dpcur.Dis() ) dismax = dpcur.Dis();
+	    float weight = exp( alpha * dis_ellip * dis_ellip );
+	    //std::cerr<<(Point<float>)dpcur<<" "<<weight<<"   "<<src<<"  "<<rec<<std::endl;
+	    weit += weight;
+	    datasum += ( weight / dpcur.Data() );
+         }
+      }
+   }
+   if(weit==0.) datasum = -12345.;
+   else datasum = weit/datasum;
+   perc = dismax>dis ? 1 : dismax/dis;
+   //return datasum;
+   return DataPoint<float>(rec, datasum, dis);
+ 
+}
+

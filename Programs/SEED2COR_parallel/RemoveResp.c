@@ -7,6 +7,9 @@ pthread_mutex_t evrlock;
 
 void FDivide (double f1, double f2, double f3, double f4, double dt, int n, float *seis_in, float *seis_out, double *freq, double *amp, double *pha, int nf);
 
+int Resampling(char *sacname, float **sig2, SAC_HD *sd, int ithread);
+
+
 int CheckExistenceft(int ne, int ns) {
    SAC_HD shd;
    if( ! read_shd(sdb->rec[ne][ns].ft_fname, &shd) ) return 0;
@@ -43,7 +46,7 @@ void UpdateRecCut(char *name, int nstart, int rec_b, int rec_e) {
 int CutRec(int ne, int ns, float *sig1, SAC_HD shd1, int ithread) {
 //cerr<<"CutRec: dt "<<sdb->rec[ne][ns].dt<<" rect0 "<<sdb->rec[ne][ns].t0<<" b "<<shd1.b<<" evt0 "<<sdb->ev[ne].t0<<endl;
    int n, nstt, nend;
-   float t1b, t1e, t2;
+   float t1b, t2; //t1e;
 
    float dt = sdb->rec[ne][ns].dt;
    n = (int)floor(tlen/dt+0.5)+1;
@@ -57,7 +60,7 @@ int CutRec(int ne, int ns, float *sig1, SAC_HD shd1, int ithread) {
 
    t1b = sdb->rec[ne][ns].t0 - sdb->ev[ne].t0;
    t1b += shd1.b;
-   t1e = t1b + (sdb->rec[ne][ns].n-1)*dt;
+   //t1e = t1b + (sdb->rec[ne][ns].n-1)*dt;
 
    nstt = (int)floor((t1-t1b)/dt+0.5);
    nend = nstt + n;
@@ -171,6 +174,18 @@ void RTrend(float *sig, SAC_HD *shd) {
    shd->depmen = mean / npts;
 }
 
+bool CheckSPS( int ne, int ns, int ithread ) {
+   char* fname = sdb->rec[ne][ns].fname;
+   SAC_HD shd;
+   if( ! read_shd (fname, &shd) ) return false;
+   if( fabs(shd.delta*sps-1.) > 1.0e-3 ) {
+      float* sig;
+      if( ! Resampling(fname, &sig, &shd, ithread) ) return false;
+      write_sac (fname, sig, &shd);
+   }
+   return true;
+}
+
 int TransferEvr(int ne, int ns, float **sig, SAC_HD *sd, int ithread) {
    // read in sac file
    *sig = NULL;
@@ -200,8 +215,8 @@ int TransferEvr(int ne, int ns, float **sig, SAC_HD *sd, int ithread) {
    char nameam[50], nameph[50];
    //sprintf(nameam, "AMP.%s.%s.*.%s", net, sta, ch);
    //sprintf(nameph,"PHASE.%s.%s.*.%s", net, sta, ch);
-   sprintf(nameam, "AMP.*.%s.*.%s", sta, ch);
-   sprintf(nameph,"PHASE.*.%s.*.%s", sta, ch);
+   sprintf(nameam, "AMP.*.%s*.%s", sta, ch);
+   sprintf(nameph,"PHASE.*.%s*.%s", sta, ch);
 
    // find am file
    FILE *fam = NULL, *fph = NULL;
@@ -289,6 +304,7 @@ void * RmRESPEntrance( void * tid ) {
             else if(flag) continue;
          }
 	 if(sdb->rec[ne][ns].n <= 0 ) continue;
+	 if( !CheckSPS(ne, ns, ithread) ) continue; //check sampling rate and resample if necessary
 	 if( !TransferEvr(ne, ns, &sig, &shd, ithread) ) continue; //sig allocated here
 	 if( !CutRec(ne, ns, sig, shd, ithread) ) continue; //sig freed here
 	 if( nst %20 == 0 ) reports[ithread].tail += sprintf(reports[ithread].tail, "\n   ");

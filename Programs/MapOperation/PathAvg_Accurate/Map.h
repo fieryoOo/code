@@ -84,7 +84,14 @@ public:
       return (PathAverage(Prec, lamda, perc)).Data();
    }
    DataPoint<float> PathAverage(Point<float> Prec, float lamda, float& perc);
-   
+
+   /* ------------ compute average along the path src-rec weighted by the reciprocal of map values ------------ */
+   float PathAverage_Reci(Point<float> Prec, float lamda) {
+      float perc;
+      return (PathAverage_Reci(Prec, lamda, perc)).Data();
+   }
+   DataPoint<float> PathAverage_Reci(Point<float> Prec, float lamda, float& perc);
+  
 };
 
 

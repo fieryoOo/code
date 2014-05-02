@@ -8,7 +8,7 @@
 #include <cmath>
 
 
-   bool ExcludeLarge( std::vector<float>& data, std::vector<float>& weight, std::vector<std::string>& fileV ) {
+   bool ExcludeBad( std::vector<float>& data, std::vector<float>& weight, std::vector<std::string>& fileV ) {
       if( data.size() != weight.size() ) return false;
       // compute mean 1
       float V1 = 0., mean1 = 0.;
@@ -25,11 +25,12 @@
 	 V2 += weight[i] * weight[i];
       }
       std1 = sqrt( std1 * V1 / (V1*V1-V2) );
+std::cerr<<mean1<<" "<<std1<<std::endl;
       // exclude larger-than-1.8sigma data
-      float ubound = mean1 + 1.8*std1;// lbound = mean1 - 2.*std1;
+      float ubound = mean1 + 1.8*std1, lbound = mean1 - 1.8*std1;
       int i=0;
       while( i<data.size() ) {
-	 if( data[i]>ubound ) {
+	 if( data[i]>ubound || data[i]<lbound ) {
 	    data.erase( data.begin() + i );
 	    weight.erase( weight.begin() + i );
 	    fileV.erase( fileV.begin() + i );
@@ -78,7 +79,7 @@ int main( int argc, char* argv[] ) {
 
    /* exclude */
    std::vector<float> weit(dataV.size(), 1.);
-   for(int i=0; i<2; i++) ExcludeLarge(dataV, weit, fileV);
+   for(int i=0; i<2; i++) ExcludeBad(dataV, weit, fileV);
 
    /* output */
    for(int i=0; i<fileV.size(); i++) std::cout<<fileV[i]<<std::endl;
