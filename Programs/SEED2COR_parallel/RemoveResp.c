@@ -182,6 +182,8 @@ bool CheckSPS( int ne, int ns, int ithread ) {
       float* sig;
       if( ! Resampling(fname, &sig, &shd, ithread) ) return false;
       write_sac (fname, sig, &shd);
+      sdb->rec[ne][ns].dt = shd.delta;
+      sdb->rec[ne][ns].n = shd.npts;
    }
    return true;
 }
@@ -331,7 +333,8 @@ void RmRESP(){
    //initialize report arrays
    reports = (struct NOTE *) malloc ( NTHRDS * sizeof(struct NOTE));
    for(ithread=0;ithread<NTHRDS;ithread++) {
-      reports[ithread].head = (char *) malloc ( (sdb->nst+1) * 100 * sizeof(char) );
+      //reports[ithread].head = (char *) malloc ( (sdb->nst+1) * 100 * sizeof(char) );
+      reports[ithread].head = new char[(sdb->nst+2) * 100];
       reports[ithread].tail = reports[ithread].head;
    }
    
@@ -356,7 +359,8 @@ void RmRESP(){
    pthread_mutex_destroy(&evrlock);
 
    //free report arrays
-   for(ithread=0;ithread<NTHRDS;ithread++) free(reports[ithread].head);
+   //for(ithread=0;ithread<NTHRDS;ithread++) free(reports[ithread].head);
+   for(ithread=0;ithread<NTHRDS;ithread++) delete [] reports[ithread].head;
    free(reports);
 
 }
