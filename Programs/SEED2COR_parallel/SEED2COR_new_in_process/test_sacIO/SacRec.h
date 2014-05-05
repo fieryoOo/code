@@ -81,6 +81,7 @@ public:
    bool Resample( float sps );
 
    /* ------------------------------ inter-sac operations ------------------------------ */
+   bool cut( float tb, float te );
    /* merge a second sacrec to the current */
    bool Merge( SacRec sacrec2 ) {
       merge( sacrec2 );

@@ -6,7 +6,7 @@ LIBS = -L${HOME}/usr/lib -lfftw3 -lpthread -fopenmp -lstdc++
 
 cflags = -std=c++0x -O3
 
-OBJS = SacRec.o SysTools.o StalstFromSACs.o
+OBJS = SacRec.o StalstFromSACs.o
 
 all : $(BIN)
 

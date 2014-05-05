@@ -10,7 +10,7 @@ LIBS = -L${HOME}/usr/lib -lfftw3
 
 cflags = -lstdc++ -std=c++0x -O3
 
-OBJS = SacRec.o SysTools.o
+OBJS = SacRec.o
 
 all : $(BIN1)
 

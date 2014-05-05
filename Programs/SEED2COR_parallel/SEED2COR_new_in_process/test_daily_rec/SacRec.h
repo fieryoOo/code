@@ -38,7 +38,6 @@ public:
    SacRec( const SacRec& recin );		// copy
    /* operators */
    SacRec &operator= ( const SacRec& recin );	// assignment
-   //SacRec &operator== ( const SacRec& recin );	// equal
    /* destructor */
    ~SacRec(); 
 
@@ -50,7 +49,11 @@ public:
    bool Load( const char* fnamein ) { if( fnamein ) fname = fnamein; return Load(); }
    bool Load ();
    /* write to file '*fname' */
+   bool WriteHD ( const char *fname );
    bool Write ( const char *fname );
+
+   /* ------------------------------ header operations ------------------------------ */
+   bool ChHdr(const char* field, const char* value);
 
    /* ------------------------------ header/signal information ------------------------------ */
    /* compute the absolute time in sec relative to 1900.01.00 */

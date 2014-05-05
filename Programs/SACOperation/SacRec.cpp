@@ -1,5 +1,5 @@
 #include "SacRec.h"
-#include "SysTools.h"
+//#include "SysTools.h"
 #include <fftw3.h>
 #include <cstdio>
 #include <cstdlib>
@@ -8,7 +8,6 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <map>
 #include <cstring>
 #include <limits>
 #include <chrono>
@@ -270,6 +269,113 @@ struct SacRec::SRimpl {
 };
 
 
+/* system tools */
+#include <sys/types.h>
+#include <fts.h>
+#include <fnmatch.h>
+//#define BLKSIZE 1024
+namespace System {
+   /* --------------------- Delete file or directory ---------------------------- */
+   //#define _XOPEN_SOURCE 500
+   //#include <ftw.h>
+   //#include <unistd.h>
+   int fdprompt = -10;
+   void fRemove (const char *fname) {
+      //cerr<<"Removing "<<fname<<endl;
+      if( remove( fname ) == 0 ) return; //succeed
+      int ersv = errno;
+      if( ersv == ENOENT ) return; //file not exists
+      if( fdprompt>0 ) return; fdprompt++;
+      perror("### Warning: Deleting failed"); //failed. prompt to continue
+      //TimedContinue(10);
+   }
+
+   int Unlink(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
+      fRemove((char *)fpath);
+      return 0;
+   }
+//   int dRemove(const char *dirname) {
+//      return nftw(dirname, Unlink, 64, FTW_DEPTH | FTW_PHYS);
+//   }
+
+
+   /* ------------------------ Listing (wildcards matching) ----------------------------- */
+   //int namecmp(const FTSENT **f1, const FTSENT **f2) { return strcmp((*f1)->fts_name, (*f2)->fts_name); }
+   bool List(const char *dir, const char *pattern, int type, std::vector<std::string> &filelist) {
+      /* type value decides how sub-directories are handdled
+      0: list files in the root dir only
+      1: list files in the root dir with dir paths
+      2: list all file names
+      3: list all files with dir paths */
+      //*nfile = 0;
+      if( type>3 || type<0 ) {
+	 std::cerr<<"ERROR(List): Unknow list type: "<<type<<std::endl;
+	 return false;
+      }
+      FTS *tree;
+      FTSENT *file;
+      char *dirlist[] = { (char *)dir, NULL }; //may send in multiple dirs
+      //get handle of the file hierarchy; FTS_LOGICAL follows symbolic links and detects cycles.
+      //replace '0' with 'namecmp' to sort files by name
+      tree = fts_open(dirlist, FTS_LOGICAL | FTS_NOSTAT | FTS_NOCHDIR, 0);
+      if (tree == NULL) perror("fts_open");
+
+      //char *sblk = NULL;
+      //int sleng = 0, bsize = 0;
+      //empty the input filelist
+      filelist.clear();
+      int outflag = 1; // if listing within current directory
+      if( type<2 && strcmp(dir, ".")==0 ) outflag=0; // path will not be printed
+      //ignores '.' and '..' as FTS_SEEDOT is not set
+      while ((file = fts_read(tree))) {
+	 switch (file->fts_info) { //current node
+            case FTS_DNR: // is a non-readable dir
+            case FTS_ERR: // has common errors
+            case FTS_NS: // has no stat info
+            case FTS_DC: // causes cycle
+		perror(file->fts_path);
+            case FTS_DP: // is a post-order dir
+		continue; //skip all above cases
+
+            case FTS_D: // is a directory
+		if(file->fts_level>0) switch(type) {
+		   case 0:
+		      fts_set(tree, file, FTS_SKIP); //no descend
+		      continue; // and skip
+		   case 1:
+		      fts_set(tree, file, FTS_SKIP); //no descend
+		      break; // and stop switch
+		   case 2:
+		      continue; //skip directories
+		   case 3:;
+		}
+	 }
+
+	 if (fnmatch(pattern, file->fts_name, FNM_PERIOD) == 0) {
+	    /*
+	    if( sleng > bsize-PLENMAX ) {
+		bsize += BLKSIZE;
+		sblk = (char *) realloc (sblk, bsize * sizeof(char));
+	    }
+	    if(outflag) sleng += sprintf(&sblk[sleng], "%s\n", file->fts_path);
+	    else sleng += sprintf(&sblk[sleng], "%s\n", file->fts_name);
+	    */
+	    if(outflag) filelist.push_back(file->fts_path);
+	    else filelist.push_back(file->fts_name);
+	    //*nfile = *nfile+1;
+	 }
+      }
+
+      if (errno != 0) perror("fts_read");
+      if (fts_close(tree) < 0) perror("fts_close");
+      if( filelist.size() == 0 ) return false;
+      return true;
+      //return sblk;
+   }
+
+};
+
+
 /* ---------------------------------------- constructors and operators ---------------------------------------- */
 /* default constructor */
 SacRec::SacRec( const char* fnamein )
@@ -486,7 +592,11 @@ bool SacRec::ChHdr(const char* field, const char* value){
 
 
 double SacRec::AbsTime () {
-   if( ! sig ) return -1.;
+   //if( ! sig ) return -1.;
+   //if( shd == sac_null ) return -1.; // operator== not defined yet
+   if( shd.npts <= 0 ) return -1.;
+   if( shd.nzjday == -12345. || shd.nzyear == -12345. || shd.nzhour == -12345. ||
+       shd.nzmin == -12345. || shd.nzsec == -12345. || shd.nzmsec == -12345. ) return -1;
    //computes time in s relative to 1900
    int nyday = 0;
    for( int i=1901; i<shd.nzyear; i++ ) {
@@ -601,6 +711,28 @@ bool SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout 
 
 
 /* ---------------------------------------- cut and merge ---------------------------------------- */
+bool SacRec::cut( float tb, float te ) {
+   int nb = (int)floor( (tb-shd.b) / shd.delta + 0.5 );
+   int ne = (int)floor( (te-shd.b) / shd.delta + 0.5 );
+   if( ne<0 || nb>shd.npts ) return false;
+   int nptsnew = ne - nb + 1;
+   float* signew = (float *) calloc ( nptsnew, sizeof(float) );
+   // define start positions
+   int inew, iold;
+   if( nb < 0 ) { inew = -nb; iold = 0; }
+   else { inew = 0; iold = nb; }
+   // define copy size
+   float nptscpy = std::min( nptsnew - inew, shd.npts - iold) - 1;
+   // copy data
+   memcpy( &(signew[inew]), &(sig[iold]), nptscpy * sizeof(float) );
+   // reset sacT.sig
+   sig.reset(signew);
+   // update shd
+   shd.b += nb * shd.delta;
+   shd.npts = nptsnew;
+   return true;
+}
+
 
 bool SacRec::merge( SacRec sacrec2 ) {
    // make sure that both signals are loaded
@@ -692,7 +824,7 @@ int SacRec::arrange(const char* recname) {
    }
 
    // fill gaps with random numbers
-   int ib, hlen = 100./shd.delta, step = std::min(0.5/shd.delta, 1.);
+   int ib, hlen = 100./shd.delta, step = std::max(0.5/shd.delta, 1.);
    float sigrms;
    this->RMSAvg(shd.b, shd.e, 50./shd.delta, sigrms);
    bool isgap = false;
@@ -777,7 +909,7 @@ bool SacRec::RmRESP( const char *evrexe, const char *fresp, float perl, float pe
    // find am file
    FILE *fam = NULL, *fph = NULL;
    std::vector<std::string> list;
-   List(".", nameam, 0, list);
+   System::List(".", nameam, 0, list);
    if( list.size()!=1 ) {
       std::cerr<<"Error: "<<list.size()<<" AMP file(s) found!"<<std::endl;
       return false;
@@ -788,7 +920,7 @@ bool SacRec::RmRESP( const char *evrexe, const char *fresp, float perl, float pe
       return false;
    }
    // find ph file
-   List(".", nameph, 0, list);
+   System::List(".", nameph, 0, list);
    if( list.size()!=1 ) {
       std::cerr<<"Error: "<<list.size()<<" PHASE file(s) found!"<<std::endl;
       return false;
@@ -816,7 +948,7 @@ bool SacRec::RmRESP( const char *evrexe, const char *fresp, float perl, float pe
       i++;
    }
    fclose(fam); fclose(fph);
-   fRemove(nameam); fRemove(nameph);
+   System::fRemove(nameam); System::fRemove(nameph);
    // remove trend ( and mean )
    RTrend();
    // run rmresponse
