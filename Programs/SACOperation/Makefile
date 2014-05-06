@@ -1,21 +1,17 @@
 BIN1 = chhdr
 
-BIN2 = TestMerge
-
-BIN3 = TestResampleRmRESP
-
-LIBCC = -L/usr/lib/gcc/x86_64-redhat-linux6E/4.4.7 -I/usr/lib/gcc/x86_64-redhat-linux6E/4.4.7/include
-
-LIBS = -L${HOME}/usr/lib -lfftw3
+#LIBS = -L/home/tianye/MyLibs/lib -lfftw3 -lSacRec
+LIBS = -lfftw3 -lSacRec
 
 cflags = -lstdc++ -std=c++0x -O3
 
-OBJS = SacRec.o
+#OBJS = SacRec.o
+OBJS = 
 
 all : $(BIN1)
 
-$(BIN1) : $(OBJS) $(BIN1).o
-	g++ $(LIBS) $(cflags) -o $(BIN1) $^
+$(BIN1) : $(OBJS)
+	g++ $(LIBS) $(cflags) -o $(BIN1) $(BIN1).cpp $^
 
 #$(BIN2) : $(OBJS) $(BIN2).o
 #	g++ $(LIBS) $(cflags) -o $(BIN2) $^
@@ -24,7 +20,7 @@ $(BIN1) : $(OBJS) $(BIN1).o
 #	g++ $(LIBS) $(cflags) -o $(BIN3) $^
 
 %.o : %.cpp
-	g++ $(LIBS) $(cflags) -c $^
+	g++ $(cflags) -c $^
 
 clean:
-	rm -f $(OBJS) $(BIN1).o $(BIN2).o $(BIN3).o $(BIN1) $(BIN2) $(BIN3)
+	rm -f $(OBJS) $(BIN1)

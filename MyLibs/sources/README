@@ -1,0 +1,5 @@
+command used in constructing the dynamic libraries:
+gcc -std=c++0x -O3 -fPIC -c XXX.cpp
+gcc -shared -Wl,-soname,libXXX.so.1 -o libXXX.so.1.0 XXX.o
+ln -sf libXXX.so.1.0 libXXX.so
+ln -sf libXXX.so.1.0 libXXX.so.1

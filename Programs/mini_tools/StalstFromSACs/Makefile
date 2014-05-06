@@ -1,17 +1,16 @@
-BIN = Stalst
+BIN = StalstFromSACs
 
-LIBCC = -L/usr/lib/gcc/x86_64-redhat-linux6E/4.4.7 -I/usr/lib/gcc/x86_64-redhat-linux6E/4.4.7/include
-
-LIBS = -L${HOME}/usr/lib -lfftw3 -lpthread -fopenmp -lstdc++
+#LIBS = -L${HOME}/usr/lib -lfftw3 -lpthread -fopenmp -lstdc++
+LIBS = -lfftw3 -lpthread -fopenmp -lstdc++ -lSacRec
 
 cflags = -std=c++0x -O3
 
-OBJS = SacRec.o StalstFromSACs.o
+OBJS = 
 
 all : $(BIN)
 
 $(BIN) : $(OBJS)
-	g++ $(LIBS) $(cflags) -o $(BIN) $^
+	g++ $(LIBS) $(cflags) -o $(BIN) $(BIN).cpp $^
 
 %.o : %.cpp
 	g++ $(LIBS) $(cflags) -c $^
