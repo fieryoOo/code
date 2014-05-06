@@ -1,7 +1,6 @@
 BIN1 = chhdr
 
-#LIBS = -L/home/tianye/MyLibs/lib -lfftw3 -lSacRec
-LIBS = -lfftw3 -lSacRec
+LIBS = -L${HOME}/usr/lib -lfftw3 -lSacRec
 
 cflags = -lstdc++ -std=c++0x -O3
 

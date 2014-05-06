@@ -1,7 +1,6 @@
 BIN = StalstFromSACs
 
-#LIBS = -L${HOME}/usr/lib -lfftw3 -lpthread -fopenmp -lstdc++
-LIBS = -lfftw3 -lpthread -fopenmp -lstdc++ -lSacRec
+LIBS = -L${HOME}/usr/lib -lfftw3 -lpthread -fopenmp -lstdc++ -lSacRec
 
 cflags = -std=c++0x -O3
 
