@@ -1,5 +1,5 @@
-#ifndef MAP_H
-#define MAP_H
+#ifndef MAP_FAST_H
+#define MAP_FAST_H
 
 #include "Array2D.h"
 #include <cstdio>
@@ -10,6 +10,8 @@
 #include <vector>
 #include <memory>
 
+#ifndef POINT
+#define POINT
 template < class T >
 class Point {
    T lon, lat;
@@ -27,6 +29,8 @@ public:
       return o; 
    }
 };
+#endif
+
 
 #define PIO180 0.017453292519943295
 template < class T >

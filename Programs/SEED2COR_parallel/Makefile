@@ -19,7 +19,7 @@ DBG = -g
 
 all : $(EXECUTABLE)
 
-FOBJS = driver.o SacOps.o DisAzi.o SysTools.o MakeSDB.o Pthread.o ProduceSac.o RemoveResp.o TempSpecNorm.o Whiten.o CrossCorr.o FreqOps.o
+FOBJS = driver.o SacOps.o SysTools.o MakeSDB.o Pthread.o ProduceSac.o RemoveResp.o TempSpecNorm.o Whiten.o CrossCorr.o FreqOps.o
 
 $(EXECUTABLE) : $(FOBJS)
 	$(CC) $(LDLIBS) $(cflags) $^ -o $@

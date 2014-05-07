@@ -3,15 +3,16 @@
 // Revised to retain amplitude info. Read rec files to correct for correlation time length.
 //Output list file with Stack day number.
 
+#include "Param.h"
+#include "pthread.h"
+#include "mysac64.h"
+#include "64_sac_db.h"
+#include "DisAzi.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <iostream>
 #include <math.h>
-#include "mysac64.h"
-#include "64_sac_db.h"
-#include "Param.h"
-#include "pthread.h"
 using namespace std;
 
 #define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
@@ -50,7 +51,7 @@ void write_sac (char *fname, float *sig, SAC_HD *SHD);
 
 int read_rec(int rec_flag, char *fname, int len, int *rec_b, int *rec_e, int *nrec);
 
-int calc_dist(double lati1, double long1, double lati2, double long2, double *dist);
+//int calc_dist(double lati1, double long1, double lati2, double long2, double *dist);
 
 int StaValid(int ista) {
    char fname[100];
@@ -220,7 +221,6 @@ int InitCor(int is1, struct starec *dayrec2) {
    for(iev=0; iev<NEVENTS && dayrec2[iev].nr==0; iev++);
    if(iev==NEVENTS) return 0;
    float dt = dayrec2[iev].dtrec;
-   double distmp;
    int i, lag = (int)floor(lagtime/dt+0.5);
    sigcor = new float[2*lag+1];
    for(i=0;i<2*lag+1;i++) sigcor[i] = 0.;
@@ -230,8 +230,8 @@ int InitCor(int is1, struct starec *dayrec2) {
    strcpy(shdcor.kevnm, sdbnew->st[is1].name);
    shdcor.evla =  sdbnew->st[is1].lat;
    shdcor.evlo =  sdbnew->st[is1].lon;
-   calc_dist((double)(shdcor.evla), (double)(shdcor.evlo), (double)(shdcor.stla), (double)(shdcor.stlo), &distmp);
-   shdcor.dist = distmp;
+   //calc_dist((double)(shdcor.evla), (double)(shdcor.evlo), (double)(shdcor.stla), (double)(shdcor.stlo), &distmp);
+   shdcor.dist = Path<float>(shdcor.evlo, shdcor.evla, shdcor.stlo, shdcor.stla).Dist();
    shdcor.npts =  2*lag+1;
    shdcor.e = lag*dt;
    shdcor.b = -shdcor.e;

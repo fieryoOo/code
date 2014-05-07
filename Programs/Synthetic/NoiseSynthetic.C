@@ -218,8 +218,10 @@ void *PrepareSource(void *rid) {
    for(isrc=nthread;isrc<nsrc;isrc+=NTHRDS) {
       cout<<"Thread "<<nthread<<": Computing source-station signals for the "<<isrc+1<<"/"<<nsrc<<"th source"<<endl;
       for(ista=0;ista<nsta;ista++) {
-         calc_dist(src[isrc].lat, src[isrc].lon, sta[ista].lat, sta[ista].lon, &dis);
-         calc_azimuth(src[isrc].lat, src[isrc].lon, sta[ista].lat, sta[ista].lon, &azi);
+         //calc_dist(src[isrc].lat, src[isrc].lon, sta[ista].lat, sta[ista].lon, &dis);
+         //calc_azimuth(src[isrc].lat, src[isrc].lon, sta[ista].lat, sta[ista].lon, &azi);
+	 Path<double> pathcur(src[isrc].lon, src[isrc].lat, sta[ista].lon, sta[ista].lat);
+	 dis = pathcur.Dist(); azi = pathcur.Azi1();
          //distance roundoff
          deci = (int)floor(dis/100.)/10.;
          if(deci==0.) dis = floor(dis/0.02+0.5)*0.02;

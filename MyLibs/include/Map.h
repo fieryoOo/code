@@ -10,6 +10,8 @@
 #include <vector>
 #include <memory>
 
+#ifndef POINT
+#define POINT
 template < class T >
 class Point {
 protected:
@@ -28,6 +30,8 @@ public:
       return o; 
    }
 };
+#endif
+
 
 template < class T >
 class DataPoint : public Point<T> {

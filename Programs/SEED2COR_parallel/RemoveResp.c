@@ -205,7 +205,7 @@ int TransferEvr(int ne, int ns, float **sig, SAC_HD *sd, int ithread) {
       f4 = fmax; 
       if( f3 >= fmax ) f3 = fmax/1.1;
       if( f2 >= f3 ) f2 = f3;
-      reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: Filter band out of range. Filter reshaped! ***");
+      //reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: Filter band out of range. Filter reshaped! ***");
    }
    double pi=4*atan(1.0), pio180=pi/180.;
    sscanf(sd->kstnm, "%s", sta);
@@ -334,7 +334,7 @@ void RmRESP(){
    reports = (struct NOTE *) malloc ( NTHRDS * sizeof(struct NOTE));
    for(ithread=0;ithread<NTHRDS;ithread++) {
       //reports[ithread].head = (char *) malloc ( (sdb->nst+1) * 100 * sizeof(char) );
-      reports[ithread].head = new char[(sdb->nst+2) * 100];
+      reports[ithread].head = new char[(sdb->nst+2) * 200];
       reports[ithread].tail = reports[ithread].head;
    }
    

@@ -1,4 +1,5 @@
-#include "Map.h"
+#include "Map_Fast.h"
+#include "DisAzi.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
@@ -7,9 +8,9 @@
 #include <algorithm>
 #include <errno.h>
 
-int calc_dist(double lati1, double long1, double lati2, double long2, double *dist);
+//int calc_dist(double lati1, double long1, double lati2, double long2, double *dist);
 
-int calc_azimuth(double lati1, double long1, double lati2, double long2, double *alpha1);
+//int calc_azimuth(double lati1, double long1, double lati2, double long2, double *alpha1);
 
 struct Map::Mimpl {
    std::string fname;
@@ -56,10 +57,11 @@ struct Map::Mimpl {
       for(std::string line; std::getline(fin, line); ) {
 	 float lon, lat, data;
 	 sscanf(line.c_str(), "%f %f %f", &lon, &lat, &data);
-	 double dis, azi;
-	 calc_dist( src.Lat(), src.Lon(), lat, lon, &dis );
-	 calc_azimuth( src.Lat(), src.Lon(), lat, lon, &azi );
-	 dataV.push_back( DataPoint<float>(dis, azi, data) );
+	 Path<float> pathcur(src, Point<float>(lon,lat));
+	 //double dis, azi;
+	 //calc_dist( src.Lat(), src.Lon(), lat, lon, &dis );
+	 //calc_azimuth( src.Lat(), src.Lon(), lat, lon, &azi );
+	 dataV.push_back( DataPoint<float>(pathcur.Dist(), pathcur.Azi1(), data) );
       }
       fin.close();
       if( dataV.size() == 0 ) return false;
@@ -137,10 +139,11 @@ Map::~Map() {}
 float Map::PointAverage(Point<float> rec, float hdis, float& weit) {
    Point<float> src = pimplM->src;
    // compute dis and disa of Point rec
-   double dis, azi;
-   calc_dist( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &dis );
-   calc_azimuth( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &azi );
-   DataPoint<float> DPrec(dis, azi);
+   Path<float> pathrec(src, rec);
+   //double dis, azi;
+   //calc_dist( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &dis );
+   //calc_azimuth( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &azi );
+   DataPoint<float> DPrec(pathrec.Dist(), pathrec.Azi1());
 
    Array2D< std::vector< DataPoint<float> > >& dataM = pimplM->dataM;
    float dis0 = pimplM->dis0, disa0 = pimplM->disa0, grd_dis = pimplM->grd_dis;
@@ -186,10 +189,12 @@ float Map::PointAverage(Point<float> rec, float hdis, float& weit) {
 DataPoint<float> Map::PathAverage(Point<float> rec, float lamda, float& perc) {
    Point<float> src = pimplM->src;
    // compute dis and disa of Point rec
-   double dis, azi;
-   calc_dist( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &dis );
-   calc_azimuth( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &azi );
-   DataPoint<float> DPrec(dis, azi);
+   //double dis, azi;
+   //calc_dist( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &dis );
+   //calc_azimuth( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &azi );
+   Path<float> pathrec(src, rec);
+   double dis = pathrec.Dist();
+   DataPoint<float> DPrec(dis, pathrec.Azi1());
 
    float Nmin = 3.; //(2 ~ 20?) Don't know much about sw kernel
    // define ellipse

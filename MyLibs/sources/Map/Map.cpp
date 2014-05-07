@@ -1,14 +1,11 @@
 #include "Map.h"
+#include "DisAzi.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
 #include <fstream>
 #include <errno.h>
-
-int calc_dist(double lati1, double long1, double lati2, double long2, double *dist);
-
-int calc_azimuth(double lati1, double long1, double lati2, double long2, double *alpha1);
 
 struct Map::Mimpl {
    std::string fname;
@@ -18,8 +15,8 @@ struct Map::Mimpl {
    float lonmin, lonmax;
    float latmin, latmax;
 
-   double dis_lat1D;
-   std::vector<double> dis_lon1D;
+   float dis_lat1D;
+   std::vector<float> dis_lon1D;
 
    std::vector< DataPoint<float> > dataV;
    Array2D< std::vector< DataPoint<float> > > dataM;
@@ -58,8 +55,8 @@ struct Map::Mimpl {
       for(std::string line; std::getline(fin, line); ) {
 	 float lon, lat, data;
 	 sscanf(line.c_str(), "%f %f %f", &lon, &lat, &data);
-	 double dis;//, azi;
-	 calc_dist( src.Lat(), src.Lon(), lat, lon, &dis );
+	 float dis = Path<float>(src, Point<float>(lon,lat)).Dist();
+	 //calc_dist( src.Lat(), src.Lon(), lat, lon, &dis );
 	 //calc_azimuth( src.Lat(), src.Lon(), lat, lon, &azi );
 	 dataV.push_back( DataPoint<float>(lon, lat, data, dis) );
       }
@@ -105,7 +102,8 @@ struct Map::Mimpl {
       dis_lon1D.resize( dataM.NumCols() );
       for(int ilat=0; ilat<dataM.NumCols(); ilat++) {
 	 float latcur = latmin + ilat*grd_lat;
-	 calc_dist( latcur, 0., latcur, 1., &(dis_lon1D[ilat]) );
+	 dis_lon1D[ilat] = Path<float>(0., latcur, 1., latcur).Dist();
+	 //calc_dist( latcur, 0., latcur, 1., &(dis_lon1D[ilat]) );
       }
    }
 
@@ -162,7 +160,7 @@ float Map::PointAverage(Point<float> rec, float hdis, float& weit) {
    int ilatrec = (int)floor((rec.Lat()-latmin) / grdlat + 0.5);
    if( ilatrec > dataM.NumCols() ) ilatrec = dataM.NumCols();
    else if( ilatrec < 0 ) ilatrec = 0;
-   double dis_lon1D = pimplM->dis_lon1D[ilatrec], dis_lat1D = pimplM->dis_lat1D;
+   float dis_lon1D = pimplM->dis_lon1D[ilatrec], dis_lat1D = pimplM->dis_lat1D;
    //calc_dist( rec.Lat(), rec.Lon(), rec.Lat(), rec.Lon()+1., &dis_lon1D );
    //calc_dist( rec.Lat(), rec.Lon(), rec.Lat()+1., rec.Lon(), &dis_lat1D );
    float Rlon = dismax / dis_lon1D, Rlat = dismax / dis_lat1D;
@@ -211,14 +209,14 @@ DataPoint<float> Map::PathAverage(Point<float> rec, float lamda, float& perc) {
 
    Point<float> src = pimplM->src;
    /* rec parameters */
-   double dis;//, azi;
-   calc_dist( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &dis );
+   float dis = Path<float>(src, rec).Dist();
+   //calc_dist( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &dis );
    //calc_azimuth( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &azi );
 
    int ilatmid = (int)floor( ( (rec.Lat()+src.Lat()) * 0.5 - latmin ) / grd_lat + 0.5 );
    if( ilatmid > dataM.NumCols() ) ilatmid = dataM.NumCols();
    else if( ilatmid < 0 ) ilatmid = 0;
-   double dis_lon1D = pimplM->dis_lon1D[ilatmid], dis_lat1D = pimplM->dis_lat1D;
+   float dis_lon1D = pimplM->dis_lon1D[ilatmid], dis_lat1D = pimplM->dis_lat1D;
    float grd_dis_lon = grd_lon * dis_lon1D,  grd_dis_lat = grd_lat * dis_lat1D;
    float grd_semidiag = sqrt( (grd_dis_lon * grd_dis_lon) + (grd_dis_lat * grd_dis_lat) );
 
@@ -248,11 +246,12 @@ DataPoint<float> Map::PathAverage(Point<float> rec, float lamda, float& perc) {
          for(size_t idata=0; idata<dataM(irow, icol).size(); idata++) {
 	    DataPoint<float> dpcur = dataM(irow, icol)[idata];
 	    //distance from dataM(irow, icol).at(idata) to src/rec;
-	    double dis_src = dpcur.Dis(); //pimplM->estimate_dist(src, dpcur);
-	    double dis_rec = pimplM->estimate_dist(rec, dpcur);
+	    float dis_src = dpcur.Dis(); //pimplM->estimate_dist(src, dpcur);
+	    float dis_rec = pimplM->estimate_dist(rec, dpcur);
 	    if( dis_src+dis_rec > max_esti ) continue; // 2.*dab == hdis * 3.
+	    dis_rec = Path<float>(rec, dpcur).Dist();
 	    //calc_dist(src.Lat(), src.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_src);
-	    calc_dist(rec.Lat(), rec.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_rec);
+	    //calc_dist(rec.Lat(), rec.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_rec);
 	    float dis_ellip = dis_src + dis_rec - dis; // dis == 2.*f
 	    if( dis_ellip > dab2 ) continue; // 2.*dab == hdis * 3.
 	    if( dismax < dpcur.Dis() ) dismax = dpcur.Dis();
@@ -283,14 +282,14 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& per
 
    Point<float> src = pimplM->src;
    /* rec parameters */
-   double dis;//, azi;
-   calc_dist( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &dis );
+   float dis = Path<float>(src, rec).Dist();
+   //calc_dist( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &dis );
    //calc_azimuth( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &azi );
 
    int ilatmid = (int)floor( ( (rec.Lat()+src.Lat()) * 0.5 - latmin ) / grd_lat + 0.5 );
    if( ilatmid > dataM.NumCols() ) ilatmid = dataM.NumCols();
    else if( ilatmid < 0 ) ilatmid = 0;
-   double dis_lon1D = pimplM->dis_lon1D[ilatmid], dis_lat1D = pimplM->dis_lat1D;
+   float dis_lon1D = pimplM->dis_lon1D[ilatmid], dis_lat1D = pimplM->dis_lat1D;
    float grd_dis_lon = grd_lon * dis_lon1D,  grd_dis_lat = grd_lat * dis_lat1D;
    float grd_semidiag = sqrt( (grd_dis_lon * grd_dis_lon) + (grd_dis_lat * grd_dis_lat) );
 
@@ -320,11 +319,12 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& per
          for(size_t idata=0; idata<dataM(irow, icol).size(); idata++) {
 	    DataPoint<float> dpcur = dataM(irow, icol)[idata];
 	    //distance from dataM(irow, icol).at(idata) to src/rec;
-	    double dis_src = dpcur.Dis(); //pimplM->estimate_dist(src, dpcur);
-	    double dis_rec = pimplM->estimate_dist(rec, dpcur);
+	    float dis_src = dpcur.Dis(); //pimplM->estimate_dist(src, dpcur);
+	    float dis_rec = pimplM->estimate_dist(rec, dpcur);
 	    if( dis_src+dis_rec > max_esti ) continue; // 2.*dab == hdis * 3.
+	    dis_rec = Path<float>(rec, dpcur).Dist();
 	    //calc_dist(src.Lat(), src.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_src);
-	    calc_dist(rec.Lat(), rec.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_rec);
+	    //calc_dist(rec.Lat(), rec.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_rec);
 	    float dis_ellip = dis_src + dis_rec - dis; // dis == 2.*f
 	    if( dis_ellip > dab2 ) continue; // 2.*dab == hdis * 3.
 	    if( dismax < dpcur.Dis() ) dismax = dpcur.Dis();

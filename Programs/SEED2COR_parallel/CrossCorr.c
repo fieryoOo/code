@@ -1,5 +1,6 @@
 //#include <sys/sysinfo.h>
 #include "Param.h"
+#include "DisAzi.h"
 
 #define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
 #define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
@@ -33,7 +34,7 @@ void Copy(char *oldname, char *newname);
 
 void IFFT(int nlen, float *amp, float *pha, float *seis_out, int *nsig);
 
-int calc_dist(double lati1, double long1, double lati2, double long2, double *dist);
+//int calc_dist(double lati1, double long1, double lati2, double long2, double *dist);
 
 int StaValid(int ista) {
    char fname[100];
@@ -212,7 +213,6 @@ int InitCor(int is1, int is2, struct starec *dayrec2) {
    for(iev=0; iev<NEVENTS && dayrec2[iev].nr==0; iev++);
    if(iev==NEVENTS) return 0;
    float dt = dayrec2[iev].dtrec;
-   double distmp;
    int i, lag = (int)floor(lagtime/dt+0.5);
    sigcor = new float[2*lag+1];
    for(i=0;i<2*lag+1;i++) sigcor[i] = 0.;
@@ -224,8 +224,8 @@ int InitCor(int is1, int is2, struct starec *dayrec2) {
    shdcor.evlo =  sdbnew->st[is1].lon;
    shdcor.stla =  sdbnew->st[is2].lat;
    shdcor.stlo =  sdbnew->st[is2].lon;
-   calc_dist((double)(shdcor.evla), (double)(shdcor.evlo), (double)(shdcor.stla), (double)(shdcor.stlo), &distmp);
-   shdcor.dist = distmp;
+   //calc_dist((double)(shdcor.evla), (double)(shdcor.evlo), (double)(shdcor.stla), (double)(shdcor.stlo), &distmp);
+   shdcor.dist = Path<float>(shdcor.evlo, shdcor.evla, shdcor.stlo, shdcor.stla).Dist();
    shdcor.npts =  2*lag+1;
    shdcor.e = lag*dt;
    shdcor.b = -shdcor.e;

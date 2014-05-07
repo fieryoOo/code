@@ -12,7 +12,7 @@ DBG = -g
 
 all : $(BIN1) $(BIN2)
 
-FOBJS = DisAzi.o Map.o
+FOBJS = Map_Fast.o
 
 $(BIN1) : $(FOBJS) $(BIN1).o
 	$(CC) $(LDLIBS) $^ -o $@
