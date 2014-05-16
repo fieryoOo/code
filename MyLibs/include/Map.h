@@ -60,18 +60,13 @@ public:
 
 
 class Map {
-   struct Mimpl;
-   std::unique_ptr<Mimpl> pimplM;
-/*
-   std::string fname;
-   Point<float> src;
-   float dismax, disamax;
-   std::vector< DataPoint<float> > dataV;
-   Array2D< DataPoint<float> > dataM;
-*/
 public:
    Map( const char *inname );
    Map( const char *inname, const Point<float>& srcin );
+   Map( const Map& );
+   Map( Map&& );
+   Map& operator= ( const Map& );
+   Map& operator= ( Map&& );
    ~Map();
 
 
@@ -96,6 +91,16 @@ public:
    }
    DataPoint<float> PathAverage_Reci(Point<float> Prec, float lamda, float& perc);
   
+private:
+   struct Mimpl;
+   std::unique_ptr<Mimpl> pimplM;
+/*
+   std::string fname;
+   Point<float> src;
+   float dismax, disamax;
+   std::vector< DataPoint<float> > dataV;
+   Array2D< DataPoint<float> > dataM;
+*/
 };
 
 

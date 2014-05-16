@@ -124,7 +124,7 @@ struct Map::Mimpl {
 };
 
 
-/* -------------- con/destructors ----------------- */
+/* -------------- con/destructors and assignment operators ----------------- */
 Map::Map( const char *inname ) 
    : pimplM( new Mimpl(inname) ) {
    if( ! pimplM->Load( true ) ) { // Load with auto-source
@@ -143,6 +143,19 @@ Map::Map( const char *inname, const Point<float>& srcin )
    pimplM->Hash();
 }
 
+Map::Map( const Map& mp_other ) : pimplM( new Mimpl(*(mp_other.pimplM)) ) {}
+
+Map::Map( Map&& mp_other ) : pimplM( std::move(mp_other.pimplM) ) {}
+
+Map& Map::operator= ( const Map& mp_other ) {
+   pimplM.reset( new Mimpl(*(mp_other.pimplM)) );
+   return *this;
+}
+
+Map& Map::operator= ( Map&& mp_other ) {
+   pimplM = std::move(mp_other.pimplM);
+   return *this;
+}
 
 Map::~Map() {}
 
