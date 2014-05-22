@@ -1,10 +1,6 @@
 #ifndef DISAZI_H
 #define DISAZI_H
 
-#include <cstdio>
-#include <cstdlib>
-#include <unistd.h>
-#include <cstring>
 #include <iostream>
 #include <iomanip>
 #include <cmath>

@@ -1,7 +1,6 @@
 #ifndef ARRAY2D_H
 #define ARRAY2D_H
 
-#include <cstdlib>
 #include <iostream>
 #include <vector>
 

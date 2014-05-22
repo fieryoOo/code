@@ -2,8 +2,6 @@
 #define MAP_H
 
 #include "Array2D.h"
-#include <cstdio>
-#include <cstdlib>
 #include <iostream>
 #include <iomanip>
 #include <string>

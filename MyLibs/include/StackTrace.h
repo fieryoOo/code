@@ -5,7 +5,6 @@
 #define _STACKTRACE_H_
 
 #include <cstdio>
-#include <cstdlib>
 #include <execinfo.h>
 #include <cxxabi.h>
 

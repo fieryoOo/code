@@ -1,11 +1,9 @@
 #include "Map.h"
 #include "DisAzi.h"
 #include <cstdio>
-#include <cstdlib>
 #include <cmath>
 #include <iostream>
 #include <fstream>
-#include <errno.h>
 
 struct Map::Mimpl {
    std::string fname;
