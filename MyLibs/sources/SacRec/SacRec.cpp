@@ -12,6 +12,7 @@
 #include <limits>
 #include <chrono>
 #include <random>
+#include <algorithm>
 //#include <pthread.h>
 
 
@@ -32,7 +33,7 @@ struct SacRec::SRimpl {
    // backward FFT
    void FFTW_B(int type, float *seis, int n, fftw_complex **in, fftw_complex **out, int *nso, fftw_plan *planF, int Fflag) {
       int ns = (int)(log((double)n)/log(2.))+1;
-      if(ns<13) ns = 13;
+      //if(ns<13) ns = 13;
       ns = (int)pow(2,ns); *nso = ns;
       *in = (fftw_complex *) fftw_malloc ( ns * sizeof(fftw_complex) );//fftw_alloc_complex(ns);
       *out = (fftw_complex *) fftw_malloc ( ns * sizeof(fftw_complex) );//fftw_alloc_complex(ns);
@@ -389,12 +390,24 @@ SacRec::SacRec( const SacRec& recin )
    std::copy(recin.sig.get(), recin.sig.get()+recin.shd.npts, sig.get()); 
 }
 
+/* move constructor */
+SacRec::SacRec( SacRec&& recin )
+ : fname(std::move(recin.fname)), shd(std::move(recin.shd)), sig( std::move(recin.sig) ), pimpl( std::move(recin.pimpl) ) {}
+
 /* assignment operator */
 SacRec& SacRec::operator= ( const SacRec& recin ) { 
    pimpl.reset( new SRimpl(*(recin.pimpl)) );
    fname = recin.fname; shd = recin.shd;
    int npts=recin.shd.npts; sig.reset(new float[npts]); 
    std::copy(recin.sig.get(), recin.sig.get()+npts, sig.get()); 
+}
+
+/* move operator */
+SacRec& SacRec::operator= ( SacRec&& recin ) { 
+   pimpl = std::move(recin.pimpl);
+   fname = std::move(recin.fname);
+   shd = std::move(recin.shd);
+   sig = std::move(recin.sig);
 }
 
 /* destructor */
@@ -529,8 +542,10 @@ int read_rec(int rec_flag, char *fname, int len, int *rec_b, int *rec_e, int *nr
 
 //pthread_mutex_t fiolock;
 
+bool SacRec::Mul( const float mul ) {
+   for(int i=0; i<shd.npts; i++) sig[i] *= mul;
+}
 
-#include <algorithm>
 #include <cctype>
 bool SacRec::ChHdr(const char* field, const char* value){
    std::stringstream sin(value);
@@ -665,13 +680,48 @@ bool SacRec::RMSAvg ( float tbegin, float tend, int step, float& rms ) {
 
 
 /* ---------------------------------------- time - frequency ---------------------------------------- */
+/* convert to amplitude */
+bool SacRec::ToAm( SacRec& sac_am ) {
+   if( ! sig ) return false;	// check signal
+   if( &sac_am != this ) {	// initialize sac_am if not filtering in place 
+      //sac_am = *this;
+      sac_am.fname = fname; 
+      sac_am.shd = shd;
+      sac_am.pimpl.reset( new SRimpl(*(pimpl)) );
+   }
+
+   fftw_plan planF = NULL;
+   //backward FFT: s ==> sf
+   int ns, n=shd.npts;
+   fftw_complex *s, *sf;
+   pimpl->FFTW_B(FFTW_ESTIMATE, &(sig[0]), n, &s, &sf, &ns, &planF, 1);
+
+   //forming amplitude spectrum
+   int nk = ns/2 + 1;
+   float *amp = new float[nk];
+   for(int i=0; i<nk; i++) {
+      fftw_complex& cur = sf[i];
+      amp[i] = sqrt(cur[0]*cur[0] + cur[1]*cur[1]);
+   }
+   sac_am.sig.reset(amp);
+
+   sac_am.shd.npts = nk;
+   sac_am.shd.delta = 1./(shd.delta*ns);
+   sac_am.shd.b = 0.;
+
+   return true;
+}
+
 /* 3 different types of filters */
 bool SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout ) {
    if( ! sig ) return false;	// check signal
    if( &srout != this ) {	// initialize srout if not filtering in place 
+      srout = *this;
+      /*
       srout.fname = fname; srout.shd = shd; 
       srout.sig.reset( new float[shd.npts] );
       srout.pimpl.reset( new SRimpl(*(pimpl)) );
+      */
    }
    double dt = shd.delta;
    if(f4 > 0.5/dt) {
@@ -687,7 +737,7 @@ bool SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout 
 
    //make tapering
    int nk = ns/2+1;
-   double dom = 1./dt/ns;
+   double dom = 1./(dt*ns);
    if( (f1==-1. || f2==-1.) && (f3>0. && f4>0.) ) pimpl->TaperL( f3, f4, dom, nk, sf );
    else if( f1>=0. && f2>0. && f3>0. && f4>0. ) pimpl->TaperB( f1, f2, f3, f4, dom, nk, sf );
    else if( f1==-1. && f4==-1. ) pimpl->TaperGaussian( f2, f3, dom, nk, sf );
@@ -711,7 +761,7 @@ bool SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout 
 
 
 /* ---------------------------------------- cut and merge ---------------------------------------- */
-bool SacRec::cut( float tb, float te ) {
+bool SacRec::cut( float tb, float te, SacRec& sac_result ) {
    int nb = (int)floor( (tb-shd.b) / shd.delta + 0.5 );
    int ne = (int)floor( (te-shd.b) / shd.delta + 0.5 );
    if( ne<0 || nb>shd.npts ) return false;
@@ -726,10 +776,11 @@ bool SacRec::cut( float tb, float te ) {
    // copy data
    memcpy( &(signew[inew]), &(sig[iold]), nptscpy * sizeof(float) );
    // reset sacT.sig
-   sig.reset(signew);
+   sac_result.sig.reset(signew);
    // update shd
-   shd.b += nb * shd.delta;
-   shd.npts = nptsnew;
+   if( &(sac_result) != this ) sac_result.shd = shd;
+   sac_result.shd.b += nb * shd.delta;
+   sac_result.shd.npts = nptsnew;
    return true;
 }
 

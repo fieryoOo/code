@@ -3,7 +3,7 @@ INST_DIR = $(HOME)/bin
 BIN = aftani_c_pgl_amp
 
 fflags = -O2 -Wall -ffixed-line-length-132
-cflags = -O3 -Wall 
+cflags = -O3 -Wall  -I"/home/tianye/code/Programs/head/"
 
 LDLIBS = -L/home/yeti4009/usr/lib -lfftw3
 

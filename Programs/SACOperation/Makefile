@@ -1,4 +1,5 @@
 BIN1 = chhdr
+BIN2 = filter
 
 LIBS = -L${HOME}/usr/lib -lfftw3 -lSacRec
 
@@ -7,10 +8,13 @@ cflags = -lstdc++ -std=c++0x -O3
 #OBJS = SacRec.o
 OBJS = 
 
-all : $(BIN1)
+all : $(BIN1) $(BIN2)
 
-$(BIN1) : $(OBJS)
-	g++ $(LIBS) $(cflags) -o $(BIN1) $(BIN1).cpp $^
+$(BIN1) : $(OBJS) $(BIN1).cpp
+	g++ $(LIBS) $(cflags) -o $@ $^
+
+$(BIN2) : $(OBJS) $(BIN2).cpp
+	g++ $(LIBS) $(cflags) -o $@ $^
 
 #$(BIN2) : $(OBJS) $(BIN2).o
 #	g++ $(LIBS) $(cflags) -o $(BIN2) $^
@@ -22,4 +26,4 @@ $(BIN1) : $(OBJS)
 	g++ $(cflags) -c $^
 
 clean:
-	rm -f $(OBJS) $(BIN1)
+	rm -f $(OBJS) $(BIN1) $(BIN2)

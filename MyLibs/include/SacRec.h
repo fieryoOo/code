@@ -36,8 +36,10 @@ public:
    /* constructors */
    SacRec( const char* fnamein = NULL );	// default
    SacRec( const SacRec& recin );		// copy
+   SacRec( SacRec&& recin );			// move
    /* operators */
    SacRec &operator= ( const SacRec& recin );	// assignment
+   SacRec &operator= ( SacRec&& recin );	// move
    /* destructor */
    ~SacRec(); 
 
@@ -67,6 +69,8 @@ public:
    bool RMSAvg ( float tbegin, float tend, int step, float& rms);
 
    /* ------------------------------ single-sac operations ------------------------------ */
+   bool Mul( const float mul );
+   bool ToAm( SacRec& sac_am );
    /* method that performs 3 different types of filters
     * lowpass when ( (f1==-1. || f2==-1.) && (f3>0. && f4>0.) )
     * bandpass when ( f1>=0. && f2>0. && f3>0. && f4>0. )
@@ -81,7 +85,8 @@ public:
    bool Resample( float sps );
 
    /* ------------------------------ inter-sac operations ------------------------------ */
-   bool cut( float tb, float te );
+   bool cut( float tb, float te ) { return cut(tb, te, *this); }
+   bool cut( float tb, float te, SacRec& );
    /* merge a second sacrec to the current */
    bool Merge( SacRec sacrec2 ) {
       merge( sacrec2 );

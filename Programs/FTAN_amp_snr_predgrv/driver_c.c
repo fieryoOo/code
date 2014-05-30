@@ -77,9 +77,9 @@
 #include <math.h>
 #include "aftan.h"
 #include "mysac64.h"
-#include "/projects/yeti4009/code/Programs/head/koftan.h"
-#include "/projects/yeti4009/code/Programs/head/gl_const.h"
-#include "/projects/yeti4009/code/Programs/head/mymacro.h"
+#include "koftan.h"
+#include "gl_const.h"
+#include "mymacro.h"
 
 SAC_HD *read_sac (char *fname, float **sig, SAC_HD *SHD);
 
