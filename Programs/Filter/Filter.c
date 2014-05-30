@@ -246,8 +246,8 @@ void Filter (double f1, double f2, double f3, double f4, double dt, int n, float
 
 int main(int argc, char *argv[])
 {
-   if(argc != 6) {
-      std::cerr<<"Usage: "<<argv[0]<<" [sac file] [f1 (-1=gaussian)] [f2 (-1=lowpass fcenter=gaussian)] [f3 (frec halflength=gaussian)] [f4 (-1=gaussian)]"<<std::endl;
+   if(argc != 7) {
+      std::cerr<<"Usage: "<<argv[0]<<" [sac file] [f1 (-1=gaussian)] [f2 (-1=lowpass fcenter=gaussian)] [f3 (frec halflength=gaussian)] [f4 (-1=gaussian)] [out_sacname]"<<std::endl;
       exit(-1);
    }
 
@@ -258,9 +258,9 @@ int main(int argc, char *argv[])
    double f1 = atof(argv[2]), f2 = atof(argv[3]), f3 = atof(argv[4]), f4 = atof(argv[5]);
    Filter(f1, f2, f3, f4, (double)shd.delta, shd.npts, sig, sig);
 
-   char outname[300];
-   sprintf(outname, "%s_ft", argv[1]);
-   write_sac(outname, sig, &shd);
+   //char outname[300];
+   //sprintf(outname, "%s_ft", argv[1]);
+   write_sac(argv[6], sig, &shd);
 
    return 0;
 }
