@@ -51,7 +51,7 @@ int ComputeSNR(char *dispname, char *outname, float * sei_p, SAC_HD *shd) {
       printf("Error(main): Cannot write to file %s\n", outname);
       exit (0);
    }
-   for(i = 0; i < nper; i++) fprintf(fout,"%8.4f   %.5g  %8.4f  %.5g\n", cper[i], amp[i], snr[i], noise[i]);
+   for(i = 0; i < nper; i++) fprintf(fout,"%8.4f   %.5g  %8.4f  %.5g  %.0f\n", cper[i], amp[i], snr[i], noise[i], shd->user0);
    fclose(fout);
 
    return 1;
