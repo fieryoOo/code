@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
    sac_sig.ToAm(amp_sig);
    sac_noise.ToAm(amp_noise);
    // normalize by time series length
-   amp_sig.Mul(1./100.);
+   amp_sig.Mul(1./200.);
    amp_noise.Mul(1./sac_noise.shd.npts);
 
    // compute rms average int each period bin

@@ -14,12 +14,12 @@ int main( int argc, char* argv[] ) {
    }
 
    SacRec sacrec(argv[1]);
-   sacrec.LoadHD();
+   sacrec.Load();
 
    float f1=atof(argv[2]), f2=atof(argv[3]), f3=atof(argv[4]), f4=atof(argv[5]);
    sacrec.Filter(f1,f2,f3,f4);
 
-   sacrec.WriteHD(argv[6]);
+   sacrec.Write(argv[6]);
 
    return 0;
 }
