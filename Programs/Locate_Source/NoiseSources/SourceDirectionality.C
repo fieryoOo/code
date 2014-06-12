@@ -302,7 +302,7 @@ void BinAvg(struct DATA *data, int ndat, float hwbin, int nbin, struct RESULTS *
          ftmp = bindata[ipt].val - results[ibin].amp;
          results[ibin].ampsigma += ftmp*ftmp * weight;
       }
-      results[ibin].ampsigma = sqrt(results[ibin].ampsigma*weit)/(weit*weit-V2);
+      results[ibin].ampsigma = sqrt( results[ibin].ampsigma * V2 / (weit*(weit*weit-V2)) );
       delete [] bindata; bindata = NULL;
    }
 }
