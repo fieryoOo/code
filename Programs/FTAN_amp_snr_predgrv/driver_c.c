@@ -120,6 +120,10 @@ int main (int argc, char *argv[])
 
 /* ------------ frequency half length for gaussian filter in get_snr ------------ */
    float fhlen = atof(argv[4]);
+   if( fhlen<=0. || fhlen>=0.5 ) {
+      fprintf(stderr, "Invalid fhlen = %f!\n", fhlen);
+      exit(0);
+   }
 /*---------------- out_flag --------------------
 controls what files to output
 0(default):	all the files
