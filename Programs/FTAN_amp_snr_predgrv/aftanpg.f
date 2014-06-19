@@ -443,8 +443,11 @@ c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 c fill out output data arrays
 c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       if(nfout1.ne.0.and.nphpr.ne.0) then
+        write(*, *) "aa"
+        write(*, *) delta, ip, nfout1, nphpr
         call phtovel(delta,ip,nfout1,tvis,grvel,phgr,nphpr,phprper,
      *               phprvel,phgrc)
+        write(*, *) "bb"
         do j = 1,nfout1
            phgr(j) = phgrc(j)
         enddo

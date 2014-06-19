@@ -122,7 +122,7 @@ int main (int argc, char *argv[])
    float fhlen = atof(argv[4]);
    if( fhlen<=0. || fhlen>=0.5 ) {
       fprintf(stderr, "Invalid fhlen = %f!\n", fhlen);
-      exit(0);
+      exit(-2);
    }
 /*---------------- out_flag --------------------
 controls what files to output
@@ -136,12 +136,12 @@ notice that amp_snrs are always measured based on
    if(argc==6) pflag = atof(argv[5]);
    if(pflag<0 && pflag>2) {
       printf("Unknow out_flag: %d\n", pflag);
-      exit(-1);
+      exit(-2);
    }
 // read in 1D model
   if((inv = fopen(argv[2],"r")) == NULL) {
      printf("Cannot open model file %s.\n", argv[2]);
-     exit(0);
+     exit(-2);
   }
   nprpv = 0;
   while(fgets(buff,300,inv) != NULL) {
@@ -153,11 +153,12 @@ notice that amp_snrs are always measured based on
   // open and read contents of parameter file
   if((in = fopen(argv[1],"r")) == NULL) {
       printf("Can not find file %s.\n",argv[1]);
-      exit(1);
+      exit(-2);
   }
   while((n = fscanf(in,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %s %d",
              &piover4,&vmin,&vmax,&tmin,&tmax,&tresh,&ffact,&taperl,&snr,&fmatch, &tresh2,
 	     &ffact2,&taperl2,&snr2,&fmatch2,name,&flag)) != EOF) {
+//printf("1: %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %s %d\n", piover4,vmin,vmax,tmin,tmax,tresh,ffact,taperl,snr,fmatch, tresh2,          ffact2,taperl2,snr2,fmatch2,name,flag);
 
       if(n == 0 || n != 17) break;
 
@@ -180,7 +181,7 @@ notice that amp_snrs are always measured based on
    //readdata(sac,name,&n,&dt,&delta,&t0,sei_p);
    if( read_sac(name, &sei_p, &shd) == NULL ) {
       fprintf(stderr, "ERROR(read_sac): %s\n", name);
-      exit(-1);
+      exit(-2);
    }
    n = shd.npts; dt = shd.delta;
    delta = shd.dist; t0 = shd.b;
@@ -190,7 +191,7 @@ notice that amp_snrs are always measured based on
 	 len = shd.npts/2;
 	 if( len > NMAX ) {
 	    fprintf(stderr, "ERROR(NMAX): len=%d > NMAX=%d!\n", len, NMAX);
-	    exit(-1);
+	    exit(-2);
 	 }
          for(k=0;k<=len;k++) sei_n[k]=sei_p[len-k]; 
          for(k=0;k<=len;k++) sei_p[k]=sei_p[len+k];
@@ -201,7 +202,7 @@ notice that amp_snrs are always measured based on
       else {
 	 if( n > NMAX ) {
 	    fprintf(stderr, "ERROR(NMAX): n=%d > NMAX=%d!\n", n, NMAX);
-	    exit(-1);
+	    exit(-2);
 	 }
 	 for(k=0;k<n;k++) sei[k]=sei_p[k]; //single-sided. copy
       }
@@ -324,7 +325,7 @@ printf("%d\n",npred);
   sprintf(amp_name,"%s_amp_snr",name);
   if((fas=fopen(amp_name,"w"))==NULL) {
      printf("Cannot open file %s to write!\n", amp_name);
-     exit (1);
+     exit (-2);
     }
   if(flag==1) for(i = 0; i < nfout2; i++)
      fprintf(fas,"%8.4f   %.5g  %8.4f  %.5g  %8.4f\n",arr2[i][1],amp_p[i],snr_p[i],amp_n[i],snr_n[i]);
