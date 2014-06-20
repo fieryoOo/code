@@ -15,7 +15,7 @@ c ==========================================================
 
       subroutine gaufilt(alpha,c_per,dt,n,seis_in,seis_out)
       implicit none
-      include 'fftw3.h'
+      include 'myfftw3.h'
       integer*4 n
       real*8    alpha,dt,c_per
       real*4    seis_in(400000),seis_out(400000)

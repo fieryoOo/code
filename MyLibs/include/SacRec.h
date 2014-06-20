@@ -29,7 +29,7 @@ private:
 public:
    std::string fname;			// input file name
    SAC_HD shd;				// sac header
-   std::unique_ptr<float[]> sig;	// pointer the the signal
+   std::unique_ptr<float[]> sig;	// pointer to the signal
    //std::auto_ptr<float> sig;
 public:
    /* ------------------------------ con/destructors and operators ------------------------------ */

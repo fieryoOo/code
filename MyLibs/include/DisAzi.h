@@ -123,11 +123,12 @@ class Path {
       if(flag==1){
 	 alpha1=atan2(cosU2*sin(dlt_long), cosU1*sinU2 - sinU1*cosU2*cos(dlt_long))/pio180;
 	 alpha2=atan2(cosU1*sin(dlt_long), -sinU1*cosU2 + cosU1*sinU2*cos(dlt_long))/pio180;
-	 if( fabs(long2-long1)>180 ) { alpha2 = 360-alpha2;}
-	 if( long2 < long1 ) { alpha2 = 360-alpha2; }
-	 if(alpha2>180) alpha2=360-alpha2;
-	 alpha2=fabs(90-alpha2);
-	 Ds=Rx*(90-alpha2)/90.+(Ra+Rb)*pio180*alpha2;
+	 if( fabs(long2-long1)>180 ) { alpha1 = 360.-alpha1; alpha2 = 360.-alpha2;}
+	 if( long2 < long1 ) { alpha1 = 360.-alpha1; alpha2 = 360.-alpha2; }
+	 float theta = alpha1;
+	 if(theta>180) theta=360-theta;
+	 theta=fabs(90-theta);
+	 Ds=Rx*(90-theta)/90.+(Ra+Rb)*pio180*theta;
 	 dist=Ds-dist;
       }
 
@@ -168,8 +169,8 @@ class Path {
 
       alpha1=atan2(cosU2*sin(dlt_long), cosU1*sinU2 - sinU1*cosU2*cos(dlt_long))*180/pi;
       alpha2=atan2(cosU1*sin(dlt_long), -sinU1*cosU2 + cosU1*sinU2*cos(dlt_long))*180/pi;
-      if( fabs(long2-long1)>180 ) { alpha1 = 360 - alpha1; }
-      if( long2 < long1 ) { alpha1 = 360 - alpha1; }
+      if( fabs(long2-long1)>180 ) { alpha1 = 360 - alpha1; alpha2 = 360 - alpha2; }
+      if( long2 < long1 ) { alpha1 = 360 - alpha1; alpha2 = 360 - alpha2; }
 
    }
 
