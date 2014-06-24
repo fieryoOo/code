@@ -1,5 +1,5 @@
 /* This code takes (1) a list of sac envelope files along with their center period (and optionally the measured group vel) and (2) an input map
- * of group vel model for the region of interests and computes a map of probability of the precursoring signal location. */
+ * of group vel model for the region of interests and computes a map of probability of the precursory signal location. */
 #include "PathAverage.h"
 #include "SACREC.h"
 #include <cstdlib>
@@ -72,36 +72,39 @@ int main(int argc, char *argv[])
       /* read in sac-file-name, center-period, and group-speed */
       grv = -1.;
       if( sscanf(filebuff.at(ifile).c_str(), "%s %f %f", fsac, &cper, &grv) < 2 ) {
-	 std::cerr<<"Warning(main): format error in file "<<argv[1]<<std::endl;
-	 continue;
+			std::cerr<<"Warning(main): format error in file "<<argv[1]<<std::endl;
+			continue;
       }
       std::cout<<"Searching precursors from file "<<fsac<<std::endl;
       /* load sac header and signal */
       sigcur = new SACREC(fsac, cper, grv);
       if( ! sigcur->load() ) { 
-	 delete sigcur; sigcur = NULL;
-	 std::cerr<<"Warning(main): sac file not exist OR bad data in sac file "<<fsac<<std::endl;
-	 continue;
+			delete sigcur; sigcur = NULL;
+			std::cerr<<"Warning(main): sac file not exist OR bad data in sac file "<<fsac<<std::endl;
+			continue;
       }
       P1 = sigcur->P1();
       P2 = sigcur->P2();
       /* predict grv of the current path if not provided */
       if( grv < 0. ) {
-	 new(&pathcur) Path(mapname, P1, P2);
-	 grv = pathcur.PathAverage(cper);
-	 if( grv < 0. ) { 
-	    std::cerr<<"Warning(main): meaningless group vel computed ("<<grv<<") for fsac "<<fsac<<std::endl;
-	    delete sigcur; sigcur = NULL; continue; 
-	 }
-	 sigcur->setGrv(grv);
-	 pathcur.~Path();
+			new(&pathcur) Path(mapname, P1, P2);
+			grv = pathcur.PathAverage(cper);
+			if( grv < 0. ) { 
+				std::cerr<<"Warning(main): meaningless group vel computed ("<<grv<<") for fsac "<<fsac<<std::endl;
+				delete sigcur; sigcur = NULL; continue; 
+			}
+			sigcur->setGrv(grv);
+			pathcur.~Path();
       }
 
       lamda = cper * grv * 0.5;
       /* checkpoint: print out a map for each center station */
       if( strcmp(cstaOld, "nan")==0 ) { sprintf(cstaOld, "%s", sigcur->Sta1()); }
       else if( strcmp(sigcur->Sta1(), cstaOld)==0 ) { 
-	 if(SkipCurrentCsta) { std::cout<<"   data read from the hard drive already. skip..."<<std::endl; delete sigcur; sigcur = NULL; continue; }
+			if(SkipCurrentCsta) { 
+				std::cout<<"   data read from the hard drive already. skip..."<<std::endl; 
+				delete sigcur; sigcur = NULL; continue; 
+			}
       }
       else if( SkipCurrentCsta ) { SkipCurrentCsta = false; sprintf(cstaOld, "%s", sigcur->Sta1()); }// std::cerr<<"skip writing last csta"<<std::endl; }
       else {

@@ -15,7 +15,7 @@ int main( int argc, char* argv[] )
 {
    /* check for and read in input parameters */
    if( argc != 4 ) {
-      std::cerr<<"Usage: "<<argv[0]<<" [SAC list] [Input model (fsac source_lon source_lat)] [uncertainty in group speed map (0. - 1.)]"<<std::endl;
+      std::cerr<<"Usage: "<<argv[0]<<" [SAC list (fsac source_lon source_lat)] [Input model] [uncertainty in group speed map (0. - 1.)]"<<std::endl;
       exit(-1);
    }
    char mapname[100]; sprintf(mapname, "%s", argv[2]);

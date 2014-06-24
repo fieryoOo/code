@@ -6,11 +6,11 @@ cflags = -O3 -Wall
 
 LDLIBS = -fopenmp
 
-CFLAGS = $(DBG) $(cflags)
+CFLAGS = $(DBG) $(cflags) #-gdwarf-2 -gstrict-dwarf
 
 CC = g++
 
-DBG = -g
+DBG =
 
 all : $(BIN1) $(BIN2)
 
@@ -32,4 +32,4 @@ install : $(BIN1) $(BIN2)
 	install -s $(BIN2) $(INST_DIR)
 
 clean :
-	rm -f $(BIN1) $(BIN2) $(FOBJS1) $(FOPBS2)
+	rm -f $(BIN1) $(BIN2) $(FOBJS1) $(FOBJS2)
