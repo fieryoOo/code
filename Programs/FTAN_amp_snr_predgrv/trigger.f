@@ -19,7 +19,7 @@ c        hh2 = 1.0d0/per(i+1)-1.0d0/per(i+2)
         hh2 = dlog(per(i+2)) - dlog(per(i+1))
         hh3 = hh1+hh2
 c        r = (grvel(i)/hh1-(1.0d0/hh1+1.0d0/hh2)*grvel(i+1)+grvel(i+2)/hh2)*hh3/4.0d0*100.0d0
-        r = 2.0d0*(grvel(i)*hh2+grvel(i+2)*hh1-grvel(i+1)*hh3)/hh1/hh2/hh3/3.0d0
+        r = 2.0d0*(grvel(i)*hh2+grvel(i+2)*hh1-grvel(i+1)*hh3)/(hh1*hh2*hh3*3.0d0)
 c        write (*,*) "Curvature at ",per(i+1),"sec: ",r," ( ",per(i),per(i+1),per(i+2)," ) "
         if( per(i+1).ge.15.0d0 ) then
            r = r*2.0d0

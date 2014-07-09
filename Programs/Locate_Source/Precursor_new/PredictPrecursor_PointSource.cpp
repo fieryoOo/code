@@ -1,5 +1,7 @@
-/* this code takes (1) a list of SAC files (just to be convenient. The 2 station locations stored in the SAC header will be used to predict the arrival time) 
- * (2) a group velocity map of the region of interests, and (3) a source location
+/* this code takes 
+ * (1) a SAC-source with a sac file name in the 1st column (just to be convenient. The 2 station locations stored in the SAC header will be used to predict the arrival time) and the source location in the 2nd and 3rd columns:
+ *		( sac_file_name source_lon source_lat )
+ * (2) a group velocity map of the region of interests
  * and predict the arrival time of the precursoring signal for each path */
 #include "SACREC.h"
 #include "PathAverage.h"
@@ -15,10 +17,11 @@ int main( int argc, char* argv[] )
 {
    /* check for and read in input parameters */
    if( argc != 4 ) {
-      std::cerr<<"Usage: "<<argv[0]<<" [SAC list] [Input model (fsac source_lon source_lat)] [uncertainty in group speed map (0. - 1.)]"<<std::endl;
+      std::cerr<<"Usage: "<<argv[0]<<" [SAC-source list (fsac slon slat)] [Input model] [uncertainty in group speed map (0. - 1.)]"<<std::endl;
       exit(-1);
    }
-   char mapname[100]; sprintf(mapname, "%s", argv[2]);
+   //char mapname[100]; sprintf(mapname, "%s", argv[2]);
+	char* mapname = argv[2];
    float unc = atof(argv[3]);
 
    /* read in sac list */

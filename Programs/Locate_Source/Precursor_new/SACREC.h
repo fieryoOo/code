@@ -27,8 +27,8 @@ public:
       if( ! read_sac(fsac, &sig, &shd) ) return false; 
       if( shd.depmin != shd.depmin || shd.depmax != shd.depmax ) return false;
       if( shd.dist <= 0. ) {
-	 calc_dist(shd.evla, shd.evlo, shd.stla, shd.stlo, &shd.dist); 
-	 //shd.dist = Path<float>(shd.evlo, shd.evla, shd.stlo, shd.stla).Dist();
+			calc_dist(shd.evla, shd.evlo, shd.stla, shd.stlo, &shd.dist); 
+			//shd.dist = Path<float>(shd.evlo, shd.evla, shd.stlo, shd.stla).Dist();
       }
       return true;
    }
