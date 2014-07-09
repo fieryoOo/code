@@ -158,6 +158,11 @@ Map& Map::operator= ( Map&& mp_other ) {
 Map::~Map() {}
 
 
+/* ------------ set source location ------------ */
+//void Map::SetSource( const Point<float>& src ) {
+//	pimplM->src = src;
+//}
+
 
 /* ------------ compute average value on the point rec ------------ */
 float Map::PointAverage(Point<float> rec, float hdis, float& weit) {
@@ -321,36 +326,36 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& per
    float alpha = -1.125 / (dab*dab); //- 0.5 / (dab*2.*0.33 * dab*2.*0.33);
    float dismax = 0.;
    for(int irow=0; irow<dataM.NumRows(); irow++) {
-      for(int icol=0; icol<dataM.NumCols(); icol++) {
-	 // distances from (irow, icol) to src/rec
-	 float loncur = lonmin+irow*grd_lon, latcur = latmin+icol*grd_lat;
-	 float disEsrc = pimplM->estimate_dist( src, Point<float>(loncur,latcur) );
-	 float disErec = pimplM->estimate_dist( rec, Point<float>(loncur,latcur) );
-	 if( disEsrc + disErec > max_2a+20. ) continue; // 20. for estimating error
-         for(size_t idata=0; idata<dataM(irow, icol).size(); idata++) {
-	    DataPoint<float> dpcur = dataM(irow, icol)[idata];
-	    //distance from dataM(irow, icol).at(idata) to src/rec;
-	    float dis_src = dpcur.Dis(); //pimplM->estimate_dist(src, dpcur);
-	    float dis_rec = pimplM->estimate_dist(rec, dpcur);
-	    if( dis_src+dis_rec > max_esti ) continue; // 2.*dab == hdis * 3.
-	    dis_rec = Path<float>(rec, dpcur).Dist();
-	    //calc_dist(src.Lat(), src.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_src);
-	    //calc_dist(rec.Lat(), rec.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_rec);
-	    float dis_ellip = dis_src + dis_rec - dis; // dis == 2.*f
-	    if( dis_ellip > dab2 ) continue; // 2.*dab == hdis * 3.
-	    if( dismax < dpcur.Dis() ) dismax = dpcur.Dis();
-	    float weight = exp( alpha * dis_ellip * dis_ellip );
-	    //std::cerr<<(Point<float>)dpcur<<" "<<weight<<"   "<<src<<"  "<<rec<<std::endl;
-	    weit += weight;
-	    datasum += ( weight / dpcur.Data() );
-         }
-      }
-   }
-   if(weit==0.) datasum = -12345.;
-   else datasum = weit/datasum;
-   perc = dismax>dis ? 1 : dismax/dis;
-   //return datasum;
-   return DataPoint<float>(rec, datasum, dis);
- 
+		for(int icol=0; icol<dataM.NumCols(); icol++) {
+			// distances from (irow, icol) to src/rec
+			float loncur = lonmin+irow*grd_lon, latcur = latmin+icol*grd_lat;
+			float disEsrc = pimplM->estimate_dist( src, Point<float>(loncur,latcur) );
+			float disErec = pimplM->estimate_dist( rec, Point<float>(loncur,latcur) );
+			if( disEsrc + disErec > max_2a+20. ) continue; // 20. for estimating error
+			for(size_t idata=0; idata<dataM(irow, icol).size(); idata++) {
+				DataPoint<float> dpcur = dataM(irow, icol)[idata];
+				//distance from dataM(irow, icol).at(idata) to src/rec;
+				float dis_src = dpcur.Dis(); //pimplM->estimate_dist(src, dpcur);
+				float dis_rec = pimplM->estimate_dist(rec, dpcur);
+				if( dis_src+dis_rec > max_esti ) continue; // 2.*dab == hdis * 3.
+				dis_rec = Path<float>(rec, dpcur).Dist();
+				//calc_dist(src.Lat(), src.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_src);
+				//calc_dist(rec.Lat(), rec.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_rec);
+				float dis_ellip = dis_src + dis_rec - dis; // dis == 2.*f
+				if( dis_ellip > dab2 ) continue; // 2.*dab == hdis * 3.
+				if( dismax < dpcur.Dis() ) dismax = dpcur.Dis();
+				float weight = exp( alpha * dis_ellip * dis_ellip );
+				//std::cerr<<(Point<float>)dpcur<<" "<<weight<<"   "<<src<<"  "<<rec<<std::endl;
+				weit += weight;
+				datasum += ( weight / dpcur.Data() );
+			}
+		}
+	}
+	if(weit==0.) datasum = -12345.;
+	else datasum = weit/datasum;
+	perc = dismax>dis ? 1 : dismax/dis;
+	//return datasum;
+	return DataPoint<float>(rec, datasum, dis);
+
 }
 

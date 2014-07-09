@@ -67,6 +67,8 @@ public:
    Map& operator= ( Map&& );
    ~Map();
 
+	/* ------------ set source location ------------ */
+	//void SetSource( const Point<float>& src );
 
    /* ------------ compute average value on the point rec ------------ */
    float PointAverage(Point<float> Prec, float hdis ) {
