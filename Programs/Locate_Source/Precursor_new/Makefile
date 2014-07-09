@@ -1,17 +1,17 @@
 INST_DIR = $(HOME)/bin
 BIN1 = LocatePrecursor
 BIN2 = PredictPrecursor_PointSource
-BIN2 = PredictPrecursor_SourceGroup
+BIN3 = PredictPrecursor_SourceGroup
 
 cflags = -O3 -std=c++0x
 
 LDLIBS = -fopenmp -lSacRec -lMap -lfftw3
 
-CFLAGS = $(DBG) $(cflags)
+CFLAGS = $(DBG) $(cflags) #-gdwarf-2 -gstrict-dwarf
 
 CC = g++
 
-DBG = -g
+DBG =
 
 all : $(BIN1) $(BIN2) $(BIN3)
 

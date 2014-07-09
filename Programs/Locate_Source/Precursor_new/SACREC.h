@@ -35,7 +35,7 @@ public:
 
    const SAC_HD &GetHeader() { return shd; }
 
-   /* compute aamplitude and rms noise */
+   /* compute amplitude and rms noise */
    float amp(float time) { 
       if( sig == NULL ) return -12345.; 
       int i = (int)floor((time-shd.b)/shd.delta+0.5);
@@ -81,9 +81,9 @@ public:
       /* check for largest local maximum */
       float sigtmp[3], precamp = 0., prectime;
       for(int i=ib; i<ie; i++) {
-	 for(int j=0; j<3; j++) { sigtmp[j] = sig[i-1+j]; if(sigtmp[j]<0.) sigtmp[j] = -sigtmp[j];}
-	 if( (sigtmp[1]-sigtmp[0]) <= 0. || (sigtmp[1]-sigtmp[2]) <= 0. ) continue;
-	 if( sigtmp[1] > precamp ) { precamp = sigtmp[1]; prectime = i; }
+			for(int j=0; j<3; j++) { sigtmp[j] = sig[i-1+j]; if(sigtmp[j]<0.) sigtmp[j] = -sigtmp[j]; }
+			if( (sigtmp[1]-sigtmp[0]) <= 0. || (sigtmp[1]-sigtmp[2]) <= 0. ) continue;
+			if( sigtmp[1] > precamp ) { precamp = sigtmp[1]; prectime = i; }
       }
       prectime = shd.b + prectime*shd.delta;
       *amp = precamp; *time = prectime;
