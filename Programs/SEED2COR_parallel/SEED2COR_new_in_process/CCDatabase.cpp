@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <string>
 #include <cstring>
 #include <cmath>
 #include <algorithm>
@@ -44,9 +45,8 @@ bool CCDatabase::NextRec() {
    return false;
 }
 
-void CCDatabase::GetRec() {
-   std::cerr<<*(seedlst.GetRec());
-   std::cerr<<"  "<<*(stalst.GetRec())<<std::endl;
+DailyInfo CCDatabase::GetRec() {
+	return DailyInfo( *(seedlst.GetRec()), *(stalst.GetRec()), CCParams.rdsexe );
 }
 
 
@@ -56,12 +56,26 @@ static int isTermi(int deno) {
    while(deno%5==0) deno *= 0.2;
    return deno==1;
 }
+bool FindInPath( const std::string fname, std::string& absname ) {
+	char* pPath = getenv("PATH");
+	if( ! pPath ) return false;
+	std::stringstream sPath(pPath);
+	for(std::string pathcur; std::getline(sPath, pathcur, ':'); ) {
+		std::string testname = pathcur + '/' + fname;
+		std::ifstream fin(testname);
+		if( fin ) {
+			absname = testname;
+			return true;
+		}
+	}
+	return false;
+}
 /* read in parameters for the CC Database from the inputfile */
 void CCPARAM::Load( const char* fname ) {
-   /* load param file input a vector */
-   std::ifstream fparam(fname);
-   if( ! fparam ) {
-      std::cerr<<"Error(GetParam): Cannot open parameter file "<<fname<<std::endl;
+	/* load param file input a vector */
+	std::ifstream fparam(fname);
+	if( ! fparam ) {
+		std::cerr<<"Error(GetParam): Cannot open parameter file "<<fname<<std::endl;
       exit(0);
    }
    std::vector<std::string> filevec;
@@ -79,16 +93,22 @@ void CCPARAM::Load( const char* fname ) {
    std::cout<<"rdseed excutable:\t"<<rdsexe<<std::endl;
    if( ! rdsexe.find("rdseed") ) std::cout<<"   Warning: Are you sure this is an rdseed excutable?"<<std::endl;
    if( access(rdsexe.c_str(), R_OK)!=0 ) {
-     std::cerr<<"   Error: cannot access rdseed through "<<rdsexe<<std::endl;
-     ERR = 1;
+		std::cerr<<"   Warning: cannot access rdseed through "<<rdsexe<<std::endl;
+		if( FindInPath( "rdseed", rdsexe) )
+			std::cerr<<"            corrected to "<<rdsexe<<std::endl;
+		else
+			ERR = 1;
    }
    //evrexe
    evrexe = (*fveciter).substr( 0, (*fveciter).find_first_of(" \t") ); fveciter++;
    std::cout<<"evalresp excutable:\t"<<evrexe<<std::endl;
    if( ! evrexe.find("evalresp") ) std::cout<<"   Warning: Are you sure this is an evalresp excutable?"<<std::endl;
    if( access(evrexe.c_str(), R_OK)!=0 ) {
-     std::cerr<<"   Error: cannot access evalresp through "<<evrexe<<std::endl;
-     ERR = 1;
+		std::cerr<<"   Warning: cannot access evalresp through "<<evrexe<<std::endl;
+		if( FindInPath( "evalresp", evrexe) )
+         std::cerr<<"            corrected to "<<evrexe<<std::endl;
+      else
+			ERR = 1;
    }
    //stafname
    stafname = (*fveciter).substr( 0, (*fveciter).find_first_of(" \t") ); fveciter++;
@@ -320,28 +340,28 @@ void CCPARAM::Load( const char* fname ) {
 
 /*-------------------------------------- Seedlist ----------------------------------------*/
 /* load in seed list from input file and sort it by date */
-static bool SameDate(const SeedRec& a, const SeedRec& b) {
+static bool SameDate(const SeedInfo& a, const SeedInfo& b) {
    return ( a.year==b.year && a.month==b.month && a.day==b.day  );
 }
-static bool CompareDate(const SeedRec& a, const SeedRec& b) {
+static bool CompareDate(const SeedInfo& a, const SeedInfo& b) {
    return ( ( a.year<b.year ) || ( a.year==b.year && (a.month<b.month||(a.month==b.month&&a.day<b.day)) ) );
 }
 void Seedlist::Load( const char* fname ) {
-   //seedrec = new std::vector<SeedRec>;
+   //seedrec = new std::vector<SeedInfo>;
    std::ifstream fseed(fname);
    if( !fseed ) {
       std::cerr<<"ERROR(Seedlist::Load): Cannot open file "<<fname<<std::endl;
       exit(-1);
    }
    std::string buff;
-   SeedRec SRtmp;
+   SeedInfo SRtmp;
    for(;std::getline(fseed, buff);) {
       char stmp[buff.length()];
       if( (sscanf(buff.c_str(),"%s %d %d %d", stmp, &(SRtmp.year), &(SRtmp.month), &(SRtmp.day))) != 4 ) { 
 	 std::cerr<<"Warning(Seedlist::Load): format error in file "<<fname<<std::endl; 
 	 continue;
       }
-      SRtmp.fname = stmp;
+      SRtmp.seedname = stmp;
       seedrec.push_back(SRtmp);
       //std::cerr<<seedrec.back()<<std::endl;
    }
@@ -353,10 +373,10 @@ void Seedlist::Load( const char* fname ) {
    icurrent = seedrec.begin();
 }
 
-/* Move icurrent to (or to after) the next match of the input SeedRec 
+/* Move icurrent to (or to after) the next match of the input SeedInfo 
    assuming a sorted list and relocating using binary search */
 bool Seedlist::ReLocate( int year, int month, int day ) { 
-   SeedRec srkey("", year, month, day);
+   SeedInfo srkey("", year, month, day);
    icurrent = std::lower_bound(seedrec.begin(), seedrec.end(), srkey, CompareDate );
    if( icurrent>=seedrec.end() || icurrent<seedrec.begin() ) return false;
    if( !SameDate(*icurrent, srkey) ) return false;
@@ -367,26 +387,26 @@ bool Seedlist::ReLocate( int year, int month, int day ) {
 /*-------------------------------------- Stationlist ----------------------------------------*/
 /* load in station list from input file */
 struct StaFinder {
-   StaRec a;
-   StaFinder(StaRec b) : a(b) {}
-   bool operator()(StaRec b) { return a.fname.compare(b.fname)==0; }
+   StaInfo a;
+   StaFinder(StaInfo b) : a(b) {}
+   bool operator()(StaInfo b) { return a.staname.compare(b.staname)==0; }
 };
 void Stationlist::Load( const char* fname ) {
-   //starec = new std::vector<StaRec>;
+   //starec = new std::vector<StaInfo>;
    std::ifstream fsta(fname);
    if( !fsta ) {
       std::cerr<<"ERROR(Stationlist::Load): Cannot open file "<<fname<<std::endl;
       exit(-1);
    }
    std::string buff;
-   StaRec SRtmp;
+   StaInfo SRtmp;
    for(;std::getline(fsta, buff);) {
       char stmp[buff.length()];
       if( (sscanf(buff.c_str(),"%s %f %f", stmp, &(SRtmp.lon), &(SRtmp.lat))) != 3 ) { 
 	 std::cerr<<"Warning(Stationlist::Load): format error in file "<<fname<<std::endl; 
 	 continue;
       }
-      SRtmp.fname = stmp;
+      SRtmp.staname = stmp;
       icurrent = find_if(starec.begin(), starec.end(), StaFinder(SRtmp) );
       if( icurrent != starec.end() ) {
 	 if( *icurrent == SRtmp ) { 
@@ -406,10 +426,10 @@ void Stationlist::Load( const char* fname ) {
    icurrent = starec.begin();
 }
 
-/* Move icurrent to the next match of the input StaRec 
+/* Move icurrent to the next match of the input StaInfo 
    icurrent=.end() if no such match is found */
 bool Stationlist::ReLocate( const char* staname ) { 
-   StaRec srkey(staname, 0., 0.);
+   StaInfo srkey(staname, 0., 0.);
    icurrent = find_if(starec.begin(), starec.end(), StaFinder(srkey) );
    if( icurrent>=starec.end() || icurrent<starec.begin() ) return false;
    return true;

@@ -517,7 +517,7 @@ bool DailyRec::extractSac( int fskipesac, bool writeout, std::ostringstream& rep
 
 bool DailyRec::RmRESP(bool writeout) {
    if( pimpl->fresp.empty() ) return false;
-   sacT.RmRESP(pimpl->evrexe.c_str(), pimpl->fresp.c_str(), pimpl->perl, pimpl->perh);
+   sacT.RmRESP( pimpl->fresp.c_str(), pimpl->perl, pimpl->perh, pimpl->evrexe.c_str() );
    fRemove(pimpl->fresp.c_str());
    // write out
    if( writeout ) {

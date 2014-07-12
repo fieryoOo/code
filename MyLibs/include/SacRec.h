@@ -34,7 +34,7 @@ public:
 public:
    /* ------------------------------ con/destructors and operators ------------------------------ */
    /* constructors */
-   SacRec( const char* fnamein = NULL );	// default
+   SacRec( const char* fnamein = nullptr );	// default
    SacRec( const SacRec& recin );		// copy
    SacRec( SacRec&& recin );			// move
    /* operators */
@@ -80,7 +80,7 @@ public:
    /* remove mean and trend */
    void RTrend();
    /* remove response and apply filter */
-   bool RmRESP( const char *evrexe, const char *fresp, float perl, float perh );
+   bool RmRESP( const char *fresp, float perl, float perh, const char *evrexe = nullptr );
    /* resample (with anti-aliasing filter) the signal to given sps */
    bool Resample( float sps );
 
@@ -89,12 +89,16 @@ public:
    bool cut( float tb, float te, SacRec& );
    /* merge a second sacrec to the current */
    bool Merge( SacRec sacrec2 ) {
-      merge( sacrec2 );
+      bool succeed = merge( sacrec2 );
       arrange();
+		return succeed;
    }
    bool merge( SacRec sacrec2 );
-   int arrange( const char *recname = NULL );
+   int arrange( const char *recname = nullptr );
 
+	/* ------------------------------- cut by event ---------------------------------- */
+	bool ZoomToEvent( const std::string etime, float evlon, float evlat, float tb, float tlen, std::string ename = "" );
+	bool ZoomToEvent( const SAC_HD& eshd, float evlon, float evlat, float tb, float tlen, std::string ename );
 };
 
 /*

@@ -11,6 +11,7 @@
 #ifndef CCDATABASE_H
 #define CCDATABASE_H
 
+#include "SeedStaInfo.h"
 #include <cstdio>
 #include <vector>
 #include <cstring>
@@ -58,18 +59,10 @@ struct CCPARAM {
 
 
 /* ------------------------------ Seedlist ------------------------------ */
-/* seed record wrapper consists of filename, year, month, and day */
-struct SeedRec {
-   std::string fname;
-   int year, month, day;
-   SeedRec() { year=0; month=0; day=0; }
-   SeedRec(const char* inname, const int& yy, const int& mm, const int& dd) { if(inname)fname.assign(inname); year=yy; month=mm; day=dd; }
-   friend std::ostream& operator<< (std::ostream& o, const SeedRec& sr) { o<<"( "<<sr.fname<<" "<<sr.year<<" "<<sr.month<<" "<<sr.day<<" )"; return o; }
-};
 /* seed list with the 'NextRec' and the 'ReLocate' operation */
 class Seedlist {
-   std::vector<SeedRec> seedrec;
-   std::vector<SeedRec>::iterator icurrent;
+   std::vector<SeedInfo> seedrec;
+   std::vector<SeedInfo>::iterator icurrent;
 public:
    Seedlist() { icurrent = seedrec.end(); }
    /* call Load if fname is provided */
@@ -79,7 +72,7 @@ public:
    /* check if icurrent is meaningful */
    bool NotEnded() { return icurrent<seedrec.end() && icurrent>=seedrec.begin(); }
    /* return an iterator to the current seedrec */
-   std::vector<SeedRec>::iterator GetRec() { return icurrent; }
+   std::vector<SeedInfo>::iterator GetRec() { return icurrent; }
    /* rewind */
    void Rewind() { icurrent = seedrec.begin(); }
    /* get to the next record and return true on success */
@@ -88,7 +81,7 @@ public:
       if( icurrent<seedrec.begin() || icurrent>=seedrec.end() ) return false;
       return true; 
    }
-   /* search for the first match of the input SeedRec and return true on success 
+   /* search for the first match of the input Seed date and return true on success 
       icurrent will be moved to the match on succed and to the first rec after on failure */   
    bool ReLocate( int year, int month, int day );
    //~Seedlist() { if( seedrec ) delete seedrec; }
@@ -96,19 +89,10 @@ public:
 
 
 /* ------------------------------ Stationlist ------------------------------ */
-/* station wrapper consists of stationname, longitude, and latitude */
-struct StaRec{
-   std::string fname;
-   float lon, lat;
-   StaRec() { lon=0.; lat=0.; }
-   StaRec(const char* inname, const float& lonin, const float& latin) { if(inname)fname.assign(inname); lon=lonin; lat=latin; }
-   friend bool operator== (StaRec& a, StaRec& b) { return ( a.fname.compare(b.fname)==0 && a.lon==b.lon && a.lat==b.lat ); }
-   friend std::ostream& operator<< (std::ostream& o, const StaRec& sr) { o<<"( "<<sr.fname<<" "<<sr.lon<<" "<<sr.lat<<" "<<" )"; return o; }
-};
 /* station list with the 'NextRec' and the 'ReLocate' operation */
 class Stationlist {
-   std::vector<StaRec> starec;
-   std::vector<StaRec>::iterator icurrent;
+   std::vector<StaInfo> starec;
+   std::vector<StaInfo>::iterator icurrent;
 public:
    Stationlist(){ icurrent = starec.begin(); }
    Stationlist( const char* fname ) { Load(fname); }
@@ -117,7 +101,7 @@ public:
    /* check if icurrent is meaningful */
    bool NotEnded() { return icurrent<starec.end() && icurrent>=starec.begin(); }
    /* return an iterator to the current starec */
-   std::vector<StaRec>::iterator GetRec() { return icurrent; }
+   std::vector<StaInfo>::iterator GetRec() { return icurrent; }
    /* rewind */
    void Rewind() { icurrent = starec.begin(); }
    /* get to the next record and return true on success */
@@ -126,7 +110,7 @@ public:
       if( icurrent<starec.begin() || icurrent>=starec.end() ) return false;
       return true;
    }
-   /* search for the first match of the input SeedRec and return true on success 
+   /* search for the first match of the input staname and return true on success 
       icurrent=.end() if no such match is found */
    bool ReLocate( const char* staname );
 };
@@ -152,7 +136,7 @@ public:
    /* Get the next daily record from the database. Assign file names and make directory if necessary */
    bool NextRecTest();
    bool NextRec();
-   void GetRec();
+   DailyInfo GetRec();
 /*
    void InitialPthread();
    void FillMonths();

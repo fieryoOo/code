@@ -18,6 +18,23 @@
 
 /* ---------------------------------------- Pimpl handle struct ---------------------------------------- */
 struct SacRec::SRimpl {
+
+	/* ---------- search by filename in ${PATH} ---------- */
+   bool FindInPath( const std::string fname, std::string& absname ) {
+      char* pPath = getenv("PATH");
+      if( ! pPath ) return false;
+      std::stringstream sPath(pPath);
+      for(std::string pathcur; std::getline(sPath, pathcur, ':'); ) {
+         std::string testname = pathcur + '/' + fname;
+         std::ifstream fin(testname);
+         if( fin ) {
+            absname = testname;
+            return true;
+         }
+      }
+      return false;
+   }
+
    /* ---------- FFT operations ---------- */
    #define PI 3.14159265358979323846
    // forward FFT 
@@ -42,7 +59,7 @@ struct SacRec::SRimpl {
       //pthread_mutex_lock(&fftlock);
       fftw_plan plan = fftw_plan_dft_1d (ns, *in, *out, FFTW_BACKWARD, type); //FFTW_ESTIMATE / FFTW_MEASURE
       if( Fflag == 1 ) *planF = fftw_plan_dft_1d (ns, *out, *in, FFTW_FORWARD, type);
-      if( plan==NULL || (Fflag==1 && *planF==NULL) ) {
+      if( plan==nullptr || (Fflag==1 && *planF==nullptr) ) {
          fprintf(stderr,"Error(FFTW_B): fftw_plan creation failed!!\n");
          //pthread_mutex_unlock(&fftlock); exit(0);
       }
@@ -267,6 +284,18 @@ struct SacRec::SRimpl {
       return true;
    }
 
+   int Jday ( int y, int m, int d ) {
+      int i, jd = 0;
+      for( i = 1; i < m; i++ ) {
+	 if ( (i==1) || (i==3) || (i==5) || (i==7) || (i==8) || (i==10) ) jd += 31;
+	 else if (i==2) {
+	    if ( (y%400==0) || (y%100!=0&&y%4==0) ) jd += 29;
+	    else jd += 28;
+	 }
+	 else jd += 30;
+      }
+      return jd + d;
+   }
 };
 
 
@@ -315,13 +344,13 @@ namespace System {
       }
       FTS *tree;
       FTSENT *file;
-      char *dirlist[] = { (char *)dir, NULL }; //may send in multiple dirs
+      char *dirlist[] = { (char *)dir, nullptr }; //may send in multiple dirs
       //get handle of the file hierarchy; FTS_LOGICAL follows symbolic links and detects cycles.
       //replace '0' with 'namecmp' to sort files by name
       tree = fts_open(dirlist, FTS_LOGICAL | FTS_NOSTAT | FTS_NOCHDIR, 0);
-      if (tree == NULL) perror("fts_open");
+      if (tree == nullptr) perror("fts_open");
 
-      //char *sblk = NULL;
+      //char *sblk = nullptr;
       //int sleng = 0, bsize = 0;
       //empty the input filelist
       filelist.clear();
@@ -400,14 +429,16 @@ SacRec& SacRec::operator= ( const SacRec& recin ) {
    fname = recin.fname; shd = recin.shd;
    int npts=recin.shd.npts; sig.reset(new float[npts]); 
    std::copy(recin.sig.get(), recin.sig.get()+npts, sig.get()); 
+	return *this;
 }
 
-/* move operator */
+/* move ass operator */
 SacRec& SacRec::operator= ( SacRec&& recin ) { 
    pimpl = std::move(recin.pimpl);
    fname = std::move(recin.fname);
    shd = std::move(recin.shd);
    sig = std::move(recin.sig);
+	return *this;
 }
 
 /* destructor */
@@ -519,7 +550,7 @@ int read_rec(int rec_flag, char *fname, int len, int *rec_b, int *rec_e, int *nr
    FILE *frec;
    int irec;
    if( rec_flag ) {
-      if((frec = fopen(fname,"r")) == NULL) return 0;
+      if((frec = fopen(fname,"r")) == nullptr) return 0;
       pthread_mutex_lock(&fiolock);
       for(irec=0;;irec++)
          if(fscanf(frec,"%d %d", &rec_b[irec], &rec_e[irec])!=2) break;
@@ -690,7 +721,7 @@ bool SacRec::ToAm( SacRec& sac_am ) {
       sac_am.pimpl.reset( new SRimpl(*(pimpl)) );
    }
 
-   fftw_plan planF = NULL;
+   fftw_plan planF = nullptr;
    //backward FFT: s ==> sf
    int ns, n=shd.npts;
    fftw_complex *s, *sf;
@@ -728,7 +759,7 @@ bool SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout 
       std::cerr<<"Warning(SacRec::Filter): filter band out of range!"<<std::endl;;
       f4 = 0.49999/dt;
    }
-   fftw_plan planF = NULL;
+   fftw_plan planF = nullptr;
 
    //backward FFT: s ==> sf
    int ns, n=shd.npts;
@@ -912,6 +943,47 @@ int SacRec::arrange(const char* recname) {
 }
 
 
+/* ---------------------------------------- cut by event ---------------------------------------- */
+bool SacRec::ZoomToEvent( const std::string etime, float evlon, float evlat, float tb, float tlen, std::string ename ) {
+	if( etime.length() != 14 ) return false;
+	SAC_HD eshd;
+   eshd.nzyear = std::stoi( etime.substr(0, 4) );
+   float month = std::stoi( etime.substr(4, 2) );
+   float day = std::stoi( etime.substr(6, 2) );
+   eshd.nzjday = pimpl->Jday( eshd.nzyear, month, day );
+   eshd.nzhour = std::stoi( etime.substr(8, 2) );
+   eshd.nzmin = std::stoi( etime.substr(10, 2) );
+   eshd.nzsec = std::stoi( etime.substr(12, 2) );
+   eshd.nzmsec = 0.;
+	if( ename.empty() ) ename = etime;
+	return ZoomToEvent( eshd, evlon, evlat, tb, tlen, ename );
+}
+
+bool SacRec::ZoomToEvent( const SAC_HD& eshd, float evlon, float evlat, float tb, float tlen, const std::string ename ) {
+   if( tlen <= 0. ) return false;
+   
+   // current origin time
+	double Tabs_old = AbsTime();
+
+   // assign event time to sacrec and update shd.b
+   shd.nzyear = eshd.nzyear; shd.nzjday = eshd.nzjday;
+   shd.nzhour = eshd.nzhour; shd.nzmin = eshd.nzmin;
+	shd.nzsec = eshd.nzsec; shd.nzmsec = eshd.nzmsec;
+	double Tabs_new = AbsTime();
+   shd.b -= ( Tabs_new - Tabs_old );
+
+   // cut to tb - te
+	float te = tb + tlen;
+   if( ! cut( tb, te ) ) return false;
+
+   // assign event location
+   sprintf( shd.kevnm, "%s", ename.c_str() );
+	if( evlon>=-180. && evlon<=360. ) shd.evlo = evlon;
+   if( evlat>=-90. && evlat<=90. ) shd.evla = evlat;
+
+   return true;
+}
+
 /* remove mean and trend */
 void SacRec::RTrend() {
    // fit a*x+b
@@ -942,9 +1014,17 @@ void SacRec::RTrend() {
 
 
 /* remove response and apply filter */
-bool SacRec::RmRESP( const char *evrexe, const char *fresp, float perl, float perh ) {
+bool SacRec::RmRESP( const char *fresp, float perl, float perh, const char *evrexein ) {
+	
    // check evrexe
-   if( access( evrexe, F_OK ) == -1 ) return false;
+	std::string evrexe;
+   if( evrexein == nullptr ) {
+      pimpl->FindInPath("evalresp", evrexe);
+   } else {
+      evrexe = evrexein;
+   }
+   if( access( evrexe.c_str(), F_OK ) == -1 ) return false;
+
    // run evalresp
    int nf = 100;
    char buff[300], sta[8], ch[8], net[8];
@@ -952,13 +1032,13 @@ bool SacRec::RmRESP( const char *evrexe, const char *fresp, float perl, float pe
    sscanf(shd.kstnm, "%s", sta);
    sscanf(shd.kcmpnm, "%s", ch);
    sscanf(shd.knetwk, "%s", net);
-   sprintf(buff, "%s %s %s %4d %3d %f %f %d -f %s -v >& /dev/null", evrexe, sta, ch, shd.nzyear, shd.nzjday, f1, f4, nf, fresp);
+   sprintf(buff, "%s %s %s %4d %3d %f %f %d -f %s -v >& /dev/null", evrexe.c_str(), sta, ch, shd.nzyear, shd.nzjday, f1, f4, nf, fresp);
    system(buff);
    char nameam[50], nameph[50];
    sprintf(nameam, "AMP.%s.%s.*.%s", net, sta, ch);
    sprintf(nameph,"PHASE.%s.%s.*.%s", net, sta, ch);
    // find am file
-   FILE *fam = NULL, *fph = NULL;
+   FILE *fam = nullptr, *fph = nullptr;
    std::vector<std::string> list;
    System::List(".", nameam, 0, list);
    if( list.size()!=1 ) {
@@ -966,7 +1046,7 @@ bool SacRec::RmRESP( const char *evrexe, const char *fresp, float perl, float pe
       return false;
    }
    sscanf(list.at(0).c_str(), "%s", nameam);
-   if( (fam = fopen(nameam, "r")) == NULL ) {
+   if( (fam = fopen(nameam, "r")) == nullptr ) {
       std::cerr<<"Cannot open file "<<nameam<<std::endl;
       return false;
    }
@@ -977,7 +1057,7 @@ bool SacRec::RmRESP( const char *evrexe, const char *fresp, float perl, float pe
       return false;
    }
    sscanf(list.at(0).c_str(), "%s", nameph);
-   if( (fph = fopen(nameph, "r")) == NULL ) {
+   if( (fph = fopen(nameph, "r")) == nullptr ) {
       std::cerr<<"Cannot open file "<<nameph<<std::endl;
       return false;
    }
@@ -986,9 +1066,9 @@ bool SacRec::RmRESP( const char *evrexe, const char *fresp, float perl, float pe
    double freq[nf], dtmp, amp[nf], pha[nf];
    int i = 0;
    while(i<nf) {
-      if(fgets(buff, 300, fam)==NULL) break;
+      if(fgets(buff, 300, fam)==nullptr) break;
       sscanf(buff, "%lf %lf", &freq[i], &amp[i]);
-      if(fgets(buff, 300, fph)==NULL) break;
+      if(fgets(buff, 300, fph)==nullptr) break;
       sscanf(buff, "%lf %lf", &dtmp, &pha[i]);
       if(dtmp!=freq[i]) {
 	 std::cerr<<"incompatible AMP - PHASE pair!"<<std::endl;
@@ -1023,7 +1103,7 @@ bool SacRec::Resample( float sps ) {
    int nptst = (int)floor((shd.npts-1)*shd.delta*sps+0.5)+10;
    float nb;
    std::unique_ptr<float[]> sig2(new float[nptst]);
-   //if( (*sig2 = (float *) malloc (nptst * sizeof(float)))==NULL ) perror("malloc sig2");
+   //if( (*sig2 = (float *) malloc (nptst * sizeof(float)))==nullptr ) perror("malloc sig2");
    long double fra1, fra2;
    nb = ceil((shd.nzmsec*0.001+shd.b)*sps);
    i = (int)floor((nb*dt-shd.nzmsec*0.001-shd.b)/shd.delta);

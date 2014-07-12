@@ -46,11 +46,11 @@ void UpdateRecCut(char *name, int nstart, int rec_b, int rec_e) {
 int CutRec(int ne, int ns, float *sig1, SAC_HD shd1, int ithread) {
 //cerr<<"CutRec: dt "<<sdb->rec[ne][ns].dt<<" rect0 "<<sdb->rec[ne][ns].t0<<" b "<<shd1.b<<" evt0 "<<sdb->ev[ne].t0<<endl;
    int n, nstt, nend;
-   float t1b, t2; //t1e;
+   float t1b; //t2, t1e;
 
    float dt = sdb->rec[ne][ns].dt;
    n = (int)floor(tlen/dt+0.5)+1;
-   t2 = t1 + (n-1)*dt;
+   //t2 = t1 + (n-1)*dt;
 
 //   if( read_sac(sdb->rec[ne][ns].ft_fname, sig1, shd1) == NULL ) {
 //      //cerr<<"Cannot open file "<<sdb->rec[ne][ns].ft_fname<<endl;
@@ -64,13 +64,12 @@ int CutRec(int ne, int ns, float *sig1, SAC_HD shd1, int ithread) {
 
    nstt = (int)floor((t1-t1b)/dt+0.5);
    nend = nstt + n;
-   t2 = fabs(nstt*dt - (t1-t1b));
+   float tshift = fabs(nstt*dt - (t1-t1b));
    //cerr<<"t1: "<<t1<<" t1b: "<<t1b<<" dt: "<<dt<<" nstt: "<<nstt<<endl;
-   if( t2 > 1.e-3 ) {
-      reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: signal shifted by %fsec when cutting! ***", t2);
-      //cerr<<"Shifted "<<t2<<endl;
+   if( tshift > 1.e-3 ) {
+      reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: signal shifted by %fsec when cutting! ***", tshift);
+      //cerr<<"Shifted "<<tshift<<endl;
    }
-      //fprintf(stderr, "*** Warning: signal shifted by %fsec when cutting! ***", t2);
 
    int flag = 0;
    float *sig2=NULL;

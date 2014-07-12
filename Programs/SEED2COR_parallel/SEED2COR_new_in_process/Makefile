@@ -1,8 +1,7 @@
 INST_DIR = $(HOME)/bin
 EXECUTABLE  = Seed2Cor
 
-cflags = -O3 -Wall
-cflag2 = -O3 -Wall -I${HOME}/usr/include
+cflags = -std=c++0x -O3 -Wall #-I${HOME}/usr/include
 
 LDLIBS = -L${HOME}/usr/lib -lfftw3 -lpthread
 LTMP = -lstdc++ -fopenmp
@@ -15,16 +14,10 @@ DBG = -g
 
 all : $(EXECUTABLE)
 
-FOBJS = driver.o CCDatabase.o
+FOBJS = CCDatabase.o SeedRec.o SacRec.o SysTools.o $(EXECUTABLE).o
 
 $(EXECUTABLE) : $(FOBJS)
-	$(CC) $(LDLIBS) $(CFLAGS) $^ -o $@
-
-Whiten.o : Whiten.cpp
-	$(CC) $(cflag2) -c $<
-
-FreqOps.o : FreqOps.cpp
-	$(CC) $(cflag2) -c $<
+	$(CC) $(LDLIBS) $(CFLAGS) -o $@ $^
 
 %.o : %.cpp
 	$(CC) $(cflags) -c $<
