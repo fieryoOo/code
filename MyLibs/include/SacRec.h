@@ -65,8 +65,10 @@ public:
    /* search for min&max signal positions and amplitudes */
    bool MinMax ( float tbegin, float tend, float& tmin, float& min, float& tmax, float& max );
    /* compute the root-mean-square average in a given window */
-   bool RMSAvg ( float tbegin, float tend, float& rms) { return RMSAvg( tbegin, tend, 1, rms); }
-   bool RMSAvg ( float tbegin, float tend, int step, float& rms);
+   bool RMSAvg ( float tbegin, float tend, float& rms ) { return RMSAvg( tbegin, tend, 1, rms); }
+   bool RMSAvg ( float tbegin, float tend, int step, float& rms );
+	bool MeanStd ( float tbegin, float tend, float& mean, float& std ) { return MeanStd(tbegin, tend, 1, mean, std); }
+	bool MeanStd ( float tbegin, float tend, int step, float& mean, float& std );
 
    /* ------------------------------ single-sac operations ------------------------------ */
    bool Mul( const float mul );

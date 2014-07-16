@@ -109,7 +109,8 @@ public:
       } // critical section
    
       /*---------mv sac files and produce saclst---------*/
-      sprintf(str, "*%s*%s*SAC", staname.c_str(), chname.c_str());
+		//yyyy.ddd.hh.mm.ss.ffff.NN.SSSSS.LL.CCC.Q.SAC (rdseed naming convention; modify acordingly if the convention ever changes)
+      sprintf(str, "*.*.*.*.*.*.*.%s.*.%s.*.SAC", staname.c_str(), chname.c_str());
       //if( list_result.size() == 0 ) return false;
       return wMove(".", str, tdir.c_str(), filelist);
    }

@@ -23,26 +23,31 @@ int main(int argc, char *argv[]) {
    CCDatabase cdb( argv[1] );
 
    const CCPARAM cdbParams = cdb.GetParams();
-   std::cerr<<cdbParams.sps<<std::endl;
    
    //cdb.NextRecTest(); // testing the function
    cdb.GetRec();
    while( true ) { 
 		DailyInfo dinfo = cdb.GetRec();
-std::cerr<<dinfo.seedname<<std::endl;
+/*
+		dinfo.chname = "LHZ";
+		std::string osac_name = "2012.SEP.1." + dinfo.staname + "." + dinfo.chname + ".SAC";
+		dinfo.sps = cdbParams.sps;
+		dinfo.rec_outname = osac_name + "_rec1";
+		dinfo.resp_outname = "RESP.TA." + dinfo.staname + ".." + dinfo.chname;
+*/
 		SeedRec seedcur( dinfo.seedname.c_str(), dinfo.rdsexe.c_str() );
 		float gapfrac;
 		SacRec sac;
 		if( seedcur.ExtractSac( dinfo, gapfrac, sac ) ) {
-			sac.Write( "TEST/TEST.SAC" );
-			sac.RmRESP( dinfo.resp_outname.c_str(), 5., 80. );
-			sac.ZoomToEvent( "20120901000000", -12345., -12345., 1000., 83000. );
-			sac.Write( "TEST/ft_TEST.SAC" );
+			sac.Write( dinfo.osac_outname.c_str() );
+			sac.RmRESP( dinfo.resp_outname.c_str(), dinfo.perl*0.76923, dinfo.perh*1.42857 );
+			sac.ZoomToEvent( "20120901000000", -12345., -12345., dinfo.t1, dinfo.tlen );
+			sac.Write( dinfo.fsac_outname.c_str() );
 		}
 		
 		if( ! cdb.NextRec() ) break;
 		
-exit(-1);
+//exit(-1);
 	}
 
    return 0;

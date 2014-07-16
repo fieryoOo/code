@@ -29,12 +29,27 @@ struct StaInfo{
 struct DailyInfo : public SeedInfo, public StaInfo {
 	std::string rdsexe;
 	std::string chname;
+	std::string osac_outname, fsac_outname;
 	std::string rec_outname, resp_outname;
-	float sps;
+	float sps, perl, perh, t1, tlen;
 
-	DailyInfo( const SeedInfo sei, const StaInfo& sti, const std::string rdsexe )
-		: SeedInfo(sei), StaInfo(sti), rdsexe(rdsexe)
-		, chname("LHZ"), sps(1), rec_outname("TEST/temp_rec.txt"), resp_outname("TEST/RESP_temp") {}
+	DailyInfo() {}
+	DailyInfo( const SeedInfo sei, const StaInfo& sti )
+		: SeedInfo(sei), StaInfo(sti) {}
+
+	void Update( const SeedInfo sei, const StaInfo& sti ) {
+		// copy from SeedInfo
+		seedname = sei.seedname;
+		year = sei.year; month = sei.month; day = sei.day;
+		// copy from StaInfo
+		staname = sti.staname;
+		lon = sti.lon; lat = sti.lat;
+		chname = "LHZ";
+		osac_outname = "2012.SEP.1." + staname + "." + chname + ".SAC";
+		fsac_outname = "ft_" + osac_outname;
+		rec_outname = osac_outname + "_rec";
+		resp_outname = "RESP.TA." + staname + ".." + chname;
+	}
 
 	friend std::ostream& operator<< (std::ostream& o, DailyInfo& di) { 
 		o<<*(static_cast<SeedInfo*>(&di))<<"   "<<*(static_cast<StaInfo*>(&di)); 

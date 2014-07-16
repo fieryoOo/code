@@ -166,38 +166,43 @@ struct SacRec::SRimpl {
       }
    }
 
-   float FillGap( float *pbeg, float *pend, float amp, int hlen, int step ) {
-      // defube random number generator
-      unsigned timeseed = std::chrono::system_clock::now().time_since_epoch().count();
-      std::default_random_engine generator (timeseed);
-      std::uniform_real_distribution<float> distribution(-amp, amp);
-      auto rand = std::bind ( distribution, generator );
-      // parameters
-      float oostep = 1./step, slope;
-      float *p, *pmid = pbeg + reinterpret_cast<long>( (pend-pbeg) / 2 );
-      float alpha = -0.5 / (hlen * hlen);
-      // generate tapered random numbers for the 1st half
-      *pbeg = rand();
-      for(p=pbeg+step; p<pmid; p+=step) { 
-	 int ndiff = (p-pbeg);
-	 float gdamp = exp( alpha * ndiff * ndiff );
-	 *p = rand() * gdamp;
-	 slope = ( *p - *(p-step) ) * oostep;
-	 for(int i=1; i<step; i++) *(p+i) = *p + slope * i;
-      }
-      // generate tapered random numbers for the 2nd half
-      for(; p<pend; p+=step) { 
-	 int ndiff = (pend-p);
-	 float gdamp = exp( alpha * ndiff * ndiff );
-	 *p = rand() * gdamp; 
-	 slope = ( *p - *(p-step) ) * oostep;
-	 for(int i=1; i<step; i++) *(p+i) = *p + slope * i;
-      }
-      // connect the last several points
-      *pend = rand();
-      p = p-step;
-      slope = ( *pend - *p ) / ( pend - p );
+	float FillGap( float *pbeg, float *pend, float mean1, float mean2, float std, int hlen, int step ) {
+		// defube random number generator
+		unsigned timeseed = std::chrono::system_clock::now().time_since_epoch().count();
+		std::default_random_engine generator (timeseed);
+		std::uniform_real_distribution<float> distribution(-std, std);
+		auto rand = std::bind ( distribution, generator );
+		// parameters
+		float oostep = 1./step, slope;
+		float *p, *pmid = pbeg + reinterpret_cast<long>( (pend-pbeg) / 2 );
+		float alpha = -0.5 / (hlen * hlen);
+		// generate tapered random numbers for the 1st half
+		*pbeg = rand();
+		for(p=pbeg+step; p<pmid; p+=step) { 
+			int ndiff = (p-pbeg);
+			float gdamp = exp( alpha * ndiff * ndiff );
+			*p = rand() * gdamp;
+			slope = ( *p - *(p-step) ) * oostep;
+			for(int i=1; i<step; i++) *(p+i) = *p + slope * i;
+		}
+		// generate tapered random numbers for the 2nd half
+		for(; p<pend; p+=step) { 
+			int ndiff = (pend-p);
+			float gdamp = exp( alpha * ndiff * ndiff );
+			*p = rand() * gdamp; 
+			slope = ( *p - *(p-step) ) * oostep;
+			for(int i=1; i<step; i++) *(p+i) = *p + slope * i;
+		}
+		// connect the last several points
+		*pend = rand();
+		p = p-step;
+		slope = ( *pend - *p ) / ( pend - p );
       for(p=p+1; p<pend; p++) *p = *(p-1) + slope;
+		// shift generated radom numbers to mean1 - mean2
+		slope = (mean2 - mean1) / (pend - pbeg);
+		for(p=pbeg; p<pend; p++) {
+			*p += mean1 + (p-pbeg) * slope;
+		}
 
    }
 
@@ -709,6 +714,35 @@ bool SacRec::RMSAvg ( float tbegin, float tend, int step, float& rms ) {
    return true;
 }
 
+/* compute mean and std in a given window */
+bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& std ) {
+   if( ! sig ) return false;
+
+	// store valid data points
+   float maxfloat = std::numeric_limits<float>::max();
+   int neff = 0, ibeg = nint((tbegin-shd.b)/shd.delta), iend = nint((tend-shd.b)/shd.delta+1.);
+	std::vector<float> dataV;
+   for ( int i = ibeg; i < iend ; i+=step ) {
+      if( sig[i] >= maxfloat ) continue;
+      dataV.push_back(sig[i]);
+   }
+	if( dataV.size() == 0 ) return false;
+
+	// mean
+   mean = 0.;
+	for( int i=0; i<dataV.size(); i++ ) mean += dataV[i];
+	mean /= dataV.size();
+	// std
+	std = 0.;
+	for( int i=0; i<dataV.size(); i++ ) {
+		float ftmp = dataV[i] - mean;
+		std += ftmp * ftmp;
+	}
+   std = sqrt(std/(dataV.size()-1));
+
+   return true;
+}
+
 
 /* ---------------------------------------- time - frequency ---------------------------------------- */
 /* convert to amplitude */
@@ -907,27 +941,42 @@ int SacRec::arrange(const char* recname) {
 
    // fill gaps with random numbers
    int ib, hlen = 100./shd.delta, step = std::max(0.5/shd.delta, 1.);
-   float sigrms;
-   this->RMSAvg(shd.b, shd.e, 50./shd.delta, sigrms);
-   bool isgap = false;
-   for (int i=0; i<shd.npts; i++ ) {
-      if( isgap ) {
-	 if ( sig[i] < maxfloat ) {
-	    pimpl->FillGap(&(sig[ib]), &(sig[i]), sigrms, hlen, step );
-	    isgap = false;
-	 }
-      }
-      else {
-	 if ( sig[i] >= maxfloat ) {
-	    ib = i;
-	    isgap = true;
-	 }
-      }
-   }
-   if( isgap ) pimpl->FillGap(&(sig[ib]), &(sig[0])+shd.npts, sigrms, hlen, step );
+	bool isgap = false;
+	for (int i=0; i<shd.npts; i++ ) {
+		if( isgap ) {
+			if ( sig[i]<maxfloat || i==shd.npts-1 ) {
+				// compute rms in the surrounding time
+				float sigtime_b = shd.b + ib * shd.delta;
+				float sigtime_e = shd.b + i * shd.delta;
+				float meanhlen = 500., sigmean1, sigmean2, sigstd;
+				for( int ihlen=1; ihlen<(shd.e-shd.b)/meanhlen; ihlen++ ) {
+					float rmswb = std::max( sigtime_b - meanhlen * ihlen, shd.b );
+					float rmswe = std::min( sigtime_e + meanhlen * ihlen, shd.e );
+					//if( RMSAvg( rmswb, rmswe, sigrms ) ) break;
+					if( MeanStd( rmswb, rmswe, step, sigmean1, sigstd ) ) {
+						float ftmp;
+						sigmean1 = -12345.; sigmean2 = -12345.;
+						MeanStd( rmswb, sigtime_b, step, sigmean1, ftmp );
+						MeanStd( sigtime_e, rmswe, step, sigmean2, ftmp );
+						if( sigmean1 == -12345. ) sigmean1 = sigmean2;
+						else if (sigmean2 == -12345. ) sigmean2 = sigmean1;
+						break;
+					}
+				}
+				pimpl->FillGap(&(sig[ib]), &(sig[i]), sigmean1, sigmean2, sigstd, hlen, step );
+				isgap = false;
+			}
+		}
+		else {
+			if ( sig[i] >= maxfloat ) {
+				ib = i;
+				isgap = true;
+			}
+		}
+	}
 
-   /*
-   float av;
+	/*
+		float av;
    int npart;
    for (int i=0; i<shd.npts; i++ ) if ( sig[i] > 1.e29 ) {
       for(npart=256;npart>1;npart*=0.5) {
@@ -1028,7 +1077,8 @@ bool SacRec::RmRESP( const char *fresp, float perl, float perh, const char *evre
    // run evalresp
    int nf = 100;
    char buff[300], sta[8], ch[8], net[8];
-   float f2 = 1./perh, f1 = f2*0.9, f3 = 1./perl, f4 = f3*1.1;
+   //float f2 = 1./perh, f1 = f2*0.9, f3 = 1./perl, f4 = f3*1.1;
+   float f2 = 1./perh, f1 = f2*0.8, f3 = 1./perl, f4 = f3*1.2;
    sscanf(shd.kstnm, "%s", sta);
    sscanf(shd.kcmpnm, "%s", ch);
    sscanf(shd.knetwk, "%s", net);

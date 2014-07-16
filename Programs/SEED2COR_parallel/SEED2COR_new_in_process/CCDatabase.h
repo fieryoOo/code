@@ -29,8 +29,8 @@ struct CCPARAM {
             		           	// (skip cc between sta-pairs that are 1> both flagged 0 or 2> both not 0 but flagged with different numbers)
    std::string seedfname;		//SEED file list (down_US_ALL/OBS_BHZ_2012.FEB.29.203762.seed 2012 2 29)
    std::vector<std::string> chlst;	//channel name list
-   int sps;				//target sampling rate
-   float gapfrac;			//maximum allowed gap fraction in input sac record
+	int sps;				//target sampling rate
+	float gapfrac;			//maximum allowed gap fraction in input sac record
    float t1;				//cutting begining time in sec
    float tlen;				//time-record length in sec
    float perl, perh;			//signal period band
@@ -125,6 +125,11 @@ private:
    Seedlist seedlst;
    /* station list */
    Stationlist stalst;
+	/* current daily info */
+	DailyInfo dinfo;
+	bool dinfo_rdy;
+
+	void FillDInfo();
 
 public:
    /* constructor (read in parameters, seed list, and station list) */
@@ -136,7 +141,7 @@ public:
    /* Get the next daily record from the database. Assign file names and make directory if necessary */
    bool NextRecTest();
    bool NextRec();
-   DailyInfo GetRec();
+   const DailyInfo& GetRec();
 /*
    void InitialPthread();
    void FillMonths();

@@ -16,6 +16,18 @@ CCDatabase::CCDatabase( const char *fname ) {
    CCParams.Load( fname );
    seedlst.Load( CCParams.seedfname.c_str() );
    stalst.Load( CCParams.stafname.c_str() );
+	FillDInfo();
+}
+
+/* fill dinfo with parameters in CCParams */
+void CCDatabase::FillDInfo() {
+	dinfo.rdsexe = CCParams.rdsexe;
+	dinfo.sps = CCParams.sps;
+	dinfo.perl = CCParams.perl;
+	dinfo.perh = CCParams.perh;
+	dinfo.t1 = CCParams.t1;
+	dinfo.tlen = CCParams.tlen;
+	dinfo_rdy = false;
 }
 
 /* pull out the next daily record from the database */
@@ -39,14 +51,20 @@ bool CCDatabase::NextRecTest() {
 }
 
 bool CCDatabase::NextRec() {
+	dinfo_rdy = false;
    if( stalst.NextRec() ) return true;
    stalst.Rewind();
    if( seedlst.NextRec() ) return true;
    return false;
 }
 
-DailyInfo CCDatabase::GetRec() {
-	return DailyInfo( *(seedlst.GetRec()), *(stalst.GetRec()), CCParams.rdsexe );
+const DailyInfo& CCDatabase::GetRec() {
+	//return DailyInfo( *(seedlst.GetRec()), *(stalst.GetRec()), CCParams.rdsexe );
+	if( ! dinfo_rdy ) {
+		dinfo.Update( *(seedlst.GetRec()), *(stalst.GetRec()) );
+		dinfo_rdy = true;
+	}
+	return dinfo;
 }
 
 
