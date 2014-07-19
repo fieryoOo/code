@@ -829,7 +829,7 @@ bool SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout 
 bool SacRec::cut( float tb, float te, SacRec& sac_result ) {
    int nb = (int)floor( (tb-shd.b) / shd.delta + 0.5 );
    int ne = (int)floor( (te-shd.b) / shd.delta + 0.5 );
-   if( ne<0 || nb>shd.npts ) return false;
+   if( nb>=ne || ne<0 || nb>shd.npts ) return false;
    int nptsnew = ne - nb + 1;
    float* signew = (float *) calloc ( nptsnew, sizeof(float) );
    // define start positions
@@ -845,6 +845,7 @@ bool SacRec::cut( float tb, float te, SacRec& sac_result ) {
    // update shd
    if( &(sac_result) != this ) sac_result.shd = shd;
    sac_result.shd.b += nb * shd.delta;
+	sac_result.shd.e = sac_result.shd.b + (nptsnew-1) * shd.delta;
    sac_result.shd.npts = nptsnew;
    return true;
 }
@@ -912,6 +913,7 @@ bool SacRec::merge( SacRec sacrec2 ) {
    sig = std::move(sig0);
    if( reversed ) shd = shd2;
    shd.npts = N;
+	shd.e = shd.b + (N-1)*shd.delta;
 }
 
 int SacRec::arrange(const char* recname) {
@@ -1020,10 +1022,13 @@ bool SacRec::ZoomToEvent( const SAC_HD& eshd, float evlon, float evlat, float tb
 	shd.nzsec = eshd.nzsec; shd.nzmsec = eshd.nzmsec;
 	double Tabs_new = AbsTime();
    shd.b -= ( Tabs_new - Tabs_old );
+	shd.e = shd.b + (shd.npts-1) * shd.delta;
 
    // cut to tb - te
 	float te = tb + tlen;
-   if( ! cut( tb, te ) ) return false;
+   if( ! cut( tb, te ) ) {
+		return false;
+	}
 
    // assign event location
    sprintf( shd.kevnm, "%s", ename.c_str() );

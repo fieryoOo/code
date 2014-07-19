@@ -12,6 +12,7 @@
 #include <math.h>
 #include <vector>
 #include <string>
+#include <sstream>
 using namespace std;
 
 /* -------------- Read memory info from /proc/meminfo -------------------- */
@@ -102,14 +103,26 @@ void EstimateMemAvail (long &MemAvail) {
 bool MKDir(const char *dirname) {
   //create dir if not exists
   //with read/write/search permissions for owner and group, and with read/search permissions for others if not already exists
-   if( mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == 0 ) return true;
-   switch(errno) {
-      case EEXIST:
-	 return false;
-      default:
-	 perror("### Error: MKDir failed"); //failed. prompt to continue
-	 exit(0);
+	if( mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == 0 ) return true;
+	switch(errno) {
+		case EEXIST:
+			return false;
+		default:
+			perror("### Error: MKDir failed"); //failed. prompt to continue
+			exit(0);
    }
+}
+
+bool MKDirs(const char *dirname) {
+	std::stringstream sin(dirname);
+	std::string pathname = "";
+	bool succeed = false;
+	for( std::string dircur; std::getline(sin, dircur, '/'); ) {
+		pathname += dircur + "/";
+		bool suc = MKDir( pathname.c_str() );
+		succeed = succeed || suc;
+	}
+	return succeed;
 }
 
 /* --------------------- Delete file or directory ---------------------------- */

@@ -1,4 +1,4 @@
-#include "SeedStaInfo.h"
+#include "InfoLists.h"
 #include "SeedRec.h"
 #include "SacRec.h"
 #include "CCDatabase.h"
@@ -28,6 +28,7 @@ int main(int argc, char *argv[]) {
    cdb.GetRec();
    while( true ) { 
 		DailyInfo dinfo = cdb.GetRec();
+		std::cerr<<dinfo.seedname<<" "<<dinfo.staname<<" "<<dinfo.chname<<std::endl;
 /*
 		dinfo.chname = "LHZ";
 		std::string osac_name = "2012.SEP.1." + dinfo.staname + "." + dinfo.chname + ".SAC";
@@ -38,7 +39,8 @@ int main(int argc, char *argv[]) {
 		SeedRec seedcur( dinfo.seedname.c_str(), dinfo.rdsexe.c_str() );
 		float gapfrac;
 		SacRec sac;
-		if( seedcur.ExtractSac( dinfo, gapfrac, sac ) ) {
+		//if( seedcur.ExtractSac( dinfo, gapfrac, sac ) ) {
+		if( seedcur.ExtractSac( dinfo.staname, dinfo.chname, dinfo.sps, dinfo.rec_outname, dinfo.resp_outname, gapfrac, sac ) ) {
 			sac.Write( dinfo.osac_outname.c_str() );
 			sac.RmRESP( dinfo.resp_outname.c_str(), dinfo.perl*0.76923, dinfo.perh*1.42857 );
 			sac.ZoomToEvent( "20120901000000", -12345., -12345., dinfo.t1, dinfo.tlen );

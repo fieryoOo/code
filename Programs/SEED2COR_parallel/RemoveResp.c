@@ -74,26 +74,26 @@ int CutRec(int ne, int ns, float *sig1, SAC_HD shd1, int ithread) {
    int flag = 0;
    float *sig2=NULL;
    int rec_b, rec_e;
-   rec_b = 0; rec_e = n;
-   if( (nstt<0) || (nend>shd1.npts) ) {
-      int i=0;
-      if(nstt<0) i += -nstt;
-      if(nend>shd1.npts) i += nend-shd1.npts;
-      if((float)i/n > gapfrac) {
-         sdb->rec[ne][ns].n = 0;
-	 fRemove(sdb->rec[ne][ns].ft_fname);
-         return 0;
-      }
-      flag = 1;
-      reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: cut range isn't fully covered. zeros padded ***");
-      //fprintf(stderr, "*** Warning: cut range isn't fully covered. zeros padded ***");
-      sig2 = (float *) malloc ( n * sizeof(float) );
-      for(i=nstt;i<nend;i++) {
-         if(i<0 || i>shd1.npts-1) sig2[i-nstt] = 0.;
-         else sig2[i-nstt] = sig1[i];
-      }
-      if(nstt<0) rec_b = -nstt;
-      if(nend > shd1.npts) rec_e = shd1.npts-1-nstt;
+	rec_b = 0; rec_e = n;
+	if( (nstt<0) || (nend>shd1.npts) ) {
+		int i=0;
+		if(nstt<0) i += -nstt;
+		if(nend>shd1.npts) i += nend-shd1.npts;
+		if((float)i/n > gapfrac) {
+			sdb->rec[ne][ns].n = 0;
+			fRemove(sdb->rec[ne][ns].ft_fname);
+			return 0;
+		}
+		flag = 1;
+		reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: cut range isn't fully covered. zeros padded ***");
+		//fprintf(stderr, "*** Warning: cut range isn't fully covered. zeros padded ***");
+		sig2 = (float *) malloc ( n * sizeof(float) );
+		for(i=nstt;i<nend;i++) {
+			if(i<0 || i>shd1.npts-1) sig2[i-nstt] = 0.;
+			else sig2[i-nstt] = sig1[i];
+		}
+		if(nstt<0) rec_b = -nstt;
+		if(nend > shd1.npts) rec_e = shd1.npts-1-nstt;
    }
    UpdateRecCut(sdb->rec[ne][ns].ft_fname, nstt, rec_b, rec_e);
 

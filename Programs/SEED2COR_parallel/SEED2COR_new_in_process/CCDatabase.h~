@@ -11,14 +11,11 @@
 #ifndef CCDATABASE_H
 #define CCDATABASE_H
 
-#include "InfoLists.h"
+#include "SeedStaInfo.h"
 #include <cstdio>
 #include <vector>
 #include <cstring>
 #include <iostream>
-#include <sstream>
-#include <algorithm>
-
 
 /* ------------------------------ CCPARAM ------------------------------ */
 /* CC parameter wrapper */
@@ -31,7 +28,7 @@ struct CCPARAM {
    std::string stafname;		//station list (J23A -129.6825 +44.844 optional_flag) (flag controls which sta-pairs to be ccd)
             		           	// (skip cc between sta-pairs that are 1> both flagged 0 or 2> both not 0 but flagged with different numbers)
    std::string seedfname;		//SEED file list (down_US_ALL/OBS_BHZ_2012.FEB.29.203762.seed 2012 2 29)
-   std::string chlst_info;		//the line that contains channel name list
+   std::vector<std::string> chlst;	//channel name list
 	int sps;				//target sampling rate
 	float gapfrac;			//maximum allowed gap fraction in input sac record
    float t1;				//cutting begining time in sec
@@ -61,7 +58,73 @@ struct CCPARAM {
 };
 
 
+/* ------------------------------ ListBase ------------------------------ */
+template< class T >
+class ListBase {
+public:
+	ListBase( const std::string input_info ) { Load(input_info); }
+	
+private:
+	std::vector<T> list;
+	std::vector<T>::iterator icurrent;
+};
 
+/* ------------------------------ Seedlist ------------------------------ */
+/* seed list with the 'NextRec' and the 'ReLocate' operation */
+class Seedlist {
+   std::vector<SeedInfo> seedrec;
+   std::vector<SeedInfo>::iterator icurrent;
+public:
+   Seedlist() { icurrent = seedrec.end(); }
+   /* call Load if fname is provided */
+   Seedlist( const char* fname ) { Load(fname); }
+   /* load station records from an input file */
+   void Load( const char* );
+   /* check if icurrent is meaningful */
+   bool NotEnded() { return icurrent<seedrec.end() && icurrent>=seedrec.begin(); }
+   /* return an iterator to the current seedrec */
+   std::vector<SeedInfo>::iterator GetRec() { return icurrent; }
+   /* rewind */
+   void Rewind() { icurrent = seedrec.begin(); }
+   /* get to the next record and return true on success */
+   bool NextRec() {
+      icurrent++;
+      if( icurrent<seedrec.begin() || icurrent>=seedrec.end() ) return false;
+      return true; 
+   }
+   /* search for the first match of the input Seed date and return true on success 
+      icurrent will be moved to the match on succed and to the first rec after on failure */   
+   bool ReLocate( int year, int month, int day );
+   //~Seedlist() { if( seedrec ) delete seedrec; }
+};
+
+
+/* ------------------------------ Stationlist ------------------------------ */
+/* station list with the 'NextRec' and the 'ReLocate' operation */
+class Stationlist {
+   std::vector<StaInfo> starec;
+   std::vector<StaInfo>::iterator icurrent;
+public:
+   Stationlist(){ icurrent = starec.begin(); }
+   Stationlist( const char* fname ) { Load(fname); }
+   /* load station records from an input file */
+   void Load( const char* );
+   /* check if icurrent is meaningful */
+   bool NotEnded() { return icurrent<starec.end() && icurrent>=starec.begin(); }
+   /* return an iterator to the current starec */
+   std::vector<StaInfo>::iterator GetRec() { return icurrent; }
+   /* rewind */
+   void Rewind() { icurrent = starec.begin(); }
+   /* get to the next record and return true on success */
+   bool NextRec() {
+      icurrent++;
+      if( icurrent<starec.begin() || icurrent>=starec.end() ) return false;
+      return true;
+   }
+   /* search for the first match of the input staname and return true on success 
+      icurrent=.end() if no such match is found */
+   bool ReLocate( const char* staname );
+};
 
 
 /* ------------------------------ CCDatabase ------------------------------ */
@@ -69,8 +132,6 @@ class CCDatabase {
 private:
    /* input parameters */
    CCPARAM CCParams;
-	/* channel list */
-	Channellist chlst;
    /* seed rec list */
    Seedlist seedlst;
    /* station list */

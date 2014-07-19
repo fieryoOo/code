@@ -14,8 +14,9 @@
 /* Constructor: read in parameters -> fill in seed file list -> fill in station list */
 CCDatabase::CCDatabase( const char *fname ) {
    CCParams.Load( fname );
-   seedlst.Load( CCParams.seedfname.c_str() );
-   stalst.Load( CCParams.stafname.c_str() );
+   seedlst.Load( CCParams.seedfname );
+   stalst.Load( CCParams.stafname );
+	chlst.Load( CCParams.chlst_info );
 	FillDInfo();
 }
 
@@ -52,6 +53,8 @@ bool CCDatabase::NextRecTest() {
 
 bool CCDatabase::NextRec() {
 	dinfo_rdy = false;
+	if( chlst.NextRec() ) return true;
+	chlst.Rewind();
    if( stalst.NextRec() ) return true;
    stalst.Rewind();
    if( seedlst.NextRec() ) return true;
@@ -61,7 +64,7 @@ bool CCDatabase::NextRec() {
 const DailyInfo& CCDatabase::GetRec() {
 	//return DailyInfo( *(seedlst.GetRec()), *(stalst.GetRec()), CCParams.rdsexe );
 	if( ! dinfo_rdy ) {
-		dinfo.Update( *(seedlst.GetRec()), *(stalst.GetRec()) );
+		dinfo.Update( *(seedlst.GetRec()), *(stalst.GetRec()), *(chlst.GetRec()) );
 		dinfo_rdy = true;
 	}
 	return dinfo;
@@ -165,11 +168,8 @@ void CCPARAM::Load( const char* fname ) {
       filetmp.close();
    }
    //chlst
-   std::stringstream ss( *(fveciter++) );
-   std::string channel;
-   while( (ss >> channel) && (channel.at(0) != '#') ) chlst.push_back(channel);
-   std::cout<<"channel list:\t\t"<<chlst.size()<<" channels in the list ( ";
-   for(unsigned int i=0; i<chlst.size(); i++) std::cout<<chlst.at(i)<<" "; std::cout<<")"<<std::endl;
+	chlst_info = *(fveciter++);
+   std::cout<<"channel list info:\t"<<chlst_info.substr(0, chlst_info.find("#"))<<std::endl;
    //sps
    sscanf((*(fveciter++)).c_str(), "%f", &ftmp);
    sps = static_cast<int>(ftmp);
@@ -356,6 +356,27 @@ void CCPARAM::Load( const char* fname ) {
 
 
 
+/*-------------------------------------- Channellist ----------------------------------------*/
+/* load in channel list from input channel info */
+void Channellist::Load( const std::string& chinfo ) {
+	std::stringstream ss( chinfo );
+	std::string channel;
+	while( (ss >> channel) && (channel.at(0) != '#') ) {
+		icurrent = find(list.begin(), list.end(), channel );
+		if( icurrent != list.end() ) {
+			std::cerr<<"Warning(Channellist::Load): "<<channel<<" already in the list. Will be ignored!"<<std::endl;
+			continue;
+		}
+		list.push_back(channel);
+	}
+	icurrent = list.begin();
+
+	std::cout<<"Channellist::Load: "<<list.size()<<" channels loaded ( ";
+	for(unsigned int i=0; i<list.size(); i++) std::cout<<list.at(i)<<" "; 
+	std::cout<<")"<<std::endl;
+}
+
+
 /*-------------------------------------- Seedlist ----------------------------------------*/
 /* load in seed list from input file and sort it by date */
 static bool SameDate(const SeedInfo& a, const SeedInfo& b) {
@@ -364,39 +385,39 @@ static bool SameDate(const SeedInfo& a, const SeedInfo& b) {
 static bool CompareDate(const SeedInfo& a, const SeedInfo& b) {
    return ( ( a.year<b.year ) || ( a.year==b.year && (a.month<b.month||(a.month==b.month&&a.day<b.day)) ) );
 }
-void Seedlist::Load( const char* fname ) {
-   //seedrec = new std::vector<SeedInfo>;
-   std::ifstream fseed(fname);
-   if( !fseed ) {
-      std::cerr<<"ERROR(Seedlist::Load): Cannot open file "<<fname<<std::endl;
-      exit(-1);
-   }
-   std::string buff;
-   SeedInfo SRtmp;
-   for(;std::getline(fseed, buff);) {
-      char stmp[buff.length()];
-      if( (sscanf(buff.c_str(),"%s %d %d %d", stmp, &(SRtmp.year), &(SRtmp.month), &(SRtmp.day))) != 4 ) { 
-	 std::cerr<<"Warning(Seedlist::Load): format error in file "<<fname<<std::endl; 
-	 continue;
-      }
-      SRtmp.seedname = stmp;
-      seedrec.push_back(SRtmp);
-      //std::cerr<<seedrec.back()<<std::endl;
-   }
-   fseed.close();
-   std::cout<<"Seedlist::Load: "<<seedrec.size()<<" seeds loaded"<<std::endl;
+void Seedlist::Load( const std::string& fname ) {
+	//list = new std::vector<SeedInfo>;
+	std::ifstream fseed(fname);
+	if( !fseed ) {
+		std::cerr<<"ERROR(Seedlist::Load): Cannot open file "<<fname<<std::endl;
+		exit(-1);
+	}
+	std::string buff;
+	SeedInfo SRtmp;
+	for(;std::getline(fseed, buff);) {
+		char stmp[buff.length()];
+		if( (sscanf(buff.c_str(),"%s %d %d %d", stmp, &(SRtmp.year), &(SRtmp.month), &(SRtmp.day))) != 4 ) { 
+			std::cerr<<"Warning(Seedlist::Load): format error in file "<<fname<<std::endl; 
+			continue;
+		}
+		SRtmp.name = stmp;
+		list.push_back(SRtmp);
+		//std::cerr<<list.back()<<std::endl;
+	}
+	fseed.close();
+   std::cout<<"Seedlist::Load: "<<list.size()<<" seeds loaded"<<std::endl;
    /* sort the list by date */
-   std::stable_sort(seedrec.begin(), seedrec.end(), CompareDate);
-   //for(int i=0; i<seedrec.size(); i++) std::cerr<<seedrec.at(i)<<std::endl;
-   icurrent = seedrec.begin();
+   std::stable_sort(list.begin(), list.end(), CompareDate);
+   //for(int i=0; i<list.size(); i++) std::cerr<<list.at(i)<<std::endl;
+   icurrent = list.begin();
 }
 
 /* Move icurrent to (or to after) the next match of the input SeedInfo 
    assuming a sorted list and relocating using binary search */
 bool Seedlist::ReLocate( int year, int month, int day ) { 
    SeedInfo srkey("", year, month, day);
-   icurrent = std::lower_bound(seedrec.begin(), seedrec.end(), srkey, CompareDate );
-   if( icurrent>=seedrec.end() || icurrent<seedrec.begin() ) return false;
+   icurrent = std::lower_bound(list.begin(), list.end(), srkey, CompareDate );
+   if( icurrent>=list.end() || icurrent<list.begin() ) return false;
    if( !SameDate(*icurrent, srkey) ) return false;
    return true;
 }
@@ -407,10 +428,10 @@ bool Seedlist::ReLocate( int year, int month, int day ) {
 struct StaFinder {
    StaInfo a;
    StaFinder(StaInfo b) : a(b) {}
-   bool operator()(StaInfo b) { return a.staname.compare(b.staname)==0; }
+   bool operator()(StaInfo b) { return a.name.compare(b.name)==0; }
 };
-void Stationlist::Load( const char* fname ) {
-   //starec = new std::vector<StaInfo>;
+void Stationlist::Load( const std::string& fname ) {
+   //list = new std::vector<StaInfo>;
    std::ifstream fsta(fname);
    if( !fsta ) {
       std::cerr<<"ERROR(Stationlist::Load): Cannot open file "<<fname<<std::endl;
@@ -418,38 +439,38 @@ void Stationlist::Load( const char* fname ) {
    }
    std::string buff;
    StaInfo SRtmp;
-   for(;std::getline(fsta, buff);) {
-      char stmp[buff.length()];
-      if( (sscanf(buff.c_str(),"%s %f %f", stmp, &(SRtmp.lon), &(SRtmp.lat))) != 3 ) { 
-	 std::cerr<<"Warning(Stationlist::Load): format error in file "<<fname<<std::endl; 
-	 continue;
-      }
-      SRtmp.staname = stmp;
-      icurrent = find_if(starec.begin(), starec.end(), StaFinder(SRtmp) );
-      if( icurrent != starec.end() ) {
-	 if( *icurrent == SRtmp ) { 
-	    std::cerr<<"Warning(Stationlist::Load): "<<SRtmp<<" already in the list. Will be ignored!"<<std::endl;
-	    continue;
-	 }
-	 else {
-	    std::cerr<<"Error(Stationlist::Load): station name confliction detected: "<<*icurrent<<" - "<<SRtmp<<std::endl;
-	    exit(0);
-	 }
-      }
-      starec.push_back(SRtmp);
-      //std::cerr<<starec.back().fname<<" "<<starec.back().lon<<" "<<starec.back().lat<<std::endl;
-   }
-   fsta.close();
-   std::cout<<"Stationlist::Load: "<<starec.size()<<" stations loaded"<<std::endl;
-   icurrent = starec.begin();
+	for(;std::getline(fsta, buff);) {
+		char stmp[buff.length()];
+		if( (sscanf(buff.c_str(),"%s %f %f", stmp, &(SRtmp.lon), &(SRtmp.lat))) != 3 ) { 
+			std::cerr<<"Warning(Stationlist::Load): format error in file "<<fname<<std::endl; 
+			continue;
+		}
+		SRtmp.name = stmp;
+		icurrent = find_if(list.begin(), list.end(), StaFinder(SRtmp) );
+		if( icurrent != list.end() ) {
+			if( *icurrent == SRtmp ) { 
+				std::cerr<<"Warning(Stationlist::Load): "<<SRtmp<<" already in the list. Will be ignored!"<<std::endl;
+				continue;
+			}
+			else {
+				std::cerr<<"Error(Stationlist::Load): station name confliction detected: "<<*icurrent<<" - "<<SRtmp<<std::endl;
+				exit(0);
+			}
+		}
+		list.push_back(SRtmp);
+		//std::cerr<<list.back().fname<<" "<<list.back().lon<<" "<<list.back().lat<<std::endl;
+	}
+	fsta.close();
+	std::cout<<"Stationlist::Load: "<<list.size()<<" stations loaded"<<std::endl;
+	icurrent = list.begin();
 }
 
 /* Move icurrent to the next match of the input StaInfo 
-   icurrent=.end() if no such match is found */
-bool Stationlist::ReLocate( const char* staname ) { 
-   StaInfo srkey(staname, 0., 0.);
-   icurrent = find_if(starec.begin(), starec.end(), StaFinder(srkey) );
-   if( icurrent>=starec.end() || icurrent<starec.begin() ) return false;
+	icurrent=.end() if no such match is found */
+bool Stationlist::ReLocate( const std::string& staname ) { 
+	StaInfo srkey(staname.c_str(), 0., 0.);
+   icurrent = find_if(list.begin(), list.end(), StaFinder(srkey) );
+   if( icurrent>=list.end() || icurrent<list.begin() ) return false;
    return true;
 }
 

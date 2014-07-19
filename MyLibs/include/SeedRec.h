@@ -1,7 +1,7 @@
 #ifndef SEEDREC_H
 #define SEEDREC_H
 
-#include "SeedStaInfo.h"
+//#include "InfoLists.h"
 #include "SacRec.h"
 #include <iostream>
 #include <sstream>
@@ -26,11 +26,14 @@ public:
    ~SeedRec();
 
    /* extracting sac from the seed file. */
+	/*
 	bool ExtractSac( const DailyInfo di, float& gapfrac, SacRec& sacout ) {
 		return ExtractSac( di.staname, di.chname, di.sps, gapfrac, di.rec_outname, di.resp_outname, sacout );
 	}
+	*/
 	bool ExtractSac( const std::string staname, const std::string chname, const int sps,
-						  float& gapfrac, const std::string rec_outname, const std::string resp_outname, SacRec& sacout );
+						  const std::string rec_outname, const std::string resp_outname, 
+						  float& gapfrac, SacRec& sacout );
 
 private:
    struct SRimpl;

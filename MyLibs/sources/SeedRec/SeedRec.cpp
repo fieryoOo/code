@@ -22,11 +22,16 @@ struct SeedRec::SRimpl {
    std::string rdsexe;			//rdseed excutable
    std::string fseed;			//input seed file name
    //---------------------------------------------------------------------------------------------------------------------------------//
-   
+ 
    float lon, lat;
    int year, month, day;
 
+	//static int num_obj;
+	//int oid;
+
 public:
+
+	//SRimpl() { oid = num_obj++; }
 
 	bool FindInPath( const std::string fname, std::string& absname ) {
 		char* pPath = getenv("PATH");
@@ -166,7 +171,8 @@ SeedRec::~SeedRec() {}//{ dRemove(pimpl->tdir.c_str()); }
 
 /*---------------------------------------------------- Extract osac from seed file ----------------------------------------------------*/
 bool SeedRec::ExtractSac( const std::string staname, const std::string chname, const int sps,
-								  float& gapfrac, const std::string rec_outname, const std::string resp_outname, SacRec& sacout ) {
+								  const std::string rec_outname, const std::string resp_outname,
+								  float& gapfrac, SacRec& sacout ) {
    /* random number generator */
    unsigned timeseed = std::chrono::system_clock::now().time_since_epoch().count();
    std::default_random_engine generator (timeseed);

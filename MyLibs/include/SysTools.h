@@ -12,6 +12,7 @@ void EstimateMemAvail (long &MemAvail);
 /* create a directory named '*dirname', exit upon failure
  * returns true if dir is made successfully and false if already exist */
 bool MKDir(const char *dirname);
+bool MKDirs(const char *dirname);
 
 /* delete the file (or empty dir) named '*fname', prompt to continue upon failure */
 void fRemove (const char *fname);
