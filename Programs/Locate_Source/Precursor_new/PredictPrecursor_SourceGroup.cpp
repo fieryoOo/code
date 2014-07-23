@@ -137,7 +137,7 @@ struct PathResult {
 	PathResult() 
 		: tsw(NaN)
 		, tpmin( std::numeric_limits<float>::max() )
-		, tpmax( std::numeric_limits<float>::min() ) {}
+		, tpmax( std::numeric_limits<float>::lowest() ) {}
 
    friend std::ostream& operator << (std::ostream& o, PathResult a) { 
       o << a.tsw << "   " << a.tpmin << " " <<a.tpmax; 
@@ -177,7 +177,7 @@ int main( int argc, char* argv[] )
 			while( saclst.PrepareNext() ) {
 				DataPoint<float> res1 = velmap.PathAverage_Reci( saclst.P1(), lamda, perc1 );
 				DataPoint<float> res2 = velmap.PathAverage_Reci( saclst.P2(), lamda, perc2 );
-				if( perc1 > 0.95 && perc2 > 0.95 ) {
+				if( perc1 > 0.9 && perc2 > 0.9 ) {
 					float t1 = res1.Dis() / res1.Data();
 					float t2 = res2.Dis() / res2.Data();
 					float tp = t2 - t1;
@@ -198,7 +198,7 @@ int main( int argc, char* argv[] )
 		while( saclst.PrepareNext() ) {
 			Map velmap( argv[3], saclst.P1() );
 			DataPoint<float> res = velmap.PathAverage_Reci( saclst.P2(), lamda, perc1 );
-			if( perc1 > 0.95 ) {
+			if( perc1 > 0.9 ) {
 				PathResult& presult = results.at(isac);
 				presult.tsw = res.Dis() / res.Data();
 				fout<<saclst.Name()<<" "<<saclst.Dist()<<" "<<saclst.Azi()<<" "<<saclst.Baz()<<"   "<<presult<<std::endl;

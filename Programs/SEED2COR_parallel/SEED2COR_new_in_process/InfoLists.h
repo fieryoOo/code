@@ -90,6 +90,7 @@ public:
    /* load records either from an input file or directly from the input_info string */
    virtual void Load( const std::string& ) = 0;
    /* check if icurrent is meaningful */
+   bool IsEnded() { return icurrent>=list.end() || icurrent<list.begin(); }
    bool NotEnded() { return icurrent<list.end() && icurrent>=list.begin(); }
    /* return an iterator to the current item in the list */
    typename std::vector<T>::iterator GetRec() { return icurrent; }

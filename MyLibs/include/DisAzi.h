@@ -16,6 +16,13 @@ protected:
 public:
    Point(T lonin = -12345., T latin = -12345.)
       : lon(lonin), lat(latin) {}
+	Point( const std::string& line ) {
+		LoadLine(line);
+	}
+	bool LoadLine( const std::string& line ) {
+		return ( sscanf(line.c_str(), "%f %f", &lon, &lat) == 2 );
+	}
+
    inline const T& Lat() const { return lat; }
    inline       T& Lat() { return lat; }
    inline const T& Lon() const { return lon; }
@@ -32,6 +39,43 @@ public:
 
 template <class T>
 class Path {
+public:
+   Path(const T lo1in=-12345., const T la1in=-12345., 
+        const T lo2in=-12345., const T la2in=-12345.)
+      : long1(lo1in), lati1(la1in), long2(lo2in), lati2(la2in)
+      , dist(-12345.), alpha1(-12345.), alpha2(-12345.) {}
+
+   Path(const Point<T>& p1, const Point<T>& p2)
+      : long1(p1.Lon()), lati1(p1.Lat()), long2(p2.Lon()), lati2(p2.Lat())
+      , dist(-12345.), alpha1(-12345.), alpha2(-12345.) {}
+
+   ~Path(){}
+
+	Point<T> P1() { return Point<T>(long1, lati1); }
+	Point<T> P2() { return Point<T>(long2, lati2); }
+	Point<T> PC() { return Point<T>(0.5*(long1+long2), 0.5*(lati1+lati2)); }
+
+	friend std::ostream& operator << ( std::ostream& o, class Path p ) {
+		o<<p.long1<<" "<<p.lati1<<"   "<<p.long2<<" "<<p.lati2;
+		return o;
+	}
+
+   inline const T& Dist() {
+      if( dist == -12345. ) calc_dist();
+      return dist;
+   }
+
+   inline const T& Azi1() {
+      if( alpha1 == -12345. ) calc_azimuth();
+      return alpha1;
+   }
+
+   inline const T& Azi2() {
+      if( alpha2 == -12345. ) calc_azimuth();
+      return alpha2;
+   }
+
+private:
    T dist, alpha1, alpha2;
    T lati1, long1, lati2, long2;
 
@@ -172,34 +216,6 @@ class Path {
       if( fabs(long2-long1)>180 ) { alpha1 = 360 - alpha1; alpha2 = 360 - alpha2; }
       if( long2 < long1 ) { alpha1 = 360 - alpha1; alpha2 = 360 - alpha2; }
 
-   }
-
-public:
-   Path(const T lo1in=-12345., const T la1in=-12345., 
-        const T lo2in=-12345., const T la2in=-12345.)
-      : long1(lo1in), lati1(la1in), long2(lo2in), lati2(la2in)
-      , dist(-12345.), alpha1(-12345.), alpha2(-12345.) {}
-
-   Path(const Point<T>& p1, const Point<T>& p2)
-      : long1(p1.Lon()), lati1(p1.Lat()), long2(p2.Lon()), lati2(p2.Lat())
-      , dist(-12345.), alpha1(-12345.), alpha2(-12345.) {}
-
-   ~Path(){}
-
-
-   inline const T& Dist() {
-      if( dist == -12345. ) calc_dist();
-      return dist;
-   }
-
-   inline const T& Azi1() {
-      if( alpha1 == -12345. ) calc_azimuth();
-      return alpha1;
-   }
-
-   inline const T& Azi2() {
-      if( alpha2 == -12345. ) calc_azimuth();
-      return alpha2;
    }
 
 };

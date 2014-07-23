@@ -91,7 +91,8 @@ public:
    /* Get the next daily record from the database. Assign file names and make directory if necessary */
    bool NextRecTest();
    bool NextRec();
-   const DailyInfo& GetRec();
+	void Rewind();
+   bool GetRec(const DailyInfo&);
 /*
    void InitialPthread();
    void FillMonths();

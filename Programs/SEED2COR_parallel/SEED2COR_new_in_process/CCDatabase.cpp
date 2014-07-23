@@ -52,6 +52,9 @@ bool CCDatabase::NextRecTest() {
 }
 
 bool CCDatabase::NextRec() {
+	if( chlst.IsEnded()  ||
+		 stalst.IsEnded() ||
+		 seedlst.IsEnded() ) return false;
 	dinfo_rdy = false;
 	if( chlst.NextRec() ) return true;
 	chlst.Rewind();
@@ -61,13 +64,22 @@ bool CCDatabase::NextRec() {
    return false;
 }
 
-const DailyInfo& CCDatabase::GetRec() {
-	//return DailyInfo( *(seedlst.GetRec()), *(stalst.GetRec()), CCParams.rdsexe );
+void CCDatabase::Rewind() {
+	chlst.Rewind();
+	stalst.Rewind();
+	seedlst.Rewind();
+}
+
+bool CCDatabase::GetRec(const DailyInfo& dinfoout) {
+	if( chlst.IsEnded()  ||
+		 stalst.IsEnded() ||
+		 seedlst.IsEnded() ) return false;
 	if( ! dinfo_rdy ) {
 		dinfo.Update( *(seedlst.GetRec()), *(stalst.GetRec()), *(chlst.GetRec()) );
 		dinfo_rdy = true;
 	}
-	return dinfo;
+	dinfoout = dinfo
+	return true;
 }
 
 

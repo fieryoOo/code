@@ -17,6 +17,13 @@ protected:
 public:
    Point(T lonin = -12345., T latin = -12345.) 
       : lon(lonin), lat(latin) {}
+	Point( const std::string& line ) {
+		LoadLine(line);
+	}
+	bool LoadLine( const std::string& line ) {
+		return ( sscanf(line.c_str(), "%f %f", &lon, &lat) == 2 );
+	}
+
    inline const T& Lat() const { return lat; }
    inline	T& Lat() { return lat; }
    inline const T& Lon() const { return lon; }
