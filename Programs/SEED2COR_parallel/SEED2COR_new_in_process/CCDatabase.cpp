@@ -70,7 +70,7 @@ void CCDatabase::Rewind() {
 	seedlst.Rewind();
 }
 
-bool CCDatabase::GetRec(const DailyInfo& dinfoout) {
+bool CCDatabase::GetRec(DailyInfo& dinfoout) {
 	if( chlst.IsEnded()  ||
 		 stalst.IsEnded() ||
 		 seedlst.IsEnded() ) return false;
@@ -78,7 +78,7 @@ bool CCDatabase::GetRec(const DailyInfo& dinfoout) {
 		dinfo.Update( *(seedlst.GetRec()), *(stalst.GetRec()), *(chlst.GetRec()) );
 		dinfo_rdy = true;
 	}
-	dinfoout = dinfo
+	dinfoout = dinfo;
 	return true;
 }
 

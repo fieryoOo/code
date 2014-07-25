@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
    const CCPARAM cdbParams = cdb.GetParams();
    
 	/* iterate through the database and handle all possible events */
-	for(DailyInfo dinfo; cdb.GetRec(dinfo); cdb.NextRec())
+	for(DailyInfo dinfo; cdb.GetRec(dinfo); cdb.NextRec()) {
 		/* daily info from the database */
 		std::cerr<<dinfo.seedname<<" "<<dinfo.staname<<" "<<dinfo.chname<<std::endl;
 
@@ -35,6 +35,7 @@ int main(int argc, char *argv[]) {
 		sprintf( evtime, "%04d%02d%02d000000\0", dinfo.year, dinfo.month, dinfo.day );
 		sac.ZoomToEvent( evtime, -12345., -12345., dinfo.t1, dinfo.tlen );
 		sac.Write( dinfo.fsac_outname.c_str() );
+sac.WriteHD("/usr/temp.SAC");
 
 		/* apply normalizations and convert to am/ph */
 		

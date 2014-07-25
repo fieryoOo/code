@@ -140,31 +140,31 @@ struct SacRec::SRimpl {
       if( fend > fmax ) fend = fmax;
       //std::cerr<<"fcenter "<<fcenter<<"  dom "<<dom<<"  fstart "<<fstart<<"  fend "<<fend<<"  fmax "<<fmax<<std::endl;
       // cut high frequecies
-      if( fstart > 0. ) {
-         for(i=0, f=0.; f<fstart; i++, f+=dom) {
-	    sf[i][0] = 0.;
-	    sf[i][1] = 0.;
-      }
-	 f = i * dom; // correct for round-off error
-      }
-      else { f = 0.; i = 0; }
-      // apply taper
-      float alpha = -0.5/(fhlen*fhlen);
-      for(; f<fend-1.e-10; i++, f+=dom) {
-	 gauamp = f - fcenter;
-	 gauamp = exp( alpha * gauamp * gauamp );
-	 sf[i][0] *= gauamp;
-	 sf[i][1] *= gauamp;
+		if( fstart > 0. ) {
+			for(i=0, f=0.; f<fstart; i++, f+=dom) {
+				sf[i][0] = 0.;
+				sf[i][1] = 0.;
+			}
+			f = i * dom; // correct for round-off error
+		}
+		else { f = 0.; i = 0; }
+		// apply taper
+		float alpha = -0.5/(fhlen*fhlen);
+		for(; f<fend-1.e-10; i++, f+=dom) {
+			gauamp = f - fcenter;
+			gauamp = exp( alpha * gauamp * gauamp );
+			sf[i][0] *= gauamp;
+			sf[i][1] *= gauamp;
       }
       // cut low frequencies
-      if( fend < fmax ) {
-	 f = i * dom; // again, correct for round-off
-	 for(; i<nk; i++) {
-	    sf[i][0] = 0.;
-	    sf[i][1] = 0.;
-	 }
-      }
-   }
+		if( fend < fmax ) {
+			f = i * dom; // again, correct for round-off
+			for(; i<nk; i++) {
+				sf[i][0] = 0.;
+				sf[i][1] = 0.;
+			}
+		}
+	}
 
 	float FillGap( float *pbeg, float *pend, float mean1, float mean2, float std, int hlen, int step ) {
 		// defube random number generator
@@ -343,16 +343,17 @@ namespace System {
       2: list all file names
       3: list all files with dir paths */
       //*nfile = 0;
-      if( type>3 || type<0 ) {
-	 std::cerr<<"ERROR(List): Unknow list type: "<<type<<std::endl;
-	 return false;
-      }
-      FTS *tree;
-      FTSENT *file;
-      char *dirlist[] = { (char *)dir, nullptr }; //may send in multiple dirs
-      //get handle of the file hierarchy; FTS_LOGICAL follows symbolic links and detects cycles.
-      //replace '0' with 'namecmp' to sort files by name
-      tree = fts_open(dirlist, FTS_LOGICAL | FTS_NOSTAT | FTS_NOCHDIR, 0);
+		if( type>3 || type<0 ) {
+			//std::cerr<<"ERROR(List): Unknow list type: "<<type<<std::endl;
+			//return false;
+			throw ErrorSR::BadParam( FuncName, "Unknow list type = "+type );
+		}
+		FTS *tree;
+		FTSENT *file;
+		char *dirlist[] = { (char *)dir, nullptr }; //may send in multiple dirs
+		//get handle of the file hierarchy; FTS_LOGICAL follows symbolic links and detects cycles.
+		//replace '0' with 'namecmp' to sort files by name
+		tree = fts_open(dirlist, FTS_LOGICAL | FTS_NOSTAT | FTS_NOCHDIR, 0);
       if (tree == nullptr) perror("fts_open");
 
       //char *sblk = nullptr;
@@ -494,8 +495,9 @@ bool SacRec::WriteHD (const char *outfname) {
    //std::fstream fsac(outfname, std::ios::in | std::ios::out);
    std::fstream fsac(outfname);
    if( ! fsac ) {
-      std::cerr<<"ERROR(write_sac): Cannot open file "<<outfname<<std::endl;
-      return false;
+      //std::cerr<<"ERROR(write_sac): Cannot open file "<<outfname<<std::endl;
+      //return false;
+		throw ErrorSR::BadFile( FuncName, "writing to " + std::string(outfname) );
    }
    /* update header */
    shd.iftype = (int)ITIME;
@@ -522,8 +524,9 @@ bool SacRec::Write (const char *outfname) {
    /* open file */
    std::ofstream fsac(outfname);
    if( ! fsac ) {
-      std::cerr<<"ERROR(write_sac): Cannot open file "<<outfname<<std::endl;
-      return false;
+      //std::cerr<<"ERROR(write_sac): Cannot open file "<<outfname<<std::endl;
+      //return false;
+		throw ErrorSR::BadFile( FuncName, "writing to " + std::string(outfname) );
    }
    /* update header */
    shd.iftype = (int)ITIME;
@@ -1120,16 +1123,16 @@ bool SacRec::RmRESP( const char *fresp, float perl, float perh, const char *evre
    double pi=4*atan(1.0), pio180=pi/180.;
    double freq[nf], dtmp, amp[nf], pha[nf];
    int i = 0;
-   while(i<nf) {
-      if(fgets(buff, 300, fam)==nullptr) break;
-      sscanf(buff, "%lf %lf", &freq[i], &amp[i]);
-      if(fgets(buff, 300, fph)==nullptr) break;
-      sscanf(buff, "%lf %lf", &dtmp, &pha[i]);
-      if(dtmp!=freq[i]) {
-	 std::cerr<<"incompatible AMP - PHASE pair!"<<std::endl;
-	 continue;
-      }
-      amp[i] *= 0.000000001;
+	while(i<nf) {
+		if(fgets(buff, 300, fam)==nullptr) break;
+		sscanf(buff, "%lf %lf", &freq[i], &amp[i]);
+		if(fgets(buff, 300, fph)==nullptr) break;
+		sscanf(buff, "%lf %lf", &dtmp, &pha[i]);
+		if(dtmp!=freq[i]) {
+			std::cerr<<"incompatible AMP - PHASE pair!"<<std::endl;
+			continue;
+		}
+		amp[i] *= 0.000000001;
       pha[i] *= pio180;
       i++;
    }

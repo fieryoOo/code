@@ -5,8 +5,9 @@
 #include <cstdio>
 #include <cstddef>
 #include <string>
-#include <iostream>
 #include <memory>
+
+#define FuncName __FUNCTION__
 /*
 // a workaround for nullptr when compiled by old gcc compiler
 const class {				// this is a const object...
@@ -111,5 +112,69 @@ private:
    std::unique_ptr<float[]> am, ph;
 };
 */
+
+namespace WarningSR {
+   class Base {
+   public:
+      Base(const std::string message) {
+			//std::cerr<<message<<std::endl;
+      }
+   };
+
+   class MoveExistFile : public Base {
+   public:
+      MoveExistFile(const std::string funcname, const std::string info = "")
+         : Base("Warning("+funcname+"): Moving existing file ("+info+").") {}
+   };
+
+   class Other : public Base {
+   public:
+      Other(const std::string funcname, const std::string info = "")
+         : Base("Warning("+funcname+"): "+info) {}
+   };
+
+};
+
+namespace ErrorSR {
+
+   class Base : public std::runtime_error {
+   public:
+		Base(const std::string message)
+			: runtime_error(message) {
+				//PrintStacktrace();
+			}
+	};
+
+   class BadFile : public Base {
+   public:
+      BadFile(const std::string funcname, const std::string info = "")
+         : Base("Error("+funcname+"): Cannot access file ("+info+").") {}
+   };
+
+   class BadParam : public Base {
+   public:
+      BadParam(const std::string funcname, const std::string info = "")
+         : Base("Error("+funcname+"): Bad parameters ("+info+").") {}
+   };
+
+   class SizeMismatch : public Base {
+   public:
+      SizeMismatch(const std::string funcname, const std::string info = "")
+         : Base("Error("+funcname+"): Incompatible sizes ("+info+").") {}
+   };
+
+   class EmptyData : public Base {
+   public:
+      EmptyData(const std::string funcname, const std::string info = "")
+         : Base("Error("+funcname+"): Empty data input ("+info+").") {}
+   };
+
+   class InsufData : public Base {
+   public:
+      InsufData(const std::string funcname, const std::string info = "")
+         : Base("Error("+funcname+"): Insufficient data points ("+info+").") {}
+   };
+
+};
 
 #endif

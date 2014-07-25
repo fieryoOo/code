@@ -92,7 +92,7 @@ public:
    bool NextRecTest();
    bool NextRec();
 	void Rewind();
-   bool GetRec(const DailyInfo&);
+   bool GetRec(DailyInfo&);
 /*
    void InitialPthread();
    void FillMonths();

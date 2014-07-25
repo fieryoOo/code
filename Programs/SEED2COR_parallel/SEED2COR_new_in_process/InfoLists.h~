@@ -28,10 +28,15 @@ struct StaInfo{
 };
 
 
-/* Daily Info contains StaInfo and SeedInfo */
-struct DailyInfoData {
+/* Daily Info derived from StaInfo and SeedInfo */
+struct DailyInfo {
 	SeedInfo seed;
 	StaInfo sta;
+	std::string& seedname = seed.name;
+	std::string& staname = sta.name;
+	int& year = seed.year;
+	int& month = seed.month;
+	int& day = seed.day;
 
 	std::string rdsexe;
 	std::string chname;
@@ -39,30 +44,18 @@ struct DailyInfoData {
 	std::string rec_outname, resp_outname;
 	float sps, perl, perh, t1, tlen;
 
-};
-
-struct DailyInfo : public DailyInfoData {
-	//const std::string MonthName[13] {
-	const std::vector<std::string> MonthName {
+	const std::string MonthName[13] {
 		"INVALID",
 		"JAN", "FEB", "MAR", "APR", "MAY", "JUN",
 		"JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
 	};
 
-	std::string& seedname = seed.name;
-	std::string& staname = sta.name;
-	int& year = seed.year;
-	int& month = seed.month;
-	int& day = seed.day;
-
 	DailyInfo() {}
 	DailyInfo( const SeedInfo sei, const StaInfo& sti, const std::string& chi ) {
 		Update(sei, sti, chi);
 	}
-	DailyInfo( const DailyInfo& di2 ) : DailyInfoData(di2) {}
-	DailyInfo& operator= ( const DailyInfo& di2 ) {
-		*( reinterpret_cast<DailyInfoData*>(this) ) = di2;
-		return *this;
+	DailyInfo( const DailyInfo& di2 ) {
+		
 	}
 
 	void Update( const SeedInfo sei, const StaInfo& sti, const std::string& chi ) {
