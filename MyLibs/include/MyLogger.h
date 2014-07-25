@@ -33,7 +33,10 @@ public:
 	void Hold( const LogType& logtype, const std::string& msgin, const std::string& funcname="" ) {
 		auto& msgV = _messages.at( omp_get_thread_num() );
 		msgV.push_back( Message{logtype, msgin, funcname} );
-		if( logtype == FATAL ) flush();
+		if( logtype == FATAL ) {
+			flush();
+			throw std::runtime_error( "Fatal log" );
+		}
 	}
 
 	void flush( int thread_num = -1 ) {
@@ -86,6 +89,7 @@ private:
 		}
 
 		/* flag settings */
+		el::Loggers::addFlag(el::LoggingFlag::DisableApplicationAbortOnFatalLog);
 		el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
 		el::Loggers::addFlag(el::LoggingFlag::LogDetailedCrashReason);
 		//el::Loggers::addFlag(el::LoggingFlag::ImmediateFlush);
@@ -97,7 +101,7 @@ private:
 		/* configure loggers */
 		el::Configurations elconfig;
 		elconfig.setToDefault();
-		elconfig.set(el::Level::Global, el::ConfigurationType::Format, "%level%msg\t[%datetime{%a, %b %d, %Y  %H:%m:%s.%g}] {logger %logger}");			// global logging format
+		elconfig.set(el::Level::Global, el::ConfigurationType::Format, "%level%msg\t[%datetime{%a, %b %d, %Y  %H:%m:%s.%g}] {%logger}");			// global logging format
 		elconfig.set(el::Level::Debug, el::ConfigurationType::Format, "%level%msg\t[%datetime{%a, %b %d, %Y  %H:%m:%s.%g}] {%loc  %logger}");	// debug logging format
 		elconfig.set(el::Level::Global, el::ConfigurationType::LogFlushThreshold, "0");																		// global logging flush freq
 		if( logname.empty() ) {
