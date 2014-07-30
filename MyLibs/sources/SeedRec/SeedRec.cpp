@@ -172,7 +172,7 @@ SeedRec::~SeedRec() {}//{ dRemove(pimpl->tdir.c_str()); }
 /*---------------------------------------------------- Extract osac from seed file ----------------------------------------------------*/
 bool SeedRec::ExtractSac( const std::string staname, const std::string chname, const int sps,
 								  const std::string rec_outname, const std::string resp_outname,
-								  float& gapfrac, SacRec& sacout ) {
+								  float& gapfrac, SacRec& sacout, std::ostream& report ) {
    /* random number generator */
    unsigned timeseed = std::chrono::system_clock::now().time_since_epoch().count();
    std::default_random_engine generator (timeseed);
@@ -203,14 +203,14 @@ bool SeedRec::ExtractSac( const std::string staname, const std::string chname, c
    /* read sacfile names from the filelst,
     * resample and merge one at a time */
    sacout.Load(filelst.at(0).c_str());
-   sacout.Resample(sps);
+   sacout.Resample(sps, report);
    fRemove(filelst.at(0).c_str());
    bool merged = false;
    for(int i=1; i<filelst.size(); i++) {
       SacRec sacnew(filelst.at(i).c_str());
       sacnew.Load();
-      sacnew.Resample(sps);
-      sacout.merge(sacnew);
+      sacnew.Resample(sps, report);
+      sacout.merge(sacnew, report);
       fRemove(filelst.at(i).c_str());
       merged = true;
    }

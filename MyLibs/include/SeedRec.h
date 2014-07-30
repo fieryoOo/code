@@ -33,7 +33,7 @@ public:
 	*/
 	bool ExtractSac( const std::string staname, const std::string chname, const int sps,
 						  const std::string rec_outname, const std::string resp_outname, 
-						  float& gapfrac, SacRec& sacout );
+						  float& gapfrac, SacRec& sacout, std::ostream& report = std::cerr );
 
 private:
    struct SRimpl;

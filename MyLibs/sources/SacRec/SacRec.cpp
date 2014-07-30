@@ -254,13 +254,11 @@ struct SacRec::SRimpl {
       }
    }
 
-   bool FDivide (double f1, double f2, double f3, double f4, double *freq, double *amp, double *pha, int nf, SAC_HD &shd, float *seis_in) {
+   void FDivide (double f1, double f2, double f3, double f4, double *freq, double *amp, double *pha, int nf, SAC_HD &shd, float *seis_in) {
       double dt = shd.delta;
       int n = shd.npts;
-      if(f4 > 0.5/dt) {
-         fprintf(stderr, "### Warning: filter band out of range! ###");
-         return false;
-      }
+      if(f4 > 0.5/dt)
+			throw ErrorSR::BadParam( FuncName, "filter band out of range" );
       fftw_plan plan1;
       //backward FFT: s ==> sf
       int ns;
@@ -280,13 +278,11 @@ struct SacRec::SRimpl {
       //forming final result
       int k;
       float ftmp = 2./ns;
-      for(k=0; k<n; k++) {
-         //if( seis_in[k]==0 ) seis_out[k] = 0.;
-         //else 
-	 seis_in[k] *= ftmp;
-      }
-
-      return true;
+		for(k=0; k<n; k++) {
+			//if( seis_in[k]==0 ) seis_out[k] = 0.;
+			//else 
+			seis_in[k] *= ftmp;
+		}
    }
 
    int Jday ( int y, int m, int d ) {
@@ -452,22 +448,22 @@ SacRec::~SacRec() {}
 
 /* ---------------------------------------- sac IO ---------------------------------------- */
 /* load sac header from file 'fname' */
-bool SacRec::LoadHD () {
+void SacRec::LoadHD () {
    std::ifstream fsac(fname.c_str());
-   if( ! fsac ) return false;
+   if( ! fsac )
+		throw ErrorSR::BadFile( FuncName, "reading from " + fname );
    //if( SHDMap.empty() ) pimpl->CreateSHDMap();
    //pthread_mutex_lock(&fiolock);
    fsac.read( reinterpret_cast<char *>(&shd), sizeof(SAC_HD) );
    fsac.close();
    //pthread_mutex_unlock(&fiolock);
-   
-   return true;
 }
 
 /* load sac header+signal from file 'fname', memory is allocated on heap */
-bool SacRec::Load () {
+void SacRec::Load () {
    std::ifstream fsac(fname.c_str());
-   if( ! fsac ) return false;
+   if( ! fsac )
+		throw ErrorSR::BadFile( FuncName, "reading from " + fname );
    //if( SHDMap.empty() ) pimpl->CreateSHDMap();
    //pthread_mutex_lock(&fiolock);
    fsac.read( reinterpret_cast<char *>(&shd), sizeof(SAC_HD) );
@@ -485,20 +481,15 @@ bool SacRec::Load () {
    int eh, em;
    sscanf(koo,"%d%*[^0123456789]%d%*[^.0123456789]%g",&eh,&em,&fes);
    shd.o = shd.b + (shd.nzhour-eh)*3600. + (shd.nzmin-em)*60. + shd.nzsec-fes + shd.nzmsec*.001;
-
-   return true;
 }
 
 /* write to file '*outfname' */
-bool SacRec::WriteHD (const char *outfname) {
+void SacRec::WriteHD (const std::string& outfname) {
    /* open file */
    //std::fstream fsac(outfname, std::ios::in | std::ios::out);
    std::fstream fsac(outfname);
-   if( ! fsac ) {
-      //std::cerr<<"ERROR(write_sac): Cannot open file "<<outfname<<std::endl;
-      //return false;
+   if( ! fsac )
 		throw ErrorSR::BadFile( FuncName, "writing to " + std::string(outfname) );
-   }
    /* update header */
    shd.iftype = (int)ITIME;
    shd.leven = (int)TRUE;
@@ -515,19 +506,14 @@ bool SacRec::WriteHD (const char *outfname) {
    fsac.close();
 }
 
-bool SacRec::Write (const char *outfname) {
+void SacRec::Write (const std::string& outfname) {
    /* check if signal is loaded */
-   if( ! sig ) {
-      std::cerr<<"ERROR(write_sac): No signal loaded in the memory! "<<outfname<<std::endl;
-      return false;
-   }
+   if( ! sig )
+		throw ErrorSR::EmptySig( FuncName, "writing to " + outfname );
    /* open file */
    std::ofstream fsac(outfname);
-   if( ! fsac ) {
-      //std::cerr<<"ERROR(write_sac): Cannot open file "<<outfname<<std::endl;
-      //return false;
-		throw ErrorSR::BadFile( FuncName, "writing to " + std::string(outfname) );
-   }
+   if( ! fsac )
+		throw ErrorSR::BadFile( FuncName, "writing to " + outfname );
    /* update header */
    shd.iftype = (int)ITIME;
    shd.leven = (int)TRUE;
@@ -581,67 +567,68 @@ int read_rec(int rec_flag, char *fname, int len, int *rec_b, int *rec_e, int *nr
 
 //pthread_mutex_t fiolock;
 
-bool SacRec::Mul( const float mul ) {
+void SacRec::Mul( const float mul ) {
    for(int i=0; i<shd.npts; i++) sig[i] *= mul;
 }
 
 #include <cctype>
-bool SacRec::ChHdr(const char* field, const char* value){
+void SacRec::ChHdr(const std::string& fieldin, const std::string& value){
    std::stringstream sin(value);
-   std::string fstr(field);
-   std::transform(fstr.begin(), fstr.end(), fstr.begin(), ::tolower);
+	std::string field(fieldin);
+   std::transform(field.begin(), field.end(), field.begin(), ::tolower);
    bool succeed = false;
 
-   if( fstr == "dist" ) succeed = sin >> shd.dist;
-   else if( fstr == "az" ) succeed = sin >> shd.az;
-   else if( fstr == "baz" ) succeed = sin >> shd.baz;
-   else if( fstr == "gcarc" ) succeed = sin >> shd.gcarc;
-   else if( fstr == "b" ) succeed = sin >> shd.b;
-   else if( fstr == "e" ) succeed = sin >> shd.e;
+   if( field == "dist" ) succeed = sin >> shd.dist;
+   else if( field == "az" ) succeed = sin >> shd.az;
+   else if( field == "baz" ) succeed = sin >> shd.baz;
+   else if( field == "gcarc" ) succeed = sin >> shd.gcarc;
+   else if( field == "b" ) succeed = sin >> shd.b;
+   else if( field == "e" ) succeed = sin >> shd.e;
 
-   else if( fstr == "knetwk" ) succeed = sin >> shd.knetwk;
-   else if( fstr == "kstnm" ) succeed = sin >> shd.kstnm;
-   else if( fstr == "stlo" ) succeed = sin >> shd.stlo;
-   else if( fstr == "stla" ) succeed = sin >> shd.stla;
-   else if( fstr == "stel" ) succeed = sin >> shd.stel;
-   else if( fstr == "stdp" ) succeed = sin >> shd.stdp;
+   else if( field == "knetwk" ) succeed = sin >> shd.knetwk;
+   else if( field == "kstnm" ) succeed = sin >> shd.kstnm;
+   else if( field == "stlo" ) succeed = sin >> shd.stlo;
+   else if( field == "stla" ) succeed = sin >> shd.stla;
+   else if( field == "stel" ) succeed = sin >> shd.stel;
+   else if( field == "stdp" ) succeed = sin >> shd.stdp;
 
-   else if( fstr == "kevnm" ) succeed = sin >> shd.kevnm;
-   else if( fstr == "evlo" ) succeed = sin >> shd.evlo;
-   else if( fstr == "evla" ) succeed = sin >> shd.evla;
-   else if( fstr == "evel" ) succeed = sin >> shd.evel;
-   else if( fstr == "evdp" ) succeed = sin >> shd.evdp;
+   else if( field == "kevnm" ) succeed = sin >> shd.kevnm;
+   else if( field == "evlo" ) succeed = sin >> shd.evlo;
+   else if( field == "evla" ) succeed = sin >> shd.evla;
+   else if( field == "evel" ) succeed = sin >> shd.evel;
+   else if( field == "evdp" ) succeed = sin >> shd.evdp;
 
-   else if( fstr == "nzyear" ) succeed = sin >> shd.nzyear;
-   else if( fstr == "nzjday" ) succeed = sin >> shd.nzjday;
-   else if( fstr == "nzhour" ) succeed = sin >> shd.nzhour;
-   else if( fstr == "nzmin" ) succeed = sin >> shd.nzmin;
-   else if( fstr == "nzsec" ) succeed = sin >> shd.nzsec;
-   else if( fstr == "nzmsec" ) succeed = sin >> shd.nzmsec;
+   else if( field == "nzyear" ) succeed = sin >> shd.nzyear;
+   else if( field == "nzjday" ) succeed = sin >> shd.nzjday;
+   else if( field == "nzhour" ) succeed = sin >> shd.nzhour;
+   else if( field == "nzmin" ) succeed = sin >> shd.nzmin;
+   else if( field == "nzsec" ) succeed = sin >> shd.nzsec;
+   else if( field == "nzmsec" ) succeed = sin >> shd.nzmsec;
 
-   else if( fstr == "kcmpnm" ) succeed = sin >> shd.kcmpnm;
-   else if( fstr == "cmpaz" ) succeed = sin >> shd.cmpaz;
-   else if( fstr == "cmpinc" ) succeed = sin >> shd.cmpinc;
+   else if( field == "kcmpnm" ) succeed = sin >> shd.kcmpnm;
+   else if( field == "cmpaz" ) succeed = sin >> shd.cmpaz;
+   else if( field == "cmpinc" ) succeed = sin >> shd.cmpinc;
 
-   else if( fstr == "o" ) succeed = sin >> shd.o;
-   else if( fstr == "ko" ) succeed = sin >> shd.ko;
-   else if( fstr == "a" ) succeed = sin >> shd.a;
-   else if( fstr == "ka" ) succeed = sin >> shd.ka;
-   else if( fstr == "f" ) succeed = sin >> shd.f;
-   else if( fstr == "kf" ) succeed = sin >> shd.kf;
+   else if( field == "o" ) succeed = sin >> shd.o;
+   else if( field == "ko" ) succeed = sin >> shd.ko;
+   else if( field == "a" ) succeed = sin >> shd.a;
+   else if( field == "ka" ) succeed = sin >> shd.ka;
+   else if( field == "f" ) succeed = sin >> shd.f;
+   else if( field == "kf" ) succeed = sin >> shd.kf;
 
-   else if( fstr == "user0" ) succeed = sin >> shd.user0;
-   else if( fstr == "user1" ) succeed = sin >> shd.user1;
-   else if( fstr == "user2" ) succeed = sin >> shd.user2;
-   else if( fstr == "user3" ) succeed = sin >> shd.user3;
-   else if( fstr == "user4" ) succeed = sin >> shd.user4;
-   else if( fstr == "user5" ) succeed = sin >> shd.user5;
-   else if( fstr == "user6" ) succeed = sin >> shd.user6;
-   else if( fstr == "user7" ) succeed = sin >> shd.user7;
-   else if( fstr == "user8" ) succeed = sin >> shd.user8;
-   else if( fstr == "user9" ) succeed = sin >> shd.user9;
+   else if( field == "user0" ) succeed = sin >> shd.user0;
+   else if( field == "user1" ) succeed = sin >> shd.user1;
+   else if( field == "user2" ) succeed = sin >> shd.user2;
+   else if( field == "user3" ) succeed = sin >> shd.user3;
+   else if( field == "user4" ) succeed = sin >> shd.user4;
+   else if( field == "user5" ) succeed = sin >> shd.user5;
+   else if( field == "user6" ) succeed = sin >> shd.user6;
+   else if( field == "user7" ) succeed = sin >> shd.user7;
+   else if( field == "user8" ) succeed = sin >> shd.user8;
+   else if( field == "user9" ) succeed = sin >> shd.user9;
 
-   return succeed;
+	if( ! succeed )
+		throw ErrorSR::BadParam(FuncName, "Invalid header field (" + field + ") or value (" + value + ")");
 }
 
 
@@ -687,8 +674,9 @@ void SacRec::UpdateTime() {
 
 /* search for min&max signal positions and amplitudes */
 inline static int nint( float in ) { return static_cast<int>(floor(in+0.5)); }
-bool SacRec::MinMax (float tbegin, float tend, float& tmin, float& min, float& tmax, float& max) {
-   if( ! sig ) return false;
+void SacRec::MinMax (float tbegin, float tend, float& tmin, float& min, float& tmax, float& max) {
+   if( ! sig )
+		throw ErrorSR::EmptySig(FuncName);
    min = max = sig[0];
    int imin = 0, imax = 0;
    for ( int i = nint((tbegin-shd.b)/shd.delta); i < nint((tend-shd.b)/shd.delta+1.) ; i++ ) {
@@ -697,13 +685,13 @@ bool SacRec::MinMax (float tbegin, float tend, float& tmin, float& min, float& t
    }
    tmin = shd.b + imin*shd.delta;
    tmax = shd.b + imax*shd.delta;
-   return true;
 }
 
 
 /* compute the root-mean-square average in a given window */
-bool SacRec::RMSAvg ( float tbegin, float tend, int step, float& rms ) {
-   if( ! sig ) return false;
+void SacRec::RMSAvg ( float tbegin, float tend, int step, float& rms ) {
+   if( ! sig )
+		throw ErrorSR::EmptySig(FuncName);
 
    rms = 0.;
    float maxfloat = std::numeric_limits<float>::max();
@@ -714,12 +702,12 @@ bool SacRec::RMSAvg ( float tbegin, float tend, int step, float& rms ) {
       neff++;
    }
    rms = sqrt(rms/(neff-1));
-   return true;
 }
 
 /* compute mean and std in a given window */
 bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& std ) {
-   if( ! sig ) return false;
+   if( ! sig )
+		throw ErrorSR::EmptySig(FuncName);
 
 	// store valid data points
    float maxfloat = std::numeric_limits<float>::max();
@@ -730,6 +718,7 @@ bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& s
       dataV.push_back(sig[i]);
    }
 	if( dataV.size() == 0 ) return false;
+	//	throw ErrorSR::InsufData(FuncName, "0 valid data point within the given window");
 
 	// mean
    mean = 0.;
@@ -743,14 +732,15 @@ bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& s
 	}
    std = sqrt(std/(dataV.size()-1));
 
-   return true;
+	return true;
 }
 
 
 /* ---------------------------------------- time - frequency ---------------------------------------- */
 /* convert to amplitude */
-bool SacRec::ToAm( SacRec& sac_am ) {
-   if( ! sig ) return false;	// check signal
+void SacRec::ToAm( SacRec& sac_am ) {
+   if( ! sig ) 	// check signal
+		throw ErrorSR::EmptySig(FuncName);
    if( &sac_am != this ) {	// initialize sac_am if not filtering in place 
       //sac_am = *this;
       sac_am.fname = fname; 
@@ -776,13 +766,12 @@ bool SacRec::ToAm( SacRec& sac_am ) {
    sac_am.shd.npts = nk;
    sac_am.shd.delta = 1./(shd.delta*ns);
    sac_am.shd.b = 0.;
-
-   return true;
 }
 
 /* 3 different types of filters */
-bool SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout ) {
-   if( ! sig ) return false;	// check signal
+void SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout ) {
+   if( ! sig )	// check signal
+		throw ErrorSR::EmptySig(FuncName);
    if( &srout != this ) {	// initialize srout if not filtering in place 
       srout = *this;
       /*
@@ -793,7 +782,7 @@ bool SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout 
    }
    double dt = shd.delta;
    if(f4 > 0.5/dt) {
-      std::cerr<<"Warning(SacRec::Filter): filter band out of range!"<<std::endl;;
+      //std::cerr<<"Warning(SacRec::Filter): filter band out of range!"<<std::endl;;
       f4 = 0.49999/dt;
    }
    fftw_plan planF = nullptr;
@@ -809,10 +798,7 @@ bool SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout 
    if( (f1==-1. || f2==-1.) && (f3>0. && f4>0.) ) pimpl->TaperL( f3, f4, dom, nk, sf );
    else if( f1>=0. && f2>0. && f3>0. && f4>0. ) pimpl->TaperB( f1, f2, f3, f4, dom, nk, sf );
    else if( f1==-1. && f4==-1. ) pimpl->TaperGaussian( f2, f3, dom, nk, sf );
-   else {
-      std::cerr<<"Warning(SacRec::Filter): Unknow filter type for parameters = "<<f1<<" "<<f2<<" "<<f3<<" "<<f4<<std::endl;
-      return false;
-   }
+   else throw ErrorSR::BadParam( FuncName, "Unknown filter type");
 
    //forward FFT: sf ==> s
    pimpl->FFTW_F(planF, s, ns, &(srout.sig[0]), n);
@@ -823,16 +809,16 @@ bool SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout 
    for(int k=0; k<n; k++) srout.sig[k] *= ftmp;
    //   if( seis_in[k]==0 ) seis_out[k] = 0.;
    //   else seis_out[k] *= ftmp;
-
-   return true;
 }
 
 
 /* ---------------------------------------- cut and merge ---------------------------------------- */
-bool SacRec::cut( float tb, float te, SacRec& sac_result ) {
+void SacRec::cut( float tb, float te, SacRec& sac_result ) {
    int nb = (int)floor( (tb-shd.b) / shd.delta + 0.5 );
    int ne = (int)floor( (te-shd.b) / shd.delta + 0.5 );
-   if( nb>=ne || ne<0 || nb>shd.npts ) return false;
+   if( nb>=ne || ne<0 || nb>shd.npts )
+		throw ErrorSR::BadParam( FuncName, "Invalid nb/ne/npts = " + std::to_string(nb) +
+										 "/" + std::to_string(ne) + "/" + std::to_string(shd.npts) );
    int nptsnew = ne - nb + 1;
    float* signew = (float *) calloc ( nptsnew, sizeof(float) );
    // define start positions
@@ -850,13 +836,13 @@ bool SacRec::cut( float tb, float te, SacRec& sac_result ) {
    sac_result.shd.b += nb * shd.delta;
 	sac_result.shd.e = sac_result.shd.b + (nptsnew-1) * shd.delta;
    sac_result.shd.npts = nptsnew;
-   return true;
 }
 
 
-bool SacRec::merge( SacRec sacrec2 ) {
+void SacRec::merge( SacRec sacrec2, std::ostream& report ) {
    // make sure that both signals are loaded
-   if( !sig || !sacrec2.sig ) return false;
+   if( !sig || !sacrec2.sig )
+		throw ErrorSR::EmptySig(FuncName, "for either sr1 or sr2");
    
    SAC_HD& shd2 = sacrec2.shd;
    // starting and ending time
@@ -870,14 +856,10 @@ bool SacRec::merge( SacRec sacrec2 ) {
    int N = (int)floor((T2-T1)/shd.delta+0.5)+1;
 
    /* pre-merging checks */
-   if( N > 2.6e7 ) {
-      std::cerr<<" Error(SacRec::merge): The merged signal will be larger than 100M. Stopped! " <<std::endl;
-      return false;
-   }
-   if( (shd.delta-shd2.delta) > 0.0001 ) {
-      std::cerr<<" Error(SacRec::merge): sps mismatch! Stopped! " <<std::endl;
-      return false;
-   }
+   if( N > 2.6e7 ) 
+		throw ErrorSR::MemError( FuncName, "> 100M if merged");
+   if( (shd.delta-shd2.delta) > 0.0001 )
+		throw ErrorSR::BadParam( FuncName, "sps mismatch");
 
    /* allocate new space */
    std::unique_ptr<float[]> sig0(new float[N]);
@@ -899,7 +881,7 @@ bool SacRec::merge( SacRec sacrec2 ) {
       tshift = (shd2.b-shd.b) + (nb*dt-(t2b-t1b));
    }
    if( fabs(tshift) > 1.e-3 )
-      std::cerr << "*** Warning: signal shifted by " << tshift << "sec when merging! *** " << std::endl;
+		report << "signal shifted by " << tshift << "secs" << std::endl;
 
 
    /* copy in the signals */
@@ -998,8 +980,9 @@ int SacRec::arrange(const char* recname) {
 
 
 /* ---------------------------------------- cut by event ---------------------------------------- */
-bool SacRec::ZoomToEvent( const std::string etime, float evlon, float evlat, float tb, float tlen, std::string ename ) {
-	if( etime.length() != 14 ) return false;
+void SacRec::ZoomToEvent( const std::string etime, float evlon, float evlat, float tb, float tlen, std::string ename ) {
+	if( etime.length() != 14 )
+		throw ErrorSR::BadParam( FuncName, "Invalid etime string = " + etime );
 	SAC_HD eshd;
    eshd.nzyear = std::stoi( etime.substr(0, 4) );
    float month = std::stoi( etime.substr(4, 2) );
@@ -1010,11 +993,12 @@ bool SacRec::ZoomToEvent( const std::string etime, float evlon, float evlat, flo
    eshd.nzsec = std::stoi( etime.substr(12, 2) );
    eshd.nzmsec = 0.;
 	if( ename.empty() ) ename = etime;
-	return ZoomToEvent( eshd, evlon, evlat, tb, tlen, ename );
+	ZoomToEvent( eshd, evlon, evlat, tb, tlen, ename );
 }
 
-bool SacRec::ZoomToEvent( const SAC_HD& eshd, float evlon, float evlat, float tb, float tlen, const std::string ename ) {
-   if( tlen <= 0. ) return false;
+void SacRec::ZoomToEvent( const SAC_HD& eshd, float evlon, float evlat, float tb, float tlen, const std::string ename ) {
+   if( tlen <= 0. )
+		throw ErrorSR::BadParam( FuncName, "negative tlen = " + std::to_string(tlen) );
    
    // current origin time
 	double Tabs_old = AbsTime();
@@ -1029,16 +1013,12 @@ bool SacRec::ZoomToEvent( const SAC_HD& eshd, float evlon, float evlat, float tb
 
    // cut to tb - te
 	float te = tb + tlen;
-   if( ! cut( tb, te ) ) {
-		return false;
-	}
+   cut( tb, te );
 
    // assign event location
    sprintf( shd.kevnm, "%s", ename.c_str() );
 	if( evlon>=-180. && evlon<=360. ) shd.evlo = evlon;
    if( evlat>=-90. && evlat<=90. ) shd.evla = evlat;
-
-   return true;
 }
 
 /* remove mean and trend */
@@ -1071,16 +1051,14 @@ void SacRec::RTrend() {
 
 
 /* remove response and apply filter */
-bool SacRec::RmRESP( const char *fresp, float perl, float perh, const char *evrexein ) {
+void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexein, std::ostream& report ) {
 	
    // check evrexe
-	std::string evrexe;
-   if( evrexein == nullptr ) {
+	std::string evrexe(evrexein);
+   if( evrexe.empty() )
       pimpl->FindInPath("evalresp", evrexe);
-   } else {
-      evrexe = evrexein;
-   }
-   if( access( evrexe.c_str(), F_OK ) == -1 ) return false;
+   if( access( evrexe.c_str(), F_OK ) == -1 ) 
+		throw ErrorSR::BadParam( FuncName, "cannot access evralresp at " + evrexe );
 
    // run evalresp
    int nf = 100;
@@ -1090,7 +1068,7 @@ bool SacRec::RmRESP( const char *fresp, float perl, float perh, const char *evre
    sscanf(shd.kstnm, "%s", sta);
    sscanf(shd.kcmpnm, "%s", ch);
    sscanf(shd.knetwk, "%s", net);
-   sprintf(buff, "%s %s %s %4d %3d %f %f %d -f %s -v >& /dev/null", evrexe.c_str(), sta, ch, shd.nzyear, shd.nzjday, f1, f4, nf, fresp);
+   sprintf(buff, "%s %s %s %4d %3d %f %f %d -f %s -v >& /dev/null", evrexe.c_str(), sta, ch, shd.nzyear, shd.nzjday, f1, f4, nf, fresp.c_str());
    system(buff);
    char nameam[50], nameph[50];
    sprintf(nameam, "AMP.%s.%s.*.%s", net, sta, ch);
@@ -1099,26 +1077,18 @@ bool SacRec::RmRESP( const char *fresp, float perl, float perh, const char *evre
    FILE *fam = nullptr, *fph = nullptr;
    std::vector<std::string> list;
    System::List(".", nameam, 0, list);
-   if( list.size()!=1 ) {
-      std::cerr<<"Error: "<<list.size()<<" AMP file(s) found!"<<std::endl;
-      return false;
-   }
+   if( list.size()!=1 )
+      throw ErrorSR::ExternalError( FuncName, std::to_string(list.size()) + " AMP file(s) found");
    sscanf(list.at(0).c_str(), "%s", nameam);
-   if( (fam = fopen(nameam, "r")) == nullptr ) {
-      std::cerr<<"Cannot open file "<<nameam<<std::endl;
-      return false;
-   }
+   if( (fam = fopen(nameam, "r")) == nullptr )
+		throw ErrorSR::BadFile( FuncName, "reading from " + std::string(nameam) );
    // find ph file
    System::List(".", nameph, 0, list);
-   if( list.size()!=1 ) {
-      std::cerr<<"Error: "<<list.size()<<" PHASE file(s) found!"<<std::endl;
-      return false;
-   }
+   if( list.size()!=1 )
+      throw ErrorSR::ExternalError( FuncName, std::to_string(list.size()) + " PHASE file(s) found");
    sscanf(list.at(0).c_str(), "%s", nameph);
-   if( (fph = fopen(nameph, "r")) == nullptr ) {
-      std::cerr<<"Cannot open file "<<nameph<<std::endl;
-      return false;
-   }
+   if( (fph = fopen(nameph, "r")) == nullptr )
+		throw ErrorSR::BadFile( FuncName, "reading from " + std::string(nameph) );
    // read in am and ph data
    double pi=4*atan(1.0), pio180=pi/180.;
    double freq[nf], dtmp, amp[nf], pha[nf];
@@ -1129,7 +1099,7 @@ bool SacRec::RmRESP( const char *fresp, float perl, float perh, const char *evre
 		if(fgets(buff, 300, fph)==nullptr) break;
 		sscanf(buff, "%lf %lf", &dtmp, &pha[i]);
 		if(dtmp!=freq[i]) {
-			std::cerr<<"incompatible AMP - PHASE pair!"<<std::endl;
+			report<<"incompatible AMP - PHASE pair!"<<std::endl;
 			continue;
 		}
 		amp[i] *= 0.000000001;
@@ -1141,12 +1111,14 @@ bool SacRec::RmRESP( const char *fresp, float perl, float perh, const char *evre
    // remove trend ( and mean )
    RTrend();
    // run rmresponse
-   return pimpl->FDivide (f1, f2, f3, f4, freq, amp, pha, nf, shd, sig.get());
+   pimpl->FDivide (f1, f2, f3, f4, freq, amp, pha, nf, shd, sig.get());
 }
 
 /* down sampling with anti-aliasing filter */
-bool SacRec::Resample( float sps ) {
-   if( ! sig ) return false;
+void SacRec::Resample( float sps, std::ostream& report ) {
+   if( ! sig )
+		throw ErrorSR::EmptySig(FuncName);
+		
    int ithread = 0;
    /* anti-aliasing filter */
    float dt = 1./sps;
@@ -1180,8 +1152,7 @@ bool SacRec::Resample( float sps ) {
          }
    }
    else { //sps isn't a factor, slower way
-      //reports << "*** Warning: sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << ", watch out for rounding error! *** ";
-      std::cerr << "*** Warning: sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << ", watch out for rounding error! *** ";
+      report << "*** Warning: sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << ", watch out for rounding error! *** ";
       long double ti, tj;
       iinc = (int)floor(dt/shd.delta);
       ti = i*shd.delta+shd.nzmsec*0.001+shd.b;
@@ -1201,6 +1172,5 @@ bool SacRec::Resample( float sps ) {
    if(shd.nzmsec>=1000) UpdateTime();
    shd.delta = dt;
    shd.npts = j;
-   return true;
 }
 
