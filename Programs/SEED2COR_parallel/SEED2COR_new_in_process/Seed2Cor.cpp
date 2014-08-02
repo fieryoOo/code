@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 		/* Initialize the CC Database with the input parameter file */
 		CCDatabase cdb( argv[1] );
 
-		const CCPARAM cdbParams = cdb.GetParams();
+		//const CCPARAM& cdbParams = cdb.GetParams();
 
 		/* iterate through the database and handle all possible events */
 		for(DailyInfo dinfo; cdb.GetRec(dinfo); cdb.NextRec()) {
@@ -40,18 +40,18 @@ int main(int argc, char *argv[]) {
 
 				/* extract the original sac from seed */
 				float gapfrac;
-				SacRec sac;
-				SeedRec seedcur( dinfo.seedname.c_str(), dinfo.rdsexe.c_str() );
+				SacRec sac( report );
+				SeedRec seedcur( dinfo.seedname, dinfo.rdsexe, report );
 				if( ! seedcur.ExtractSac( dinfo.staname, dinfo.chname, dinfo.sps, dinfo.rec_outname,
 							dinfo.resp_outname, gapfrac, sac ) )	continue;
-				sac.Write( dinfo.osac_outname.c_str() );
+				sac.Write( dinfo.osac_outname );
 
 				/* remove response and cut */
-				sac.RmRESP( dinfo.resp_outname.c_str(), dinfo.perl*0.76923, dinfo.perh*1.42857, report );
+				sac.RmRESP( dinfo.resp_outname, dinfo.perl*0.76923, dinfo.perh*1.42857 );
 				char evtime[15];
 				sprintf( evtime, "%04d%02d%02d000000\0", dinfo.year, dinfo.month, dinfo.day );
 				sac.ZoomToEvent( evtime, -12345., -12345., dinfo.t1, dinfo.tlen );
-				sac.Write( dinfo.fsac_outname.c_str() );
+				sac.Write( dinfo.fsac_outname );
 				//sac.WriteHD("/usr/temp.SAC");
 
 				/* apply normalizations and convert to am/ph */

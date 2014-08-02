@@ -410,25 +410,34 @@ namespace System {
 
 /* ---------------------------------------- constructors and operators ---------------------------------------- */
 /* default constructor */
-SacRec::SacRec( const char* fnamein )
- : sig(nullptr), shd(sac_null), pimpl(new SRimpl() ) {
-   if( fnamein ) fname = fnamein;
-}
+SacRec::SacRec( std::ostream& reportin )
+ : sig(nullptr), shd(sac_null),
+	report(&reportin),
+	pimpl(new SRimpl() ) {}
+
+/* constructor with sac file name */
+SacRec::SacRec( const std::string& fnamein, std::ostream& reportin )
+ : sig(nullptr), shd(sac_null),
+	report(&reportin), fname(fnamein),
+	pimpl(new SRimpl() ) {}
 
 /* copy constructor */
 SacRec::SacRec( const SacRec& recin )
- : fname(recin.fname), shd(recin.shd), sig(new float[recin.shd.npts]), pimpl( new SRimpl(*(recin.pimpl)) ) { 
+ : fname(recin.fname), report(recin.report),
+	shd(recin.shd), sig(new float[recin.shd.npts]), pimpl( new SRimpl(*(recin.pimpl)) ) { 
    std::copy(recin.sig.get(), recin.sig.get()+recin.shd.npts, sig.get()); 
 }
 
 /* move constructor */
 SacRec::SacRec( SacRec&& recin )
- : fname(std::move(recin.fname)), shd(std::move(recin.shd)), sig( std::move(recin.sig) ), pimpl( std::move(recin.pimpl) ) {}
+ : fname(std::move(recin.fname)),
+	shd(std::move(recin.shd)), sig( std::move(recin.sig) ), pimpl( std::move(recin.pimpl) ) {}
 
 /* assignment operator */
 SacRec& SacRec::operator= ( const SacRec& recin ) { 
    pimpl.reset( new SRimpl(*(recin.pimpl)) );
-   fname = recin.fname; shd = recin.shd;
+   fname = recin.fname; report = recin.report;
+	shd = recin.shd;
    int npts=recin.shd.npts; sig.reset(new float[npts]); 
    std::copy(recin.sig.get(), recin.sig.get()+npts, sig.get()); 
 	return *this;
@@ -438,6 +447,7 @@ SacRec& SacRec::operator= ( const SacRec& recin ) {
 SacRec& SacRec::operator= ( SacRec&& recin ) { 
    pimpl = std::move(recin.pimpl);
    fname = std::move(recin.fname);
+	report = recin.report;
    shd = std::move(recin.shd);
    sig = std::move(recin.sig);
 	return *this;
@@ -839,7 +849,7 @@ void SacRec::cut( float tb, float te, SacRec& sac_result ) {
 }
 
 
-void SacRec::merge( SacRec sacrec2, std::ostream& report ) {
+void SacRec::merge( SacRec sacrec2 ) {
    // make sure that both signals are loaded
    if( !sig || !sacrec2.sig )
 		throw ErrorSR::EmptySig(FuncName, "for either sr1 or sr2");
@@ -881,7 +891,7 @@ void SacRec::merge( SacRec sacrec2, std::ostream& report ) {
       tshift = (shd2.b-shd.b) + (nb*dt-(t2b-t1b));
    }
    if( fabs(tshift) > 1.e-3 )
-		report << "signal shifted by " << tshift << "secs" << std::endl;
+		(*report) << "signal shifted by " << tshift << "secs" << std::endl;
 
 
    /* copy in the signals */
@@ -1051,7 +1061,7 @@ void SacRec::RTrend() {
 
 
 /* remove response and apply filter */
-void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexein, std::ostream& report ) {
+void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexein ) {
 	
    // check evrexe
 	std::string evrexe(evrexein);
@@ -1099,7 +1109,7 @@ void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std
 		if(fgets(buff, 300, fph)==nullptr) break;
 		sscanf(buff, "%lf %lf", &dtmp, &pha[i]);
 		if(dtmp!=freq[i]) {
-			report<<"incompatible AMP - PHASE pair!"<<std::endl;
+			(*report)<<"incompatible AMP - PHASE pair!"<<std::endl;
 			continue;
 		}
 		amp[i] *= 0.000000001;
@@ -1115,7 +1125,7 @@ void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std
 }
 
 /* down sampling with anti-aliasing filter */
-void SacRec::Resample( float sps, std::ostream& report ) {
+void SacRec::Resample( float sps ) {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
 		
@@ -1152,7 +1162,7 @@ void SacRec::Resample( float sps, std::ostream& report ) {
          }
    }
    else { //sps isn't a factor, slower way
-      report << "*** Warning: sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << ", watch out for rounding error! *** ";
+      (*report) << "rounding error! sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << std::endl;
       long double ti, tj;
       iinc = (int)floor(dt/shd.delta);
       ti = i*shd.delta+shd.nzmsec*0.001+shd.b;

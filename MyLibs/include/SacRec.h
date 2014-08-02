@@ -7,7 +7,9 @@
 #include <string>
 #include <memory>
 
+#ifndef FuncName
 #define FuncName __FUNCTION__
+#endif
 /*
 // a workaround for nullptr when compiled by old gcc compiler
 const class {				// this is a const object...
@@ -23,10 +25,6 @@ private:
 
 
 class SacRec {
-private:
-   /* impl pointer */
-   struct SRimpl;
-   std::unique_ptr<SRimpl> pimpl;
 public:
    std::string fname;			// input file name
    SAC_HD shd;				// sac header
@@ -35,7 +33,8 @@ public:
 public:
    /* ------------------------------ con/destructors and operators ------------------------------ */
    /* constructors */
-   SacRec( const char* fnamein = nullptr );	// default
+	SacRec( std::ostream& reportin = std::cerr );
+   SacRec( const std::string& fnamein, std::ostream& reportin = std::cerr );	// default
    SacRec( const SacRec& recin );		// copy
    SacRec( SacRec&& recin );			// move
    /* operators */
@@ -93,33 +92,34 @@ public:
    /* remove response and apply filter */
    void RmRESP( const std::string& fresp, float perl, float perh ) {
 		std::string evrexe;
-		RmRESP( fresp, perl, perh, evrexe, std::cerr );
+		RmRESP( fresp, perl, perh, evrexe );
 	}
-   void RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexe ) {
-		RmRESP( fresp, perl, perh, evrexe, std::cerr );
-	}
-   void RmRESP( const std::string& fresp, float perl, float perh, std::ostream& report ) {
-		std::string evrexe;
-		RmRESP( fresp, perl, perh, evrexe, report );
-	}
-   void RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexe, std::ostream& report );
+   void RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexe );
    /* resample (with anti-aliasing filter) the signal to given sps */
-   void Resample( float sps, std::ostream& report = std::cerr );
+   void Resample( float sps );
 
    /* ------------------------------ inter-sac operations ------------------------------ */
    void cut( float tb, float te ) { cut(tb, te, *this); }
    void cut( float tb, float te, SacRec& );
    /* merge a second sacrec to the current */
-   void Merge( SacRec sacrec2, std::ostream& report = std::cerr ) {
-      merge( sacrec2, report );
+   void Merge( SacRec sacrec2 ) {
+      merge( sacrec2 );
       arrange();
    }
-   void merge( SacRec sacrec2, std::ostream& report = std::cerr );
+   void merge( SacRec sacrec2 );
    int arrange( const char *recname = nullptr );
 
 	/* ------------------------------- cut by event ---------------------------------- */
 	void ZoomToEvent( const std::string etime, float evlon, float evlat, float tb, float tlen, std::string ename = "" );
 	void ZoomToEvent( const SAC_HD& eshd, float evlon, float evlat, float tb, float tlen, std::string ename );
+
+private:
+   /* impl pointer */
+   struct SRimpl;
+   std::unique_ptr<SRimpl> pimpl;
+	/* reporting stream */
+	std::ostream* report = &(std::cerr);
+
 };
 
 /*
