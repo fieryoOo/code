@@ -2,12 +2,14 @@
 #define SACREC_H
 
 #include "mysac64.h"
-#include <cstdio>
-#include <cstddef>
+//#include <cstddef>
+#include <iostream>
 #include <string>
 #include <memory>
 
+#ifndef FuncName
 #define FuncName __FUNCTION__
+#endif
 /*
 // a workaround for nullptr when compiled by old gcc compiler
 const class {				// this is a const object...
@@ -23,10 +25,6 @@ private:
 
 
 class SacRec {
-private:
-   /* impl pointer */
-   struct SRimpl;
-   std::unique_ptr<SRimpl> pimpl;
 public:
    std::string fname;			// input file name
    SAC_HD shd;				// sac header
@@ -35,7 +33,8 @@ public:
 public:
    /* ------------------------------ con/destructors and operators ------------------------------ */
    /* constructors */
-   SacRec( const char* fnamein = nullptr );	// default
+	SacRec( std::ostream& reportin = std::cerr );
+   SacRec( const std::string& fnamein, std::ostream& reportin = std::cerr );	// default
    SacRec( const SacRec& recin );		// copy
    SacRec( SacRec&& recin );			// move
    /* operators */
@@ -46,17 +45,17 @@ public:
 
    /* ------------------------------ sac file read/write ------------------------------ */
    /* load sac header from file 'fname' */
-   bool LoadHD( const char* fnamein ) { if( fnamein ) fname = fnamein; return LoadHD(); }
-   bool LoadHD ();
+   void LoadHD( const std::string& fnamein ) { fname = fnamein; LoadHD(); }
+   void LoadHD ();
    /* read sac header+signal from file 'fname', memory is allocated on heap */
-   bool Load( const char* fnamein ) { if( fnamein ) fname = fnamein; return Load(); }
-   bool Load ();
+   void Load( const std::string& fnamein ) { fname = fnamein; Load(); }
+   void Load ();
    /* write to file '*fname' */
-   bool WriteHD ( const char *fname );
-   bool Write ( const char *fname );
+   void WriteHD ( const std::string& fname );
+   void Write ( const std::string& fname );
 
    /* ------------------------------ header operations ------------------------------ */
-   bool ChHdr(const char* field, const char* value);
+   void ChHdr(const std::string& field, const std::string& value);
 
    /* ------------------------------ header/signal information ------------------------------ */
    /* compute the absolute time in sec relative to 1900.01.00 */
@@ -64,44 +63,74 @@ public:
    /* update/reformat header time if shd.nzmsec is modified and is out of the range [0,1000) */
    void UpdateTime();
    /* search for min&max signal positions and amplitudes */
-   bool MinMax ( float tbegin, float tend, float& tmin, float& min, float& tmax, float& max );
+   void MinMax ( float tbegin, float tend, float& tmin, float& min, float& tmax, float& max );
    /* compute the root-mean-square average in a given window */
-   bool RMSAvg ( float tbegin, float tend, float& rms ) { return RMSAvg( tbegin, tend, 1, rms); }
-   bool RMSAvg ( float tbegin, float tend, int step, float& rms );
+   void RMSAvg ( float tbegin, float tend, float& rms ) { RMSAvg( tbegin, tend, 1, rms); }
+   void RMSAvg ( float tbegin, float tend, int step, float& rms );
 	bool MeanStd ( float tbegin, float tend, float& mean, float& std ) { return MeanStd(tbegin, tend, 1, mean, std); }
 	bool MeanStd ( float tbegin, float tend, int step, float& mean, float& std );
 
    /* ------------------------------ single-sac operations ------------------------------ */
-   bool Mul( const float mul );
-   bool ToAm( SacRec& sac_am );
+   void Mul( const float mul );
+   void ToAm() { ToAm(*this);	}
+   void ToAm( SacRec& sac_am ) {
+		SacRec sac_ph;
+		ToAmPh( sac_am, sac_ph );
+	}
+	void ToAmPh( SacRec& sac_am, SacRec& sac_ph );
+	/* filters */
+	void LowpassFilt( double fh1, double fh2 ) { LowpassFilt(fh1, fh2, *this); }
+	void LowpassFilt( double fh1, double fh2, SacRec& srout ) { Filter(-1., -1., fh1, fh2, srout); }
+	void BandpassFilt( double f1, double f2, double f3, double f4 ) { BandpassFilt(f1, f2, f3, f4, *this); }
+	void BandpassFilt( double f1, double f2, double f3, double f4, SacRec& srout ) { Filter(f1, f2, f3, f4, srout); }
+	void GaussianFilt( double fc, double fhlen ) { GaussianFilt(fc, fhlen, *this); }
+	void GaussianFilt( double fc, double fhlen, SacRec& srout ) { Filter(-1., fc, fhlen, -1., srout); }
+   //else if( f1==-1. && f4==-1. ) pimpl->TaperGaussian( f2, f3, dom, nk, sf );
    /* method that performs 3 different types of filters
     * lowpass when ( (f1==-1. || f2==-1.) && (f3>0. && f4>0.) )
     * bandpass when ( f1>=0. && f2>0. && f3>0. && f4>0. )
     * gaussian when ( f1==-1. && f4==-1. ) where f2 = center freqency and f3 = frequency half length */
-   bool Filter ( double f1, double f2, double f3, double f4 ) { return Filter(f1, f2, f3, f4, *this); }	// in-place
-   bool Filter ( double f1, double f2, double f3, double f4, SacRec& srout );				// out-of-place
+   void Filter ( double f1, double f2, double f3, double f4 ) { Filter(f1, f2, f3, f4, *this); }	// in-place
+   void Filter ( double f1, double f2, double f3, double f4, SacRec& srout );				// out-of-place
    /* remove mean and trend */
    void RTrend();
    /* remove response and apply filter */
-   bool RmRESP( const char *fresp, float perl, float perh, const char *evrexe = nullptr );
+   void RmRESP( const std::string& fresp, float perl, float perh ) {
+		std::string evrexe;
+		RmRESP( fresp, perl, perh, evrexe );
+	}
+   void RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexe );
    /* resample (with anti-aliasing filter) the signal to given sps */
-   bool Resample( float sps );
+   void Resample( float sps );
+	/* smoothing ( running average ) */
+	void Smooth( float timehlen, SacRec& sacout );
 
    /* ------------------------------ inter-sac operations ------------------------------ */
-   bool cut( float tb, float te ) { return cut(tb, te, *this); }
-   bool cut( float tb, float te, SacRec& );
+   void cut( float tb, float te ) { cut(tb, te, *this); }
+   void cut( float tb, float te, SacRec& );
    /* merge a second sacrec to the current */
-   bool Merge( SacRec sacrec2 ) {
-      bool succeed = merge( sacrec2 );
+   void Merge( SacRec sacrec2 ) {
+      merge( sacrec2 );
       arrange();
-		return succeed;
    }
-   bool merge( SacRec sacrec2 );
+   void merge( SacRec sacrec2 );
    int arrange( const char *recname = nullptr );
 
 	/* ------------------------------- cut by event ---------------------------------- */
-	bool ZoomToEvent( const std::string etime, float evlon, float evlat, float tb, float tlen, std::string ename = "" );
-	bool ZoomToEvent( const SAC_HD& eshd, float evlon, float evlat, float tb, float tlen, std::string ename );
+	void ZoomToEvent( const std::string etime, float evlon, float evlat, float tb, float tlen, std::string ename = "" );
+	void ZoomToEvent( const SAC_HD& eshd, float evlon, float evlat, float tb, float tlen, std::string ename );
+
+	/* ------------------------------- temporal normalizations ------------------------------- */
+	void OneBit();
+	void RunAvg( float timehlen, float Eperl, float Eperh );
+
+private:
+   /* impl pointer */
+   struct SRimpl;
+   std::unique_ptr<SRimpl> pimpl;
+	/* reporting stream */
+	std::ostream* report = &(std::cerr);
+
 };
 
 /*
@@ -113,34 +142,12 @@ private:
 };
 */
 
-namespace WarningSR {
-   class Base {
-   public:
-      Base(const std::string message) {
-			//std::cerr<<message<<std::endl;
-      }
-   };
-
-   class MoveExistFile : public Base {
-   public:
-      MoveExistFile(const std::string funcname, const std::string info = "")
-         : Base("Warning("+funcname+"): Moving existing file ("+info+").") {}
-   };
-
-   class Other : public Base {
-   public:
-      Other(const std::string funcname, const std::string info = "")
-         : Base("Warning("+funcname+"): "+info) {}
-   };
-
-};
-
 namespace ErrorSR {
 
    class Base : public std::runtime_error {
    public:
-		Base(const std::string message)
-			: runtime_error(message) {
+		Base( const std::string funcname, const std::string message )
+			: runtime_error(funcname + ": " + message) {
 				//PrintStacktrace();
 			}
 	};
@@ -148,33 +155,38 @@ namespace ErrorSR {
    class BadFile : public Base {
    public:
       BadFile(const std::string funcname, const std::string info = "")
-         : Base("Error("+funcname+"): Cannot access file ("+info+").") {}
+         : Base(funcname, "Cannot access file ("+info+").") {}
    };
 
    class BadParam : public Base {
    public:
       BadParam(const std::string funcname, const std::string info = "")
-         : Base("Error("+funcname+"): Bad parameters ("+info+").") {}
+         : Base(funcname, "Bad parameters ("+info+").") {}
    };
 
-   class SizeMismatch : public Base {
+   class EmptySig : public Base {
    public:
-      SizeMismatch(const std::string funcname, const std::string info = "")
-         : Base("Error("+funcname+"): Incompatible sizes ("+info+").") {}
-   };
-
-   class EmptyData : public Base {
-   public:
-      EmptyData(const std::string funcname, const std::string info = "")
-         : Base("Error("+funcname+"): Empty data input ("+info+").") {}
+      EmptySig(const std::string funcname, const std::string info = "")
+         : Base(funcname, "No sac signal loaded in the memory ("+info+").") {}
    };
 
    class InsufData : public Base {
    public:
       InsufData(const std::string funcname, const std::string info = "")
-         : Base("Error("+funcname+"): Insufficient data points ("+info+").") {}
+         : Base(funcname, "Insufficient data points ("+info+").") {}
    };
 
+   class ExternalError : public Base {
+   public:
+		ExternalError(const std::string funcname, const std::string info = "")
+         : Base(funcname, "External error ("+info+").") {}
+   };
+
+   class MemError : public Base {
+   public:
+		MemError(const std::string funcname, const std::string info = "")
+         : Base(funcname, "Memory error ("+info+").") {}
+   };
 };
 
 #endif

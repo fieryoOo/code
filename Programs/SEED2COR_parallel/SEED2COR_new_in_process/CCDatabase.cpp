@@ -12,8 +12,9 @@
 
 /*-------------------------------------- CCDatabase ----------------------------------------*/
 /* Constructor: read in parameters -> fill in seed file list -> fill in station list */
-CCDatabase::CCDatabase( const char *fname ) {
+CCDatabase::CCDatabase( const std::string& fname ) {
    CCParams.Load( fname );
+	CCParams.CheckAll();
    seedlst.Load( CCParams.seedfname );
    stalst.Load( CCParams.stafname );
 	chlst.Load( CCParams.chlst_info );
@@ -28,6 +29,11 @@ void CCDatabase::FillDInfo() {
 	dinfo.perh = CCParams.perh;
 	dinfo.t1 = CCParams.t1;
 	dinfo.tlen = CCParams.tlen;
+	dinfo.tnorm_flag = CCParams.tnorm_flag;
+	dinfo.timehlen = CCParams.timehlen;
+	dinfo.Eperl = CCParams.Eperl;
+	dinfo.Eperh = CCParams.Eperh;
+	dinfo.frechlen = CCParams.frechlen;
 	dinfo_rdy = false;
 }
 
@@ -104,258 +110,386 @@ bool FindInPath( const std::string fname, std::string& absname ) {
 	return false;
 }
 /* read in parameters for the CC Database from the inputfile */
-void CCPARAM::Load( const char* fname ) {
-	/* load param file input a vector */
-	std::ifstream fparam(fname);
-	if( ! fparam ) {
-		std::cerr<<"Error(GetParam): Cannot open parameter file "<<fname<<std::endl;
-      exit(0);
+void CCPARAM::Load( const std::string fname ) {
+   std::ifstream fin(fname);
+   if( ! fin ) throw ErrorCD::BadFile(FuncName, fname);
+   int nparam = 0;
+   for( std::string stmp; std::getline(fin, stmp); ) {
+      if( Set(stmp) == Succeed ) nparam++;
+      else nparam++;
    }
-   std::vector<std::string> filevec;
-   for(std::string line; std::getline(fparam, line); ) filevec.push_back(line);
-   fparam.close();
-   if( filevec.size() < 29 ) { std::cerr<<"   Error(CCPARAM::Load): No enough param lines in file "<<fname<<std::endl; exit(0); }
+   fin.close();
 
-   /* load/check one parameter at a time */
-   int ERR=0, itmp;
-   float ftmp;
-   std::vector<std::string>::iterator fveciter = filevec.begin();
+   //(*report)<<"### "<<nparam<<" succed loads from param file "<<fname<<". ###"<<std::endl;
+   std::cout<<"### "<<nparam<<" succed loads from param file "<<fname<<". ###"<<std::endl;
+}
+CCPARAM::SetRet CCPARAM::Set( const std::string& input ) {
+	std::stringstream sin(input);
+	std::string field;
+	if( !(sin >> field) ) return EmptyInfo;
+	if( field.at(0) == '#' ) {
+		return Comment;
+	} else if( field == "rdsexe" ) {
+		if( !(sin >> rdsexe) ) return BadValue;
+	} else if( field == "evrexe" ) {
+		if( !(sin >> evrexe) ) return BadValue;
+	} else if( field == "stafname" ) {
+		if( !(sin >> stafname) ) return BadValue;
+	} else if( field == "seedfname" ) {
+		if( !(sin >> seedfname) ) return BadValue;
+	} else if( field == "chlst" || field == "chlst_info" ) {
+		if( !std::getline(sin, chlst_info, '#') ) return BadValue;
+		chlst_info = chlst_info.substr( chlst_info.find_first_not_of(" \t") );
+	} else if( field == "sps" ) {
+		float ftmp;
+		if( !(sin >> ftmp) ) return BadValue;
+		if( ftmp != static_cast<int>(ftmp) ) return InvalidValue;
+		sps = ftmp;
+	} else if( field == "gapfrac" ) {
+		if( !(sin >> gapfrac) ) return BadValue;
+	} else if( field == "t1" ) {
+		if( !(sin >> t1) ) return BadValue;
+	} else if( field == "tlen" ) {
+		if( !(sin >> tlen) ) return BadValue;
+	} else if( field == "perl" ) {
+		if( !(sin >> perl) ) return BadValue;
+	} else if( field == "perh" ) {
+		if( !(sin >> perh) ) return BadValue;
+	} else if( field == "tnorm_flag" ) {
+		if( !(sin >> tnorm_flag) ) return BadValue;
+	} else if( field == "Eperl" ) {
+		if( !(sin >> Eperl) ) return BadValue;
+	} else if( field == "Eperh" ) {
+		if( !(sin >> Eperh) ) return BadValue;
+	} else if( field == "timehlen" ) {
+		if( !(sin >> timehlen) ) return BadValue;
+	} else if( field == "frechlen") {
+		if( !(sin >> frechlen) ) return BadValue;
+	} else if( field == "fwname" ) {
+		if( !(sin >> fwname) ) return BadValue;
+	} else if( field == "ftlen" ) {
+		if( !(sin >> ftlen) ) return BadValue;
+	} else if( field == "fprcs" ) {
+		if( !(sin >> fprcs) ) return BadValue;
+	} else if( field == "memomax") {
+		if( !(sin >> memomax) ) return BadValue;
+	} else if( field == "lagtime") {
+		if( !(sin >> lagtime) ) return BadValue;
+	} else if( field == "mintlen" ) {
+		if( !(sin >> mintlen) ) return BadValue;
+	} else if( field == "fdelosac" ) {
+		if( !(sin >> fdelosac) ) return BadValue;
+	} else if( field == "fdelamph" ) {
+		if( !(sin >> fdelamph) ) return BadValue;
+	} else if( field == "fskipesac" ) {
+		if( !(sin >> fskipesac) ) return BadValue;
+	} else if( field == "fskipresp" ) {
+      if( !(sin >> fskipresp) ) return BadValue;
+   } else if( field == "fskipamph" ) {
+      if( !(sin >> fskipamph) ) return BadValue;
+   } else if( field == "fskipcrco" ) {
+      if( !(sin >> fskipcrco) ) return BadValue;
+   } else if( field == "CorOutflag" ) {
+      if( !(sin >> CorOutflag) ) return BadValue;
+   }
+
+	return EmptyInfo;
+}
+bool CCPARAM::CheckAll() {
+   /* check one parameter at a time (29 total) */
+   bool ERR = false;
    std::cout<<"---------------------------Checking input parameters---------------------------"<<std::endl;
-   //rdsexe
-   rdsexe = (*fveciter).substr( 0, (*fveciter).find_first_of(" \t") ); fveciter++;
+   //1. rdsexe
    std::cout<<"rdseed excutable:\t"<<rdsexe<<std::endl;
-   if( ! rdsexe.find("rdseed") ) std::cout<<"   Warning: Are you sure this is an rdseed excutable?"<<std::endl;
-   if( access(rdsexe.c_str(), R_OK)!=0 ) {
-		std::cerr<<"   Warning: cannot access rdseed through "<<rdsexe<<std::endl;
+   if( rdsexe.empty() || access(rdsexe.c_str(), R_OK)!=0 ) {
+		std::cerr<<"   Warning: invalid path "<<rdsexe<<std::endl;
 		if( FindInPath( "rdseed", rdsexe) )
 			std::cerr<<"            corrected to "<<rdsexe<<std::endl;
 		else
-			ERR = 1;
-   }
-   //evrexe
-   evrexe = (*fveciter).substr( 0, (*fveciter).find_first_of(" \t") ); fveciter++;
+			ERR = true;
+   } else if( ! rdsexe.find("rdseed") ) {
+		std::cout<<"   Warning: Are you sure this is an rdseed excutable?"<<std::endl;
+	}
+   //2. evrexe
    std::cout<<"evalresp excutable:\t"<<evrexe<<std::endl;
-   if( ! evrexe.find("evalresp") ) std::cout<<"   Warning: Are you sure this is an evalresp excutable?"<<std::endl;
-   if( access(evrexe.c_str(), R_OK)!=0 ) {
-		std::cerr<<"   Warning: cannot access evalresp through "<<evrexe<<std::endl;
+   if( evrexe.empty() || access(evrexe.c_str(), R_OK)!=0 ) {
+		std::cerr<<"   Warning: invalid path "<<evrexe<<std::endl;
 		if( FindInPath( "evalresp", evrexe) )
          std::cerr<<"            corrected to "<<evrexe<<std::endl;
       else
-			ERR = 1;
-   }
-   //stafname
-   stafname = (*fveciter).substr( 0, (*fveciter).find_first_of(" \t") ); fveciter++;
+			ERR = true;
+   } else if( ! evrexe.find("evalresp") ) {
+		std::cout<<"   Warning: Are you sure this is an evalresp excutable?"<<std::endl;
+	}
+   //3. stafname
    std::cout<<"station list:\t\t"<<stafname<<std::endl;
-   std::ifstream filetmp(stafname.c_str());
-   if( ! filetmp ) {
-      std::cerr<<"   Error: cannot access file "<<stafname<<std::endl;
-      ERR = 1;
-   }
-   else {
-      std::string buff;
-      std::getline(filetmp, buff);
-      char stmp[buff.length()];
-      if( sscanf(buff.c_str(), "%s %f %f", stmp, &ftmp, &ftmp) != 3 ) {
-         std::cerr<<"   Error: incorrect format in file "<<stafname<<"! Shoud be (sta lon lat)"<<std::endl;
-         ERR = 1;
-      }
-      filetmp.close();
-   }
-   //seedfname
-   seedfname = (*fveciter).substr( 0, (*fveciter).find_first_of(" \t") ); fveciter++;
-   std::cout<<"seed list:\t\t"<<seedfname<<std::endl;
-   filetmp.open(seedfname.c_str(), std::ifstream::in);
-   if( ! filetmp ) {
-      std::cerr<<"   Error: cannot access file "<<seedfname<<std::endl;
-      ERR = 1;
-   }
-   else {
-      std::string buff;
-      std::getline(filetmp, buff);
-      char stmp[buff.length()];
-      if( sscanf(buff.c_str(), "%s %d %d %d", stmp, &itmp, &itmp, &itmp) != 4 ) {
-         std::cerr<<"   Error: incorrect format in file "<<seedfname<<"! (path/seedfile yyyy mm dd) is expected"<<std::endl;
-         ERR = 1;
-      }
-      filetmp.close();
-   }
-   //chlst
-	chlst_info = *(fveciter++);
-   std::cout<<"channel list info:\t"<<chlst_info.substr(0, chlst_info.find("#"))<<std::endl;
-   //sps
-   sscanf((*(fveciter++)).c_str(), "%f", &ftmp);
-   sps = static_cast<int>(ftmp);
-   std::cout<<"target sampling rate:\t"<<ftmp<<std::endl;
-   if( sps!=ftmp || sps <= 0 ) {
-      std::cerr<<"   Error: a positive integer is expected!"<<std::endl;
-      ERR = 1;
-   }
-   else if( !isTermi(sps) ) {
-      std::cerr<<"   Error: 1/"<<sps<<" isn't a terminating decimal, will cause rounding error!"<<std::endl;
-      ERR = 1;
-   }
-   //gapfrac
-   sscanf((*(fveciter++)).c_str(), "%f", &gapfrac);
-   std::cout<<"max gap fraction:\t"<<gapfrac*100<<"%"<<std::endl;
-   if( gapfrac<0 || gapfrac>1 ) {
-      std::cerr<<"   Error: a number between 0. - 1. is expected!"<<std::endl;
-      ERR = 1;
-   }
-   //t1
-   sscanf((*(fveciter++)).c_str(), "%f", &t1);
-   std::cout<<"cutting begining:\t"<<t1<<"sec"<<std::endl;
-   if( fabs(t1) > 86400 ) std::cout<<"   Warning: "<<t1<<"sec exceeds one day."<<std::endl;
-   //tlen
-   sscanf((*(fveciter++)).c_str(), "%f", &tlen);
-   std::cout<<"time-rec length:\t"<<tlen<<"sec"<<std::endl;
-   ftmp = t1+tlen;
-   if( ftmp>86400 || ftmp<0 ) std::cout<<"   Warning: ending time '"<<ftmp<<"sec' out of range."<<std::endl;
-   //perl perh
-   sscanf((*(fveciter++)).c_str(), "%f", &perl);
-   sscanf((*(fveciter++)).c_str(), "%f", &perh);
-   std::cout<<"signal per band:\t"<<perl<<" - "<<perh<<"sec"<<std::endl;
-   if( perl<0 || perh<0 ) {
-      std::cerr<<"   Error: period band can not go below 0."<<std::endl;
-      ERR = 1;
-   }
-   if(perl<2./sps) {
-      std::cerr<<"   Error: "<<perl<<"sec is out of the lower limit at sps "<<sps<<std::endl;
-      ERR = 1;
-   }
-   if(perl<5./sps) std::cout<<"   Warning: signal at "<<perl<<"sec might be lost at a sampling rate of "<<sps<<std::endl;
-   //tnorm_flag
-   sscanf((*(fveciter++)).c_str(), "%d", &tnorm_flag);
-   std::cout<<"t-norm method:\t\t";
-   if(tnorm_flag==0) std::cout<<"none"<<std::endl;
-   else if(tnorm_flag==1) std::cout<<"One-bit"<<std::endl;
-   else if(tnorm_flag==2) std::cout<<"Running average"<<std::endl;
-   else if(tnorm_flag==3) std::cout<<"Earthquake cutting"<<std::endl;
-   else {
-      std::cerr<<std::endl<<"   Error: Unknow method. integer between 0 - 3 is expected"<<std::endl;
-      ERR = 1;
-   }
-   //Eperl Eperh
-   sscanf((*(fveciter++)).c_str(), "%f", &Eperl);
-   sscanf((*(fveciter++)).c_str(), "%f", &Eperh);
-   if(tnorm_flag!=1) {
-      if( Eperl == -1. ) std::cout<<"Eqk filter:\t\toff"<<std::endl;
-      else {
-         std::cout<<"Eqk filter:\t\t"<<Eperl<<" - "<<Eperh<<"sec"<<std::endl;
-         if( Eperl<0 || Eperh<0 ) {
-            std::cerr<<"   Error: period band can not go below 0."<<std::endl;
-            ERR = 1;
-         }
-      }
-   }
-   //timehlen
-   sscanf((*(fveciter++)).c_str(), "%f", &timehlen);
-   if(tnorm_flag!=1) {
-      std::cout<<"t-len for run-avg:\t"<<timehlen<<std::endl;
-      if(timehlen<0) {
-         std::cerr<<"   Error: positive number is expected"<<std::endl;
-         ERR = 1;
-      }
-   }
-   //frechlen
-   sscanf((*(fveciter++)).c_str(), "%f", &frechlen);
-   std::cout<<"t-len for whitening:\t"<<frechlen<<"  ";
-   if(frechlen==-1) std::cout<<"input smoothing file will be used";
-   else if(frechlen<0) {
-      std::cerr<<std::endl<<"   Error: non-negative number is expected";
-      ERR = 1;
-   }
-   std::cout<<std::endl;
-   //fwname
-   fwname = (*fveciter).substr( 0, (*fveciter).find_first_of(" \t") ); fveciter++;
-   if(frechlen==-1) {
-      std::cout<<"spec reshaping file:\t"<<fwname<<std::endl;
-      if( access(fwname.c_str(), R_OK)!=0 ) {
-         std::cerr<<"   Error: cannot access file "<<fwname<<std::endl;
-         ERR = 1;
-      }  
-   }
-   //ftlen
-   sscanf((*(fveciter++)).c_str(), "%d", &ftlen);
-   if(ftlen<=0) std::cout<<"cor-time-len correction\toff"<<std::endl;
-   else { std::cout<<"cor-time-len correction\ton"<<std::endl; /*if(tnorm_flag==3) ftlen = 2;*/ }
-   //fprcs
-   sscanf((*(fveciter++)).c_str(), "%d", &fprcs);
-   if(fprcs<=0) std::cout<<"prcsr-signal checking\toff"<<std::endl;
-   else std::cout<<"prcsr-signal checking\ton"<<std::endl;
-   //memomax
-   sscanf((*(fveciter++)).c_str(), "%f", &memomax);
-   std::cout<<"memory fraction:\t"<<memomax*100<<"%"<<std::endl;
-   if( memomax<0 || memomax>1 ) {
-      std::cerr<<"   Error: a number between 0. - 1. is expected!"<<std::endl;
-      ERR = 1;
-   }
-   //lagtime
-   sscanf((*(fveciter++)).c_str(), "%d", &lagtime);
-   std::cout<<"cor lag time:\t\t"<<lagtime<<"sec"<<std::endl;
-   if(lagtime<0) {
-      std::cerr<<"   Error: negative lagtime!"<<std::endl;
-      ERR = 1;
-   }
-   else if(lagtime>524288) std::cout<<"   Warning: lag time exceeds the maximum"<<std::endl;
-   //mintlen
-   sscanf((*(fveciter++)).c_str(), "%d", &mintlen);
+	if( stafname.empty() ) {
+		std::cerr<<"   Error: empty file name "<<std::endl;
+		ERR = true;
+	} else {
+		std::ifstream filetmp(stafname);
+		if( ! filetmp ) {
+			std::cerr<<"   Error: cannot access file "<<stafname<<std::endl;
+			ERR = true;
+		} else {
+			std::string buff;
+			std::getline(filetmp, buff);
+			char stmp[buff.length()];
+			float ftmp;
+			if( sscanf(buff.c_str(), "%s %f %f", stmp, &ftmp, &ftmp) != 3 ) {
+				std::cerr<<"   Error: incorrect format in file "<<stafname<<"! Shoud be (sta lon lat)"<<std::endl;
+				ERR = true;
+			}
+			filetmp.close();
+		}
+	}
+	//4. seedfname
+	std::cout<<"seed list:\t\t"<<seedfname<<std::endl;
+	if( seedfname.empty() ) {
+		std::cerr<<"   Error: empty file name "<<std::endl;
+		ERR = true;
+	} else {
+		std::ifstream filetmp(seedfname);
+		if( ! filetmp ) {
+			std::cerr<<"   Error: cannot access file "<<seedfname<<std::endl;
+			ERR = true;
+		}
+		else {
+			std::string buff;
+			std::getline(filetmp, buff);
+			char stmp[buff.length()];
+			int itmp;
+			if( sscanf(buff.c_str(), "%s %d %d %d", stmp, &itmp, &itmp, &itmp) != 4 ) {
+				std::cerr<<"   Error: incorrect format in file "<<seedfname<<"! (path/seedfile yyyy mm dd) is expected"<<std::endl;
+				ERR = true;
+			}
+			filetmp.close();
+		}
+	}
+	//5. chlst_info
+	std::cout<<"channel list info:\t"<<chlst_info<<std::endl;
+	if( chlst_info.empty() ) {
+		std::cerr<<"   Error: empty string "<<std::endl;
+		ERR = true;
+	}
+	//6. sps
+	std::cout<<"target sampling rate:\t"<<sps<<std::endl;
+	if( sps == NaN ) {
+		std::cerr<<"   Error: empty value"<<std::endl;
+		ERR = true;
+	} else if( sps <= 0 ) {
+		std::cerr<<"   Error: a positive integer is expected!"<<std::endl;
+		ERR = true;
+	}
+	else if( !isTermi(sps) ) {
+		std::cerr<<"   Error: 1/"<<sps<<" isn't a terminating decimal, will cause rounding error!"<<std::endl;
+		ERR = true;
+	}
+	//7. gapfrac
+	std::cout<<"max gap fraction:\t"<<gapfrac*100<<"%"<<std::endl;
+	if( gapfrac == NaN ) {
+		std::cerr<<"   Error: empty value"<<std::endl;
+		ERR = true;
+	} else if( gapfrac<0 || gapfrac>1 ) {
+		std::cerr<<"   Error: a number between 0. - 1. is expected!"<<std::endl;
+		ERR = true;
+	}
+	//8. t1
+	std::cout<<"cutting begining:\t"<<t1<<"sec"<<std::endl;
+	if( t1 == NaN ) {
+		std::cerr<<"   Error: empty value"<<std::endl;
+		ERR = true;
+	} else if( fabs(t1) > 86400 ) {
+		std::cout<<"   Warning: "<<t1<<"sec exceeds one day."<<std::endl;
+	}
+	//9. tlen
+	std::cout<<"time-rec length:\t"<<tlen<<"sec"<<std::endl;
+	if( tlen == NaN ) {
+		std::cerr<<"   Error: empty value"<<std::endl;
+		ERR = true;
+	} else {
+		float ftmp = t1+tlen;
+		if( ftmp>86400 || ftmp<0 ) 
+			std::cout<<"   Warning: ending time '"<<ftmp<<"sec' out of range."<<std::endl;
+	}
+	//10,11. perl perh
+	std::cout<<"signal per band:\t"<<perl<<" - "<<perh<<"sec"<<std::endl;
+	if( perl==NaN || perh==NaN ) {
+		std::cerr<<"   Error: empty value"<<std::endl;
+		ERR = true;
+	} else {
+		if( perl<0 || perh<0 ) {
+			std::cerr<<"   Error: period band can not go below 0."<<std::endl;
+			ERR = true;
+		}
+		if(perl<2./sps) {
+			std::cerr<<"   Error: "<<perl<<"sec is out of the lower limit at sps "<<sps<<std::endl;
+			ERR = true;
+		}
+		if(perl<5./sps) std::cout<<"   Warning: signal at "<<perl<<"sec might be lost at a sampling rate of "<<sps<<std::endl;
+	}
+	//12. tnorm_flag
+	std::cout<<"t-norm method:\t\t";
+	if( tnorm_flag == NaN ) {
+		std::cerr<<"   Error: empty value"<<std::endl;
+		ERR = true;
+	} 
+	else if(tnorm_flag==0) std::cout<<"none"<<std::endl;
+	else if(tnorm_flag==1) std::cout<<"One-bit"<<std::endl;
+	else if(tnorm_flag==2) std::cout<<"Running average"<<std::endl;
+	else if(tnorm_flag==3) std::cout<<"Earthquake cutting"<<std::endl;
+	else {
+		std::cerr<<std::endl<<"   Error: Unknow method. integer between 0 - 3 is expected"<<std::endl;
+		ERR = true;
+	}
+	//13,14. Eperl Eperh
+	if(tnorm_flag==2 || tnorm_flag==3) {
+		if( Eperl==NaN || Eperh==NaN ) {
+			std::cerr<<"   Error: empty value"<<std::endl;
+			ERR = true;
+		} else if( Eperl == -1. ) {
+			std::cout<<"Eqk filter:\t\toff"<<std::endl;
+		} else {
+			std::cout<<"Eqk filter:\t\t"<<Eperl<<" - "<<Eperh<<"sec"<<std::endl;
+			if( Eperl<0 || Eperh<0 ) {
+				std::cerr<<"   Error: period band can not go below 0."<<std::endl;
+				ERR = true;
+			}
+		}
+	}
+	//15. timehlen
+	if(tnorm_flag==2 || tnorm_flag==3) {
+		std::cout<<"t-len for run-avg:\t"<<timehlen<<std::endl;
+		if( timehlen == NaN ) {
+			std::cerr<<"   Error: empty value"<<std::endl;
+			ERR = true;
+		} else if(timehlen<0) {
+			std::cerr<<"   Error: positive number is expected"<<std::endl;
+			ERR = true;
+		}
+	}
+	//16. frechlen
+	std::cout<<"t-len for whitening:\t"<<frechlen<<"  ";
+	if( frechlen == NaN ) {
+		std::cerr<<"   Error: empty value"<<std::endl;
+		ERR = true;
+	} else if(frechlen==-1) {
+		std::cout<<"input smoothing file will be used";
+	} else if(frechlen<0) {
+		std::cerr<<std::endl<<"   Error: non-negative number is expected";
+		ERR = true;
+	}
+	std::cout<<std::endl;
+	//17. fwname
+	if(frechlen==-1) {
+		std::cout<<"spec reshaping file:\t"<<fwname<<std::endl;
+		if( fwname.empty() ) {
+			std::cerr<<"   Error: empty file name"<<std::endl;
+			ERR = true;
+		} else if( access(fwname.c_str(), R_OK)!=0 ) {
+			std::cerr<<"   Error: cannot access file "<<fwname<<std::endl;
+			ERR = true;
+		}  
+	}
+	//18. ftlen
+	if( ftlen == NaN ) {
+		std::cerr<<"   Error: empty value"<<std::endl;
+		ERR = true;
+	} else if(ftlen<=0) {
+		std::cout<<"cor-time-len correction\toff"<<std::endl;
+	} else {
+		std::cout<<"cor-time-len correction\ton"<<std::endl; /*if(tnorm_flag==3) ftlen = 2;*/ 
+	}
+	//19. fprcs
+	if( fprcs == NaN ) {
+		std::cerr<<"   Error: empty value"<<std::endl;
+		ERR = true;
+	} else if(fprcs<=0) {
+		std::cout<<"prcsr-signal checking\toff"<<std::endl;
+	} else {
+		std::cout<<"prcsr-signal checking\ton"<<std::endl;
+	}
+	//20. memomax
+	std::cout<<"memory fraction:\t"<<memomax*100<<"%"<<std::endl;
+	if( memomax == NaN ) {
+		std::cerr<<"   Error: empty value"<<std::endl;
+		ERR = true;
+	} else if( memomax<0 || memomax>1 ) {
+		std::cerr<<"   Error: a number between 0. - 1. is expected!"<<std::endl;
+		ERR = true;
+	}
+	//21. lagtime
+	std::cout<<"cor lag time:\t\t"<<lagtime<<"sec"<<std::endl;
+	if( lagtime == NaN ) {
+		std::cerr<<"   Error: empty value"<<std::endl;
+		ERR = true;
+	} else if(lagtime<0) {
+		std::cerr<<"   Error: negative lagtime!"<<std::endl;
+		ERR = true;
+	} else if(lagtime>524288) {
+		std::cout<<"   Warning: lag time exceeds the maximum"<<std::endl;
+	}
+	//22. mintlen
    std::cout<<"min time len:\t\t"<<mintlen<<"sec"<<std::endl;
-   if( mintlen>86400 ) std::cout<<"   Warning: allowed minimum time length larger than a day."<<std::endl;
-   //fdelosac
-   sscanf((*(fveciter++)).c_str(), "%d", &fdelosac);
+	if( mintlen == NaN ) {
+		std::cerr<<"   Error: empty value"<<std::endl;
+		ERR = true;
+	} else if( mintlen>86400 ) {
+		std::cout<<"   Warning: allowed minimum time length larger than a day."<<std::endl;
+	}
+   //23. fdelosac
    std::cout<<"Delete orig sacs?\t";
-   if(fdelosac==1) std::cout<<"Yes"<<std::endl;
-   else std::cout<<"No"<<std::endl;
-   //fdelamph
-   sscanf((*(fveciter++)).c_str(), "%d", &fdelamph);
+	if( fdelosac == 1 ) {
+		std::cout<<"Yes"<<std::endl;
+	} else {
+		std::cout<<"No"<<std::endl;
+	}
+   //24. fdelamph
    std::cout<<"Delete am&ph files?\t";
-   if(fdelamph==1) std::cout<<"Yes"<<std::endl;
-   else std::cout<<"No"<<std::endl;
-   //fskipesac
-   sscanf((*(fveciter++)).c_str(), "%d", &fskipesac);
+   if( fdelamph == 1 ) {
+		std::cout<<"Yes"<<std::endl;
+	} else {
+		std::cout<<"No"<<std::endl;
+	}
+   //25. fskipesac
    std::cout<<"ExtractSac()\t\t";
    if(fskipesac==2) std::cout<<"skip"<<std::endl;
    else if(fskipesac==1) std::cout<<"skip if target file exists"<<std::endl;
    else std::cout<<"overwrite if target file exists"<<std::endl;
-   //fskipresp
-   sscanf((*(fveciter++)).c_str(), "%d", &fskipresp);
+   //26. fskipresp
    std::cout<<"RmRESP()\t\t";
    if(fskipresp==2) std::cout<<"skip"<<std::endl;
    else if(fskipresp==1) std::cout<<"skip if target file exists"<<std::endl;
    else std::cout<<"overwrite if target file exists"<<std::endl;
-   //fskipamph
-   sscanf((*(fveciter++)).c_str(), "%d", &fskipamph);
+   //27. fskipamph
    std::cout<<"TempSpecNorm()\t\t";
    if(fskipamph==2) std::cout<<"skip"<<std::endl;
    else if(fskipamph==1) std::cout<<"skip if target file exists"<<std::endl;
    else std::cout<<"overwrite if target file exists"<<std::endl;
-   //fskipcrco
-   sscanf((*(fveciter++)).c_str(), "%d", &fskipcrco);
+   //28. fskipcrco
    std::cout<<"CrossCorr()\t\t";
    if(fskipcrco==2) std::cout<<"skip"<<std::endl;
    else if(fskipcrco==1) std::cout<<"skip if target file exists"<<std::endl;
    else std::cout<<"overwrite if target file exists"<<std::endl;
-   //CorOutflag
-   sscanf((*(fveciter++)).c_str(), "%d", &CorOutflag);
+   //29. CorOutflag
    std::cout<<"CC Output: \t\t";
-   switch( CorOutflag ) {
-      case 0:
-	 std::cout<<"monthly"<<std::endl;
-	 break;
-      case 1:
-	 std::cout<<"daily"<<std::endl;
-	 break;
-      case 2:
-	 std::cout<<"monthly + daily"<<std::endl;
-	 break;
-      default:
-	 std::cerr<<std::endl<<"   Error: unknow outflag("<<CorOutflag<<")!"<<std::endl;
-	 ERR = 1;
+	switch( CorOutflag ) {
+		case 0:
+			std::cout<<"monthly"<<std::endl;
+			break;
+		case 1:
+			std::cout<<"daily"<<std::endl;
+			break;
+		case 2:
+			std::cout<<"monthly + daily"<<std::endl;
+			break;
+		default:
+			std::cerr<<std::endl<<"   Error: unknow outflag("<<CorOutflag<<")!"<<std::endl;
+			ERR = true;
    }
    //check for EOF
-   if( fveciter != filevec.end() ) std::cout<<"   Warning: End of file not reached!"<<std::endl;
    std::cout<<"-------------------------------Checking completed-------------------------------"<<std::endl;
-   if(ERR==1) exit(0);
+   if(ERR) exit(0);
    /* prompt to continue */
    char cin;
    std::string line;

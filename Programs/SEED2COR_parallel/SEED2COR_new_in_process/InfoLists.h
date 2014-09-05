@@ -38,6 +38,9 @@ struct DailyInfoData {
 	std::string osac_outname, fsac_outname;
 	std::string rec_outname, resp_outname;
 	float sps, perl, perh, t1, tlen;
+	int tnorm_flag;
+	float Eperl, Eperh, timehlen;
+	float frechlen;
 
 };
 
@@ -94,9 +97,11 @@ template< typename T >
 class ListBase {
 public:
 	
-	ListBase() { icurrent = list.end(); }
+	ListBase( std::ostream& reportin = std::cerr )
+		: report( &reportin ), icurrent( list.end() ) {}
    /* call Load if input_info is provided */
-	ListBase( const std::string& input_info ) { Load(input_info); }
+	ListBase( const std::string& input_info, std::ostream& reportin = std::cerr ) 
+		: report( &reportin ) { Load(input_info); }
    /* load records either from an input file or directly from the input_info string */
    virtual void Load( const std::string& ) = 0;
    /* check if icurrent is meaningful */
@@ -116,6 +121,7 @@ public:
 protected:
 	std::vector<T> list;
 	typename std::vector<T>::iterator icurrent;
+	std::ostream* report = &(std::cerr);
 };
 
 

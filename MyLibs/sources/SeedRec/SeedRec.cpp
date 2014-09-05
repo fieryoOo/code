@@ -31,7 +31,8 @@ struct SeedRec::SRimpl {
 
 public:
 
-	//SRimpl() { oid = num_obj++; }
+	SRimpl( const std::string& fseedin, const std::string& rdsexein )
+	: fseed(fseedin), rdsexe(rdsexein) {}
 
 	bool FindInPath( const std::string fname, std::string& absname ) {
 		char* pPath = getenv("PATH");
@@ -137,31 +138,34 @@ public:
 
 
 /*---------------------------------------------------- con/destructors & operations ----------------------------------------------------*/
-SeedRec::SeedRec( const char *fname, const char* rdsexein )
-   : pimpl(new SRimpl()) {
-	pimpl->fseed = fname;
+SeedRec::SeedRec( const std::string& fname, std::ostream& reportin )
+	: pimpl(new SRimpl(fname, "")), report(&reportin) {
+	pimpl->FindInPath("rdseed", pimpl->rdsexe);
+}
+SeedRec::SeedRec( const std::string fname, const std::string rdsexein, std::ostream& reportin )
+   : pimpl(new SRimpl(fname, rdsexein)), report(&reportin) {
 
-	if( rdsexein == nullptr ) {
+	if( pimpl->rdsexe.empty() ) {
 		pimpl->FindInPath("rdseed", pimpl->rdsexe);
-	} else {
-		pimpl->rdsexe = rdsexein;
 	}
 
 }
 
-SeedRec::SeedRec( const SeedRec& SNin )
-   : pimpl(new SRimpl(*SNin.pimpl)) {}
+SeedRec::SeedRec( const SeedRec& SRin )
+   : pimpl(new SRimpl(*SRin.pimpl)), report(SRin.report) {}
 
 SeedRec::SeedRec( SeedRec&& SRin ) 
-   : pimpl( std::move(SRin.pimpl) ) {}
+   : pimpl( std::move(SRin.pimpl) ), report(SRin.report) {}
 
-SeedRec& SeedRec::operator= ( const SeedRec& SNin ) {
-   pimpl.reset( new SRimpl(*SNin.pimpl) );
+SeedRec& SeedRec::operator= ( const SeedRec& SRin ) {
+   pimpl.reset( new SRimpl(*SRin.pimpl) );
+	report = SRin.report;
 	return *this;
 }
 
 SeedRec& SeedRec::operator= ( SeedRec&& SRin ) {
    pimpl = std::move(SRin.pimpl);
+	report = SRin.report;
    return *this;
 }
 
@@ -207,7 +211,7 @@ bool SeedRec::ExtractSac( const std::string staname, const std::string chname, c
    fRemove(filelst.at(0).c_str());
    bool merged = false;
    for(int i=1; i<filelst.size(); i++) {
-      SacRec sacnew(filelst.at(i).c_str());
+      SacRec sacnew(filelst.at(i).c_str(), *report);
       sacnew.Load();
       sacnew.Resample(sps);
       sacout.merge(sacnew);

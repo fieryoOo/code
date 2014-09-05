@@ -96,7 +96,7 @@ public:
       float perc;
       return (PathAverage_Reci(Prec, lamda, perc)).Data();
    }
-   DataPoint<float> PathAverage_Reci(Point<float> Prec, float lamda, float& perc);
+   DataPoint<float> PathAverage_Reci(Point<float> Prec, float lamda, float& perc, const std::string outname = "");
   
 private:
    struct Mimpl;

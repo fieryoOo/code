@@ -13,7 +13,9 @@ class SeedRec {
 public:
 
    /* constructor: read in parameters through the input param file */
-   SeedRec( const char* seedname, const char* rdsexe = nullptr );
+   SeedRec( const std::string& seedname, std::ostream& reportin );
+   SeedRec( const std::string seedname = "", const std::string rdsexe = "",
+				std::ostream& reportin = std::cerr );
    /* copy constructor */
    SeedRec( const SeedRec& SRin );
    /* move constructor */
@@ -38,7 +40,7 @@ public:
 private:
    struct SRimpl;
    std::unique_ptr<SRimpl> pimpl;
-
+	std::ostream* report = &(std::cerr);
 };
 
 
