@@ -115,7 +115,9 @@ struct Map::Mimpl {
       if( ilatmid > dataM.NumCols() ) ilatmid = dataM.NumCols();
       else if( ilatmid < 0 ) ilatmid = 0;
 
-      float dis_lon = (lon1-lon2) * dis_lon1D[ilatmid];
+      float dis_lon = fabs(lon1-lon2);
+		if( dis_lon > 180. ) dis_lon = 360. - dis_lon;
+		dis_lon *= dis_lon1D[ilatmid];
       float dis_lat = (lat1-lat2) * dis_lat1D;
       return sqrt(dis_lon*dis_lon + dis_lat*dis_lat);
    }
@@ -290,7 +292,7 @@ DataPoint<float> Map::PathAverage(Point<float> rec, float lamda, float& perc) {
 
 
 /* ------------ compute average along the path src-rec weighted by the reciprocal of the map value ------------ */
-DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& perc) {
+DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& perc, const std::string outname) {
    // references
    Array2D< std::vector< DataPoint<float> > >& dataM = pimplM->dataM;
    float lonmin = pimplM->lonmin, latmin = pimplM->latmin;
@@ -325,6 +327,8 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& per
    //float Nhaf = 12.;
    float alpha = -1.125 / (dab*dab); //- 0.5 / (dab*2.*0.33 * dab*2.*0.33);
    float dismax = 0.;
+std::ofstream fout;
+if( !outname.empty() ) fout.open(outname);
    for(int irow=0; irow<dataM.NumRows(); irow++) {
 		for(int icol=0; icol<dataM.NumCols(); icol++) {
 			// distances from (irow, icol) to src/rec
@@ -345,8 +349,10 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& per
 				if( dis_ellip > dab2 ) continue; // 2.*dab == hdis * 3.
 				if( dismax < dpcur.Dis() ) dismax = dpcur.Dis();
 				float weight = exp( alpha * dis_ellip * dis_ellip );
+				if( weight < 0.01 ) continue;
 				//std::cerr<<(Point<float>)dpcur<<" "<<weight<<"   "<<src<<"  "<<rec<<std::endl;
 				weit += weight;
+fout<<static_cast< Point<float> >(dpcur)<<" "<<dpcur.Data()<<" "<<weight<<std::endl;
 				datasum += ( weight / dpcur.Data() );
 			}
 		}

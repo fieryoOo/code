@@ -29,6 +29,11 @@ void CCDatabase::FillDInfo() {
 	dinfo.perh = CCParams.perh;
 	dinfo.t1 = CCParams.t1;
 	dinfo.tlen = CCParams.tlen;
+	dinfo.tnorm_flag = CCParams.tnorm_flag;
+	dinfo.timehlen = CCParams.timehlen;
+	dinfo.Eperl = CCParams.Eperl;
+	dinfo.Eperh = CCParams.Eperh;
+	dinfo.frechlen = CCParams.frechlen;
 	dinfo_rdy = false;
 }
 

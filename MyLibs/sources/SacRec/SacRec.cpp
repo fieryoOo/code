@@ -702,10 +702,25 @@ void SacRec::MinMax (float tbegin, float tend, float& tmin, float& min, float& t
 void SacRec::RMSAvg ( float tbegin, float tend, int step, float& rms ) {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
-
-   rms = 0.;
+	/* decide avg window */
    float maxfloat = std::numeric_limits<float>::max();
    int neff = 0, ibeg = nint((tbegin-shd.b)/shd.delta), iend = nint((tend-shd.b)/shd.delta+1.);
+	/*
+	if( ibeg < 0 ) {
+		ibeg = 0;
+		(*report) << "RMSAvg: tbegin out of range!" << std::endl;
+	}
+	if( iend > shd.npts ) {
+		iend = shd.npts;
+		(*report) << "RMSAvg: tend out of range!" << std::endl;
+	}
+	if( ibeg >= iend )
+		throw ErrorSR::BadParam(FuncName, "0 window length");
+	*/
+	if( ibeg<0 || iend>shd.npts || ibeg >= iend )
+		throw ErrorSR::BadParam(FuncName, "invalid time window input");
+
+   rms = 0.;
    for ( int i = ibeg; i < iend ; i+=step ) {
       if( sig[i] >= maxfloat ) continue;
       rms += sig[i] * sig[i];
@@ -713,6 +728,41 @@ void SacRec::RMSAvg ( float tbegin, float tend, int step, float& rms ) {
    }
    rms = sqrt(rms/(neff-1));
 }
+
+/* smoothing (running average) */
+void SacRec::Smooth( float timehlen, SacRec& sacout ) {
+   if( ! sig )
+		throw ErrorSR::EmptySig(FuncName);
+
+	/* copy and compute abs of the signal into sigw */
+   int i, j, wb, we, n = shd.npts;
+   float wsum, dt = shd.delta;
+   int half_l = (int)floor(timehlen/dt+0.5);
+	float sigw[n], *sigout = sacout.sig.get();
+	for( i=0; i<n; i++ ) sigw[i] = fabs(sig[i]);
+
+	/* */
+   if(half_l*2>n-1) half_l = (n-1)/2;
+   for(i=0,wsum=0.;i<=half_l;i++) wsum += sigw[i];
+   wb = 0; we = i;
+   for(i=1;i<=half_l;i++,we++) {
+		sigout[i-1] = (double)wsum/we;
+      wsum += sigw[we];
+   }
+   for(j=we;i<n-half_l;i++,wb++,we++) {
+		//if( i>80000/dt && i<82000/dt ) std::cerr<<(i-1)*dt<<" "<<sig[i-1]<<" "<<wsum<<" / "<<j<<std::endl;
+		sigout[i-1] = (double)wsum/j;
+      wsum += ( sigw[we] - sigw[wb] );
+   }
+   for(;i<n;i++,wb++) {
+		sigout[i-1] = (double)wsum/(we-wb);
+      wsum -= sigw[wb];
+   }
+   if(wsum>1.e-15)
+		sigout[n-1] = (double)wsum/(we-wb);
+
+}
+
 
 /* compute mean and std in a given window */
 bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& std ) {
@@ -748,7 +798,7 @@ bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& s
 
 /* ---------------------------------------- time - frequency ---------------------------------------- */
 /* convert to amplitude */
-void SacRec::ToAm( SacRec& sac_am ) {
+void SacRec::ToAmPh( SacRec& sac_am, SacRec& sac_ph ) {
    if( ! sig ) 	// check signal
 		throw ErrorSR::EmptySig(FuncName);
    if( &sac_am != this ) {	// initialize sac_am if not filtering in place 
@@ -766,16 +816,19 @@ void SacRec::ToAm( SacRec& sac_am ) {
 
    //forming amplitude spectrum
    int nk = ns/2 + 1;
-   float *amp = new float[nk];
+   float *amp = new float[nk], *pha = new float[nk];
    for(int i=0; i<nk; i++) {
       fftw_complex& cur = sf[i];
       amp[i] = sqrt(cur[0]*cur[0] + cur[1]*cur[1]);
+		pha[i] = atan2(cur[1], cur[0]);
    }
    sac_am.sig.reset(amp);
+	sac_ph.sig.reset(pha);
 
    sac_am.shd.npts = nk;
    sac_am.shd.delta = 1./(shd.delta*ns);
    sac_am.shd.b = 0.;
+	sac_ph.shd = sac_am.shd;
 }
 
 /* 3 different types of filters */
@@ -1134,7 +1187,7 @@ void SacRec::Resample( float sps ) {
    float dt = 1./sps;
    int iinc = (int)floor(dt/shd.delta+0.5);
    if(iinc!=1) {
-      double f1 = -1., f2 = 0., f3 = sps/2.2, f4 = sps/2.01;
+      double f3 = sps/2.2, f4 = sps/2.01;
       Filter(-1., 0., f3, f4);
    }
 
@@ -1182,5 +1235,59 @@ void SacRec::Resample( float sps ) {
    if(shd.nzmsec>=1000) UpdateTime();
    shd.delta = dt;
    shd.npts = j;
+}
+
+
+
+/* ---------------------------------------- temporal normalizations ---------------------------------------- */
+void SacRec::OneBit() {
+   if( ! sig )
+		throw ErrorSR::EmptySig(FuncName);
+
+   for(int i=0;i<shd.npts;i++) {
+      if(sig[i]>0.) sig[i] = 1.;
+      else if(sig[i]<0.) sig[i] = -1.;
+   }
+}
+
+
+void SacRec::RunAvg( float timehlen, float Eperl, float Eperh ) {
+   if( ! sig )
+		throw ErrorSR::EmptySig(FuncName);
+
+	/* filter into the earthquake band */
+	SacRec sac_eqk;
+	if( Eperl == -1. ) {
+		sac_eqk = *this;
+	} else {
+		float f2 = 1./Eperh, f1 = f2*0.6, f3 = 1./Eperl, f4 = f3*1.4;
+		Filter( f1, f2, f3, f4, sac_eqk );
+	}
+
+	/* smooth to get earthquake strength */
+   int i, j, wb, we, n = shd.npts;
+   float wsum, dt = shd.delta;
+   int half_l = (int)floor(timehlen/dt+0.5);
+	float* sigw = sac_eqk.sig.get();
+	for( i=0; i<shd.npts; i++ ) sigw[i] = fabs(sigw[i]);
+
+   if(half_l*2>n-1) half_l = (n-1)/2;
+   for(i=0,wsum=0.;i<=half_l;i++) wsum += sigw[i];
+   wb = 0; we = i;
+   for(i=1;i<=half_l;i++,we++) {
+      if(wsum>1.e-15) sig[i-1] *= ((double)we/wsum);
+      wsum += sigw[we];
+   }
+   for(j=we;i<n-half_l;i++,wb++,we++) {
+		//if( i>80000/dt && i<82000/dt ) std::cerr<<(i-1)*dt<<" "<<sig[i-1]<<" "<<wsum<<" / "<<j<<std::endl;
+      if(wsum>1.e-15) sig[i-1] *= ((double)j/wsum);
+      wsum += ( sigw[we] - sigw[wb] );
+   }
+   for(;i<n;i++,wb++) {
+      if(wsum>1.e-15) sig[i-1] *= ((double)(we-wb)/wsum);
+      wsum -= sigw[wb];
+   }
+   if(wsum>1.e-15) sig[n-1] *= ((double)(we-wb)/wsum);
+
 }
 

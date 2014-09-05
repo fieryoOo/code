@@ -55,6 +55,22 @@ int main(int argc, char *argv[]) {
 				//sac.WriteHD("/usr/temp.SAC");
 
 				/* apply normalizations and convert to am/ph */
+				switch( dinfo.tnorm_flag ) {
+					case 1: sac.OneBit(); 
+						break;
+					case 2: sac.RunAvg( dinfo.timehlen, dinfo.Eperl, dinfo.Eperh ); 
+						break;
+					case 3: throw std::runtime_error("EqkCut not exist!");
+						break;
+				}
+				//sac.Write( "Test_RunAvg.sac" );
+
+				/* convert to freq domain */
+				SacRec sac_am, sac_ph;
+				sac.ToAmPh( sac_am, sac_ph );
+				sac_am.RunAvg( dinfo.frechlen, -1., -1. );
+				sac_am.Write("am.sac");
+				sac_ph.Write("ph.sac");
 
 				/* log if any warning */
 				std::string warning = report.str();

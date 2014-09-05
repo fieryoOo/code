@@ -38,6 +38,9 @@ struct DailyInfoData {
 	std::string osac_outname, fsac_outname;
 	std::string rec_outname, resp_outname;
 	float sps, perl, perh, t1, tlen;
+	int tnorm_flag;
+	float Eperl, Eperh, timehlen;
+	float frechlen;
 
 };
 

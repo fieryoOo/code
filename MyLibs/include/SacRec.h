@@ -72,7 +72,12 @@ public:
 
    /* ------------------------------ single-sac operations ------------------------------ */
    void Mul( const float mul );
-   void ToAm( SacRec& sac_am );
+   void ToAm() { ToAm(*this);	}
+   void ToAm( SacRec& sac_am ) {
+		SacRec sac_ph;
+		ToAmPh( sac_am, sac_ph );
+	}
+	void ToAmPh( SacRec& sac_am, SacRec& sac_ph );
 	/* filters */
 	void LowpassFilt( double fh1, double fh2 ) { LowpassFilt(fh1, fh2, *this); }
 	void LowpassFilt( double fh1, double fh2, SacRec& srout ) { Filter(-1., -1., fh1, fh2, srout); }
@@ -97,6 +102,8 @@ public:
    void RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexe );
    /* resample (with anti-aliasing filter) the signal to given sps */
    void Resample( float sps );
+	/* smoothing ( running average ) */
+	void Smooth( float timehlen, SacRec& sacout );
 
    /* ------------------------------ inter-sac operations ------------------------------ */
    void cut( float tb, float te ) { cut(tb, te, *this); }
@@ -112,6 +119,10 @@ public:
 	/* ------------------------------- cut by event ---------------------------------- */
 	void ZoomToEvent( const std::string etime, float evlon, float evlat, float tb, float tlen, std::string ename = "" );
 	void ZoomToEvent( const SAC_HD& eshd, float evlon, float evlat, float tb, float tlen, std::string ename );
+
+	/* ------------------------------- temporal normalizations ------------------------------- */
+	void OneBit();
+	void RunAvg( float timehlen, float Eperl, float Eperh );
 
 private:
    /* impl pointer */
@@ -136,11 +147,9 @@ namespace ErrorSR {
    class Base : public std::runtime_error {
    public:
 		Base( const std::string funcname, const std::string message )
-			: runtime_error(message), funcname(funcname) {
+			: runtime_error(funcname + ": " + message) {
 				//PrintStacktrace();
 			}
-	private:
-		std::string funcname;
 	};
 
    class BadFile : public Base {
