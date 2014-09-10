@@ -30,7 +30,6 @@ int CheckExistence(int ne, int ns, int ithread) {
    sprintf(dir, "%s/%s", sdb->mo[imonth].name, sdb->ev[ne].name);
    sprintf(respname, "RESP.*.%s.*.%s", sdb->st[ns].name, ch);
    char *list = List(dir, respname, 0, &nlist);
-std::cerr<<list<<std::endl;
 //exit(0);
    if(list==NULL) return 0;
    if(nlist>1) reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: more than one RESP files found ***");
