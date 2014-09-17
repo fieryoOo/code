@@ -197,6 +197,7 @@ int TransferEvr(int ne, int ns, float **sig, SAC_HD *sd, int ithread) {
    }
    // running evalresp
    int nf = 100;
+	//std::cerr<<"channel from param: "<<ch<<std::endl;
    char buff[300], sta[8], ch[8], net[8];
    float f2 = 1./perh*0.7, f1 = f2*0.8, f3 = 1./perl*1.3, f4 = f3*1.2;
    float fmax = 0.499/(sd->delta);
@@ -209,6 +210,7 @@ int TransferEvr(int ne, int ns, float **sig, SAC_HD *sd, int ithread) {
    double pi=4*atan(1.0), pio180=pi/180.;
    sscanf(sd->kstnm, "%s", sta);
    sscanf(sd->kcmpnm, "%s", ch);
+	//std::cerr<<"channel from sacheader: "<<ch<<std::endl;
    sscanf(sd->knetwk, "%s", net);
    sprintf(buff, "%s %s %s %4d %3d %f %f %d -f %s -v >& /dev/null", evrexe, sta, ch, sd->nzyear, sd->nzjday, f1, f4, nf, sdb->rec[ne][ns].resp_fname);
    pthread_mutex_lock(&evrlock); //lock
