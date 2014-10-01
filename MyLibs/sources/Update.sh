@@ -1,11 +1,11 @@
 #!/bin/bash
 
-if [ $# != 1 ]; then
-   echo "Usage: "$0" [lib name]"
+if [ $# != 1 ] && [ $# != 2 ]; then
+   echo "Usage: "$0" [lib name] [-llib]"
    exit
 fi
 
-libname=$1
+libname=`echo $1 | awk -F/ '{print $1}'`
 if [ ! -e $libname ]; then
    echo "Directory "$libname" not found"
    exit
@@ -20,9 +20,14 @@ if [ ! -e $fsrc ]; then
 fi
 
 flibsrc=lib${libname}.so.1.0
+if [ $# == 2 ]; then
+	extralib=$2
+else
+	extralib=""
+fi
 rm -f $flibsrc ${libname}.o
 gcc -std=c++0x -O3 -fPIC -c $fsrc
-gcc -shared -Wl,-soname,lib${libname}.so.1 -o $flibsrc ${libname}.o
+gcc -shared -Wl,-soname,lib${libname}.so.1 $extralib -o $flibsrc ${libname}.o
 
 cd ../../lib
 flib=lib${libname}.so

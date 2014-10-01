@@ -59,7 +59,12 @@ int main(int argc, char* argv[]) {
    for(int isac=0; isac<saclst.size(); isac++) {
       // load sac header
       SacRec sacrec( saclst[isac].c_str() );
-      if( ! sacrec.LoadHD() ) continue;
+		try {
+			sacrec.LoadHD();
+		} catch (std::exception& e) {
+			std::cerr<<"Warning(main): LoadHD failed -- "<<e.what()<<std::endl;
+			continue;
+		}
       SAC_HD& shd = sacrec.shd;
       // get station name
       std::stringstream sin(shd.kstnm);
@@ -71,10 +76,10 @@ int main(int argc, char* argv[]) {
       std::deque<StaInfo>::iterator ista;
       ista = std::lower_bound( stalst.begin(), stalst.end(), SIcur, CompareName );
       if( ista!=stalst.end() && SIcur.IsSameSta(*ista) ) { // found station with same name!
-	 if( SIcur != *ista ) { // but different lon/lat
-	    std::cerr<<"Warning(main): conflicted location found for station "<<SIcur.name<<" ( "<<SIcur<<" : "<<*ista<<" )"<<std::endl;
-	 }
-	 continue;
+		if( SIcur != *ista ) { // but different lon/lat
+			std::cerr<<"Warning(main): conflicted location found for station "<<SIcur.name<<" ( "<<SIcur<<" : "<<*ista<<" )"<<std::endl;
+		}
+		continue;
       }
       //stalst.push_back(SIcur);
       stalst.insert(ista, SIcur);
