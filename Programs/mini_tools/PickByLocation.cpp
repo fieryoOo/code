@@ -102,8 +102,8 @@ int main(int argc, char* argv[]) {
 		auto ilocl = std::lower_bound( locV.begin(), locV.end(), datalb, CompareLon );
 		// iterator to the first location in locV with a lon>datacur.lon+StaInfo::maxmisloc
 		StaInfo dataub = datacur; dataub.lon += StaInfo::maxmisloc;
-		auto ilocu = std::upper_bound( locV.begin(), locV.end(), dataub, CompareLon );
-		if( ilocl>=ilocu || ilocu>=locV.end() ) continue; // datacur.lon not found in locV
+		auto ilocu = std::upper_bound( ilocl, locV.end(), dataub, CompareLon );
+		//if( ilocl == ilocu ) continue; // datacur.lon not found in locV
 		for( auto iloc=ilocl; iloc<ilocu; iloc++ )
 			if( datacur.IsSameLocation(*iloc) ) {
 				fout<<datacur.name<<"\n"; nmatch++;
