@@ -1,0 +1,56 @@
+#!/bin/csh
+if ($#argv != 1) then
+echo "USAGE: TXT2CPT [input file]"
+exit
+endif
+
+set color_factor=3 #the larger the lighter
+set in_map=$argv[1]
+set avg=`awk 'BEGIN{avg=0}{avg+=$3}END{print avg/NR}' $in_map`
+set std=`awk -v avg=$avg 'BEGIN{std=0}{std+=($3-avg)**2}END{print sqrt(std/(NR-1))}' $in_map`
+if( `echo $avg $std | awk '{if($1==$2){print 1}else{print 0}}'` ) goto next
+awk -v avg=$avg -v std=$std '$3<avg+std*2 && $3>avg-std*2' $in_map > TXT2CPT_temp
+set avg=`awk 'BEGIN{avg=0}{avg+=$3}END{print avg/NR}' TXT2CPT_temp`
+set avg_high_end=`awk -v avg=$avg -v cf=$color_factor 'BEGIN{avg_h=0;N=0}{if($3>avg){avg_h+=$3;N+=1}}END{if(N==0){print avg}else{print cf*avg_h/N-(cf-1)*avg}}' TXT2CPT_temp`
+set flag=`echo $avg $avg_high_end | awk '{if($1==$2){print 1}else{print 0}}'`
+if ( $flag )then
+next:
+set flow=`echo $avg | awk '{if($1==0){a=-0.0001}else{a=$1*0.99} printf "%.4g",a}'`
+set fhigh=`echo $avg | awk '{if($1==0){a=0.0001}else{a=$1*1.01} printf "%.4g",a}'`
+echo $flow" 255 255 0 "$fhigh" 255 255 0" > $in_map.cpt
+echo "B 0 0 0" >> $in_map.cpt
+echo "F 100 0 170" >> $in_map.cpt
+echo "N 128 128 128" >> $in_map.cpt
+exit
+endif
+
+#set avg_low_end=`awk -v avg=$avg -v cf=$color_factor 'BEGIN{avg_l=0;N=0}{if($3<avg){avg_l+=$3;N+=1}}END{if(N==0){print avg}else{print cf*avg_l/N-(cf-1)*avg}}' TXT2CPT_temp`
+set high_end=`awk 'BEGIN{high=-99999}{if($3>high){high=$3}}END{if(high>0){high=high*1.05}else{high=high*0.95}print high}' TXT2CPT_temp`
+#set low_end=`awk 'BEGIN{low=99999}{if($3<low){low=$3}}END{if(low>0){low=low*0.95}else{low=low*1.05}print low}' TXT2CPT_temp`
+#echo "avg",$avg,"avg_h",$avg_high_end,"high",$high_end,"avg_l",$avg_low_end,"low",$low_end
+if ( `echo $high_end $avg_high_end | awk '{if($1>$2){print 1}else{print 0}}'` ) then
+ set high_end=$avg_high_end
+endif
+#if ( `echo $low_end $avg_low_end | awk '{if($1<$2){print 1}else{print 0}}'` ) then
+# set low_end=$avg_low_end
+#endif
+#set inc_low=`echo $avg $low_end | awk '{print ($1-$2)/3}'`
+#set inc_high=`echo $avg $high_end | awk '{print ($2-$1)/3}'`
+set inc = `echo $high_end | awk '{print $1/6.}'`
+set low3 = 0.
+set low2 = `echo $inc | awk '{printf "%.3g",$1}'`
+set low1 = `echo $inc | awk '{printf "%.3g",$1*2}'`
+set mid = `echo $inc | awk '{printf "%.3g",$1*3}'`
+set high1 = `echo $inc | awk '{printf "%.3g",$1*4}'`
+set high2 = `echo $inc | awk '{printf "%.3g",$1*5}'`
+set high3 = `echo $inc | awk '{printf "%.3g",$1*6}'`
+echo $low3" 0 0 0 "$low2" 255 0 0\
+"$low2" 255 0 0 "$low1" 255 255 0\
+"$low1" 255 255 0 "$mid" 255 255 255\
+"$mid" 255 255 255 "$high1" 150 255 150\
+"$high1" 150 255 150 "$high2" 100 185 255\
+"$high2" 100 185 255 "$high3" 100 0 170\
+B 0 0 0\
+F 100 0 170\
+N 128 128 128\" > $in_map.cpt
+rm -f TXT2CPT_temp
