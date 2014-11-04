@@ -68,7 +68,11 @@ int main(int argc, char *argv[]) {
 				/* convert to freq domain */
 				SacRec sac_am, sac_ph;
 				sac.ToAmPh( sac_am, sac_ph );
+				/* whitening */
 				sac_am.RunAvg( dinfo.frechlen, -1., -1. );
+				float fl=1./dinfo.perh, fh=1./dinfo.perl;
+				sac_am.cosTaperL( fl*0.8, fl );
+				sac_am.cosTaperR( fh, fh*1.2 );
 				sac_am.Write("am.sac");
 				sac_ph.Write("ph.sac");
 

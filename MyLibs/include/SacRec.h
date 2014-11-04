@@ -92,6 +92,9 @@ public:
     * gaussian when ( f1==-1. && f4==-1. ) where f2 = center freqency and f3 = frequency half length */
    void Filter ( double f1, double f2, double f3, double f4 ) { Filter(f1, f2, f3, f4, *this); }	// in-place
    void Filter ( double f1, double f2, double f3, double f4, SacRec& srout );				// out-of-place
+	/* cosine tapers */
+	void cosTaperL( const float fl, const float fh );
+	void cosTaperR( const float fl, const float fh );
    /* remove mean and trend */
    void RTrend();
    /* remove response and apply filter */

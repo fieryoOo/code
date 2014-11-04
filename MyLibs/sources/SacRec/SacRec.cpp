@@ -875,6 +875,41 @@ void SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout 
 }
 
 
+/* cosine tapper */
+void SacRec::cosTaperL( const float fl, const float fh ) {
+   if( !sig || shd.npts<=0 )	// check signal
+		throw ErrorSR::EmptySig(FuncName);
+
+	const float& delta = shd.delta;
+   int i;
+	for( i=0; i<(int)ceil(fl/delta); i++ ) sig[i] = 0.;
+	float finit = i*delta, fwidth = fh-fl, dfh = fh-finit;
+	float ftmp = PI / fwidth;
+   for(; dfh>0; i++, dfh-=delta) {
+		float amplif = ( 1. + cos(ftmp*dfh) ) * 0.5;
+		sig[i] *= amplif;
+   }
+
+   return;
+}
+void SacRec::cosTaperR( const float fl, const float fh ) {
+   if( !sig || shd.npts<=0 )	// check signal
+		throw ErrorSR::EmptySig(FuncName);
+
+	const float& delta = shd.delta;
+   int i = (int)ceil(fl/delta);
+	float finit = i*delta, fwidth = fh-fl, dfl = finit-fl;
+	float ftmp = PI / fwidth;
+   for(; dfl<fwidth; i++, dfl+=delta) {
+		float amplif = ( 1. + cos(ftmp*dfl) ) * 0.5;
+		sig[i] *= amplif;
+   }
+   for(;i<shd.npts;i++) sig[i] = 0.;
+
+   return;
+}
+
+
 /* ---------------------------------------- cut and merge ---------------------------------------- */
 void SacRec::cut( float tb, float te, SacRec& sac_result ) {
    int nb = (int)floor( (tb-shd.b) / shd.delta + 0.5 );
