@@ -6,6 +6,7 @@
 #include "SacRec.h"
 #include "CCDatabase.h"
 #include "MyLogger.h"
+#include "MyOMP.h"
 #include <iostream>
 #include <sstream>
 
@@ -30,7 +31,19 @@ int main(int argc, char *argv[]) {
 		//const CCPARAM& cdbParams = cdb.GetParams();
 
 		/* iterate through the database and handle all possible events */
-		for(DailyInfo dinfo; cdb.GetRec(dinfo); cdb.NextRec()) {
+		#pragma omp parallel
+		{ // parallel region S
+		while( 1 ) {
+			/* dynamically assign events to threads, one at a time */
+			bool got;
+			DailyInfo dinfo;
+			#pragma omp critical
+			{ // critical S
+			got = cdb.GetRec(dinfo);
+			cdb.NextRec();
+			} // critical E
+			if( !got ) break;
+
 			/* daily info from the database */
 			logger.Hold( INFO, dinfo.seedname + " " + dinfo.staname + " " + dinfo.chname, FuncName );
 
@@ -73,8 +86,8 @@ int main(int argc, char *argv[]) {
 				float fl=1./dinfo.perh, fh=1./dinfo.perl;
 				sac_am.cosTaperL( fl*0.8, fl );
 				sac_am.cosTaperR( fh, fh*1.2 );
-				sac_am.Write("am.sac");
-				sac_ph.Write("ph.sac");
+				sac_am.Write( dinfo.fsac_outname + ".am" );
+				sac_ph.Write( dinfo.fsac_outname + ".ph" );
 
 				/* log if any warning */
 				std::string warning = report.str();
@@ -85,7 +98,8 @@ int main(int argc, char *argv[]) {
 			}
 
 			logger.flush();
-		}
+		} // while
+		} // parallel region E
 
 	} catch ( std::exception& e ) {
 		logger.Hold(FATAL, e.what(), FuncName);
