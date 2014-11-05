@@ -581,6 +581,28 @@ void SacRec::Mul( const float mul ) {
    for(int i=0; i<shd.npts; i++) sig[i] *= mul;
 }
 
+void SacRec::Divf( const SacRec& sac2 ) {
+   if( !sig || !sac2.sig )
+		throw ErrorSR::EmptySig(FuncName);
+	if( shd.npts != sac2.shd.npts )
+		throw ErrorSR::SizeMismatch(FuncName, std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
+	const auto& sig2 = sac2.sig;
+   for(int i=0; i<shd.npts; i++) 
+		if( sig2[i]!=0. ) sig[i] /= sig2[i];
+}
+
+void SacRec::PullUpTo( const SacRec& sac2 ) {
+   if( !sac2.sig )
+		throw ErrorSR::EmptySig(FuncName);
+	if( !sig )
+		*this = sac2;
+	if( shd.npts != sac2.shd.npts )
+		throw ErrorSR::SizeMismatch(FuncName, std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
+	const auto& sig2 = sac2.sig;
+   for(int i=0; i<shd.npts; i++) sig[i] = std::max(sig[i], sig2[i]);
+}
+
+
 #include <cctype>
 void SacRec::ChHdr(const std::string& fieldin, const std::string& value){
    std::stringstream sin(value);
@@ -730,9 +752,13 @@ void SacRec::RMSAvg ( float tbegin, float tend, int step, float& rms ) {
 }
 
 /* smoothing (running average) */
-void SacRec::Smooth( float timehlen, SacRec& sacout ) {
+void SacRec::Smooth( float timehlen, SacRec& sacout ) const {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
+
+	/* resize sacout.sig */
+	sacout.shd = shd;
+	sacout.sig.reset( new float[shd.npts] );
 
 	/* copy and compute abs of the signal into sigw */
    int i, j, wb, we, n = shd.npts;
@@ -1315,7 +1341,7 @@ void SacRec::RunAvg( float timehlen, float Eperl, float Eperh ) {
    }
    for(j=we;i<n-half_l;i++,wb++,we++) {
 		//if( i>80000/dt && i<82000/dt ) std::cerr<<(i-1)*dt<<" "<<sig[i-1]<<" "<<wsum<<" / "<<j<<std::endl;
-      if(wsum>1.e-15) sig[i-1] *= ((double)j/wsum);
+      if(wsum>1.e-15) sig[i-1] *= ((double)j/wsum); //fout<<shd.b+(i-1)*dt<<" "<<wsum<<" "<<j<<std::endl;}
       wsum += ( sigw[we] - sigw[wb] );
    }
    for(;i<n;i++,wb++) {
@@ -1323,6 +1349,7 @@ void SacRec::RunAvg( float timehlen, float Eperl, float Eperh ) {
       wsum -= sigw[wb];
    }
    if(wsum>1.e-15) sig[n-1] *= ((double)(we-wb)/wsum);
+
 
 }
 
