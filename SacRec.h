@@ -72,6 +72,8 @@ public:
 
    /* ------------------------------ single-sac operations ------------------------------ */
    void Mul( const float mul );
+	void Divf( const SacRec& sac2 );
+	void PullUpTo( const SacRec& sac2 );
    void ToAm() { ToAm(*this);	}
    void ToAm( SacRec& sac_am ) {
 		SacRec sac_ph;
@@ -106,7 +108,7 @@ public:
    /* resample (with anti-aliasing filter) the signal to given sps */
    void Resample( float sps );
 	/* smoothing ( running average ) */
-	void Smooth( float timehlen, SacRec& sacout );
+	void Smooth( float timehlen, SacRec& sacout ) const;
 
    /* ------------------------------ inter-sac operations ------------------------------ */
    void cut( float tb, float te ) { cut(tb, te, *this); }
@@ -177,6 +179,12 @@ namespace ErrorSR {
    public:
       InsufData(const std::string funcname, const std::string info = "")
          : Base(funcname, "Insufficient data points ("+info+").") {}
+   };
+
+   class SizeMismatch : public Base {
+   public:
+      SizeMismatch(const std::string funcname, const std::string info = "")
+         : Base(funcname, "Size mismatch ("+info+").") {}
    };
 
    class ExternalError : public Base {

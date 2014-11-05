@@ -70,6 +70,15 @@ bool CCDatabase::NextRec() {
    return false;
 }
 
+bool CCDatabase::NextEvent() {
+	if( stalst.IsEnded() ||
+		 seedlst.IsEnded() ) return false;
+   if( stalst.NextRec() ) return true;
+   stalst.Rewind();
+   if( seedlst.NextRec() ) return true;
+   return false;
+}
+
 void CCDatabase::Rewind() {
 	chlst.Rewind();
 	stalst.Rewind();
@@ -85,6 +94,15 @@ bool CCDatabase::GetRec(DailyInfo& dinfoout) {
 		dinfo_rdy = true;
 	}
 	dinfoout = dinfo;
+	return true;
+}
+
+bool CCDatabase::GetRec_AllCH( std::vector<DailyInfo>& dinfoV ) {
+	if( stalst.IsEnded() || seedlst.IsEnded() ) return false;
+	for( chlst.Rewind(); !chlst.IsEnded(); chlst.NextRec() ) {
+		dinfo.Update( *(seedlst.GetRec()), *(stalst.GetRec()), *(chlst.GetRec()) );
+		dinfoV.push_back(dinfo);
+	}
 	return true;
 }
 

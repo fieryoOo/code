@@ -99,8 +99,10 @@ public:
    /* Get the next daily record from the database. Assign file names and make directory if necessary */
    bool NextRecTest();
    bool NextRec();
+	bool NextEvent();
 	void Rewind();
    bool GetRec(DailyInfo&);
+	bool GetRec_AllCH( std::vector<DailyInfo>& dinfoV );
 /*
    void InitialPthread();
    void FillMonths();
