@@ -10,7 +10,7 @@
 #include <iostream>
 #include <sstream>
 
-
+/* normalize all sac files in sacV (simultaneously if SyncNorm==true) */
 void TNormAll( std::vector<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, bool SyncNorm ) {
 	if( sacV.empty() ) return;
 	if( sacV.size()!=dinfoV.size() )
@@ -53,9 +53,42 @@ void TNormAll( std::vector<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, 
 	if( SyncNorm )
 		for( auto& sac : sacV )
 			if( sac.sig ) sac.Divf( sac_sigmax );
-	sacV[0].Write( "Test_RunAvg.sac" );
+	//sacV[0].Write( "Test_RunAvg.sac" );
 }
 
+/* normalize and apply taper */
+void FNormAll( std::vector<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, bool SyncNorm ) {
+	if( sacV.empty() ) return;
+	if( sacV.size()!=dinfoV.size() )
+		throw std::runtime_error("Error(FNormAll): size mismatch ("+std::to_string(sacV.size())+" - "+std::to_string(dinfoV.size()));
+
+	// compute max smoothed signal
+	SacRec sac_sigmax;
+	for( int isac=0; isac<sacV.size(); isac++ ) {
+		auto& dinfo = dinfoV[isac];
+		auto& sac = sacV[isac];
+		if( !(sac.sig) ) continue;
+		if( SyncNorm ) {
+			SacRec sac_sm;
+			sac.Smooth( dinfo.frechlen, sac_sm );
+			sac_sigmax.PullUpTo( sac_sm );
+		} else {
+			sac.RunAvg( dinfo.frechlen, -1., -1. );
+		}
+	}
+	// normalize and taper
+	if( SyncNorm )	
+		for( int isac=0; isac<sacV.size(); isac++ ) {
+			auto& dinfo = dinfoV[isac];
+			auto& sac = sacV[isac];
+			if( ! sac.sig ) continue;
+			sac.Divf( sac_sigmax );
+			float fl=1./dinfo.perh, fh=1./dinfo.perl;
+			sac.cosTaperL( fl*0.8, fl );
+			sac.cosTaperR( fh, fh*1.2 );
+		}
+
+}
 
 extern MyLogger logger;
 MyLogger logger;
@@ -80,7 +113,7 @@ int main(int argc, char *argv[]) {
 		/* iterate through the database and handle all possible events */
 		#pragma omp parallel
 		{ // parallel region S
-		while( 1 ) {
+		while( 1 ) { // main loop
 			/* dynamically assign events to threads, one at a time */
 			bool got;
 			std::vector<DailyInfo> dinfoV;
@@ -91,7 +124,7 @@ int main(int argc, char *argv[]) {
 			} // critical E
 			if( !got ) break;
 
-			try {
+			try { // handle current event
 				std::vector<SacRec> sacV;
 				std::vector<std::stringstream> reportV( dinfoV.size() );
 				/* seed to fsac */
@@ -128,32 +161,37 @@ int main(int argc, char *argv[]) {
 				TNormAll( sacV, dinfoV, SyncNorm );
 			
 				/* fre-domain normalization */
+				// convert sacs to am&ph and store ams in sacV
 				for( int isac=0; isac<sacV.size(); isac++ ) {
 					auto& dinfo = dinfoV[isac];
 					auto& sac = sacV[isac];
 					if( ! sac.sig ) continue;
-					/* convert to freq domain */
 					SacRec sac_am, sac_ph;
 					sac.ToAmPh( sac_am, sac_ph );
-					/* whitening */
-					//sac_am.RunAvg( dinfo.frechlen, -1., -1. );
-					float fl=1./dinfo.perh, fh=1./dinfo.perl;
-					sac_am.cosTaperL( fl*0.8, fl );
-					sac_am.cosTaperR( fh, fh*1.2 );
-					sac_am.Write( dinfo.fsac_outname + ".am" );
+					sac = std::move(sac_am);
 					sac_ph.Write( dinfo.fsac_outname + ".ph" );
+				}
+				// normalize
+				FNormAll( sacV, dinfoV, SyncNorm );
+				// write am
+				for( int isac=0; isac<sacV.size(); isac++ ) {
+					auto& dinfo = dinfoV[isac];
+					auto& sac = sacV[isac];
+					if( ! sac.sig ) continue;
+					sac.Write( dinfo.fsac_outname + ".am" );
+				}
 
-					/* log if any warning */
-					std::string warning = reportV.at(isac).str();
+				/* log if any warning */
+				for( const auto& report : reportV ) {
+					std::string warning = report.str();
 					if( ! warning.empty() )
 						logger.Hold( WARNING, "\n" + warning, FuncName );
-
 					logger.flush();
 				} // for dinfo
 			} catch ( std::exception& e ) {
 				logger.Hold( ERROR, e.what(), FuncName );
-			}
-		} // while
+			} // current event done
+		} // main while loop
 		} // parallel region E
 
 	} catch ( std::exception& e ) {
