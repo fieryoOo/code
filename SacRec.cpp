@@ -430,8 +430,11 @@ SacRec::SacRec( const SacRec& recin )
 
 /* move constructor */
 SacRec::SacRec( SacRec&& recin )
- : fname(std::move(recin.fname)),
-	shd(std::move(recin.shd)), sig( std::move(recin.sig) ), pimpl( std::move(recin.pimpl) ) {}
+ : fname(std::move(recin.fname)), report(recin.report),
+	shd(std::move(recin.shd)), sig( std::move(recin.sig) ), pimpl( std::move(recin.pimpl) ) {
+	recin.shd = sac_null;
+	recin.report = &(std::cerr);
+}
 
 /* assignment operator */
 SacRec& SacRec::operator= ( const SacRec& recin ) { 
@@ -444,11 +447,12 @@ SacRec& SacRec::operator= ( const SacRec& recin ) {
 }
 
 /* move ass operator */
-SacRec& SacRec::operator= ( SacRec&& recin ) { 
+SacRec& SacRec::operator= ( SacRec&& recin ) {
+	if( this == &recin ) return *this;
    pimpl = std::move(recin.pimpl);
    fname = std::move(recin.fname);
-	report = recin.report;
-   shd = std::move(recin.shd);
+	report = recin.report;	recin.report = &(std::cerr);
+   shd = std::move(recin.shd); recin.shd = sac_null;
    sig = std::move(recin.sig);
 	return *this;
 }
