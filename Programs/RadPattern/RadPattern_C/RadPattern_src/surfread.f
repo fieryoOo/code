@@ -17,6 +17,7 @@ C------amp -ampitude factor; ratio is ellipticity------
       character*20000000 feig_buff
       character*1 sigR,sigL
       character*2 symb
+      real*4 depold, vaold, vdold, dfactor
       real*4 v(3,200),dvdz(3,200),ratio(200)
       real*4 t(200),ur(200),cr(200),wvr(200),ampr(200),qR(200)
       real*4        ul(200),cl(200),wvl(200),ampl(200),qL(200)
@@ -65,6 +66,9 @@ c            read(1, '(6(E14.7,2X))') t(k),cl(k),ul(k),wvl(k),ampl(k),qL(k)
 c            read(1,'(a)') ,vzdor
             call readline80(feig_buff, pos1, pos2, vzdor)
 c           Love component---S
+            depold=0.
+            vaold=0.
+            vdold=0.
             do l=1,nd
 c               read(1,'(a)')mura
                call readline80(feig_buff, pos1, pos2, mura)
@@ -74,10 +78,15 @@ c               read(1,'(a)')mura
                   go to 5454
                endif
                read(mura,'(3(E14.7,2X))',end=11),dep,va,vd
-               if(abs(dep-depth).lt.eps) then
-                  v(3,k)=va
-                  dvdz(3,k)=vd
+               if(depold.le.depth.and.depth.lt.dep) then
+c               if(abs(dep-depth).lt.eps) then
+                  dfactor=(depth-depold)/(dep-depold)
+                  v(3,k)=vaold+(va-vaold)*dfactor
+                  dvdz(3,k)=vdold+(vd-vdold)*dfactor
                end if
+               depold=dep
+               vaold=va
+               vdold=vd
             end do
 6666        nd_real=nd
 c           Love component---E
@@ -86,7 +95,7 @@ C         ires=1
 c         close(1)
       END if
 C----------Reading Love stuff----------------------E
-      if(ires.eq.0) print *,'NO LOVE'
+c      if(ires.eq.0) print *,'NO LOVE'
 11    continue
 C----------Reading Rayleigh stuff----------------------S
       if (sigR.eq.'+') Then
@@ -113,11 +122,15 @@ c            read(1,'(a)',end=9797)vzdor
             if(pos1.ge.eiglen) goto 9797
 c            read(1, '(7(E14.7,2X))') t(k),cr(k),ur(k),wvr(k),ampr(k),ratio(k),qR(k)
             call readline300(feig_buff, pos1, pos2, linetmp)
+c        write(*,*) "a new line with k=",k," : ",linetmp
             read(linetmp, '(7(E14.7,2X))') t(k),cr(k),ur(k),wvr(k),ampr(k),ratio(k),qR(k)
 C           PRint*,k,t(k),ampr(k)
 c            read(1,'(a)') ,vzdor
             call readline80(feig_buff, pos1, pos2, vzdor)
 C----------Rayl. Horizontal component------S
+            depold=0.
+            vaold=0.
+            vdold=0.
             do l=1,nd+2
 c               read(1,'(a)')mura
                call readline80(feig_buff, pos1, pos2, mura)
@@ -126,22 +139,35 @@ c               read(1,'(a)')mura
                   go to 5554
                endif
                read(mura,'(3(E14.7,2X))'),dep,va,vd
-               if(abs(dep-depth).lt.eps) then
-                  v(1,k)=va
-                  dvdz(1,k)=vd
+               if(depold.le.depth.and.depth.lt.dep) then
+c               if(abs(dep-depth).lt.eps) then
+                  dfactor=(depth-depold)/(dep-depold)
+                  v(1,k)=vaold+(va-vaold)*dfactor
+                  dvdz(1,k)=vdold+(vd-vdold)*dfactor
                end if
+               depold=dep
+               vaold=va
+               vdold=vd
             end do
 C----------Rayl. Horizontal component------E
 5554        continue                                        
 C----------Rayl. Vertical   component------S
+            depold=0.
+            vaold=0.
+            vdold=0.
             do l=1,nd_real
 c               read(1,*),dep,va,vd
                call readline300(feig_buff, pos1, pos2, linetmp)
                read(linetmp,*),dep,va,vd
-               if(abs(dep-depth).lt.eps) then
-                  v(2,k)=va
-                  dvdz(2,k)=vd
+               if(depold.le.depth.and.depth.lt.dep) then
+c               if(abs(dep-depth).lt.eps) then
+                  dfactor=(depth-depold)/(dep-depold)
+                  v(2,k)=vaold+(va-vaold)*dfactor
+                  dvdz(2,k)=vdold+(vd-vdold)*dfactor
                end if
+               depold=dep
+               vaold=va
+               vdold=vd
             end do
 C----------Rayl. Vertical   component------E
          end DO

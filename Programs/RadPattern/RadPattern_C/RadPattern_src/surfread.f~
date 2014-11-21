@@ -86,7 +86,7 @@ C         ires=1
 c         close(1)
       END if
 C----------Reading Love stuff----------------------E
-c      if(ires.eq.0) print *,'NO LOVE'
+      if(ires.eq.0) print *,'NO LOVE'
 11    continue
 C----------Reading Rayleigh stuff----------------------S
       if (sigR.eq.'+') Then
@@ -113,7 +113,6 @@ c            read(1,'(a)',end=9797)vzdor
             if(pos1.ge.eiglen) goto 9797
 c            read(1, '(7(E14.7,2X))') t(k),cr(k),ur(k),wvr(k),ampr(k),ratio(k),qR(k)
             call readline300(feig_buff, pos1, pos2, linetmp)
-c        write(*,*) "a new line with k=",k," : ",linetmp
             read(linetmp, '(7(E14.7,2X))') t(k),cr(k),ur(k),wvr(k),ampr(k),ratio(k),qR(k)
 C           PRint*,k,t(k),ampr(k)
 c            read(1,'(a)') ,vzdor
