@@ -107,6 +107,7 @@ c rescale threshold according to ffactor
 c      tresh = dsqrt(ffact)*tresh
 c automatic width of filters * factor ffact
       alpha = ffact*20.0d0
+c      alpha = ffact*20.0d0*dsqrt(delta/1000.0d0)
 c trigger factor
       tfact = 1.5d0
 c  number of samples for tapering, left end
@@ -267,7 +268,8 @@ c      compute right minimum -------
             enddo
           ipar(4,j) = ampo(m,k)/dsqrt(lm*rm)
           if(indl.eq.1.and.indr.eq.ntall) ipar(4,j) = ipar(4,j)+100.0d0
-          ipar(5,j) = dt*(dabs(dreal(m-indl))+dabs(dreal(m-indr)))/2;
+c          ipar(5,j) = dt*(dabs(dreal(m-indl))+dabs(dreal(m-indr)))/2;
+          ipar(5,j) = dt*(dabs(real(m-indl,8))+dabs(real(m-indr,8)))*0.5;
         enddo
 c End of SNR computations
         tim(k)   = ipar(1,ia)

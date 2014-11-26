@@ -2,16 +2,19 @@
 INST_DIR = $(HOME)/bin
 BIN  = aftani_c_pgl_amp
 
-fflags = -O2 -Wall -ffixed-line-length-none 
-cflags = -O2 -Wall 
+fflags = -O2 -Wall -ffixed-line-length-132
+#cflags = -O3 -Wall  -I"/home/tianye/code/Programs/head/"
+#cflags = -O3 -Wall  -I/usr/include -I/home/tianye/code/Programs/head/
+cflags = -O3 -Wall  -I/usr/include -I/projects/yeti4009/code/Programs/head/
 
-LDLIBS =   -L/home/barmin/FFTW_64/lib -lfftw3
+#LDLIBS =   -L/home/barmin/FFTW_64/lib -lfftw3
+LDLIBS = -L/usr/lib64 -lfftw3
 
 FFLAGS = $(DBG) $(fflags)
 
 CFLAGS = $(DBG) $(cflags)
 
-FC = g77
+FC = gfortran
 
 CC = gcc
 
