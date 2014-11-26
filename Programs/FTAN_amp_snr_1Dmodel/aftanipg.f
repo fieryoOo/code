@@ -123,8 +123,8 @@ c rescale ffact and tresh
 c      ffact = ffact*2.0d0
 c      tresh = dsqrt(ffact)*tresh
 c automatic width of filters * factor ffact
-c      alpha = ffact*20.0d0*dsqrt(delta/1000.0d0)
-      alpha = ffact*20.0d0
+      alpha = ffact*20.0d0*dsqrt(delta/1000.0d0)
+c      alpha = ffact*20.0d0
 c trigger factor
       tfact = 1.5d0
 c  number of samples for tapering, left end
@@ -237,7 +237,7 @@ c filtering
            if(2.0d0*pi/om(k).gt.pred(m,1)) ntmp = m
         enddo
         alphad = alpha * (0.5d0+2.0d0*dabs(pred(ntmp,2)-pred(ntmp+1,2)))
-        call ftfilt(alphad,om(k),dom,ns,sf,fils, b)
+        call ftfilt(alpha,om(k),dom,ns,sf,fils, b)
 c fill with zeros half spectra for Hilbert transformation and
 c spectra ends ajastment
         do m = ns/2+2,ns
