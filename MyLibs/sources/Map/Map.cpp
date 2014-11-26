@@ -316,7 +316,7 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& per
 	float grd_semidiag = sqrt( (grd_dis_lon * grd_dis_lon) + (grd_dis_lat * grd_dis_lat) );
 
 	/* ellipse parameters */
-	float Nmin = 3.; //(2 ~ 20?) Don't know much about sw kernel
+	float Nmin = 3.; //(2 ~ 20?) Don't know much about sw kernel; note that the data in the zone are weighted with a smaller hlaf length, so the effective N is larger!!!
 	// define ellipse
 	float f = dis*0.5; // known values
 	float amax = f+lamda/(2.*Nmin);// asqrmax = amax*amax;

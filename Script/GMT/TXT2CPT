@@ -1,10 +1,15 @@
 #!/bin/csh
-if ($#argv != 1) then
-echo "USAGE: TXT2CPT [input file]"
+if ($#argv != 1 && $#argv != 2) then
+echo "USAGE: TXT2CPT [input file] [color factor (optional)]"
 exit
 endif
 
-set color_factor=3 #the larger the lighter
+if( $#argv == 1 ) then
+	set color_factor=3 #the larger the lighter
+else
+	set color_factor=$argv[2]
+endif
+
 set in_map=$argv[1]
 set avg=`awk 'BEGIN{avg=0}{avg+=$3}END{print avg/NR}' $in_map`
 set std=`awk -v avg=$avg 'BEGIN{std=0}{std+=($3-avg)**2}END{print sqrt(std/(NR-1))}' $in_map`

@@ -86,29 +86,31 @@ int main(int argc, char* argv[]) {
    std::cout<<"   "<<locV.size()<<" locations read in."<<std::endl;
 	if( locV.size() == 0 ) exit(-3);
 
-   /* sort locations by longitude */
-	std::sort(locV.begin(), locV.end(), CompareLon);
+   /* sort datas by longitude */
+	std::sort(dataV.begin(), dataV.end(), CompareLon);
 
-	/* for each line of data, search in the locV for the same location */
+	/* for each location, search in the dataV for the same location */
 	std::ofstream fout(argv[3]);
 	if( ! fout ) {
       std::cerr<<"Error(main): Cannot write to file "<<argv[3]<<std::endl;
       exit(-2);
 	}
 	int nmatch = 0;
-	for(const StaInfo& datacur : dataV) {
-		// iterator to the first location in locV with a lon>=datacur.lon-StaInfo::maxmisloc
-		StaInfo datalb = datacur; datalb.lon -= StaInfo::maxmisloc;
-		auto ilocl = std::lower_bound( locV.begin(), locV.end(), datalb, CompareLon );
-		// iterator to the first location in locV with a lon>datacur.lon+StaInfo::maxmisloc
-		StaInfo dataub = datacur; dataub.lon += StaInfo::maxmisloc;
-		auto ilocu = std::upper_bound( ilocl, locV.end(), dataub, CompareLon );
-		//if( ilocl == ilocu ) continue; // datacur.lon not found in locV
-		for( auto iloc=ilocl; iloc<ilocu; iloc++ )
-			if( datacur.IsSameLocation(*iloc) ) {
-				fout<<datacur.name<<"\n"; nmatch++;
-				break;
-			}
+	for(const auto& loc : locV) {
+		// iterator to the first data in dataV with a lon>=loc.lon-StaInfo::maxmisloc
+		auto loclb = loc; loclb.lon -= StaInfo::maxmisloc;
+		auto idatal = std::lower_bound( dataV.begin(), dataV.end(), loclb, CompareLon );
+		// iterator to the first data in dataV with a lon>loc.lon+StaInfo::maxmisloc
+		auto locub = loc; locub.lon += StaInfo::maxmisloc;
+		auto idatau = std::upper_bound( idatal, dataV.end(), locub, CompareLon );
+		auto idata = idatal;
+		for( ; idata<idatau; idata++ )
+			if( loc.IsSameLocation(*idata) ) break;
+		if( idata < idatau ) { // found
+			fout<<(*idata).name<<"\n"; nmatch++;
+		} else { // not found
+			fout<<loc.lon<<" "<<loc.lat<<std::endl;
+		}
 	}
 	fout.close();
    std::cout<<"   "<<nmatch<<" matches found."<<std::endl;
