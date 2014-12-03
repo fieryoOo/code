@@ -2,8 +2,9 @@
 /* data file: (lon lat ...)
 	location list: (lon lat ...) */
 
-#include <vector>
+#include <cstring>
 #include <string>
+#include <vector>
 #include <iomanip>
 #include <iostream>
 #include <fstream>
@@ -13,6 +14,7 @@ struct StaInfo {
    std::string name;
    float lon, lat;
 	static constexpr float maxmisloc = 0.01;
+	static constexpr float maxmislocS = maxmisloc*maxmisloc;
 	static constexpr float NaN = -12345.;
 
 public:
@@ -22,7 +24,7 @@ public:
    bool IsSameSta( const StaInfo& s2 ) const { return (name == s2.name); }
 	bool IsSameLocation( const StaInfo& s2 ) const {
 		float dislon = lon-s2.lon, dislat = lat-s2.lat;
-		return (dislon*dislon + dislat*dislat < maxmisloc*maxmisloc);
+		return (dislon*dislon + dislat*dislat < maxmislocS);
 	}
 
    friend bool operator== ( const StaInfo& s1, const StaInfo& s2 ) {
@@ -40,10 +42,18 @@ bool CompareLon ( const StaInfo& s1, const StaInfo& s2 ) { return (s1.lon<s2.lon
 
 
 int main(int argc, char* argv[]) {
-   if( argc != 4 ) {
-      std::cerr<<"Usage: "<<argv[0]<<" [data_infile] [location_lst] [data_outname]"<<std::endl;
+   if( argc!=4 && argc!=5 ) {
+      std::cerr<<"Usage: "<<argv[0]<<" [data_infile] [location_lst] [data_outname] [keep loc #cols? (Y/N)]"<<std::endl;
       exit(-1);
    }
+	/* output same #colums with location_lst? */
+	bool samecol = true;
+	if( argc == 5 )
+		if( strcmp(argv[4],"Y") == 0 ) {
+			samecol=true;
+		} else {
+			samecol = false;
+		}
 
    /* read in data file */
    std::ifstream fin(argv[1]);
@@ -109,7 +119,7 @@ int main(int argc, char* argv[]) {
 		if( idata < idatau ) { // found
 			fout<<(*idata).name<<"\n"; nmatch++;
 		} else { // not found
-			fout<<loc.lon<<" "<<loc.lat<<std::endl;
+			if( samecol ) fout<<loc.lon<<" "<<loc.lat<<std::endl;
 		}
 	}
 	fout.close();

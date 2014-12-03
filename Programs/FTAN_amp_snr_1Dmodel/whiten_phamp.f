@@ -16,7 +16,7 @@ c ==========================================================
       subroutine filter4(f1,f2,f3,f4,dt,n,seis_in,
      1  ns,dom)
       implicit none
-      include 'fftw3.h'
+      include 'myfftw3.h'
       integer*4 npow,n,flag_whiten
       real*8    f1,f2,f3,f4,dt
       real*4    seis_in(400000)

@@ -66,7 +66,7 @@ c                             =2 - no final results
 c======================================================================
 
       implicit none
-      include 'fftw3.h'
+      include 'myfftw3.h'
       integer*4 n,npoints,nf,nfin,nfout1,ierr,nrow,ncol
       real*8    piover4,perc,taperl,tamp,arr1(8,100),arr2(7,100)
       real*8    t0,dt,delta,vmin,vmax,tmin,tmax,tresh,ffact,ftrig(100),tfact

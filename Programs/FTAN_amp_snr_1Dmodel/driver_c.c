@@ -9,9 +9,9 @@
 #include <math.h>
 #include "aftan.h"
 #include "mysac64.h"
-#include "/home/tianye/code/Programs/head/koftan.h"
-#include "/home/tianye/code/Programs/head/gl_const.h"
-#include "/home/tianye/code/Programs/head/mymacro.h"
+#include "koftan.h"
+#include "gl_const.h"
+#include "mymacro.h"
 
 #define SLEN 400000
 
@@ -256,7 +256,7 @@ notice that amp_snrs are always measured based on
   f2=1./tmax;
   f3=1./tmin;
   f4=1./tmin/1.25;
-//  filter4_(&f1,&f2,&f3,&f4,&dt,&n,sei,&n_am,&dom_am);
+  filter4_(&f1,&f2,&f3,&f4,&dt,&n,sei,&n_am,&dom_am);
 //  printf("%lf  %lf %lf\n",amp_rec[180],amp_rec[1000],amp_rec[1600]);
 //  printf("%d  %lf\n",n_am/2+1,dom_am);
 /* FTAN (without?) phase match filter. First Iteration. */

@@ -76,7 +76,7 @@ c                             =1 - some problems occures
 c                             =2 - no final results
 c======================================================================
       implicit none
-      include 'fftw3.h'
+      include 'myfftw3.h'
       integer*4 n,npoints,nf,nfin,nfout1,ierr,nrow,ncol,ntmp,cuttype
       real*8    piover4,perc,taperl,tamp,arr1(8,100),arr2(7,100)
       real*8    t0,dt,delta,vmin,vmax,tmin,tmax,tresh,ffact,ftrig(100),tfact
@@ -123,8 +123,8 @@ c rescale ffact and tresh
 c      ffact = ffact*2.0d0
 c      tresh = dsqrt(ffact)*tresh
 c automatic width of filters * factor ffact
-      alpha = ffact*20.0d0*dsqrt(delta/1000.0d0)
-c      alpha = ffact*20.0d0
+c      alpha = ffact*20.0d0*dsqrt(delta/1000.0d0)
+      alpha = ffact*20.0d0
 c trigger factor
       tfact = 1.5d0
 c  number of samples for tapering, left end
