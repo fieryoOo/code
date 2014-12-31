@@ -22,15 +22,15 @@ struct Map::Mimpl {
 
 	Mimpl( const char* inname, const Point<float> srcin = Point<float>() )
 		: fname(inname), src(srcin)
-		  , nlon(-12345), nlat(-12345), grd_lon(-12345.), grd_lat(-12345.) 
-		  , lonmin(-12345.), lonmax(-12345.), latmin(-12345.), latmax(-12345) {
+		  , nlon(NaN), nlat(NaN), grd_lon(NaN), grd_lat(NaN) 
+		  , lonmin(NaN), lonmax(NaN), latmin(NaN), latmax(NaN) {
 		  }
 
 
 	bool Load( bool autosrc = false ) {
 		/* check src location */
 		if( ! autosrc ) {
-			if( src.Lon() == -12345. || src.Lat() == -12345. ) return false;
+			if( src.Lon() == NaN || src.Lat() == NaN ) return false;
 		}
 		/* read in the map */
 		std::ifstream fin(fname.c_str());
@@ -52,7 +52,7 @@ struct Map::Mimpl {
 		/* load in all data */
 		for(std::string line; std::getline(fin, line); ) {
 			float lon, lat, data;
-			if( sscanf(line.c_str(), "%f %f %f", &lon, &lat, &data) != 3 ) {
+			if( sscanf(line.c_str(), "%f %f %f", &lon, &lat, &data) < 2 ) {
 				std::cerr<<"Warning(Map::Load): wrong format detected in file "<<fname<<std::endl;
 				continue;
 			}
@@ -84,11 +84,11 @@ struct Map::Mimpl {
 		return true;
 	}
 
-	void Hash() {
+	void Hash( const float grdlon, const float grdlat ) {
 		if( dataV.size() == 0 ) return;
 		/* grid/hash size */
 		//grd_lon = grd_lat = sqrt( (lonmax-lonmin) * (latmax-latmin) / sqrt((float)dataV.size()) );
-		grd_lon = grd_lat = 1.;
+		grd_lon = grdlon; grd_lat = grdlat;
 		nlon = (int)ceil( (lonmax-lonmin) / grd_lon ) + 1;
 		nlat = (int)ceil( (latmax-latmin) / grd_lat ) + 1;
 		dataM.Resize(nlon, nlat);
@@ -129,22 +129,23 @@ struct Map::Mimpl {
 
 
 /* -------------- con/destructors and assignment operators ----------------- */
-Map::Map( const char *inname ) 
+Map::Map( const char *inname, const float grdlon, const float grdlat )
 	: pimplM( new Mimpl(inname) ) {
 		if( ! pimplM->Load( true ) ) { // Load with auto-source
 			std::cerr<<"Error(Map::Map): Load failed!"<<std::endl;
 			exit(0);
 		}
-		pimplM->Hash();
+		pimplM->Hash( grdlon, grdlat );
 	}
 
-Map::Map( const char *inname, const Point<float>& srcin ) 
+
+Map::Map( const char *inname, const Point<float>& srcin, const float grdlon, const float grdlat ) 
 	: pimplM( new Mimpl(inname, srcin) ) {
 		if( ! pimplM->Load( false ) ) { // Load without auto-source
 			std::cerr<<"Error(Map::Map): Load failed!"<<std::endl;
 			exit(0);
 		}
-		pimplM->Hash();
+		pimplM->Hash( grdlon, grdlat );
 	}
 
 Map::Map( const Map& mp_other ) : pimplM( new Mimpl(*(mp_other.pimplM)) ) {}
@@ -169,6 +170,51 @@ Map::~Map() {}
 //	pimplM->src = src;
 //}
 
+
+/* ----- map boundaries ----- */
+float Map::LonMin() const { return pimplM->lonmin; }
+float Map::LonMax() const { return pimplM->lonmax; }
+float Map::LatMin() const { return pimplM->latmin; }
+float Map::LatMax() const { return pimplM->latmax; }
+
+/* ------------ compute number of points near the given location ------------ */
+float Map::NumberOfPoints(Point<float> rec, const float xhdis, const float yhdis, float& loneff, float& lateff) const {
+	/* references */
+	const Array2D< std::vector< DataPoint<float> > >& dataM = pimplM->dataM;
+	float lonmin = pimplM->lonmin, latmin = pimplM->latmin;
+	float grdlon = pimplM->grd_lon, grdlat = pimplM->grd_lat;;
+
+	// define computation area
+	int rowmin = ceil( (rec.Lon()-xhdis - lonmin) / grdlon );
+	if( rowmin < 0 ) rowmin = 0;
+	int rowmax = ceil( (rec.Lon()+xhdis - lonmin) / grdlon );
+	if( rowmax > dataM.NumRows() ) rowmax = dataM.NumRows();
+	int colmin = ceil( (rec.Lat()-yhdis - latmin) / grdlat );
+	if( colmin < 0 ) colmin = 0;
+	int colmax = ceil( (rec.Lat()+yhdis - latmin) / grdlat );
+	if( colmax > dataM.NumCols() ) colmax = dataM.NumCols();
+
+	// compute total number of points in given area
+	int Npoints = 0;
+	loneff = lateff = 0;
+	for(int irow=rowmin; irow<rowmax; irow++) {
+		for(int icol=colmin; icol<colmax; icol++) {
+			for( const auto& dpcur : dataM(irow, icol) ) {
+				loneff += dpcur.Lon(); lateff += dpcur.Lat();
+			}
+			Npoints += dataM(irow, icol).size();
+		}
+	}
+	if( Npoints > 0 ) {
+		loneff /= Npoints;
+		lateff /= Npoints;
+	} else {
+		loneff = lateff = NaN;
+	}
+
+	return Npoints;
+
+}
 
 /* ------------ compute average value on the point rec ------------ */
 float Map::PointAverage(Point<float> rec, float hdis, float& weit) {
@@ -201,6 +247,7 @@ float Map::PointAverage(Point<float> rec, float hdis, float& weit) {
 		for(int icol=colmin; icol<colmax; icol++) {
 			for(size_t idata=0; idata<dataM(irow, icol).size(); idata++) {
 				DataPoint<float> dpcur = dataM(irow, icol)[idata];
+				if( dpcur.Data() == NaN ) continue;
 				//distance from dataM(irow, icol).at(idata) to DPrec.
 				float xdis = ( rec.Lon() - dpcur.Lon() ) * dis_lon1D;
 				float ydis = ( rec.Lat() - dpcur.Lat() ) * dis_lat1D;
@@ -213,7 +260,7 @@ float Map::PointAverage(Point<float> rec, float hdis, float& weit) {
 			}
 		}
 	}
-	if(weit==0.) datasum = -12345.;
+	if(weit==0.) datasum = NaN;
 	else datasum /= weit;
 
 	return datasum;
@@ -267,6 +314,7 @@ DataPoint<float> Map::PathAverage(Point<float> rec, float lamda, float& perc) {
 			if( disEsrc + disErec > max_2a+20. ) continue; // 20. for estimating error
 			for(size_t idata=0; idata<dataM(irow, icol).size(); idata++) {
 				DataPoint<float> dpcur = dataM(irow, icol)[idata];
+				if( dpcur.Data() == NaN ) continue;
 				//distance from dataM(irow, icol).at(idata) to src/rec;
 				float dis_src = dpcur.Dis(); //pimplM->estimate_dist(src, dpcur);
 				float dis_rec = pimplM->estimate_dist(rec, dpcur);
@@ -284,7 +332,7 @@ DataPoint<float> Map::PathAverage(Point<float> rec, float lamda, float& perc) {
 			}
 		}
 	}
-	if(weit==0.) datasum = -12345.;
+	if(weit==0.) datasum = NaN;
 	else {
 		datasum /= weit;
 		perc = dismax>dis ? 1 : dismax/dis;
@@ -342,6 +390,7 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& per
 			if( disEsrc + disErec > max_2a+20. ) continue; // 20. for estimating error
 			for(size_t idata=0; idata<dataM(irow, icol).size(); idata++) {
 				DataPoint<float> dpcur = dataM(irow, icol)[idata];
+				if( dpcur.Data() == NaN ) continue;
 				//distance from dataM(irow, icol).at(idata) to src/rec;
 				float dis_src = dpcur.Dis(); //pimplM->estimate_dist(src, dpcur);
 				float dis_rec = pimplM->estimate_dist(rec, dpcur);
@@ -361,7 +410,7 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& per
 			}
 		}
 	}
-	if(weit==0.) datasum = -12345.;
+	if(weit==0.) datasum = NaN;
 	else datasum = weit/datasum;
 	perc = dismax>dis ? 1 : dismax/dis;
 	//return datasum;

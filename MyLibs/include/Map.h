@@ -66,8 +66,9 @@ public:
 
 class Map {
 public:
-   Map( const char *inname );
-   Map( const char *inname, const Point<float>& srcin );
+   //Map( const char *inname );
+   Map( const char *inname, const float grdlon = 1.0, const float grdlat = 1.0 );
+   Map( const char *inname, const Point<float>& srcin, const float grdlon = 1.0, const float grdlat = 1.0 );
    Map( const Map& );
    Map( Map&& );
    Map& operator= ( const Map& );
@@ -76,6 +77,19 @@ public:
 
 	/* ------------ set source location ------------ */
 	//void SetSource( const Point<float>& src );
+
+	/* ----- map boundaries ----- */
+	float LonMin() const;
+	float LonMax() const;
+	float LatMin() const;
+	float LatMax() const;
+
+	/* ------------ compute number of points near the given location ------------ */
+	float NumberOfPoints(Point<float> rec, const float xhdis, const float yhdis) const {
+		float loneff, lateff;
+		NumberOfPoints( rec, xhdis, yhdis, loneff, lateff );
+	}
+	float NumberOfPoints(Point<float> rec, const float xhdis, const float yhdis, float& loneff, float& lateff) const;
 
    /* ------------ compute average value on the point rec ------------ */
    float PointAverage(Point<float> Prec, float hdis ) {
@@ -98,6 +112,9 @@ public:
    }
    DataPoint<float> PathAverage_Reci(Point<float> Prec, float lamda, float& perc, const std::string outname = "");
   
+protected:
+	static constexpr float NaN = -12345.;
+
 private:
    struct Mimpl;
    std::unique_ptr<Mimpl> pimplM;

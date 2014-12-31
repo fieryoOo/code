@@ -585,6 +585,16 @@ void SacRec::Mul( const float mul ) {
    for(int i=0; i<shd.npts; i++) sig[i] *= mul;
 }
 
+void SacRec::Addf( const SacRec& sac2 ) {
+   if( !sig || !sac2.sig )
+		throw ErrorSR::EmptySig(FuncName);
+	if( shd.npts != sac2.shd.npts )
+		throw ErrorSR::SizeMismatch(FuncName, std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
+	const auto& sig2 = sac2.sig;
+   for(int i=0; i<shd.npts; i++) 
+		sig[i] += sig2[i];
+}
+
 void SacRec::Divf( const SacRec& sac2 ) {
    if( !sig || !sac2.sig )
 		throw ErrorSR::EmptySig(FuncName);
