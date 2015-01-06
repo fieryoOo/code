@@ -1,6 +1,6 @@
 /*
 This code investigate the quality of FTAN results by computing
-  1. a quality factor defined as a weighted-average of the SNR/amplitude in a given period band, and
+  1. a quality factor defined as a weighted-average of the SNR|amplitude in a given period band, and
   2. the weighted-averaged timeshift between the positive and the negative lags of each path. 
   Weights are defined based on the distance between measured and predicted dispersion curves.
   Output: (distance, azimuth, integrated_amp, and integrated_snr of positive and negative lags and

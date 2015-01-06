@@ -16,17 +16,22 @@ int main( int argc, char* argv[] ) {
 	}
 	bool isfirst=true;
 	SacRec sacsum;
-	for(std::string line; std::getline(fin, line); ) {
-		std::string sacname( line.begin(), line.begin()+line.find_first_of(" \n") );
+	int nadd=0;
+	for(std::string line; std::getline(fin, line); nadd++) {
+		std::size_t send = line.find_first_of(" ");
+		auto line_end = send==std::string::npos ? line.end() : line.begin()+send;
+		std::string sacname( line.begin(), line_end );
 		if( isfirst ) {
 			sacsum.Load(sacname);
+			isfirst = false;
 		} else {
 			SacRec saccur(sacname);
 			saccur.Load();
 			sacsum.Addf(saccur);
 		}
 	}
-
+	sacsum.Mul(1./nadd);
+	
    sacsum.Write(argv[2]);
    return 0;
 }
