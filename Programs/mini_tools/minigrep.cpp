@@ -197,6 +197,6 @@ int main( int argc, char const* argv[] ) {
 	greper.Grep( triggers.begin(), triggers.end(), outputs, 
 					 matchWholeLines, useAdjacentMatches, InvertMatch );
 	// output
-	for(auto line : outputs) std::cout<<line<<std::endl;
+	for(auto line : outputs) std::cout<<line<<"\n";
 	return 0;
 }

@@ -246,7 +246,7 @@ bool List(const char *dir, const char *pattern, int type, std::vector<std::strin
    //empty the input filelist
    filelist.clear();
    int outflag = 1; // if listing within current directory
-   if( type<2 && strcmp(dir, ".")==0 ) outflag=0; // path will not be printed
+   if( type<2 && (strcmp(dir, ".")==0||strcmp(dir, "./")==0) ) outflag=0; // path will not be printed
    //ignores '.' and '..' as FTS_SEEDOT is not set
    while ((file = fts_read(tree))) {
       switch (file->fts_info) { //current node
@@ -272,18 +272,22 @@ bool List(const char *dir, const char *pattern, int type, std::vector<std::strin
             }
       }
 
+		if( strcmp(file->fts_name,"") == 0 ) continue;	// skip empty name
       if (fnmatch(pattern, file->fts_name, FNM_PERIOD) == 0) {
-	 /*
+			/*
          if( sleng > bsize-PLENMAX ) {
             bsize += BLKSIZE;
             sblk = (char *) realloc (sblk, bsize * sizeof(char));
          }
          if(outflag) sleng += sprintf(&sblk[sleng], "%s\n", file->fts_path);
          else sleng += sprintf(&sblk[sleng], "%s\n", file->fts_name);
-	 */
-	 if(outflag) filelist.push_back(file->fts_path);
-	 else filelist.push_back(file->fts_name);
-	 //*nfile = *nfile+1;
+			*/
+			if(outflag) {
+				filelist.push_back(file->fts_path);
+			} else if( strcmp(file->fts_name, file->fts_path) != 0 ) {
+				filelist.push_back(file->fts_name);
+			}
+			//*nfile = *nfile+1;
       }
    }
 
