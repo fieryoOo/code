@@ -41,7 +41,7 @@ struct SacRec::SRimpl {
    void FFTW_F(fftw_plan plan, fftw_complex *out, int ns, float *seis, int n) {
       fftw_execute(plan);
       //pthread_mutex_lock(&fftlock);
-		#pragma opm critical
+		#pragma omp critical
 		{
       fftw_destroy_plan(plan);
 		}
@@ -62,7 +62,7 @@ struct SacRec::SRimpl {
       //pthread_mutex_lock(&fftlock);
 		fftw_plan plan;
 		#pragma omp critical
-		{
+      {
       plan = fftw_plan_dft_1d (ns, *in, *out, FFTW_BACKWARD, type); //FFTW_ESTIMATE / FFTW_MEASURE
       if( Fflag == 1 ) *planF = fftw_plan_dft_1d (ns, *out, *in, FFTW_FORWARD, type);
 		}
@@ -79,7 +79,7 @@ struct SacRec::SRimpl {
       //cleanup
       //pthread_mutex_lock(&fftlock);
 		#pragma omp critical
-		{
+      {
       fftw_destroy_plan(plan);
 		}
       //pthread_mutex_unlock(&fftlock);
@@ -593,6 +593,16 @@ int read_rec(int rec_flag, char *fname, int len, int *rec_b, int *rec_e, int *nr
 
 void SacRec::Mul( const float mul ) {
    for(int i=0; i<shd.npts; i++) sig[i] *= mul;
+}
+
+void SacRec::Addf( const SacRec& sac2 ) {
+   if( !sig || !sac2.sig )
+		throw ErrorSR::EmptySig(FuncName);
+	if( shd.npts != sac2.shd.npts )
+		throw ErrorSR::SizeMismatch(FuncName, std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
+	const auto& sig2 = sac2.sig;
+   for(int i=0; i<shd.npts; i++) 
+		sig[i] += sig2[i];
 }
 
 void SacRec::Divf( const SacRec& sac2 ) {

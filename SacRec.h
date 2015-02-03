@@ -72,6 +72,7 @@ public:
 
    /* ------------------------------ single-sac operations ------------------------------ */
    void Mul( const float mul );
+	void Addf( const SacRec& sac2 );
 	void Divf( const SacRec& sac2 );
 	void PullUpTo( const SacRec& sac2 );
    void ToAm() { ToAm(*this);	}
