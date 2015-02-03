@@ -35,7 +35,7 @@ typedef struct record
 }
 RECORD;
 
-#define NSTATION 2000
+#define NSTATION 3000
 #define NEVENTS 31
 #define NMONTH 100
 

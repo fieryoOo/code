@@ -8,11 +8,15 @@ using namespace std;
 
 main(int na, char *arg[])
 {
-  if (na!=7)
+  if (na!=7 && na!=8)
     {
-      cout<<"usage: Requesting_ASN [sta_list (as 'M12A TA')] [month_list (as '2008 6')] [label] [email] [name] [channel list]"<<endl;
+      cout<<"usage: Requesting_ASN [sta_list (as 'M12A TA')] [month_list (as '2008 6')] [label] [email] [name] [channel list] [TEST(optional)]"<<endl;
       return 0;
     }
+
+	bool isTesting = false;
+	if( na == 8 && strcmp(arg[7], "TEST")==0 )
+		isTesting = true;
   FILE *f1,*f2,*fout;
   int i, nch, year, year2, month, month2, day, day2, month_dn, day_num[12];
   char month_name[12][4], intemp[100], station[6], net[3];
@@ -102,6 +106,7 @@ main(int na, char *arg[])
            for(i=0;i<nch;i++) fprintf(fout,"%s %s %s %s\n", station, net, intemp, ch[i]);
         }
         fclose(fout);
+			if( isTesting ) return 1;
         system("cat requesting_email | mail -s 'Requesting Data' breq_fast@iris.washington.edu");
         cout<<"Request of "<<month_name[month]<<" "<<day<<"th "<<year<<" sent..."<<endl;
        }

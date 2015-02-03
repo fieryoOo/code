@@ -94,6 +94,10 @@ void FillStations() {
    }
    for (ist=0;;ist++) {
       if( !fgets(buff,300,fsta) ) break;
+		if( ist >= NSTATION ) {
+			cerr<<"Error(FillStations): #station exceeds the maximum. Increase NSTATION!"<<std::endl;
+			exit(-2);
+		}
       sdb->st[ist].flag = 1;
       sscanf(buff,"%s %f %f %d", sdb->st[ist].name, &(sdb->st[ist].lon), &(sdb->st[ist].lat), &(sdb->st[ist].flag) );
       //fprintf(stderr,"Station %s filled\n", sdb->st[ist].name,  sdb->st[ist].lon, sdb->st[ist].lat );

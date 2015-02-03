@@ -8,7 +8,8 @@
 
 #include <iostream>
 #include <sys/stat.h>
-#include "/home/tianye/code/Programs/head/mysac.h"
+#include "/projects/yeti4009/code/Programs/head/mysac.h"
+//#include "/home/tianye/code/Programs/head/mysac.h"
 
 using namespace std;
 
@@ -199,7 +200,7 @@ int main (int argn, char *argv[]) {
   SAC_HD shd,shd1;
 
   if (argn != 5) {
-    fprintf (stderr,"input [station.lst] [dir.lst] [type(COR or DCV)] [out.dir]\n");
+    fprintf (stderr,"input [sta.lst (sta lon lat)] [dir.lst (path/dir)] [type(COR or DCV)] [out.dir]\n");
     return 0;
     }
 
@@ -213,6 +214,7 @@ int main (int argn, char *argv[]) {
   sprintf(tstr,"mkdir -p %s\0" , argv[4]);
   system(tstr);
 
+	// read in stations
   if ((ff1 = fopen(argv[1],"r"))==NULL) {
     fprintf(stderr,"cannot open file %s\n",argv[1]);
     return 0;
@@ -230,8 +232,9 @@ int main (int argn, char *argv[]) {
      exit(0);
   }
 
+	// read in directories
   if ((ff1 = fopen(argv[2],"r"))==NULL) {
-    fprintf(stderr,"cannot open file %s\n",argv[1]);
+    fprintf(stderr,"cannot open file %s\n",argv[2]);
     return 0;
     }
   for (i=0;;i++) {

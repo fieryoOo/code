@@ -1,0 +1,52 @@
+# rdseed and evalresp excutables 
+rdsexe		/home/tianye/usr/bin/rdseed
+evrexe		/home/tianye/usr/bin/evalresp
+# station list (J23A -129.6825 +44.844 optional_flag)(flag controls which sta-pairs to be ccd) 
+stafname		/home/tianye/code/Programs/SEED2COR_parallel/SEED2COR_new_in_process/TEST/station.lst
+# SEED file list (down_US_ALL/OBS_BHZ_2012.FEB.29.203762.seed 2012 2 29) 
+seedfname	seed_US.lst
+# channel list
+chlst			LHZ BHZ #
+# target sampling rate
+sps			1
+# maximum allowed gap fraction in input sac record
+gapfrac		0.2
+# cut begining time in sec
+t1				1000
+# time length of daily records (in sec)
+tlen			84000
+# signal filter
+perl			5
+perh			80
+# temperal normalization method. (0: no norm, 1: onebit, 2: running average, 3: earthquake cutting)
+tnorm_flag	2
+# Earthquake filter (Eperl = -1 for no filter, no effect when tnorm_flag==1)
+Eperl			2
+Eperh			50
+# half len of time window for running average (no effect when tnorm_flag==1)
+timehlen		40
+# half len of frec window for whitenning (no norm if set to 0), set to -1. to use input smoothing file.
+frechlen		0.0002
+# input spectrum reshaping signal file (takes effect only when frechlen==-1)
+fwname		/home/tianye/code/Programs/SEED2COR/Stack.smooth
+# turn on/off (1/0) cross-correlation-time-length correction for amplitude
+ftlen			1
+# turn on/off (1/0) precursor signal checking
+fprcs			1
+# maximum memory fraction to be used.
+memomax		0.6
+# cross-correlation signal half length in sec
+lagtime		3000
+# allowed minimum time length for cross-correlation (takes effect only when ftlen = 1)
+mintlen		20000
+# delete original sac files after removing response when set to 1
+fdelosac		0
+# delete am&ph files after cross-correlation when set to 1
+fdelamph		0
+# skip flags: 2 = skip; 1 = skip upon existence of target file
+fskipesac	0
+fskipresp	0
+fskipamph	0
+fskipcrco	0
+# 0=monthly, 1=daily, 2=both
+CorOutflag	0

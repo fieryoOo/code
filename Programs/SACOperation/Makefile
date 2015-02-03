@@ -31,3 +31,6 @@ $(BIN3) : $(OBJS) $(BIN3).cpp
 
 clean:
 	rm -f $(OBJS) $(BIN1) $(BIN2) $(BIN3)
+
+install:
+	cp $(BIN1) /home/yeti4009/bin

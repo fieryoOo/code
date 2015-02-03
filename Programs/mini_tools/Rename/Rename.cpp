@@ -1,6 +1,7 @@
 #include "FileList.h"
 #include "FileHandler.h"
 #include <cstdio>
+#include <unistd.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -32,9 +33,14 @@ int main() {
 	}
 	fout.close();
 
+	// show results of the analysis and prompt for corrections;
+	std::cout<<"Please check the produced rename list ("<<listname<<") and make corrections\n";
+	usleep(2e6);
+	linein = "vi " + listname;
+	system(linein.c_str());
+
 	// prompt to continue;
-	std::cout<<"Please check the produced rename list "<<listname<<" and make corrections\n";
-	std::cout<<"Continue (Save any corrections before proceed)?";
+	std::cout<<"Continue moving (Save any corrections before proceed)?";
 	std::getline(std::cin, linein);
 	char c1 = linein.empty() ? 'N' : linein[0];
 	if( c1 != 'y' && c1 != 'Y' ) return -1;
