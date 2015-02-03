@@ -41,7 +41,10 @@ struct SacRec::SRimpl {
    void FFTW_F(fftw_plan plan, fftw_complex *out, int ns, float *seis, int n) {
       fftw_execute(plan);
       //pthread_mutex_lock(&fftlock);
+		#pragma opm critical
+		{
       fftw_destroy_plan(plan);
+		}
       //pthread_mutex_unlock(&fftlock);
       int k;
       for(k=0; k<n; k++) seis[k] = out[k][0];
@@ -57,8 +60,12 @@ struct SacRec::SRimpl {
 
       //measure plan using the allocated in/out blocks
       //pthread_mutex_lock(&fftlock);
-      fftw_plan plan = fftw_plan_dft_1d (ns, *in, *out, FFTW_BACKWARD, type); //FFTW_ESTIMATE / FFTW_MEASURE
+		fftw_plan plan;
+		#pragma omp critical
+		{
+      plan = fftw_plan_dft_1d (ns, *in, *out, FFTW_BACKWARD, type); //FFTW_ESTIMATE / FFTW_MEASURE
       if( Fflag == 1 ) *planF = fftw_plan_dft_1d (ns, *out, *in, FFTW_FORWARD, type);
+		}
       if( plan==nullptr || (Fflag==1 && *planF==nullptr) ) {
          fprintf(stderr,"Error(FFTW_B): fftw_plan creation failed!!\n");
          //pthread_mutex_unlock(&fftlock); exit(0);
@@ -71,7 +78,10 @@ struct SacRec::SRimpl {
       fftw_execute(plan);
       //cleanup
       //pthread_mutex_lock(&fftlock);
+		#pragma omp critical
+		{
       fftw_destroy_plan(plan);
+		}
       //pthread_mutex_unlock(&fftlock);
       //if( Fflag==0 ) fftw_free(*in);
 

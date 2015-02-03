@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
 					sac.Write( dinfo.osac_outname );
 
 					/* remove response and cut */
-					sac.RmRESP( dinfo.resp_outname, dinfo.perl*0.76923, dinfo.perh*1.42857 );
+					sac.RmRESP( dinfo.resp_outname, dinfo.perl*0.8, dinfo.perh*1.3 );
 					char evtime[15];
 					sprintf( evtime, "%04d%02d%02d000000\0", dinfo.year, dinfo.month, dinfo.day );
 					sac.ZoomToEvent( evtime, -12345., -12345., dinfo.t1, dinfo.tlen );
