@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+int GetSysinfo (long &MemAvail);
+
 /* prompt and continue in 'time' seconds if no input is received */
 void TimedContinue (int time);
 

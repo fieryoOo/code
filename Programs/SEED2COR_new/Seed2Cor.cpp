@@ -7,6 +7,7 @@
 #include "CCDatabase.h"
 #include "MyLogger.h"
 #include "MyOMP.h"
+#include "SysTools.h"
 #include <iostream>
 #include <sstream>
 
@@ -126,6 +127,7 @@ int main(int argc, char *argv[]) {
 
 			try { // handle current event
 				std::vector<SacRec> sacV;
+				sacV.reserve(dinfoV.size());
 				std::vector<std::stringstream> reportV( dinfoV.size() );
 				/* seed to fsac */
 				for( int ich=0; ich<dinfoV.size(); ich++ ) {
@@ -169,6 +171,7 @@ int main(int argc, char *argv[]) {
 					SacRec sac_am, sac_ph;
 					sac.ToAmPh( sac_am, sac_ph );
 					sac = std::move(sac_am);
+					//sac = sac_am;
 					sac_ph.Write( dinfo.fsac_outname + ".ph" );
 				}
 				// normalize

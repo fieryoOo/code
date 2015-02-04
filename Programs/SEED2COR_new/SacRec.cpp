@@ -1,4 +1,5 @@
 #include "SacRec.h"
+#include "MyLogger.h"
 //#include "SysTools.h"
 #include <fftw3.h>
 #include <cstdio>
@@ -418,6 +419,7 @@ namespace System {
 };
 
 
+extern MyLogger logger;
 /* ---------------------------------------- constructors and operators ---------------------------------------- */
 /* default constructor */
 SacRec::SacRec( std::ostream& reportin )
@@ -441,7 +443,11 @@ SacRec::SacRec( const SacRec& recin )
 /* move constructor */
 SacRec::SacRec( SacRec&& recin )
  : fname(std::move(recin.fname)), report(recin.report),
-	shd(std::move(recin.shd)), sig( std::move(recin.sig) ), pimpl( std::move(recin.pimpl) ) {
+	shd(recin.shd), pimpl( std::move(recin.pimpl) ) {
+   if ( recin.sig ) {
+      sig = std::move(recin.sig);
+		//recin.sig.reset(nullptr);
+	}
 	recin.shd = sac_null;
 	recin.report = &(std::cerr);
 }
@@ -452,18 +458,23 @@ SacRec& SacRec::operator= ( const SacRec& recin ) {
    fname = recin.fname; report = recin.report;
 	shd = recin.shd;
    int npts=recin.shd.npts; sig.reset(new float[npts]); 
-   std::copy(recin.sig.get(), recin.sig.get()+npts, sig.get()); 
+   std::copy(recin.sig.get(), recin.sig.get()+npts, sig.get());
 	return *this;
 }
 
 /* move ass operator */
 SacRec& SacRec::operator= ( SacRec&& recin ) {
+	//logger.Hold( WARNING, "In move ass ", FuncName );
 	if( this == &recin ) return *this;
    pimpl = std::move(recin.pimpl);
    fname = std::move(recin.fname);
 	report = recin.report;	recin.report = &(std::cerr);
-   shd = std::move(recin.shd); recin.shd = sac_null;
-   sig = std::move(recin.sig);
+   shd = recin.shd; recin.shd = sac_null;
+	if ( recin.sig ) {
+		sig = std::move(recin.sig);
+		recin.sig.reset(nullptr);
+	}
+	//recin.~SacRec();
 	return *this;
 }
 
@@ -872,6 +883,7 @@ void SacRec::ToAmPh( SacRec& sac_am, SacRec& sac_ph ) {
       amp[i] = sqrt(cur[0]*cur[0] + cur[1]*cur[1]);
 		pha[i] = atan2(cur[1], cur[0]);
    }
+   fftw_free(s); fftw_free(sf);
    sac_am.sig.reset(amp);
 	sac_ph.sig.reset(pha);
 
@@ -1217,45 +1229,67 @@ void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std
    sscanf(shd.kcmpnm, "%s", ch);
    sscanf(shd.knetwk, "%s", net);
    sprintf(buff, "%s %s %s %4d %3d %f %f %d -f %s -v >& /dev/null", evrexe.c_str(), sta, ch, shd.nzyear, shd.nzjday, f1, f4, nf, fresp.c_str());
-   system(buff);
+	// define all variables to be used in the critical section
    char nameam[50], nameph[50];
    sprintf(nameam, "AMP.%s.%s.*.%s", net, sta, ch);
    sprintf(nameph,"PHASE.%s.%s.*.%s", net, sta, ch);
+   double freq[nf], amp[nf], pha[nf];
+	bool openA=false, openP=false;
+	int sizeA=0, sizeP=0;
+	#pragma omp critical
+	{
+   system(buff);
    // find am file
    FILE *fam = nullptr, *fph = nullptr;
    std::vector<std::string> list;
    System::List(".", nameam, 0, list);
-   if( list.size()!=1 )
-      throw ErrorSR::ExternalError( FuncName, std::to_string(list.size()) + " AMP file(s) found");
-   sscanf(list.at(0).c_str(), "%s", nameam);
-   if( (fam = fopen(nameam, "r")) == nullptr )
-		throw ErrorSR::BadFile( FuncName, "reading from " + std::string(nameam) );
+	sizeA = list.size();
+	if( sizeA == 1 ) {
+		sscanf(list.at(0).c_str(), "%s", nameam);
+		fam = fopen(nameam, "r");
+		if( fam ) openA = true;
+	}
    // find ph file
    System::List(".", nameph, 0, list);
-   if( list.size()!=1 )
-      throw ErrorSR::ExternalError( FuncName, std::to_string(list.size()) + " PHASE file(s) found");
-   sscanf(list.at(0).c_str(), "%s", nameph);
-   if( (fph = fopen(nameph, "r")) == nullptr )
-		throw ErrorSR::BadFile( FuncName, "reading from " + std::string(nameph) );
-   // read in am and ph data
-   double pi=4*atan(1.0), pio180=pi/180.;
-   double freq[nf], dtmp, amp[nf], pha[nf];
-   int i = 0;
-	while(i<nf) {
-		if(fgets(buff, 300, fam)==nullptr) break;
-		sscanf(buff, "%lf %lf", &freq[i], &amp[i]);
-		if(fgets(buff, 300, fph)==nullptr) break;
-		sscanf(buff, "%lf %lf", &dtmp, &pha[i]);
-		if(dtmp!=freq[i]) {
-			(*report)<<"incompatible AMP - PHASE pair!"<<std::endl;
-			continue;
+	sizeP = list.size();
+   if( sizeP == 1 ) {
+		sscanf(list.at(0).c_str(), "%s", nameph);
+		fph = fopen(nameph, "r");
+		if( fph ) openP = true;
+	}
+	// proceed further only if all succed!
+	if( sizeA==1 && sizeP==1 && openA && openP ) {
+		// read in am and ph data
+		double pi=4*atan(1.0), pio180=pi/180., dtmp;
+		int i = 0;
+		while(i<nf) {
+			if(fgets(buff, 300, fam)==nullptr) break;
+			sscanf(buff, "%lf %lf", &freq[i], &amp[i]);
+			if(fgets(buff, 300, fph)==nullptr) break;
+			sscanf(buff, "%lf %lf", &dtmp, &pha[i]);
+			if(dtmp!=freq[i]) {
+				(*report)<<"incompatible AMP - PHASE pair!"<<std::endl;
+				continue;
+			}
+			amp[i] *= 0.000000001;
+			pha[i] *= pio180;
+			i++;
 		}
-		amp[i] *= 0.000000001;
-      pha[i] *= pio180;
-      i++;
-   }
-   fclose(fam); fclose(fph);
-   System::fRemove(nameam); System::fRemove(nameph);
+	}
+	if( openA ) fclose(fam); 
+	if( openP ) fclose(fph);
+	if( sizeA==1 ) System::fRemove(nameam); 
+	if( sizeP==1 ) System::fRemove(nameph);
+	}
+	// throw exceptions if failed
+	if( sizeA != 1 )
+		throw ErrorSR::ExternalError( FuncName, std::to_string(sizeA) + " AMP file(s) found");
+	if( ! openA )
+		throw ErrorSR::BadFile( FuncName, "reading from " + std::string(nameam) );
+	if( sizeP != 1 )
+		throw ErrorSR::ExternalError( FuncName, std::to_string(sizeP) + " PHASE file(s) found");
+	if( ! openP )
+		throw ErrorSR::BadFile( FuncName, "reading from " + std::string(nameph) );
    // remove trend ( and mean )
    RTrend();
    // run rmresponse
