@@ -121,7 +121,11 @@ char *Seed2Sac(int ne, int ns, char *nseed, int *nfile, int ithread) {
    fprintf(ff,"\n");                             /* summary file */
    fprintf(ff,"%s\n", sdb->st[ns].name );        /* station list */
    fprintf(ff,"%s\n", ch );                      /* channel list */
-   fprintf(ff,"\n");                             /* network list */
+	if( strcmp(sdb->st[ns].net, "#") == 0 ) {	 /* network list */
+		fprintf(ff,"\n");
+	} else {
+		fprintf(ff,"%s\n", sdb->st[ns].net);
+	}
    fprintf(ff,"\n");                             /* Loc Ids */
    fprintf(ff,"1\n");                            /* out format */
    fprintf(ff,"N\n");                            // new version!!!!!!!!!!
@@ -142,7 +146,11 @@ char *Seed2Sac(int ne, int ns, char *nseed, int *nfile, int ithread) {
    system(str);
 
    /*---------- mv response file -----------*/   
-   sprintf(str, "RESP.*.%s.*.%s", sdb->st[ns].name, ch);
+	if( strcmp(sdb->st[ns].net, "#") == 0 ) {	// empty network
+		sprintf(str, "RESP.*.%s.*.%s", sdb->st[ns].name, ch);
+	} else {
+		sprintf(str, "RESP.%s.%s.*.%s", sdb->st[ns].net, sdb->st[ns].name, ch);
+	}
    int nlist = 0;
    char *list = List(".", str, 0, &nlist); //list RESP files in the current depth
    if(list==NULL) {

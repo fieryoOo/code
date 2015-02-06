@@ -38,8 +38,8 @@ bool CompareLon ( const StaInfo& s1, const StaInfo& s2 ) { return (s1.lon<s2.lon
 
 
 int main(int argc, char* argv[]) {
-   if( argc!=3 ) {
-      std::cerr<<"Usage: "<<argv[0]<<" [sta_list_in] [sta_list_out]"<<std::endl;
+   if( argc!=4 ) {
+      std::cerr<<"Usage: "<<argv[0]<<" [sta_list_in] [sta_list_out] [remove confliction? (0=retain;1=remove;2=retain the first)]"<<std::endl;
       exit(-1);
    }
 
@@ -64,22 +64,42 @@ int main(int argc, char* argv[]) {
    std::cout<<"   "<<staV.size()<<" stations read in."<<std::endl;
 	if( staV.size() == 0 ) exit(-3);
 
+	/* confliction handling? */
+	int hconf = atoi(argv[3]);
+	bool remove1st = (hconf==1);
+	bool remove2nd = (hconf!=0);
+
 	/* brute-force search for now */
-	for( auto ista1=staV.begin(); ista1<staV.end(); ista1++ ) {
+	for( auto ista1=staV.begin(); ista1<staV.end(); ) {
 		const auto& sta1 = *ista1;
+		bool cflctDetected = false;
 		for( auto ista2=ista1+1; ista2<staV.end(); ) {
 			const auto& sta2 = *ista2;
-			if( sta1.name == sta2.name ) {
-				if( sta1.IsSameLocation( sta2 ) ) {
-					std::cout<<"   station ("<<(*ista2)<<") erased!"<<std::endl;
-					ista2 = staV.erase(ista2);
+			if( sta1.name == sta2.name ) {	// same sta name
+				// check for confliction
+				bool rmsta2 = remove2nd;	// remove_conflictions or
+				if( sta1.IsSameLocation( sta2 ) ) {	// same location
+					rmsta2 = true;	// remove the second sta
 				} else {
+					cflctDetected = true;
 					std::cerr<<"Warning(main): name confliction detected for "<<sta1<<"  -  "<<sta2<<std::endl;
+				}
+				// remove station 2
+				if( rmsta2 ) {
+               std::cout<<"   station 2 ("<<(*ista2)<<") erased!"<<std::endl;
+               ista2 = staV.erase(ista2);
+				} else {
 					ista2++;
 				}
 			} else {
 				ista2++;
 			}
+		}
+		if( cflctDetected && remove1st ) {
+			std::cout<<"   station 1 ("<<(*ista1)<<") erased!"<<std::endl;
+			ista1 = staV.erase(ista1);
+		} else {
+			ista1++;
 		}
 	}
    std::cout<<"   "<<staV.size()<<" stations left."<<std::endl;

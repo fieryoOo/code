@@ -15,7 +15,7 @@ FC = gfortran
 CC = g++
 ICC = icpc
 
-DBG = -g
+DBG = -O3 #-g
 
 all : $(EXECUTABLE)
 

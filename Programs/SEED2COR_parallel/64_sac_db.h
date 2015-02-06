@@ -20,6 +20,7 @@ typedef struct station
   int flag;
   float lat, lon;
   char name[10];
+  char net[10];
 }
 STATION;
 

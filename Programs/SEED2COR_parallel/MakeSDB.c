@@ -85,6 +85,14 @@ void FillMonths() {
    cout<<sdb->nmo<<" months filled"<<endl;
 }
 
+bool isInteger(const char* s) {
+	bool NDdetected = false;
+	int i;
+	for(i=0; s[i]!='\0'; i++) {
+		if( ! std::isdigit(s[i]) ) NDdetected = true;
+	}
+   return (i>0 && !NDdetected);
+}
 void FillStations() {
    FILE *fsta;
    int ist;
@@ -99,8 +107,16 @@ void FillStations() {
 			exit(-2);
 		}
       sdb->st[ist].flag = 1;
-      sscanf(buff,"%s %f %f %d", sdb->st[ist].name, &(sdb->st[ist].lon), &(sdb->st[ist].lat), &(sdb->st[ist].flag) );
-      //fprintf(stderr,"Station %s filled\n", sdb->st[ist].name,  sdb->st[ist].lon, sdb->st[ist].lat );
+		sprintf(sdb->st[ist].net, "#");
+      int ird = sscanf(buff,"%s %f %f %s %d", sdb->st[ist].name, &(sdb->st[ist].lon), &(sdb->st[ist].lat), sdb->st[ist].net,  &(sdb->st[ist].flag) );
+		if( ird < 3 ) {
+			cerr<<"Error(FillStations): format error(sta lon lat net[optional] flag[optional]) !"<<endl;
+			exit(-2);
+		} else if( ird==4 && isInteger(sdb->st[ist].net) ) {
+			sdb->st[ist].flag = atoi(sdb->st[ist].net);
+			sprintf(sdb->st[ist].net, "#");
+		}
+      //fprintf(stderr,"Station %s filled: %f %f %s %d\n", sdb->st[ist].name,  sdb->st[ist].lon, sdb->st[ist].lat, sdb->st[ist].net, sdb->st[ist].flag );
    }
    fclose(fsta);
    sdb->nst = ist;
