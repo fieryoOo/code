@@ -24,6 +24,7 @@ CCDatabase::CCDatabase( const std::string& fname ) {
 /* fill dinfo with parameters in CCParams */
 void CCDatabase::FillDInfo() {
 	dinfo.rdsexe = CCParams.rdsexe;
+	dinfo.evrexe = CCParams.evrexe;
 	dinfo.sps = CCParams.sps;
 	dinfo.perl = CCParams.perl;
 	dinfo.perh = CCParams.perh;

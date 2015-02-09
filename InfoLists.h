@@ -33,7 +33,7 @@ struct DailyInfoData {
 	SeedInfo seed;
 	StaInfo sta;
 
-	std::string rdsexe;
+	std::string rdsexe, evrexe;
 	std::string chname;
 	std::string osac_outname, fsac_outname;
 	std::string rec_outname, resp_outname;

@@ -10,9 +10,11 @@
 #include "SysTools.h"
 #include <iostream>
 #include <sstream>
+#include <vector>
+#include <deque>
 
 /* normalize all sac files in sacV (simultaneously if SyncNorm==true) */
-void TNormAll( std::vector<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, bool SyncNorm ) {
+void TNormAll( std::deque<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, bool SyncNorm ) {
 	if( sacV.empty() ) return;
 	if( sacV.size()!=dinfoV.size() )
 		throw std::runtime_error("Error(TNormAll): size mismatch ("+std::to_string(sacV.size())+" - "+std::to_string(dinfoV.size()));
@@ -58,7 +60,7 @@ void TNormAll( std::vector<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, 
 }
 
 /* normalize and apply taper */
-void FNormAll( std::vector<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, bool SyncNorm ) {
+void FNormAll( std::deque<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, bool SyncNorm ) {
 	if( sacV.empty() ) return;
 	if( sacV.size()!=dinfoV.size() )
 		throw std::runtime_error("Error(FNormAll): size mismatch ("+std::to_string(sacV.size())+" - "+std::to_string(dinfoV.size()));
@@ -126,8 +128,9 @@ int main(int argc, char *argv[]) {
 			if( !got ) break;
 
 			try { // handle current event
-				std::vector<SacRec> sacV;
-				sacV.reserve(dinfoV.size());
+				//std::vector<SacRec> sacV;
+				std::deque<SacRec> sacV;
+				//sacV.reserve(dinfoV.size());
 				std::vector<std::stringstream> reportV( dinfoV.size() );
 				/* seed to fsac */
 				for( int ich=0; ich<dinfoV.size(); ich++ ) {
@@ -150,7 +153,7 @@ int main(int argc, char *argv[]) {
 					sac.Write( dinfo.osac_outname );
 
 					/* remove response and cut */
-					sac.RmRESP( dinfo.resp_outname, dinfo.perl*0.8, dinfo.perh*1.3 );
+					sac.RmRESP( dinfo.resp_outname, dinfo.perl*0.8, dinfo.perh*1.3, dinfo.evrexe );
 					char evtime[15];
 					sprintf( evtime, "%04d%02d%02d000000\0", dinfo.year, dinfo.month, dinfo.day );
 					sac.ZoomToEvent( evtime, -12345., -12345., dinfo.t1, dinfo.tlen );
@@ -196,7 +199,7 @@ int main(int argc, char *argv[]) {
 			} // current event done
 		} // main while loop
 		} // parallel region E
-
+		logger.Hold( INFO, "All threads finished.", FuncName );
 	} catch ( std::exception& e ) {
 		logger.Hold(FATAL, e.what(), FuncName);
 		return -2;

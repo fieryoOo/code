@@ -58,6 +58,8 @@ struct SacRec::SRimpl {
       ns = (int)pow(2,ns); *nso = ns;
       *in = (fftw_complex *) fftw_malloc ( ns * sizeof(fftw_complex) );//fftw_alloc_complex(ns);
       *out = (fftw_complex *) fftw_malloc ( ns * sizeof(fftw_complex) );//fftw_alloc_complex(ns);
+		if( in==nullptr || out==nullptr )
+			throw ErrorSR::MemError( FuncName, "fftw_malloc failed!");
 
       //measure plan using the allocated in/out blocks
       //pthread_mutex_lock(&fftlock);
@@ -437,6 +439,8 @@ SacRec::SacRec( const std::string& fnamein, std::ostream& reportin )
 SacRec::SacRec( const SacRec& recin )
  : fname(recin.fname), report(recin.report),
 	shd(recin.shd), sig(new float[recin.shd.npts]), pimpl( new SRimpl(*(recin.pimpl)) ) { 
+	if( ! sig )
+		throw ErrorSR::MemError( FuncName, "new failed!");
    std::copy(recin.sig.get(), recin.sig.get()+recin.shd.npts, sig.get()); 
 }
 
@@ -457,7 +461,9 @@ SacRec& SacRec::operator= ( const SacRec& recin ) {
    pimpl.reset( new SRimpl(*(recin.pimpl)) );
    fname = recin.fname; report = recin.report;
 	shd = recin.shd;
-   int npts=recin.shd.npts; sig.reset(new float[npts]); 
+   int npts=recin.shd.npts; sig.reset(new float[npts]);
+	if( ! sig )
+		throw ErrorSR::MemError( FuncName, "new failed!");
    std::copy(recin.sig.get(), recin.sig.get()+npts, sig.get());
 	return *this;
 }
@@ -504,6 +510,8 @@ void SacRec::Load () {
    fsac.read( reinterpret_cast<char *>(&shd), sizeof(SAC_HD) );
    //sig = std::make_shared<float>( new float[shd.npts*sizeof(float)] );
    float* sigtmp = new float[shd.npts];
+	if( sigtmp == nullptr )
+		throw ErrorSR::MemError( FuncName, "new failed!");
    fsac.read( reinterpret_cast<char *>(sigtmp), sizeof(float)*shd.npts );
    fsac.close();
    sig = std::unique_ptr<float[]>(sigtmp);
@@ -794,6 +802,8 @@ void SacRec::Smooth( float timehlen, SacRec& sacout ) const {
 	/* resize sacout.sig */
 	sacout.shd = shd;
 	sacout.sig.reset( new float[shd.npts] );
+	if( ! sig )
+		throw ErrorSR::MemError( FuncName, "new failed!");
 
 	/* copy and compute abs of the signal into sigw */
    int i, j, wb, we, n = shd.npts;
@@ -878,6 +888,8 @@ void SacRec::ToAmPh( SacRec& sac_am, SacRec& sac_ph ) {
    //forming amplitude spectrum
    int nk = ns/2 + 1;
    float *amp = new float[nk], *pha = new float[nk];
+	if( amp==nullptr || pha==nullptr )
+		throw ErrorSR::MemError( FuncName, "new failed!");
    for(int i=0; i<nk; i++) {
       fftw_complex& cur = sf[i];
       amp[i] = sqrt(cur[0]*cur[0] + cur[1]*cur[1]);
@@ -981,6 +993,8 @@ void SacRec::cut( float tb, float te, SacRec& sac_result ) {
 										 "/" + std::to_string(ne) + "/" + std::to_string(shd.npts) );
    int nptsnew = ne - nb + 1;
    float* signew = (float *) calloc ( nptsnew, sizeof(float) );
+	if( signew == nullptr )
+		throw ErrorSR::MemError( FuncName, "calloc failed!");
    // define start positions
    int inew, iold;
    if( nb < 0 ) { inew = -nb; iold = 0; }
@@ -1023,6 +1037,8 @@ void SacRec::merge( SacRec sacrec2 ) {
 
    /* allocate new space */
    std::unique_ptr<float[]> sig0(new float[N]);
+	if( ! sig0 )
+		throw ErrorSR::MemError( FuncName, "new failed!");
    std::fill(&(sig0[0]), &(sig0[N]), std::numeric_limits<float>::max()); // initialize the array to max float
    //for (j=0;j<N;j++) sig0[j] = 1.e30;
    //std::copy(&(sig1[0]), &(sig1[0])+5, &(sig0[0]));
@@ -1315,6 +1331,8 @@ void SacRec::Resample( float sps ) {
    int nptst = (int)floor((shd.npts-1)*shd.delta*sps+0.5)+10;
    float nb;
    std::unique_ptr<float[]> sig2(new float[nptst]);
+	if( ! sig2 )
+		throw ErrorSR::MemError( FuncName, "new failed!");
    //if( (*sig2 = (float *) malloc (nptst * sizeof(float)))==nullptr ) perror("malloc sig2");
    long double fra1, fra2;
    nb = ceil((shd.nzmsec*0.001+shd.b)*sps);
