@@ -62,7 +62,7 @@ public:
 		int ithread = thread_num>=0&&thread_num<_messages.size() ? 
 						  thread_num : omp_get_thread_num();
 		auto& msgV = _messages.at( ithread );
-		#pragma omp critical
+		#pragma omp critical(logger)
 		{
 		for( auto& msg : msgV ) {
 			std::string stmp = msg.funcname.empty() ? "" : msg.funcname+" ";

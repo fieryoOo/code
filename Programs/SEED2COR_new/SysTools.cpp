@@ -155,7 +155,8 @@ void Move (const char *oldname, const char *newname) {
    int errsv = errno;
    if( errsv == 2 ) return; // old file not exist
    if( errsv == 21 || errsv == 39 ) { // newfile is a directory
-      perror(newname);
+		std::string strtmp = "SysTools::Move: "+std::string(newname)+" is a directory";
+      perror( strtmp.c_str() );
       char crctname[PLENMAX];
       sprintf(crctname, "%s/%s", newname, oldname);
       Move(oldname, crctname); return;
@@ -174,7 +175,8 @@ bool wMove (const char *odir, const char *pattern, const char *tdir, std::vector
    //char *list = List(odir, pattern, 0, nfile);
    //if(list==NULL) return NULL;
    std::vector<std::string> list;
-   if( ! List(odir, pattern, 0, list) ) return false;
+	if( ! List(odir, pattern, 0, list) ) return false;
+   //if( ! List(odir, pattern, 0, list) ) return false;
    //move and rename;
    char *filelst = NULL;
    //if( retlst == 1 ) filelst = new char[strlen(list) + *nfile*(strlen(tdir)+3)];
@@ -246,44 +248,50 @@ bool List(const char *dir, const char *pattern, int type, std::vector<std::strin
    //empty the input filelist
    filelist.clear();
    int outflag = 1; // if listing within current directory
-   if( type<2 && strcmp(dir, ".")==0 ) outflag=0; // path will not be printed
+   if( type<2 && (strcmp(dir, ".")==0||strcmp(dir, "./")==0) ) outflag=0; // path will not be printed
    //ignores '.' and '..' as FTS_SEEDOT is not set
-   while ((file = fts_read(tree))) {
-      switch (file->fts_info) { //current node
-         case FTS_DNR: // is a non-readable dir
-         case FTS_ERR: // has common errors
-         case FTS_NS: // has no stat info
-         case FTS_DC: // causes cycle
-            perror(file->fts_path);
-         case FTS_DP: // is a post-order dir
-            continue; //skip all above cases
+	while ((file = fts_read(tree))) {
+		std::string strtmp;
+		switch (file->fts_info) { //current node
+			case FTS_DNR: // is a non-readable dir
+			case FTS_ERR: // has common errors
+			case FTS_NS: // has no stat info
+			case FTS_DC: // causes cycle
+				//strtmp = "SysTools::List: "+std::string(file->fts_path)+" causes cycle!";
+				//perror( strtmp.c_str() );
+			case FTS_DP: // is a post-order dir
+				continue; //skip all above cases
 
-         case FTS_D: // is a directory
-            if(file->fts_level>0) switch(type) {
-                case 0:
-                   fts_set(tree, file, FTS_SKIP); //no descend
-                   continue; // and skip
-                case 1:
-                   fts_set(tree, file, FTS_SKIP); //no descend
-                   break; // and stop switch
-                case 2:
-                   continue; //skip directories
-                case 3:;
-            }
-      }
+			case FTS_D: // is a directory
+				if(file->fts_level>0) switch(type) {
+					case 0:
+						fts_set(tree, file, FTS_SKIP); //no descend
+						continue; // and skip
+					case 1:
+						fts_set(tree, file, FTS_SKIP); //no descend
+						break; // and stop switch
+					case 2:
+						continue; //skip directories
+					case 3:;
+				}
+		}
 
-      if (fnmatch(pattern, file->fts_name, FNM_PERIOD) == 0) {
-	 /*
-         if( sleng > bsize-PLENMAX ) {
+		if( strcmp(file->fts_name,"") == 0 ) continue;	// skip empty name
+		if (fnmatch(pattern, file->fts_name, FNM_PERIOD) == 0) {
+			/*
+				if( sleng > bsize-PLENMAX ) {
             bsize += BLKSIZE;
             sblk = (char *) realloc (sblk, bsize * sizeof(char));
          }
          if(outflag) sleng += sprintf(&sblk[sleng], "%s\n", file->fts_path);
          else sleng += sprintf(&sblk[sleng], "%s\n", file->fts_name);
-	 */
-	 if(outflag) filelist.push_back(file->fts_path);
-	 else filelist.push_back(file->fts_name);
-	 //*nfile = *nfile+1;
+			*/
+			if(outflag) {
+				filelist.push_back(file->fts_path);
+			} else if( strcmp(file->fts_name, file->fts_path) != 0 ) {
+				filelist.push_back(file->fts_name);
+			}
+			//*nfile = *nfile+1;
       }
    }
 

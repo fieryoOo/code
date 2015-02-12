@@ -1,7 +1,7 @@
 INST_DIR = $(HOME)/bin
 EXECUTABLE  = Seed2Cor
 
-cflags = -std=c++0x -O3 -fopenmp #-Wall -I${HOME}/usr/include
+cflags = -std=c++0x -g -fopenmp #-Wall -I${HOME}/usr/include
 
 LDLIBS = -L${HOME}/usr/lib -lfftw3 -fopenmp
 
