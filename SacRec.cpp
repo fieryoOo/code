@@ -16,6 +16,8 @@
 #include <algorithm>
 //#include <pthread.h>
 
+//#include "SysTools.h"
+//extern MEMO memo;
 
 /* ---------------------------------------- Pimpl handle struct ---------------------------------------- */
 struct SacRec::SRimpl {
@@ -42,7 +44,7 @@ struct SacRec::SRimpl {
    void FFTW_F(fftw_plan plan, fftw_complex *out, int ns, float *seis, int n) {
       fftw_execute(plan);
       //pthread_mutex_lock(&fftlock);
-		#pragma omp critical
+		#pragma omp critical(fftw)
 		{
       fftw_destroy_plan(plan);
 		}
@@ -52,36 +54,39 @@ struct SacRec::SRimpl {
       //for(k=0; k<n; k+=1000) if(seis[k] != 0.) printf("%d %f\n", k, seis[k]);
    }
    // backward FFT
-   void FFTW_B(int type, float *seis, int n, fftw_complex **in, fftw_complex **out, int *nso, fftw_plan *planF, int Fflag) {
+   void FFTW_B(int type, float *seis, int n, fftw_complex **in, fftw_complex **out, int *nso, fftw_plan *planF = nullptr) {
       int ns = (int)(log((double)n)/log(2.))+1;
       //if(ns<13) ns = 13;
       ns = (int)pow(2,ns); *nso = ns;
       *in = (fftw_complex *) fftw_malloc ( ns * sizeof(fftw_complex) );//fftw_alloc_complex(ns);
       *out = (fftw_complex *) fftw_malloc ( ns * sizeof(fftw_complex) );//fftw_alloc_complex(ns);
-		if( in==nullptr || out==nullptr )
+		if( *in==nullptr || *out==nullptr )
 			throw ErrorSR::MemError( FuncName, "fftw_malloc failed!");
 
       //measure plan using the allocated in/out blocks
       //pthread_mutex_lock(&fftlock);
 		fftw_plan plan;
-		#pragma omp critical
+		#pragma omp critical(fftw)
       {
       plan = fftw_plan_dft_1d (ns, *in, *out, FFTW_BACKWARD, type); //FFTW_ESTIMATE / FFTW_MEASURE
-      if( Fflag == 1 ) *planF = fftw_plan_dft_1d (ns, *out, *in, FFTW_FORWARD, type);
+      if( planF ) *planF = fftw_plan_dft_1d (ns, *out, *in, FFTW_FORWARD, type);
 		}
-      if( plan==nullptr || (Fflag==1 && *planF==nullptr) ) {
+		/* comparing plan to null. Is it a defined behavior
+      if( plan==nullptr || (planF && *planF==nullptr) ) {
          fprintf(stderr,"Error(FFTW_B): fftw_plan creation failed!!\n");
          //pthread_mutex_unlock(&fftlock); exit(0);
       }
+		*/
       //pthread_mutex_unlock(&fftlock);
       //initialize input array and excute
       memset(*in, 0, ns*sizeof(fftw_complex));
       int k;
       for(k=1; k<n; k++) (*in)[k][0] = seis[k];
       fftw_execute(plan);
+		if( !planF ) fftw_free(*in);
       //cleanup
       //pthread_mutex_lock(&fftlock);
-		#pragma omp critical
+		#pragma omp critical(fftw)
       {
       fftw_destroy_plan(plan);
 		}
@@ -276,7 +281,7 @@ struct SacRec::SRimpl {
       //backward FFT: s ==> sf
       int ns;
       fftw_complex *s, *sf;
-      FFTW_B(FFTW_ESTIMATE, seis_in, n, &s, &sf, &ns, &plan1, 1);
+      FFTW_B(FFTW_ESTIMATE, seis_in, n, &s, &sf, &ns, &plan1);
       //make tapering
       int nk = ns/2+1;
       double dom = 1./dt/ns;
@@ -286,7 +291,7 @@ struct SacRec::SRimpl {
       //forward FFT: sf ==> s
       //fftw_plan plan2;
       FFTW_F(plan1, s, ns, seis_in, n);
-      free(s); free(sf);
+      fftw_free(s); fftw_free(sf);
 
       //forming final result
       int k;
@@ -372,36 +377,38 @@ namespace System {
       int outflag = 1; // if listing within current directory
       if( type<2 && strcmp(dir, ".")==0 ) outflag=0; // path will not be printed
       //ignores '.' and '..' as FTS_SEEDOT is not set
-      while ((file = fts_read(tree))) {
-	 switch (file->fts_info) { //current node
-            case FTS_DNR: // is a non-readable dir
-            case FTS_ERR: // has common errors
-            case FTS_NS: // has no stat info
-            case FTS_DC: // causes cycle
-		perror(file->fts_path);
-            case FTS_DP: // is a post-order dir
-		continue; //skip all above cases
+		while ((file = fts_read(tree))) {
+			std::string strtmp;
+			switch (file->fts_info) { //current node
+				case FTS_DNR: // is a non-readable dir
+				case FTS_ERR: // has common errors
+				case FTS_NS: // has no stat info
+				case FTS_DC: // causes cycle
+					//strtmp = "SacSystem::List: "+std::string(file->fts_path)+" causes cycle!";
+					//perror( strtmp.c_str() );
+				case FTS_DP: // is a post-order dir
+					continue; //skip all above cases
 
-            case FTS_D: // is a directory
-		if(file->fts_level>0) switch(type) {
-		   case 0:
-		      fts_set(tree, file, FTS_SKIP); //no descend
-		      continue; // and skip
-		   case 1:
-		      fts_set(tree, file, FTS_SKIP); //no descend
-		      break; // and stop switch
-		   case 2:
-		      continue; //skip directories
-		   case 3:;
-		}
-	 }
+				case FTS_D: // is a directory
+					if(file->fts_level>0) switch(type) {
+						case 0:
+							fts_set(tree, file, FTS_SKIP); //no descend
+							continue; // and skip
+						case 1:
+							fts_set(tree, file, FTS_SKIP); //no descend
+							break; // and stop switch
+						case 2:
+							continue; //skip directories
+						case 3:;
+					}
+			}
 
-	 if (fnmatch(pattern, file->fts_name, FNM_PERIOD) == 0) {
-	    /*
-	    if( sleng > bsize-PLENMAX ) {
-		bsize += BLKSIZE;
-		sblk = (char *) realloc (sblk, bsize * sizeof(char));
-	    }
+			if (fnmatch(pattern, file->fts_name, FNM_PERIOD) == 0) {
+				/*
+					if( sleng > bsize-PLENMAX ) {
+					bsize += BLKSIZE;
+					sblk = (char *) realloc (sblk, bsize * sizeof(char));
+					}
 	    if(outflag) sleng += sprintf(&sblk[sleng], "%s\n", file->fts_path);
 	    else sleng += sprintf(&sblk[sleng], "%s\n", file->fts_name);
 	    */
@@ -427,13 +434,15 @@ extern MyLogger logger;
 SacRec::SacRec( std::ostream& reportin )
  : sig(nullptr), shd(sac_null),
 	report(&reportin),
-	pimpl(new SRimpl() ) {}
+	pimpl(new SRimpl() ) {
+}
 
 /* constructor with sac file name */
 SacRec::SacRec( const std::string& fnamein, std::ostream& reportin )
  : sig(nullptr), shd(sac_null),
 	report(&reportin), fname(fnamein),
-	pimpl(new SRimpl() ) {}
+	pimpl(new SRimpl() ) {
+}
 
 /* copy constructor */
 SacRec::SacRec( const SacRec& recin )
@@ -486,6 +495,12 @@ SacRec& SacRec::operator= ( SacRec&& recin ) {
 
 /* destructor */
 SacRec::~SacRec() {}
+
+/* ------------------------------- memory consumed ------------------------------- */
+float SacRec::MemConsumed() const {
+	int npts = std::max(0, shd.npts);
+	return ( sizeof(SRimpl)+sizeof(SacRec)+fname.size()+npts*sizeof(float) ) / 1048576.;
+}
 
 /* ---------------------------------------- sac IO ---------------------------------------- */
 /* load sac header from file 'fname' */
@@ -870,6 +885,16 @@ bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& s
 /* ---------------------------------------- time - frequency ---------------------------------------- */
 /* convert to amplitude */
 void SacRec::ToAmPh( SacRec& sac_am, SacRec& sac_ph ) {
+	if( shd.npts > maxnpts4parallel ) {
+		#pragma omp critical(largesig)
+		{
+		ToAmPh_p(sac_am, sac_ph);
+		}
+	} else {
+		ToAmPh_p(sac_am, sac_ph);
+	}
+}
+void SacRec::ToAmPh_p( SacRec& sac_am, SacRec& sac_ph ) {
    if( ! sig ) 	// check signal
 		throw ErrorSR::EmptySig(FuncName);
    if( &sac_am != this ) {	// initialize sac_am if not filtering in place 
@@ -879,11 +904,11 @@ void SacRec::ToAmPh( SacRec& sac_am, SacRec& sac_ph ) {
       sac_am.pimpl.reset( new SRimpl(*(pimpl)) );
    }
 
-   fftw_plan planF = nullptr;
+   //fftw_plan planF = nullptr;
    //backward FFT: s ==> sf
    int ns, n=shd.npts;
    fftw_complex *s, *sf;
-   pimpl->FFTW_B(FFTW_ESTIMATE, &(sig[0]), n, &s, &sf, &ns, &planF, 1);
+   pimpl->FFTW_B(FFTW_ESTIMATE, &(sig[0]), n, &s, &sf, &ns);
 
    //forming amplitude spectrum
    int nk = ns/2 + 1;
@@ -895,7 +920,8 @@ void SacRec::ToAmPh( SacRec& sac_am, SacRec& sac_ph ) {
       amp[i] = sqrt(cur[0]*cur[0] + cur[1]*cur[1]);
 		pha[i] = atan2(cur[1], cur[0]);
    }
-   fftw_free(s); fftw_free(sf);
+   //fftw_free(s); 
+	fftw_free(sf);
    sac_am.sig.reset(amp);
 	sac_ph.sig.reset(pha);
 
@@ -907,6 +933,16 @@ void SacRec::ToAmPh( SacRec& sac_am, SacRec& sac_ph ) {
 
 /* 3 different types of filters */
 void SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout ) {
+	if( shd.npts > maxnpts4parallel ) {
+		#pragma omp critical(largesig)
+		{
+		Filter_p(f1, f2, f3, f4, srout);
+		}
+	} else {
+		Filter_p(f1, f2, f3, f4, srout);
+	}
+}
+void SacRec::Filter_p ( double f1, double f2, double f3, double f4, SacRec& srout ) {
    if( ! sig )	// check signal
 		throw ErrorSR::EmptySig(FuncName);
    if( &srout != this ) {	// initialize srout if not filtering in place 
@@ -922,12 +958,14 @@ void SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout 
       //std::cerr<<"Warning(SacRec::Filter): filter band out of range!"<<std::endl;;
       f4 = 0.49999/dt;
    }
-   fftw_plan planF = nullptr;
+   fftw_plan planF;
 
-   //backward FFT: s ==> sf
+   // backward FFT: s ==> sf
    int ns, n=shd.npts;
+
+	// run in series when npts is too large to prevent memory problem
    fftw_complex *s, *sf;
-   pimpl->FFTW_B(FFTW_ESTIMATE, &(sig[0]), n, &s, &sf, &ns, &planF, 1);
+   pimpl->FFTW_B(FFTW_ESTIMATE, &(sig[0]), n, &s, &sf, &ns, &planF);
 
    //make tapering
    int nk = ns/2+1;
@@ -1252,7 +1290,7 @@ void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std
    double freq[nf], amp[nf], pha[nf];
 	bool openA=false, openP=false;
 	int sizeA=0, sizeP=0;
-	#pragma omp critical
+	#pragma omp critical(external)
 	{
    system(buff);
    // find am file
@@ -1309,7 +1347,14 @@ void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std
    // remove trend ( and mean )
    RTrend();
    // run rmresponse
-   pimpl->FDivide (f1, f2, f3, f4, freq, amp, pha, nf, shd, sig.get());
+	if( shd.npts > maxnpts4parallel ) {
+		#pragma omp critical(largesig)
+		{
+		pimpl->FDivide (f1, f2, f3, f4, freq, amp, pha, nf, shd, sig.get());
+		}
+	} else {
+		pimpl->FDivide (f1, f2, f3, f4, freq, amp, pha, nf, shd, sig.get());
+	}
 }
 
 /* down sampling with anti-aliasing filter */
@@ -1323,7 +1368,7 @@ void SacRec::Resample( float sps ) {
    int iinc = (int)floor(dt/shd.delta+0.5);
    if(iinc!=1) {
       double f3 = sps/2.2, f4 = sps/2.01;
-      Filter(-1., 0., f3, f4);
+		Filter(-1., 0., f3, f4);
    }
 
    /* allocate space for the new sig pointer */
@@ -1352,7 +1397,7 @@ void SacRec::Resample( float sps ) {
          }
    }
    else { //sps isn't a factor, slower way
-      (*report) << "rounding error! sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << std::endl;
+      (*report) << "possible rounding error! sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << std::endl;
       long double ti, tj;
       iinc = (int)floor(dt/shd.delta);
       ti = i*shd.delta+shd.nzmsec*0.001+shd.b;

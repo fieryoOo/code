@@ -35,6 +35,7 @@ void CCDatabase::FillDInfo() {
 	dinfo.Eperl = CCParams.Eperl;
 	dinfo.Eperh = CCParams.Eperh;
 	dinfo.frechlen = CCParams.frechlen;
+	dinfo.memomax = CCParams.memomax;
 	dinfo_rdy = false;
 }
 

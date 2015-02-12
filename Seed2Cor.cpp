@@ -95,6 +95,8 @@ void FNormAll( std::deque<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, b
 
 extern MyLogger logger;
 MyLogger logger;
+extern MEMO memo;
+MEMO memo;
 
 int main(int argc, char *argv[]) {
 
@@ -107,20 +109,24 @@ int main(int argc, char *argv[]) {
 	logger.Rename("logs_Seed2Cor/Test");
 
 	try {
-
 		/* Initialize the CC Database with the input parameter file */
 		CCDatabase cdb( argv[1] );
-
 		//const CCPARAM& cdbParams = cdb.GetParams();
+
+		/* check total memory available */
+		float MemTotal = memo.MemTotal();
+		logger.Hold( INFO, "Estimated total memory = "+std::to_string(MemTotal)+" Mb", FuncName );
+		logger.flush();
 
 		/* iterate through the database and handle all possible events */
 		#pragma omp parallel
 		{ // parallel region S
 		while( 1 ) { // main loop
+			//int ithread = omp_get_thread_num();
 			/* dynamically assign events to threads, one at a time */
 			bool got;
 			std::vector<DailyInfo> dinfoV;
-			#pragma omp critical
+			#pragma omp critical(cdb)
 			{ // critical S
 			got = cdb.GetRec_AllCH(dinfoV);
 			cdb.NextEvent();
@@ -140,9 +146,11 @@ int main(int argc, char *argv[]) {
 					/* stringstream for reporting */
 					auto& report = reportV[ich];
 
+					//std::cerr<<"memory consumed @1 = "<<memo.MemConsumed()<<" Mb (ithread = "<<ithread<<")"<<std::endl;
 					/* extract the original sac from seed */
 					float gapfrac;
 					SacRec sac( report );
+					sac.SetMaxMemForParallel( MemTotal * dinfo.memomax * 0.8 / omp_get_num_threads() );
 					SeedRec seedcur( dinfo.seedname, dinfo.rdsexe, report );
 					if( ! seedcur.ExtractSac( dinfo.staname, dinfo.chname, dinfo.sps, dinfo.rec_outname,
 								dinfo.resp_outname, gapfrac, sac ) ) {

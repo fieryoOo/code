@@ -40,7 +40,7 @@ struct DailyInfoData {
 	float sps, perl, perh, t1, tlen;
 	int tnorm_flag;
 	float Eperl, Eperh, timehlen;
-	float frechlen;
+	float frechlen, memomax;
 
 };
 
