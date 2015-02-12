@@ -10,9 +10,11 @@
 #include "SysTools.h"
 #include <iostream>
 #include <sstream>
+#include <vector>
+#include <deque>
 
 /* normalize all sac files in sacV (simultaneously if SyncNorm==true) */
-void TNormAll( std::vector<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, bool SyncNorm ) {
+void TNormAll( std::deque<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, bool SyncNorm ) {
 	if( sacV.empty() ) return;
 	if( sacV.size()!=dinfoV.size() )
 		throw std::runtime_error("Error(TNormAll): size mismatch ("+std::to_string(sacV.size())+" - "+std::to_string(dinfoV.size()));
@@ -58,7 +60,7 @@ void TNormAll( std::vector<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, 
 }
 
 /* normalize and apply taper */
-void FNormAll( std::vector<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, bool SyncNorm ) {
+void FNormAll( std::deque<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, bool SyncNorm ) {
 	if( sacV.empty() ) return;
 	if( sacV.size()!=dinfoV.size() )
 		throw std::runtime_error("Error(FNormAll): size mismatch ("+std::to_string(sacV.size())+" - "+std::to_string(dinfoV.size()));
@@ -93,6 +95,8 @@ void FNormAll( std::vector<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, 
 
 extern MyLogger logger;
 MyLogger logger;
+extern MEMO memo;
+MEMO memo;
 
 int main(int argc, char *argv[]) {
 
@@ -105,20 +109,24 @@ int main(int argc, char *argv[]) {
 	logger.Rename("logs_Seed2Cor/Test");
 
 	try {
-
 		/* Initialize the CC Database with the input parameter file */
 		CCDatabase cdb( argv[1] );
-
 		//const CCPARAM& cdbParams = cdb.GetParams();
+
+		/* check total memory available */
+		float MemTotal = memo.MemTotal();
+		logger.Hold( INFO, "Estimated total memory = "+std::to_string(MemTotal)+" Mb", FuncName );
+		logger.flush();
 
 		/* iterate through the database and handle all possible events */
 		#pragma omp parallel
 		{ // parallel region S
 		while( 1 ) { // main loop
+			//int ithread = omp_get_thread_num();
 			/* dynamically assign events to threads, one at a time */
 			bool got;
 			std::vector<DailyInfo> dinfoV;
-			#pragma omp critical
+			#pragma omp critical(cdb)
 			{ // critical S
 			got = cdb.GetRec_AllCH(dinfoV);
 			cdb.NextEvent();
@@ -126,8 +134,9 @@ int main(int argc, char *argv[]) {
 			if( !got ) break;
 
 			try { // handle current event
-				std::vector<SacRec> sacV;
-				sacV.reserve(dinfoV.size());
+				//std::vector<SacRec> sacV;
+				std::deque<SacRec> sacV;
+				//sacV.reserve(dinfoV.size());
 				std::vector<std::stringstream> reportV( dinfoV.size() );
 				/* seed to fsac */
 				for( int ich=0; ich<dinfoV.size(); ich++ ) {
@@ -137,9 +146,11 @@ int main(int argc, char *argv[]) {
 					/* stringstream for reporting */
 					auto& report = reportV[ich];
 
+					//std::cerr<<"memory consumed @1 = "<<memo.MemConsumed()<<" Mb (ithread = "<<ithread<<")"<<std::endl;
 					/* extract the original sac from seed */
 					float gapfrac;
 					SacRec sac( report );
+					sac.SetMaxMemForParallel( MemTotal * dinfo.memomax * 0.8 / omp_get_num_threads() );
 					SeedRec seedcur( dinfo.seedname, dinfo.rdsexe, report );
 					if( ! seedcur.ExtractSac( dinfo.staname, dinfo.chname, dinfo.sps, dinfo.rec_outname,
 								dinfo.resp_outname, gapfrac, sac ) ) {
@@ -150,7 +161,7 @@ int main(int argc, char *argv[]) {
 					sac.Write( dinfo.osac_outname );
 
 					/* remove response and cut */
-					sac.RmRESP( dinfo.resp_outname, dinfo.perl*0.8, dinfo.perh*1.3 );
+					sac.RmRESP( dinfo.resp_outname, dinfo.perl*0.8, dinfo.perh*1.3, dinfo.evrexe );
 					char evtime[15];
 					sprintf( evtime, "%04d%02d%02d000000\0", dinfo.year, dinfo.month, dinfo.day );
 					sac.ZoomToEvent( evtime, -12345., -12345., dinfo.t1, dinfo.tlen );
@@ -196,7 +207,7 @@ int main(int argc, char *argv[]) {
 			} // current event done
 		} // main while loop
 		} // parallel region E
-
+		logger.Hold( INFO, "All threads finished.", FuncName );
 	} catch ( std::exception& e ) {
 		logger.Hold(FATAL, e.what(), FuncName);
 		return -2;

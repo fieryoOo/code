@@ -2,10 +2,12 @@
 #define SACREC_H
 
 #include "mysac64.h"
+#include "MyOMP.h"
 //#include <cstddef>
 #include <iostream>
 #include <string>
 #include <memory>
+#include <limits>
 
 #ifndef FuncName
 #define FuncName __FUNCTION__
@@ -80,7 +82,8 @@ public:
 		SacRec sac_ph;
 		ToAmPh( sac_am, sac_ph );
 	}
-	void ToAmPh( SacRec& sac_am, SacRec& sac_ph );
+	void ToAmPh( SacRec& sac_am, SacRec& sac_ph );	// in series when sig is large
+	void ToAmPh_p( SacRec& sac_am, SacRec& sac_ph );// always parallel
 	/* filters */
 	void LowpassFilt( double fh1, double fh2 ) { LowpassFilt(fh1, fh2, *this); }
 	void LowpassFilt( double fh1, double fh2, SacRec& srout ) { Filter(-1., -1., fh1, fh2, srout); }
@@ -93,8 +96,9 @@ public:
     * lowpass when ( (f1==-1. || f2==-1.) && (f3>0. && f4>0.) )
     * bandpass when ( f1>=0. && f2>0. && f3>0. && f4>0. )
     * gaussian when ( f1==-1. && f4==-1. ) where f2 = center freqency and f3 = frequency half length */
-   void Filter ( double f1, double f2, double f3, double f4 ) { Filter(f1, f2, f3, f4, *this); }	// in-place
-   void Filter ( double f1, double f2, double f3, double f4, SacRec& srout );				// out-of-place
+   void Filter ( double f1, double f2, double f3, double f4 ) { Filter(f1, f2, f3, f4, *this); }	// in-place (in series when sig is large)
+   void Filter ( double f1, double f2, double f3, double f4, SacRec& srout );				// out-of-place (in series when sig is large)
+   void Filter_p ( double f1, double f2, double f3, double f4, SacRec& srout );			// always parallel
 	/* cosine tapers */
 	void cosTaperL( const float fl, const float fh );
 	void cosTaperR( const float fl, const float fh );
@@ -130,6 +134,14 @@ public:
 	void OneBit();
 	void RunAvg( float timehlen, float Eperl, float Eperh );
 
+	/* ------------------------------- memory consumed ------------------------------- */
+	float MemConsumed() const;
+	void AlwaysParallel() { maxnpts4parallel = std::numeric_limits<int>::max(); }
+	// to run the fftw, 16 times the original npts is required ( in&out complex double array with size doubled for specturm ). 20 is used to be safe
+	void SetMaxMemForParallel( float MemInMb ) { maxnpts4parallel = (MemInMb * 1024. * 1024. - 1000.) / (4. * 20.); }
+
+protected:
+	int maxnpts4parallel = 1e6;
 private:
    /* impl pointer */
    struct SRimpl;
