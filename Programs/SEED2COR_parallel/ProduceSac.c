@@ -79,7 +79,8 @@ int Resampling(char *sacname, float **sig2, SAC_HD *sd, int ithread) {
          }
    }
    else { //sps isn't a factor, slower way
-      reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: sps isn't a factor of %d, watch out for rounding error! ***", (int)floor(1/shd.delta+0.5));
+      //reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: sps isn't a factor of %d, watch out for rounding error! ***", (int)floor(1/shd.delta+0.5));
+      reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: Decimating delta=%f to delta=%f. Watch out for rounding error! ***", shd.delta, dt);
       long double ti, tj;
       iinc = (int)floor(dt/shd.delta);
       ti = i*shd.delta+shd.nzmsec*0.001+shd.b;

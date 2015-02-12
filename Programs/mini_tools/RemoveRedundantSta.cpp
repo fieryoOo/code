@@ -8,6 +8,7 @@
 
 struct StaInfo {
    std::string name;
+   std::string line;
    float lon, lat;
 	static constexpr float maxmisloc = 0.01;
 	static constexpr float maxmislocS = maxmisloc*maxmisloc;
@@ -50,10 +51,9 @@ int main(int argc, char* argv[]) {
       exit(-2);
    }
    std::vector<StaInfo> staV;
-   for(std::string line; std::getline(fin, line); ){
-		StaInfo datacur;
+   for(StaInfo datacur; std::getline(fin, datacur.line); ){
 		char buff[100];
-		if( sscanf(line.c_str(), "%s %f %f", &(buff), &(datacur.lon), &(datacur.lat)) != 3 ) {
+		if( sscanf(datacur.line.c_str(), "%s %f %f", &(buff), &(datacur.lon), &(datacur.lat)) != 3 ) {
 			std::cerr<<"Warning(main): wrong format detected in "<<argv[1]<<std::endl;
 			continue;
 		}
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
 	/* output */
 	std::ofstream fout(argv[2]);
 	for( const auto& sta : staV ) {
-		fout<<sta<<std::endl;
+		fout<<sta.line<<std::endl;
 	}
 
 

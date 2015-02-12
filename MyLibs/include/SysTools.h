@@ -3,6 +3,9 @@
 #include <vector>
 #include <string>
 
+/* */
+int GetSysinfo (long &MemAvail);
+
 /* prompt and continue in 'time' seconds if no input is received */
 void TimedContinue (int time);
 
@@ -39,5 +42,20 @@ void Copy(const char *oldname, const char *newname);
    3: list all files and directories */
 //char * List(const char *dir, const char *pattern, int type, int *nfile);
 bool List(const char *dir, const char *pattern, int type, std::vector<std::string> &filelist);
+
+
+/* -------------- class for memory debug -------------- */
+class MEMO {
+public:
+	MEMO() {	GetSysinfo(Mem0); }
+	void ResetRef() { GetSysinfo(Mem0); }
+	float MemTotal() { return Mem0 / 1048576.; }
+	float MemConsumed() { // in mb
+		GetSysinfo(Memcur);
+		return (Mem0 - Memcur) / 1048576.;
+	}
+private:
+	long Mem0, Memcur;
+};
 
 #endif

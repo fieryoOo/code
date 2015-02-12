@@ -55,7 +55,7 @@ public:
       return deno==1;
    }
 
-   bool RunRdseed( const std::string staname, const std::string chname, const std::string tdir,
+   bool RunRdseed( const std::string& staname, const std::string& chname, const std::string& tdir,
 						 std::string& fresp, std::vector<std::string> &filelist ) {
 
 		// check parameters
@@ -94,18 +94,15 @@ public:
       //extract SAC&RESP and mv into thread working directory
       sprintf(str,"sh %s >& /dev/null", fname);
       std::vector<std::string> list_result;
-		#pragma omp critical
+		#pragma omp critical(external)
       {
       system(str);
 
       /*---------- mv response file -----------*/   
       sprintf(str, "RESP.*.%s.*.%s", staname.c_str(), chname.c_str());
-      int nlist = 0;
       //list RESP files in the current depth
 		fresp.clear();
       if( List(".", str, 0, list_result) ) {
-         char list_name[150];
-         int offset, curp = 0;
          fresp = tdir + "/" + list_result.at(0);
          Move(list_result.at(0).c_str(), fresp.c_str());
 			/*--------------and remove the rest----------------*/
@@ -173,9 +170,11 @@ SeedRec::~SeedRec() {}//{ dRemove(pimpl->tdir.c_str()); }
 
 
 
+extern MEMO memo;
+#include "MyOMP.h"
 /*---------------------------------------------------- Extract osac from seed file ----------------------------------------------------*/
-bool SeedRec::ExtractSac( const std::string staname, const std::string chname, const int sps,
-								  const std::string rec_outname, const std::string resp_outname,
+bool SeedRec::ExtractSac( const std::string& staname, const std::string& chname, const int sps,
+								  const std::string& rec_outname, const std::string& resp_outname,
 								  float& gapfrac, SacRec& sacout ) {
    /* random number generator */
    unsigned timeseed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -185,7 +184,7 @@ bool SeedRec::ExtractSac( const std::string staname, const std::string chname, c
 
    /* set up working directory */
    std::string tdir;
-  #pragma omp critical
+  #pragma omp critical (mkdir)
   {
    while( true ) {
 		tdir = "Working_" + std::to_string(rand());
