@@ -33,9 +33,8 @@ public:
 		return ExtractSac( di.staname, di.chname, di.sps, gapfrac, di.rec_outname, di.resp_outname, sacout );
 	}
 	*/
-	bool ExtractSac( const std::string& staname, const std::string& chname, const int sps,
-						  const std::string& rec_outname, const std::string& resp_outname, 
-						  float& gapfrac, SacRec& sacout );
+	bool ExtractSac( const std::string& staname, const std::string& netname, const std::string& chname, const int sps,
+						  const std::string& rec_outname, const std::string& resp_outname, float& gapfrac, SacRec& sacout );
 
 private:
    struct SRimpl;

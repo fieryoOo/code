@@ -579,11 +579,12 @@ void SacRec::Write (const std::string& outfname) {
    shd.internal4 = 6L;
 
    /* search min and max amplitude */
-   shd.depmin = sig[0];
-   shd.depmax = sig[0];
+	float *sigsac = sig.get();
+   shd.depmin = sigsac[0];
+   shd.depmax = sigsac[0];
    for ( int i = 0; i < shd.npts ; i++ ) {
-       if ( shd.depmin > sig[i] ) shd.depmin = sig[i];
-       else if ( shd.depmax < sig[i] ) shd.depmax = sig[i];
+       if ( shd.depmin > sigsac[i] ) shd.depmin = sigsac[i];
+       else if ( shd.depmax < sigsac[i] ) shd.depmax = sigsac[i];
    }
 
    /* check and re-format header time if necessary */
@@ -591,7 +592,7 @@ void SacRec::Write (const std::string& outfname) {
 
    //pthread_mutex_lock(&fiolock);
    fsac.write( reinterpret_cast<char *>(&shd), sizeof(SAC_HD) );
-   fsac.write( reinterpret_cast<char *>(sig.get()), sizeof(float)*shd.npts );
+   fsac.write( reinterpret_cast<char *>(sigsac), sizeof(float)*shd.npts );
    //pthread_mutex_unlock(&fiolock);
 
    fsac.close();
@@ -626,7 +627,8 @@ int read_rec(int rec_flag, char *fname, int len, int *rec_b, int *rec_e, int *nr
 //pthread_mutex_t fiolock;
 
 void SacRec::Mul( const float mul ) {
-   for(int i=0; i<shd.npts; i++) sig[i] *= mul;
+	float *sigsac = sig.get();
+   for(int i=0; i<shd.npts; i++) sigsac[i] *= mul;
 }
 
 void SacRec::Addf( const SacRec& sac2 ) {
@@ -634,9 +636,10 @@ void SacRec::Addf( const SacRec& sac2 ) {
 		throw ErrorSR::EmptySig(FuncName);
 	if( shd.npts != sac2.shd.npts )
 		throw ErrorSR::SizeMismatch(FuncName, std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
-	const auto& sig2 = sac2.sig;
+	//const auto& sig2 = sac2.sig;
+	float *sigsac = sig.get(), *sigsac2 = sac2.sig.get();
    for(int i=0; i<shd.npts; i++) 
-		sig[i] += sig2[i];
+		sigsac[i] += sigsac2[i];
 }
 
 void SacRec::Divf( const SacRec& sac2 ) {
@@ -644,9 +647,10 @@ void SacRec::Divf( const SacRec& sac2 ) {
 		throw ErrorSR::EmptySig(FuncName);
 	if( shd.npts != sac2.shd.npts )
 		throw ErrorSR::SizeMismatch(FuncName, std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
-	const auto& sig2 = sac2.sig;
+	//const auto& sig2 = sac2.sig;
+	float *sigsac = sig.get(), *sigsac2 = sac2.sig.get();
    for(int i=0; i<shd.npts; i++) 
-		if( sig2[i]!=0. ) sig[i] /= sig2[i];
+		if( sigsac2[i]!=0. ) sigsac[i] /= sigsac2[i];
 }
 
 void SacRec::PullUpTo( const SacRec& sac2 ) {
@@ -656,8 +660,11 @@ void SacRec::PullUpTo( const SacRec& sac2 ) {
 		*this = sac2;
 	if( shd.npts != sac2.shd.npts )
 		throw ErrorSR::SizeMismatch(FuncName, std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
-	const auto& sig2 = sac2.sig;
-   for(int i=0; i<shd.npts; i++) sig[i] = std::max(sig[i], sig2[i]);
+	//const auto& sig2 = sac2.sig;
+	float *sigsac = sig.get(), *sigsac2 = sac2.sig.get();
+   for(int i=0; i<shd.npts; i++) 
+		if( sigsac2[i] > sigsac[i] ) sigsac[i] = sigsac2[i];
+		//sigsac[i] = std::max(sigsac[i], sigsac2[i]);
 }
 
 
@@ -767,11 +774,12 @@ inline static int nint( float in ) { return static_cast<int>(floor(in+0.5)); }
 void SacRec::MinMax (float tbegin, float tend, float& tmin, float& min, float& tmax, float& max) {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
-   min = max = sig[0];
+	float *sigsac = sig.get();
+   min = max = sigsac[0];
    int imin = 0, imax = 0;
    for ( int i = nint((tbegin-shd.b)/shd.delta); i < nint((tend-shd.b)/shd.delta+1.) ; i++ ) {
-       if ( min > sig[i] ) { min = sig[i]; imin = i; }
-       else if ( max < sig[i] ) { max = sig[i]; imax = i; }
+       if ( min > sigsac[i] ) { min = sigsac[i]; imin = i; }
+       else if ( max < sigsac[i] ) { max = sigsac[i]; imax = i; }
    }
    tmin = shd.b + imin*shd.delta;
    tmax = shd.b + imax*shd.delta;
@@ -801,9 +809,10 @@ void SacRec::RMSAvg ( float tbegin, float tend, int step, float& rms ) {
 		throw ErrorSR::BadParam(FuncName, "invalid time window input");
 
    rms = 0.;
+	float *sigsac = sig.get();
    for ( int i = ibeg; i < iend ; i+=step ) {
-      if( sig[i] >= maxfloat ) continue;
-      rms += sig[i] * sig[i];
+      if( sigsac[i] >= maxfloat ) continue;
+      rms += sigsac[i] * sigsac[i];
       neff++;
    }
    rms = sqrt(rms/(neff-1));
@@ -824,8 +833,11 @@ void SacRec::Smooth( float timehlen, SacRec& sacout ) const {
    int i, j, wb, we, n = shd.npts;
    float wsum, dt = shd.delta;
    int half_l = (int)floor(timehlen/dt+0.5);
-	float sigw[n], *sigout = sacout.sig.get();
-	for( i=0; i<n; i++ ) sigw[i] = fabs(sig[i]);
+   float *sigsac = sig.get(), *sigout = sacout.sig.get();
+	//float sigw[n];
+	std::unique_ptr<float> sigw_p(new float[n]);
+   float *sigw = sigw_p.get(); 
+	for( i=0; i<n; i++ ) sigw[i] = fabs(sigsac[i]);
 
 	/* */
    if(half_l*2>n-1) half_l = (n-1)/2;
@@ -859,9 +871,10 @@ bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& s
    float maxfloat = std::numeric_limits<float>::max();
    int neff = 0, ibeg = nint((tbegin-shd.b)/shd.delta), iend = nint((tend-shd.b)/shd.delta+1.);
 	std::vector<float> dataV;
+	float *sigsac = sig.get();
    for ( int i = ibeg; i < iend ; i+=step ) {
-      if( sig[i] >= maxfloat ) continue;
-      dataV.push_back(sig[i]);
+      if( sigsac[i] >= maxfloat ) continue;
+      dataV.push_back(sigsac[i]);
    }
 	if( dataV.size() == 0 ) return false;
 	//	throw ErrorSR::InsufData(FuncName, "0 valid data point within the given window");
@@ -981,7 +994,8 @@ void SacRec::Filter_p ( double f1, double f2, double f3, double f4, SacRec& srou
 
    //forming final result
    float ftmp = 2./ns;
-   for(int k=0; k<n; k++) srout.sig[k] *= ftmp;
+	float *sigout = srout.sig.get();
+   for(int k=0; k<n; k++) sigout[k] *= ftmp;
    //   if( seis_in[k]==0 ) seis_out[k] = 0.;
    //   else seis_out[k] *= ftmp;
 }
@@ -994,12 +1008,13 @@ void SacRec::cosTaperL( const float fl, const float fh ) {
 
 	const float& delta = shd.delta;
    int i;
-	for( i=0; i<(int)ceil(fl/delta); i++ ) sig[i] = 0.;
+	float *sigsac = sig.get();
+	for( i=0; i<(int)ceil(fl/delta); i++ ) sigsac[i] = 0.;
 	float finit = i*delta, fwidth = fh-fl, dfh = fh-finit;
 	float ftmp = PI / fwidth;
    for(; dfh>0; i++, dfh-=delta) {
 		float amplif = ( 1. + cos(ftmp*dfh) ) * 0.5;
-		sig[i] *= amplif;
+		sigsac[i] *= amplif;
    }
 
    return;
@@ -1012,11 +1027,12 @@ void SacRec::cosTaperR( const float fl, const float fh ) {
    int i = (int)ceil(fl/delta);
 	float finit = i*delta, fwidth = fh-fl, dfl = finit-fl;
 	float ftmp = PI / fwidth;
+	float *sigsac = sig.get();
    for(; dfl<fwidth; i++, dfl+=delta) {
 		float amplif = ( 1. + cos(ftmp*dfl) ) * 0.5;
-		sig[i] *= amplif;
+		sigsac[i] *= amplif;
    }
-   for(;i<shd.npts;i++) sig[i] = 0.;
+   for(;i<shd.npts;i++) sigsac[i] = 0.;
 
    return;
 }
@@ -1119,8 +1135,9 @@ int SacRec::arrange(const char* recname) {
    // count holes
    float maxfloat = std::numeric_limits<float>::max();
    int Nholes=0;
+	float *sigsac = sig.get();
    for(int i=0;i<shd.npts;i++)
-      if(sig[i]>=maxfloat) Nholes++;
+      if(sigsac[i]>=maxfloat) Nholes++;
 
    // produce record file for holes if a recname is given
    if( recname ) {
@@ -1129,10 +1146,10 @@ int SacRec::arrange(const char* recname) {
       rec_b[0] = 0;
       int j=0;
       for(int i=1;i<shd.npts;i++) {
-         if(sig[i-1] >= maxfloat) { if(sig[i] < maxfloat) rec_b[j] = i; }
-         else if(sig[i] >= maxfloat) rec_e[j++] = i;
+         if(sigsac[i-1] >= maxfloat) { if(sigsac[i] < maxfloat) rec_b[j] = i; }
+         else if(sigsac[i] >= maxfloat) rec_e[j++] = i;
       }
-      if(sig[shd.npts-1]<maxfloat) rec_e[j++] = shd.npts;
+      if(sigsac[shd.npts-1]<maxfloat) rec_e[j++] = shd.npts;
       //sprintf(recname, "%s_rec1", ffsac.c_str());
       std::ofstream frec(recname);
       for(int i=0;i<j;i++) frec << rec_b[i] << " " << rec_e[i] << std::endl;
@@ -1145,7 +1162,7 @@ int SacRec::arrange(const char* recname) {
 	bool isgap = false;
 	for (int i=0; i<shd.npts; i++ ) {
 		if( isgap ) {
-			if ( sig[i]<maxfloat || i==shd.npts-1 ) {
+			if ( sigsac[i]<maxfloat || i==shd.npts-1 ) {
 				// compute rms in the surrounding time
 				float sigtime_b = shd.b + ib * shd.delta;
 				float sigtime_e = shd.b + i * shd.delta;
@@ -1169,7 +1186,7 @@ int SacRec::arrange(const char* recname) {
 			}
 		}
 		else {
-			if ( sig[i] >= maxfloat ) {
+			if ( sigsac[i] >= maxfloat ) {
 				ib = i;
 				isgap = true;
 			}
@@ -1240,23 +1257,24 @@ void SacRec::RTrend() {
    // fit a*x+b
    int i, npts = shd.npts;
    float X = 0., Y = 0., X2 = 0., Y2 = 0., XY = 0.;
+	float *sigsac = sig.get();
    for(i=0;i<npts;i++) {
       X += i;
-      Y += sig[i];
+      Y += sigsac[i];
       X2 += i*i;
-      Y2 += sig[i]*sig[i];
-      XY += i*sig[i];
+      Y2 += sigsac[i]*sigsac[i];
+      XY += i*sigsac[i];
    }
    float a = (npts*XY-X*Y)/(npts*X2-X*X);
    float b = (-X*XY+X2*Y)/(npts*X2-X*X);
    // correct sig and DEPMEN
-   float mean = 0., max = sig[0], min = sig[0];
+   float mean = 0., max = sigsac[0], min = sigsac[0];
    float shift = b;
    for(i=0;i<npts;i++,shift+=a) {
-      sig[i] -= shift;
-      mean += sig[i];
-      if ( min > sig[i] ) min = sig[i];
-      else if ( max < sig[i] ) max = sig[i];
+      sigsac[i] -= shift;
+      mean += sigsac[i];
+      if ( min > sigsac[i] ) min = sigsac[i];
+      else if ( max < sigsac[i] ) max = sigsac[i];
    }
    shd.depmin = min;
    shd.depmax = max;
@@ -1380,6 +1398,7 @@ void SacRec::Resample( float sps ) {
 		throw ErrorSR::MemError( FuncName, "new failed!");
    //if( (*sig2 = (float *) malloc (nptst * sizeof(float)))==nullptr ) perror("malloc sig2");
    long double fra1, fra2;
+	float *sigsac = sig.get(), *sigsac2 = sig2.get();
    nb = ceil((shd.nzmsec*0.001+shd.b)*sps);
    i = (int)floor((nb*dt-shd.nzmsec*0.001-shd.b)/shd.delta);
    if(fabs(iinc*shd.delta-dt)<1.e-7) { //sps is a factor of 1/delta
@@ -1387,12 +1406,12 @@ void SacRec::Resample( float sps ) {
       fra1 = 1.-fra2;
       if(fra2==0)
          for(j=0;i<shd.npts;j++) {
-            sig2[j] = sig[i];
+            sigsac2[j] = sigsac[i];
             i += iinc;
          }
       else
          for(j=0;i<shd.npts-1;j++) {
-            sig2[j] = sig[i]*fra1 + sig[i+1]*fra2;
+            sigsac2[j] = sigsac[i]*fra1 + sigsac[i+1]*fra2;
             i += iinc;
          }
    }
@@ -1404,7 +1423,7 @@ void SacRec::Resample( float sps ) {
       tj = nb*dt;
       for(j=0;i<shd.npts-1;j++) {
          fra2 = tj-ti;
-         sig2[j] = sig[i] + (sig[i+1]-sig[i])*fra2;
+         sigsac2[j] = sigsac[i] + (sigsac[i+1]-sigsac[i])*fra2;
          tj += dt;
          i += iinc;
          ti += iinc*shd.delta;
@@ -1426,9 +1445,10 @@ void SacRec::OneBit() {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
 
+	float *sigsac = sig.get();
    for(int i=0;i<shd.npts;i++) {
-      if(sig[i]>0.) sig[i] = 1.;
-      else if(sig[i]<0.) sig[i] = -1.;
+      if(sigsac[i]>0.) sigsac[i] = 1.;
+      else if(sigsac[i]<0.) sigsac[i] = -1.;
    }
 }
 
@@ -1450,26 +1470,26 @@ void SacRec::RunAvg( float timehlen, float Eperl, float Eperh ) {
    int i, j, wb, we, n = shd.npts;
    float wsum, dt = shd.delta;
    int half_l = (int)floor(timehlen/dt+0.5);
-	float* sigw = sac_eqk.sig.get();
+	float *sigsac = sig.get(), *sigw = sac_eqk.sig.get();
 	for( i=0; i<shd.npts; i++ ) sigw[i] = fabs(sigw[i]);
 
    if(half_l*2>n-1) half_l = (n-1)/2;
    for(i=0,wsum=0.;i<=half_l;i++) wsum += sigw[i];
    wb = 0; we = i;
    for(i=1;i<=half_l;i++,we++) {
-      if(wsum>1.e-15) sig[i-1] *= ((double)we/wsum);
+      if(wsum>1.e-15) sigsac[i-1] *= ((double)we/wsum);
       wsum += sigw[we];
    }
    for(j=we;i<n-half_l;i++,wb++,we++) {
 		//if( i>80000/dt && i<82000/dt ) std::cerr<<(i-1)*dt<<" "<<sig[i-1]<<" "<<wsum<<" / "<<j<<std::endl;
-      if(wsum>1.e-15) sig[i-1] *= ((double)j/wsum); //fout<<shd.b+(i-1)*dt<<" "<<wsum<<" "<<j<<std::endl;}
+      if(wsum>1.e-15) sigsac[i-1] *= ((double)j/wsum); //fout<<shd.b+(i-1)*dt<<" "<<wsum<<" "<<j<<std::endl;}
       wsum += ( sigw[we] - sigw[wb] );
    }
    for(;i<n;i++,wb++) {
-      if(wsum>1.e-15) sig[i-1] *= ((double)(we-wb)/wsum);
+      if(wsum>1.e-15) sigsac[i-1] *= ((double)(we-wb)/wsum);
       wsum -= sigw[wb];
    }
-   if(wsum>1.e-15) sig[n-1] *= ((double)(we-wb)/wsum);
+   if(wsum>1.e-15) sigsac[n-1] *= ((double)(we-wb)/wsum);
 
 
 }

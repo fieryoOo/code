@@ -55,7 +55,7 @@ public:
       return deno==1;
    }
 
-   bool RunRdseed( const std::string& staname, const std::string& chname, const std::string& tdir,
+   bool RunRdseed( const std::string& staname, const std::string& netname, const std::string& chname, const std::string& tdir,
 						 std::string& fresp, std::vector<std::string> &filelist ) {
 
 		// check parameters
@@ -76,7 +76,12 @@ public:
       fprintf(ff,"\n");								/* summary file */
       fprintf(ff,"%s\n", staname.c_str() );	/* station list */
       fprintf(ff,"%s\n", chname.c_str() );	/* channel list */
-      fprintf(ff,"\n");								/* network list */
+		fprintf(ff,"\n");								/* network list */
+		if( netname == "*" ) {						/* network list */
+			fprintf(ff,"\n");
+		} else {
+			fprintf(ff,"%s\n", netname.c_str());
+		}
       fprintf(ff,"\n");								/* Loc Ids */
       fprintf(ff,"1\n");							/* out format */
       fprintf(ff,"N\n");							/* new version!!!!!!!!!! */
@@ -99,7 +104,7 @@ public:
       system(str);
 
       /*---------- mv response file -----------*/   
-      sprintf(str, "RESP.*.%s.*.%s", staname.c_str(), chname.c_str());
+      sprintf(str, "RESP.%s.%s.*.%s", netname.c_str(), staname.c_str(), chname.c_str());
       //list RESP files in the current depth
 		fresp.clear();
       if( List(".", str, 0, list_result) ) {
@@ -173,7 +178,7 @@ SeedRec::~SeedRec() {}//{ dRemove(pimpl->tdir.c_str()); }
 extern MEMO memo;
 #include "MyOMP.h"
 /*---------------------------------------------------- Extract osac from seed file ----------------------------------------------------*/
-bool SeedRec::ExtractSac( const std::string& staname, const std::string& chname, const int sps,
+bool SeedRec::ExtractSac( const std::string& staname, const std::string& netname, const std::string& chname, const int sps,
 								  const std::string& rec_outname, const std::string& resp_outname,
 								  float& gapfrac, SacRec& sacout ) {
    /* random number generator */
@@ -197,7 +202,7 @@ bool SeedRec::ExtractSac( const std::string& staname, const std::string& chname,
    /* extract sacs from the seed */
 	std::string fresp;
    std::vector<std::string> filelst;
-   if( ! pimpl->RunRdseed( staname, chname, tdir, fresp, filelst ) ) {
+   if( ! pimpl->RunRdseed( staname, netname, chname, tdir, fresp, filelst ) ) {
       //reports << " sac record not found from " << pimpl->fseed << "! " << std::endl;
       dRemove(tdir.c_str());
       return false;
