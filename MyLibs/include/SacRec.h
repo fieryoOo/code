@@ -35,8 +35,8 @@ public:
 public:
    /* ------------------------------ con/destructors and operators ------------------------------ */
    /* constructors */
-	SacRec( std::ostream& reportin = std::cerr );
-   SacRec( const std::string& fnamein, std::ostream& reportin = std::cerr );	// default
+	SacRec( std::ostream& reportin = std::cerr );	// default 1
+   SacRec( const std::string& fnamein, std::ostream& reportin = std::cerr );	// default 2
    SacRec( const SacRec& recin );		// copy
    SacRec( SacRec&& recin );			// move
    /* operators */
@@ -55,6 +55,7 @@ public:
    /* write to file '*fname' */
    void WriteHD ( const std::string& fname );
    void Write ( const std::string& fname );
+	void clear() { sig.reset(); shd = sac_null; fname.clear(); }
 
    /* ------------------------------ header operations ------------------------------ */
    void ChHdr(const std::string& field, const std::string& value);
@@ -65,6 +66,7 @@ public:
    /* update/reformat header time if shd.nzmsec is modified and is out of the range [0,1000) */
    void UpdateTime();
    /* search for min&max signal positions and amplitudes */
+	void MinMax (int& imin, int& imax, float tbegin, float tend);
    void MinMax ( float tbegin, float tend, float& tmin, float& min, float& tmax, float& max );
    /* compute the root-mean-square average in a given window */
    void RMSAvg ( float tbegin, float tend, float& rms ) { RMSAvg( tbegin, tend, 1, rms); }
@@ -84,6 +86,8 @@ public:
 	}
 	void ToAmPh( SacRec& sac_am, SacRec& sac_ph );	// in series when sig is large
 	void ToAmPh_p( SacRec& sac_am, SacRec& sac_ph );// always parallel
+	void FromAmPh( SacRec& sac_am, SacRec& sac_ph );// in series when sig is large
+	void FromAmPh_p( SacRec& sac_am, SacRec& sac_ph );//	always parallel
 	/* filters */
 	void LowpassFilt( double fh1, double fh2 ) { LowpassFilt(fh1, fh2, *this); }
 	void LowpassFilt( double fh1, double fh2, SacRec& srout ) { Filter(-1., -1., fh1, fh2, srout); }
@@ -115,9 +119,9 @@ public:
 	/* smoothing ( running average ) */
 	void Smooth( float timehlen, SacRec& sacout ) const;
 
-   /* ------------------------------ inter-sac operations ------------------------------ */
    void cut( float tb, float te ) { cut(tb, te, *this); }
    void cut( float tb, float te, SacRec& );
+   /* ------------------------------ inter-sac operations ------------------------------ */
    /* merge a second sacrec to the current */
    void Merge( SacRec sacrec2 ) {
       merge( sacrec2 );
@@ -125,6 +129,12 @@ public:
    }
    void merge( SacRec sacrec2 );
    int arrange( const char *recname = nullptr );
+	void Correlate( SacRec& sac2 ) { Correlate(sac2, *this); }
+	/* Correlate with another sac record
+		ctype=0: Correlate (default) 
+		ctype=1: deconvolve (sac.am/sac2.am)
+		ctype=2: deconvolve (sac2.am/sac.am) */
+	void Correlate( SacRec& sac2, SacRec& sacout, int ctype = 0 );
 
 	/* ------------------------------- cut by event ---------------------------------- */
 	void ZoomToEvent( const std::string etime, float evlon, float evlat, float tb, float tlen, std::string ename = "" );
@@ -141,7 +151,9 @@ public:
 	void SetMaxMemForParallel( float MemInMb ) { maxnpts4parallel = (MemInMb * 1024. * 1024. - 1000.) / (4. * 20.); }
 
 protected:
+	static constexpr float NaN = -12345.;
 	int maxnpts4parallel = 1e6;
+
 private:
    /* impl pointer */
    struct SRimpl;
@@ -173,7 +185,7 @@ namespace ErrorSR {
    class BadFile : public Base {
    public:
       BadFile(const std::string funcname, const std::string info = "")
-         : Base(funcname, "Cannot access file ("+info+").") {}
+         : Base(funcname, "Invalid or non-accessable file ("+info+").") {}
    };
 
    class BadParam : public Base {

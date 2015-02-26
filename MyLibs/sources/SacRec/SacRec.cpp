@@ -40,8 +40,8 @@ struct SacRec::SRimpl {
 
    /* ---------- FFT operations ---------- */
    #define PI 3.14159265358979323846
-   // forward FFT 
-   void FFTW_F(fftw_plan plan, fftw_complex *out, int ns, float *seis, int n) {
+   // forward FFT: out ==> seis
+   void FFTW_F(fftw_plan plan, fftw_complex *out, float *seis, int n) {
       fftw_execute(plan);
       //pthread_mutex_lock(&fftlock);
 		#pragma omp critical(fftw)
@@ -50,10 +50,12 @@ struct SacRec::SRimpl {
 		}
       //pthread_mutex_unlock(&fftlock);
       int k;
-      for(k=0; k<n; k++) seis[k] = out[k][0];
+      for(k=0; k<n; k++) {
+			seis[k] = out[k][0];
+		}
       //for(k=0; k<n; k+=1000) if(seis[k] != 0.) printf("%d %f\n", k, seis[k]);
    }
-   // backward FFT
+   // backward FFT: seis ==> out
    void FFTW_B(int type, float *seis, int n, fftw_complex **in, fftw_complex **out, int *nso, fftw_plan *planF = nullptr) {
       int ns = (int)(log((double)n)/log(2.))+1;
       //if(ns<13) ns = 13;
@@ -290,7 +292,7 @@ struct SacRec::SRimpl {
 
       //forward FFT: sf ==> s
       //fftw_plan plan2;
-      FFTW_F(plan1, s, ns, seis_in, n);
+      FFTW_F(plan1, s, seis_in, n);
       fftw_free(s); fftw_free(sf);
 
       //forming final result
@@ -510,27 +512,40 @@ void SacRec::LoadHD () {
 		throw ErrorSR::BadFile( FuncName, "reading from " + fname );
    //if( SHDMap.empty() ) pimpl->CreateSHDMap();
    //pthread_mutex_lock(&fiolock);
-   fsac.read( reinterpret_cast<char *>(&shd), sizeof(SAC_HD) );
+	size_t rdsize = sizeof(SAC_HD);
+   fsac.read( reinterpret_cast<char *>(&shd), rdsize );
+	if( fsac.gcount() != rdsize )
+		throw ErrorSR::BadFile( FuncName, "failed to retrieve sac header from " + fname );
    fsac.close();
    //pthread_mutex_unlock(&fiolock);
 }
 
 /* load sac header+signal from file 'fname', memory is allocated on heap */
 void SacRec::Load () {
+   //if( SHDMap.empty() ) pimpl->CreateSHDMap();
+   //sig = std::make_shared<float>( new float[shd.npts*sizeof(float)] );
+	// check input file
    std::ifstream fsac(fname.c_str());
    if( ! fsac )
 		throw ErrorSR::BadFile( FuncName, "reading from " + fname );
-   //if( SHDMap.empty() ) pimpl->CreateSHDMap();
-   //pthread_mutex_lock(&fiolock);
-   fsac.read( reinterpret_cast<char *>(&shd), sizeof(SAC_HD) );
-   //sig = std::make_shared<float>( new float[shd.npts*sizeof(float)] );
-   float* sigtmp = new float[shd.npts];
-	if( sigtmp == nullptr )
+	// read from fin
+	size_t rdsize = sizeof(SAC_HD);
+	#pragma omp critical(IO)
+	{
+   fsac.read( reinterpret_cast<char *>(&shd), rdsize );
+	if( fsac.gcount() != rdsize )
+		throw ErrorSR::BadFile( FuncName, "failed to retrieve sac header from " + fname );
+	// allocate memory for sac signal
+   sig.reset(new float[shd.npts]);
+	if( ! sig )
 		throw ErrorSR::MemError( FuncName, "new failed!");
-   fsac.read( reinterpret_cast<char *>(sigtmp), sizeof(float)*shd.npts );
+   float* sigsac = sig.get();
+	rdsize = sizeof(float) * shd.npts;
+   fsac.read( reinterpret_cast<char *>(sigsac), rdsize );
+	if( fsac.gcount() != rdsize )
+		throw ErrorSR::BadFile( FuncName, "failed to extract sac sig from " + fname );
    fsac.close();
-   sig = std::unique_ptr<float[]>(sigtmp);
-   //pthread_mutex_unlock(&fiolock);
+	} // critical
 
    /* calculate t0 */
    char koo[9];
@@ -591,11 +606,12 @@ void SacRec::Write (const std::string& outfname) {
    UpdateTime();
 
    //pthread_mutex_lock(&fiolock);
+	#pragma omp critical(IO)
+	{
    fsac.write( reinterpret_cast<char *>(&shd), sizeof(SAC_HD) );
    fsac.write( reinterpret_cast<char *>(sigsac), sizeof(float)*shd.npts );
-   //pthread_mutex_unlock(&fiolock);
-
    fsac.close();
+	}
 }
 
 /*
@@ -733,8 +749,8 @@ double SacRec::AbsTime () {
    //if( ! sig ) return -1.;
    //if( shd == sac_null ) return -1.; // operator== not defined yet
    if( shd.npts <= 0 ) return -1.;
-   if( shd.nzjday == -12345. || shd.nzyear == -12345. || shd.nzhour == -12345. ||
-       shd.nzmin == -12345. || shd.nzsec == -12345. || shd.nzmsec == -12345. ) return -1;
+   if( shd.nzjday == NaN || shd.nzyear == NaN || shd.nzhour == NaN ||
+       shd.nzmin == NaN || shd.nzsec == NaN || shd.nzmsec == NaN ) return -1;
    //computes time in s relative to 1900
    int nyday = 0;
    for( int i=1901; i<shd.nzyear; i++ ) {
@@ -771,6 +787,20 @@ void SacRec::UpdateTime() {
 
 /* search for min&max signal positions and amplitudes */
 inline static int nint( float in ) { return static_cast<int>(floor(in+0.5)); }
+void SacRec::MinMax (int& imin, int& imax, float tbegin, float tend) {
+   if( ! sig )
+		throw ErrorSR::EmptySig(FuncName);
+	float *sigsac = sig.get();
+   float min, max;
+	min = max = sigsac[0];
+   imin = imax = 0;
+	if( tbegin == NaN ) tbegin = shd.b;
+	if( tend == NaN ) tend = shd.e;
+   for ( int i = nint((tbegin-shd.b)/shd.delta); i < nint((tend-shd.b)/shd.delta+1.) ; i++ ) {
+       if ( min > sigsac[i] ) { min = sigsac[i]; imin = i; }
+       else if ( max < sigsac[i] ) { max = sigsac[i]; imax = i; }
+   }
+}
 void SacRec::MinMax (float tbegin, float tend, float& tmin, float& min, float& tmax, float& max) {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
@@ -944,6 +974,62 @@ void SacRec::ToAmPh_p( SacRec& sac_am, SacRec& sac_ph ) {
 	sac_ph.shd = sac_am.shd;
 }
 
+void SacRec::FromAmPh( SacRec& sac_am, SacRec& sac_ph ) {
+	if( shd.npts > maxnpts4parallel ) {
+		#pragma omp critical(largesig)
+		{
+		FromAmPh_p(sac_am, sac_ph);
+		}
+	} else {
+		FromAmPh_p(sac_am, sac_ph);
+	}
+}
+void SacRec::FromAmPh_p( SacRec& sac_am, SacRec& sac_ph ) {
+	/*
+	// check header of current sac
+	if( shd.npts==NaN || shd.delta==NaN || shd.b==NaN )
+		throw ErrorSR::BadParam(FuncName, "empty header");
+	*/
+	// check signals
+   if( !sac_am.sig || !sac_ph.sig )
+      throw ErrorSR::EmptySig(FuncName);
+	int nk = sac_am.shd.npts;
+	if( nk != sac_ph.shd.npts )
+		throw ErrorSR::SizeMismatch(FuncName, std::to_string(nk)+" - "+std::to_string(sac_ph.shd.npts) );
+	// allocate memory
+	int ns = (nk-1) * 2;
+	fftw_complex *in = (fftw_complex *) fftw_malloc ( ns * sizeof(fftw_complex) );//fftw_alloc_complex(ns);
+	fftw_complex *out = (fftw_complex *) fftw_malloc ( ns * sizeof(fftw_complex) );//fftw_alloc_complex(ns);
+	if( *in==nullptr || *out==nullptr )
+		throw ErrorSR::MemError( FuncName, "fftw_malloc failed!");
+	// assign spectrum to the 'in' array
+   memset(in, 0, ns*sizeof(fftw_complex));
+	float *sigam = sac_am.sig.get(), *sigph = sac_ph.sig.get();
+   for(int i=0; i<nk; i++) {
+		in[i][0] = sigam[i] * cos(sigph[i]);
+		in[i][1] = -sigam[i] * sin(sigph[i]);
+   }
+	// create plan
+	fftw_plan plan;
+	#pragma omp critical(fftw)
+	{
+	plan = fftw_plan_dft_1d (ns, in, out, FFTW_FORWARD, FFTW_ESTIMATE); //FFTW_ESTIMATE / FFTW_MEASURE
+	}
+	// run FFTW_F
+	sig.reset( new float[ns] );
+	if( ! sig )
+		throw ErrorSR::MemError( FuncName, "new failed!");
+	pimpl->FFTW_F(plan, out, sig.get(), ns);
+	// free memory
+	fftw_free(in); fftw_free(out);
+	// normalize
+	float *sacsig = sig.get(), ftmp = 2./ns;
+   for(int i=0; i<ns; i++)	sacsig[i] *= ftmp;
+	// set header
+	shd.npts = ns;
+	shd.delta = 1;
+}
+
 /* 3 different types of filters */
 void SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout ) {
 	if( shd.npts > maxnpts4parallel ) {
@@ -989,7 +1075,7 @@ void SacRec::Filter_p ( double f1, double f2, double f3, double f4, SacRec& srou
    else throw ErrorSR::BadParam( FuncName, "Unknown filter type");
 
    //forward FFT: sf ==> s
-   pimpl->FFTW_F(planF, s, ns, &(srout.sig[0]), n);
+   pimpl->FFTW_F(planF, s, &(srout.sig[0]), n);
    fftw_free(s); fftw_free(sf);
 
    //forming final result
@@ -1173,11 +1259,11 @@ int SacRec::arrange(const char* recname) {
 					//if( RMSAvg( rmswb, rmswe, sigrms ) ) break;
 					if( MeanStd( rmswb, rmswe, step, sigmean1, sigstd ) ) {
 						float ftmp;
-						sigmean1 = -12345.; sigmean2 = -12345.;
+						sigmean1 = NaN; sigmean2 = NaN;
 						MeanStd( rmswb, sigtime_b, step, sigmean1, ftmp );
 						MeanStd( sigtime_e, rmswe, step, sigmean2, ftmp );
-						if( sigmean1 == -12345. ) sigmean1 = sigmean2;
-						else if (sigmean2 == -12345. ) sigmean2 = sigmean1;
+						if( sigmean1 == NaN ) sigmean1 = sigmean2;
+						else if (sigmean2 == NaN ) sigmean2 = sigmean1;
 						break;
 					}
 				}
@@ -1493,4 +1579,124 @@ void SacRec::RunAvg( float timehlen, float Eperl, float Eperh ) {
 
 
 }
+
+/* Correlate with another sac record
+	ctype=0: Correlate (default) 
+	ctype=1: deconvolve (sac.am/sac2.am)
+	ctype=2: deconvolve (sac2.am/sac.am) */
+/*
+void SacRec::Correlate( SacRec& sac2, SacRec& sacout, int ctype ) {
+	// check input
+	if( !sig || !sac2.sig )
+		throw ErrorSR::EmptySig(FuncName);
+	if( shd.npts != sac2.shd.npts )
+		throw ErrorSR::SizeMismatch(FuncName, std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
+
+	// sig1 time -> freq
+	SacRec sac1_am, sac1_ph;
+	ToAmPh(sac1_am, sac1_ph);
+	
+	// sig2 time -> freq
+	SacRec sac2_am, sac2_ph;
+	sac2.ToAmPh(sac2_am, sac2_ph);
+
+	Correlate( sac1_am, sac1_ph, sac2_am, sac2_ph, sacout, ctype );
+
+}
+*/
+void SacRec::Correlate( SacRec& sac2, SacRec& sacout, int ctype ) {
+	// check input
+	if( !sig || !sac2.sig )
+		throw ErrorSR::EmptySig(FuncName);
+	if( shd.npts != sac2.shd.npts )
+		throw ErrorSR::SizeMismatch(FuncName, std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
+
+	// sig1 time -> freq
+	SacRec sac1_am, sac1_ph;
+	ToAmPh(sac1_am, sac1_ph);
+	
+	// sig2 time -> freq
+	SacRec sac2_am, sac2_ph;
+	sac2.ToAmPh(sac2_am, sac2_ph);
+
+	// initialize amp and phase out
+	int npts = sac1_am.shd.npts;
+	SacRec out_am;
+	if( ctype == 2 ) out_am = sac2_am;
+	else out_am = sac1_am;
+	/*
+	out_am.sig.reset( new float[ns]() );
+	if( ! out_am.sig )
+		throw ErrorSR::MemError( FuncName, "new failed for out_am!");
+	out_am.shd = sac1_am.shd;
+	out_am.shd.npts = ns;
+	*/
+
+	// correlate in freq domain
+	float *amout = out_am.sig.get();
+	float *am1 = sac1_am.sig.get(), *am2 = sac2_am.sig.get();
+	float ampmin = 0.;
+	switch( ctype ) {
+		case 0:
+			for(int i=0; i<npts; i++) amout[i] *= am2[i];
+			break;
+		case 1:
+			for(int i=0; i<npts; i++) ampmin += am2[i];
+			ampmin /= npts*20.;
+			for(int i=0; i<npts; i++) amout[i] /= std::max(am2[i], ampmin);
+			break;
+		case 2:
+			for(int i=0; i<npts; i++) ampmin += am1[i];
+			ampmin /= npts*20.;
+			for(int i=0; i<npts; i++) amout[i] /= std::max(am1[i], ampmin);
+			break;
+		default:
+			throw ErrorSR::BadParam( FuncName, "Unknown Cor type!" );
+	}
+
+	// clear sacs & free memories 1
+	sac1_am.clear(); sac2_am.clear();
+
+	// compute phase out
+	SacRec out_ph( sac2_ph );
+	/*
+	out_ph.sig.reset( new float[ns]() );
+	if( ! out_ph.sig )
+		throw ErrorSR::MemError( FuncName, "new failed for out_ph!");
+	out_ph.shd = sac1_ph.shd;
+	out_ph.shd.npts = ns;
+	*/
+	float *phout = out_ph.sig.get();
+	float *ph1 = sac1_ph.sig.get(), *ph2 = sac2_ph.sig.get();
+   for(int i=0; i<npts; i++) phout[i] -= ph1[i];
+
+	// clear sacs & free memories 2
+	sac1_ph.clear(); sac2_ph.clear();
+
+	// convert back to time domain (with length ns)
+	SacRec sac_CC;
+	sac_CC.FromAmPh(out_am, out_ph);
+	// clear sacs & free memories 3
+	out_am.clear(); out_ph.clear();
+
+	// form final result
+	int lag = shd.npts-1, ns = (npts-1) * 2;
+	sacout.shd = shd;
+	sacout.shd.npts = lag*2 + 1;
+	sacout.shd.e = lag * sacout.shd.delta;
+	sacout.shd.b = - sacout.shd.e;
+	sacout.sig.reset( new float[lag*2+1]() );
+	float *cor = sacout.sig.get(), *CCout = sac_CC.sig.get();
+   for( int i = 1; i< (lag+1); i++) {
+      cor[lag-i] =  CCout[i];
+      cor[lag+i] =  CCout[ns-i];
+   }
+   cor[lag] = CCout[0];
+
+	// normalize
+	//float *outsig = sacout.sig.get();
+   //for(int i=0; i<sacout.npts; i++) outsig[i] *= ;
+	
+}
+
 

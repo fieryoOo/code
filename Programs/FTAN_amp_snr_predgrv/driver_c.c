@@ -231,6 +231,24 @@ notice that amp_snrs are always measured based on
   if(nfout2 == 0) continue;   // break aftan sequence 
   //printf("Tamp = %9.3lf, nrow = %d, ncol = %d\n",tamp,nrow,ncol);
 
+	/* output amplitude/SNR before phase match filter */
+	for(i = 0; i < nfout1; i++) {
+	  c_per[i]=arr1[i][1];
+	  g_vel[i]=arr1[i][2];
+	}
+	get_snr(fhlen,sei_p,n,dt,delta,t0,c_per,g_vel,nfout1,amp_p,snr_p); // positive lag
+	if(flag==1) get_snr(fhlen,sei_n,n,dt,delta,t0,c_per,g_vel,nfout1,amp_n,snr_n); //negative lag if exists
+	sprintf(amp_name,"%s_amp_snr",name);
+	if((fas=fopen(amp_name,"w"))==NULL) {
+		printf("Cannot open file %s to write!\n", amp_name);
+		exit (-2);
+	}
+	if(flag==1) for(i = 0; i < nfout1; i++)
+		fprintf(fas,"%8.4f   %.5g  %8.4f  %.5g  %8.4f\n",arr1[i][1],amp_p[i],snr_p[i],amp_n[i],snr_n[i]);
+	else for(i = 0; i < nfout1; i++) 
+		fprintf(fas,"%8.4f   %.5g  %8.4f\n",arr1[i][1],amp_p[i],snr_p[i]);
+	fclose(fas);
+
 /* Read in the predicted group dispersion. (or make prediction based on the first iteration.) */
   static double pred[2][300];
   static int npred;
@@ -315,23 +333,23 @@ printf("%d\n",npred);
   sprintf(amp_name, "%s_cld", name);
   write_sac (amp_name, seiout, &shd);
 
-/* comput amplitude and SNR based on the phase-match filter results */
-  for(i = 0; i < nfout2; i++) {
-      c_per[i]=arr2[i][0];
-      g_vel[i]=arr2[i][2];
-     }
-  get_snr(fhlen,sei_p,n,dt,delta,t0,c_per,g_vel,nfout2,amp_p,snr_p); // positive lag
-  if(flag==1) get_snr(fhlen,sei_n,n,dt,delta,t0,c_per,g_vel,nfout2,amp_n,snr_n); //negative lag if exists
-  sprintf(amp_name,"%s_amp_snr",name);
-  if((fas=fopen(amp_name,"w"))==NULL) {
-     printf("Cannot open file %s to write!\n", amp_name);
-     exit (-2);
-    }
-  if(flag==1) for(i = 0; i < nfout2; i++)
-     fprintf(fas,"%8.4f   %.5g  %8.4f  %.5g  %8.4f\n",arr2[i][1],amp_p[i],snr_p[i],amp_n[i],snr_n[i]);
-  else for(i = 0; i < nfout2; i++) 
-     fprintf(fas,"%8.4f   %.5g  %8.4f\n",arr2[i][1],amp_p[i],snr_p[i]);
-  fclose(fas);
+	/* output amplitude/SNR after phase match filter */
+	for(i = 0; i < nfout2; i++) {
+		c_per[i]=arr2[i][1];
+		g_vel[i]=arr2[i][2];
+	}
+	get_snr(fhlen,sei_p,n,dt,delta,t0,c_per,g_vel,nfout2,amp_p,snr_p); // positive lag
+	if(flag==1) get_snr(fhlen,sei_n,n,dt,delta,t0,c_per,g_vel,nfout2,amp_n,snr_n); //negative lag if exists
+	sprintf(amp_name,"%s_2_amp_snr",name);
+	if((fas=fopen(amp_name,"w"))==NULL) {
+		printf("Cannot open file %s to write!\n", amp_name);
+		exit (-2);
+	}
+	if(flag==1) for(i = 0; i < nfout2; i++)
+		fprintf(fas,"%8.4f   %.5g  %8.4f  %.5g  %8.4f\n",arr2[i][1],amp_p[i],snr_p[i],amp_n[i],snr_n[i]);
+	else for(i = 0; i < nfout2; i++) 
+		fprintf(fas,"%8.4f   %.5g  %8.4f\n",arr2[i][1],amp_p[i],snr_p[i]);
+	fclose(fas);
   }
   fclose(in);
   free(sei_p);
