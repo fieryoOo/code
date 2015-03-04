@@ -227,9 +227,6 @@ notice that amp_snrs are always measured based on
   aftanpg_(&piover4,&n,sei,&t0,&dt,&delta,&vmin,&vmax,&tmin,&tmax,&tresh1,
         &ffact,&perc,&npoints,&taperl,&nfin,&snr,&nprpv,prpvper,prpvvel,
         &nfout1,arr1,&nfout2,arr2,&tamp,&nrow,&ncol,ampo,&ierr);
-  if( pflag==0 || pflag==1 ) printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_1",delta);
-  if(nfout2 == 0) continue;   // break aftan sequence 
-  //printf("Tamp = %9.3lf, nrow = %d, ncol = %d\n",tamp,nrow,ncol);
 
 	/* output amplitude/SNR before phase match filter */
 	for(i = 0; i < nfout1; i++) {
@@ -249,6 +246,10 @@ notice that amp_snrs are always measured based on
 		fprintf(fas,"%8.4f   %.5g  %8.4f\n",arr1[i][1],amp_p[i],snr_p[i]);
 	fclose(fas);
 
+  if( pflag==0 || pflag==1 ) printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_1",delta);
+  if(nfout2 == 0) continue;   // break aftan sequence 
+  //printf("Tamp = %9.3lf, nrow = %d, ncol = %d\n",tamp,nrow,ncol);
+
 /* Read in the predicted group dispersion. (or make prediction based on the first iteration.) */
   static double pred[2][300];
   static int npred;
@@ -257,7 +258,7 @@ notice that amp_snrs are always measured based on
      npred = nfout2;
      tmin = arr2[0][1];
      tmax = arr2[nfout2-1][1];
-fprintf(stderr,"tmin=%f tmax=%f\n", tmin, tmax);
+	  fprintf(stderr,"tmin=%f tmax=%f\n", tmin, tmax);
      for(i = 0; i < nfout2; i++) {
          pred[0][i] = arr2[i][1];   // apparent periods
          pred[1][i] = arr2[i][2];   // group velocities

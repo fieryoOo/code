@@ -45,16 +45,22 @@ public:
    /* destructor */
    ~SacRec(); 
 
+	/* assign header and allocate memory */
+	void MutateAs ( const SacRec& recin );
+
    /* ------------------------------ sac file read/write ------------------------------ */
    /* load sac header from file 'fname' */
    void LoadHD( const std::string& fnamein ) { fname = fnamein; LoadHD(); }
-   void LoadHD ();
+   void LoadHD();
    /* read sac header+signal from file 'fname', memory is allocated on heap */
    void Load( const std::string& fnamein ) { fname = fnamein; Load(); }
-   void Load ();
+   void Load();
    /* write to file '*fname' */
-   void WriteHD ( const std::string& fname );
-   void Write ( const std::string& fname );
+   void WriteHD( const std::string& fname );
+   void Write( const std::string& fname );
+	/* dump signal to txt */
+	void Dump( const std::string fname );
+	/* clear sac and release memory */
 	void clear() { sig.reset(); shd = sac_null; fname.clear(); }
 
    /* ------------------------------ header operations ------------------------------ */
@@ -85,9 +91,9 @@ public:
 		ToAmPh( sac_am, sac_ph );
 	}
 	void ToAmPh( SacRec& sac_am, SacRec& sac_ph );	// in series when sig is large
-	void ToAmPh_p( SacRec& sac_am, SacRec& sac_ph );// always parallel
-	void FromAmPh( SacRec& sac_am, SacRec& sac_ph );// in series when sig is large
-	void FromAmPh_p( SacRec& sac_am, SacRec& sac_ph );//	always parallel
+	void ToAmPh_p( SacRec& sac_am, SacRec& sac_ph );	// always parallel
+	void FromAmPh( SacRec& sac_am, SacRec& sac_ph, const short outtype = 0 );		// in series when sig is large
+	void FromAmPh_p( SacRec& sac_am, SacRec& sac_ph, const short outtype = 0 );	//	always parallel
 	/* filters */
 	void LowpassFilt( double fh1, double fh2 ) { LowpassFilt(fh1, fh2, *this); }
 	void LowpassFilt( double fh1, double fh2, SacRec& srout ) { Filter(-1., -1., fh1, fh2, srout); }
@@ -118,6 +124,10 @@ public:
    void Resample( float sps );
 	/* smoothing ( running average ) */
 	void Smooth( float timehlen, SacRec& sacout ) const;
+	void Hilbert() { Hilbert(*this); }
+	void Hilbert( SacRec& sacout );
+	void Envelope() { Envelope(*this); }
+	void Envelope( SacRec& sacout );
 
    void cut( float tb, float te ) { cut(tb, te, *this); }
    void cut( float tb, float te, SacRec& );

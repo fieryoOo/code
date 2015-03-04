@@ -1,15 +1,17 @@
-BIN1 = chhdr
-BIN2 = filter
+BIN1 = SAC_chhdr
+BIN2 = SAC_filter
 BIN3 = SAC_addall
+BIN4 = SAC_dump
+BIN5 = SAC_envelope
 
 LIBS = -L${HOME}/usr/lib -lfftw3 -lSacRec
 
-cflags = -lstdc++ -std=c++0x -O3
+cflags = -lstdc++ -std=c++11 -O3
 
 #OBJS = SacRec.o
 OBJS = 
 
-all : $(BIN1) $(BIN2) ${BIN3}
+all : $(BIN1) $(BIN2) ${BIN3} $(BIN4) $(BIN5)
 
 $(BIN1) : $(OBJS) $(BIN1).cpp
 	g++ $(LIBS) $(cflags) -o $@ $^
@@ -18,6 +20,12 @@ $(BIN2) : $(OBJS) $(BIN2).cpp
 	g++ $(LIBS) $(cflags) -o $@ $^
 
 $(BIN3) : $(OBJS) $(BIN3).cpp
+	g++ $(LIBS) $(cflags) -o $@ $^
+
+$(BIN4) : $(OBJS) $(BIN4).cpp
+	g++ $(LIBS) $(cflags) -o $@ $^
+
+$(BIN5) : $(OBJS) $(BIN5).cpp
 	g++ $(LIBS) $(cflags) -o $@ $^
 
 #$(BIN2) : $(OBJS) $(BIN2).o
@@ -30,7 +38,7 @@ $(BIN3) : $(OBJS) $(BIN3).cpp
 	g++ $(cflags) -c $^
 
 clean:
-	rm -f $(OBJS) $(BIN1) $(BIN2) $(BIN3)
+	rm -f $(OBJS) $(BIN1) $(BIN2) $(BIN3) $(BIN4) $(BIN5)
 
 install:
 	cp $(BIN1) /home/yeti4009/bin

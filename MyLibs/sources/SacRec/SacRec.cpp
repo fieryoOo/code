@@ -41,7 +41,8 @@ struct SacRec::SRimpl {
    /* ---------- FFT operations ---------- */
    #define PI 3.14159265358979323846
    // forward FFT: out ==> seis
-   void FFTW_F(fftw_plan plan, fftw_complex *out, float *seis, int n) {
+   void FFTW_F(fftw_plan plan, fftw_complex *out, float *seis, int n, const short outtype = 0) {
+		/* outtype: real(0)/imaginary(1)/amp(2)/phase(3) of the IFFT result */
       fftw_execute(plan);
       //pthread_mutex_lock(&fftlock);
 		#pragma omp critical(fftw)
@@ -50,8 +51,18 @@ struct SacRec::SRimpl {
 		}
       //pthread_mutex_unlock(&fftlock);
       int k;
-      for(k=0; k<n; k++) {
-			seis[k] = out[k][0];
+		switch( outtype ) {
+			case 1:
+				for(k=0; k<n; k++) seis[k] = out[k][1];
+				break;
+			case 2:
+				for(k=0; k<n; k++) seis[k] = hypot(out[k][0], out[k][1]);	//sqrt( out[k][0]*out[k][0] + out[k][1]*out[k][1] );
+				break;
+			case 3:
+				for(k=0; k<n; k++) seis[k] = atan2( out[k][1], out[k][0] );
+				break;
+			default:
+				for(k=0; k<n; k++) seis[k] = out[k][0];
 		}
       //for(k=0; k<n; k+=1000) if(seis[k] != 0.) printf("%d %f\n", k, seis[k]);
    }
@@ -498,6 +509,18 @@ SacRec& SacRec::operator= ( SacRec&& recin ) {
 /* destructor */
 SacRec::~SacRec() {}
 
+/* assignment operator */
+void SacRec::MutateAs ( const SacRec& recin ) { 
+   pimpl.reset( new SRimpl(*(recin.pimpl)) );
+   //fname = recin.fname; 
+	report = recin.report;
+	shd = recin.shd;
+   sig.reset(new float[recin.shd.npts]);
+	if( ! sig )
+		throw ErrorSR::MemError( FuncName, "new failed!");
+}
+
+
 /* ------------------------------- memory consumed ------------------------------- */
 float SacRec::MemConsumed() const {
 	int npts = std::max(0, shd.npts);
@@ -530,7 +553,7 @@ void SacRec::Load () {
 		throw ErrorSR::BadFile( FuncName, "reading from " + fname );
 	// read from fin
 	size_t rdsize = sizeof(SAC_HD);
-	#pragma omp critical(IO)
+	#pragma omp critical(sacIO)
 	{
    fsac.read( reinterpret_cast<char *>(&shd), rdsize );
 	if( fsac.gcount() != rdsize )
@@ -606,12 +629,23 @@ void SacRec::Write (const std::string& outfname) {
    UpdateTime();
 
    //pthread_mutex_lock(&fiolock);
-	#pragma omp critical(IO)
+	#pragma omp critical(sacIO)
 	{
    fsac.write( reinterpret_cast<char *>(&shd), sizeof(SAC_HD) );
    fsac.write( reinterpret_cast<char *>(sigsac), sizeof(float)*shd.npts );
    fsac.close();
 	}
+}
+
+void SacRec::Dump( const std::string fname ) {
+	if( !sig || shd.npts<=0 )
+		throw ErrorSR::EmptySig(FuncName);
+	std::ofstream fout(fname);
+	if( ! fout )
+		throw ErrorSR::BadFile( FuncName, "writing to " + fname );
+	float dt = shd.delta, *sigsac = sig.get();
+	for( int i=0; i<shd.npts; i++ )
+		fout<<i*dt<<" "<<sigsac[i]<<"\n";
 }
 
 /*
@@ -974,17 +1008,23 @@ void SacRec::ToAmPh_p( SacRec& sac_am, SacRec& sac_ph ) {
 	sac_ph.shd = sac_am.shd;
 }
 
-void SacRec::FromAmPh( SacRec& sac_am, SacRec& sac_ph ) {
+void SacRec::FromAmPh( SacRec& sac_am, SacRec& sac_ph, const short outtype ) {
 	if( shd.npts > maxnpts4parallel ) {
 		#pragma omp critical(largesig)
 		{
-		FromAmPh_p(sac_am, sac_ph);
+		FromAmPh_p(sac_am, sac_ph, outtype);
 		}
 	} else {
-		FromAmPh_p(sac_am, sac_ph);
+		FromAmPh_p(sac_am, sac_ph, outtype);
 	}
 }
-void SacRec::FromAmPh_p( SacRec& sac_am, SacRec& sac_ph ) {
+void SacRec::FromAmPh_p( SacRec& sac_am, SacRec& sac_ph, const short outtype ) {
+	/* outtype =
+		0: original
+		1: hilbert
+		2: envelope
+		3: ?something else
+	*/
 	/*
 	// check header of current sac
 	if( shd.npts==NaN || shd.delta==NaN || shd.b==NaN )
@@ -1007,7 +1047,7 @@ void SacRec::FromAmPh_p( SacRec& sac_am, SacRec& sac_ph ) {
 	float *sigam = sac_am.sig.get(), *sigph = sac_ph.sig.get();
    for(int i=0; i<nk; i++) {
 		in[i][0] = sigam[i] * cos(sigph[i]);
-		in[i][1] = -sigam[i] * sin(sigph[i]);
+		in[i][1] = sigam[i] * sin(sigph[i]);
    }
 	// create plan
 	fftw_plan plan;
@@ -1015,19 +1055,19 @@ void SacRec::FromAmPh_p( SacRec& sac_am, SacRec& sac_ph ) {
 	{
 	plan = fftw_plan_dft_1d (ns, in, out, FFTW_FORWARD, FFTW_ESTIMATE); //FFTW_ESTIMATE / FFTW_MEASURE
 	}
+	// set header
+	if( shd.npts==NaN || shd.npts>ns ) shd.npts = ns;	//shd.npts = ns;
+	if( shd.delta == NaN ) shd.delta = 1.;
 	// run FFTW_F
-	sig.reset( new float[ns] );
+	sig.reset( new float[shd.npts] );
 	if( ! sig )
 		throw ErrorSR::MemError( FuncName, "new failed!");
-	pimpl->FFTW_F(plan, out, sig.get(), ns);
+	pimpl->FFTW_F(plan, out, sig.get(), shd.npts, outtype);
 	// free memory
 	fftw_free(in); fftw_free(out);
 	// normalize
 	float *sacsig = sig.get(), ftmp = 2./ns;
-   for(int i=0; i<ns; i++)	sacsig[i] *= ftmp;
-	// set header
-	shd.npts = ns;
-	shd.delta = 1;
+   for(int i=0; i<shd.npts; i++)	sacsig[i] *= ftmp;
 }
 
 /* 3 different types of filters */
@@ -1123,10 +1163,28 @@ void SacRec::cosTaperR( const float fl, const float fh ) {
    return;
 }
 
+void SacRec::Hilbert( SacRec& sacout ) {
+   if( !sig || shd.npts<=0 )	// check signal
+		throw ErrorSR::EmptySig(FuncName);
+
+	SacRec sac_am, sac_ph;
+	this->ToAmPh(sac_am, sac_ph);
+	sacout.FromAmPh(sac_am, sac_ph, 1);	// take the imaginary part from IFFT for hilbert
+}
+
+void SacRec::Envelope( SacRec& sacout ) {
+   if( !sig || shd.npts<=0 )	// check signal
+		throw ErrorSR::EmptySig(FuncName);
+
+	SacRec sac_am, sac_ph;
+	this->ToAmPh(sac_am, sac_ph);
+	sacout.FromAmPh(sac_am, sac_ph, 2);	// take the amplitude from IFFT for envelope
+}
+
 
 /* ---------------------------------------- cut and merge ---------------------------------------- */
 void SacRec::cut( float tb, float te, SacRec& sac_result ) {
-   int nb = (int)floor( (tb-shd.b) / shd.delta + 0.5 );
+	int nb = (int)floor( (tb-shd.b) / shd.delta + 0.5 );
    int ne = (int)floor( (te-shd.b) / shd.delta + 0.5 );
    if( nb>=ne || ne<0 || nb>shd.npts )
 		throw ErrorSR::BadParam( FuncName, "Invalid nb/ne/npts = " + std::to_string(nb) +
@@ -1688,8 +1746,8 @@ void SacRec::Correlate( SacRec& sac2, SacRec& sacout, int ctype ) {
 	sacout.sig.reset( new float[lag*2+1]() );
 	float *cor = sacout.sig.get(), *CCout = sac_CC.sig.get();
    for( int i = 1; i< (lag+1); i++) {
-      cor[lag-i] =  CCout[i];
-      cor[lag+i] =  CCout[ns-i];
+      cor[lag+i] =  CCout[i];
+      cor[lag-i] =  CCout[ns-i];
    }
    cor[lag] = CCout[0];
 

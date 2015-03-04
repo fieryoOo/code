@@ -87,7 +87,7 @@ c======================================================================
       real*8    phgr(100),phgr1(100),phgrt(100),phgrc(100)
 c ---
       integer*4 njump,nijmp,i,ii(100),nii,ijmp(100),ki,kk,istrt,ibeg,iend,ima
-      real*8    dmaxt,wor,per2(100),om1(100),snr(100),snr1(100),snrt(100)
+      real*8    dmaxt,wor,ftmp1,ftmp2,per2(100),om1(100),snr(100),snr1(100),snrt(100)
       real*8    wdth(100),wdth1(100),wdtht(100)
       integer*4 ip,iflag,ierr1,nindx,imax,iimax,ipos,ist,ibe,nfout2,indx(100)
       integer*4 mm,mi,iml,imr,indl,indr,nphpr
@@ -162,21 +162,23 @@ c spectra ends ajastment
 c forward FFT: fils ==> tmp
         call dfftw_execute(plan2)
         do m = 1,ns
-          tmp(m) = tmp(m)/ns
+          tmp2(m) = tmp(m)/ns
         enddo
 c Hilbert
-c        do m = 1,ns/2
-c          fils(m) = fils(m) + 0.5*pi*i
-c        enddo
-c        call dfftw_execute(plan2)
-c        do m = 1,ns
-c          tmp(m) = tmp(m)/ns
-c        enddo
+        do m = 1,ns/2
+          fils(m) = fils(m) + 0.5*pi*i
+        enddo
+        call dfftw_execute(plan2)
+        do m = 1,ns
+          tmp(m) = tmp(m)/ns
+        enddo
         j = 1
 c extraction from FTAN map area of investigation
         do m = nb-1,ne+1
-          pha(j,k) = datan2(dimag(tmp(m)),dreal(tmp(m)))
-          wor = cdabs(tmp(m))
+          pha(j,k) = datan2(dimag(tmp2(m)),dreal(tmp2(m)))
+          ftmp1 = dreal(tmp(m))
+          ftmp2 = dreal(tmp2(m))
+          wor = SQRT(ftmp1*ftmp1+ftmp2*ftmp2)
           ampo(j,k) = wor
           amp(j,k) = 20.0d0*dlog10(wor)
           j = j+1
