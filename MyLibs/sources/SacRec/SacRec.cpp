@@ -643,9 +643,9 @@ void SacRec::Dump( const std::string fname ) {
 	std::ofstream fout(fname);
 	if( ! fout )
 		throw ErrorSR::BadFile( FuncName, "writing to " + fname );
-	float dt = shd.delta, *sigsac = sig.get();
+	float b = shd.b, dt = shd.delta, *sigsac = sig.get();
 	for( int i=0; i<shd.npts; i++ )
-		fout<<i*dt<<" "<<sigsac[i]<<"\n";
+		fout<<b+i*dt<<" "<<sigsac[i]<<"\n";
 }
 
 /*
@@ -821,6 +821,16 @@ void SacRec::UpdateTime() {
 
 /* search for min&max signal positions and amplitudes */
 inline static int nint( float in ) { return static_cast<int>(floor(in+0.5)); }
+void SacRec::MinMax (int& imin, int& imax) {
+	float min, max;
+	float *sigsac = sig.get();
+	min = max = sigsac[0];
+   imin = imax = 0;
+	for( int i=0; i<shd.npts; i++ ) {
+       if ( min > sigsac[i] ) { min = sigsac[i]; imin = i; }
+       else if ( max < sigsac[i] ) { max = sigsac[i]; imax = i; }
+   }
+}
 void SacRec::MinMax (int& imin, int& imax, float tbegin, float tend) {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
@@ -1005,6 +1015,7 @@ void SacRec::ToAmPh_p( SacRec& sac_am, SacRec& sac_ph ) {
    sac_am.shd.npts = nk;
    sac_am.shd.delta = 1./(shd.delta*ns);
    sac_am.shd.b = 0.;
+	sac_am.shd.e = sac_am.shd.delta * nk;
 	sac_ph.shd = sac_am.shd;
 }
 
@@ -1023,7 +1034,7 @@ void SacRec::FromAmPh_p( SacRec& sac_am, SacRec& sac_ph, const short outtype ) {
 		0: original
 		1: hilbert
 		2: envelope
-		3: ?something else
+		3: signal phase (in time domain)
 	*/
 	/*
 	// check header of current sac
@@ -1066,8 +1077,10 @@ void SacRec::FromAmPh_p( SacRec& sac_am, SacRec& sac_ph, const short outtype ) {
 	// free memory
 	fftw_free(in); fftw_free(out);
 	// normalize
-	float *sacsig = sig.get(), ftmp = 2./ns;
-   for(int i=0; i<shd.npts; i++)	sacsig[i] *= ftmp;
+	if( outtype != 3 ) {
+		float *sacsig = sig.get(), ftmp = 2./ns;
+		for(int i=0; i<shd.npts; i++)	sacsig[i] *= ftmp;
+	}
 }
 
 /* 3 different types of filters */
@@ -1127,13 +1140,49 @@ void SacRec::Filter_p ( double f1, double f2, double f3, double f4, SacRec& srou
 }
 
 
+void SacRec::gauTaper( const float fc, const float fh ) {
+	if( !sig || shd.npts<=0 )	// check signal
+		throw ErrorSR::EmptySig(FuncName);
+
+	int i;
+	float gauamp, dom = shd.delta;
+	double f, fstart, fend, fmax = (shd.npts-1)*shd.npts;
+	// define effective window for given gaussian halflength
+	f = fh * 4.;
+	fstart = fc - f;
+	fend = fc + f; 
+	if( fend > fmax ) fend = fmax;
+	float *sigsac = sig.get();
+	// cut high frequecies
+	if( fstart > 0. ) {
+		for(i=0, f=0.; f<fstart; i++, f+=dom)
+			sigsac[i] = 0.;
+		f = i * dom; // correct for round-off error
+	}
+	else { f = 0.; i = 0; }
+	// apply taper
+	float alpha = -0.5/(fh*fh);
+	for(; f<fend-1.e-10; i++, f+=dom) {
+		gauamp = f - fc;
+		gauamp = exp( alpha * gauamp * gauamp );
+		sigsac[i] *= gauamp;
+	}
+	// cut low frequencies
+	if( fend < fmax ) {
+		f = i * dom; // again, correct for round-off
+		for(; i<shd.npts; i++) {
+			sigsac[i] = 0.;
+		}
+	}
+}
+
 /* cosine tapper */
 void SacRec::cosTaperL( const float fl, const float fh ) {
-   if( !sig || shd.npts<=0 )	// check signal
+	if( !sig || shd.npts<=0 )	// check signal
 		throw ErrorSR::EmptySig(FuncName);
 
 	const float& delta = shd.delta;
-   int i;
+	int i;
 	float *sigsac = sig.get();
 	for( i=0; i<(int)ceil(fl/delta); i++ ) sigsac[i] = 0.;
 	float finit = i*delta, fwidth = fh-fl, dfh = fh-finit;
@@ -1198,7 +1247,7 @@ void SacRec::cut( float tb, float te, SacRec& sac_result ) {
    if( nb < 0 ) { inew = -nb; iold = 0; }
    else { inew = 0; iold = nb; }
    // define copy size
-   float nptscpy = std::min( nptsnew - inew, shd.npts - iold) - 1;
+   float nptscpy = std::min( nptsnew - inew, shd.npts - iold - 1 );
    // copy data
    memcpy( &(signew[inew]), &(sig[iold]), nptscpy * sizeof(float) );
    // reset sacT.sig

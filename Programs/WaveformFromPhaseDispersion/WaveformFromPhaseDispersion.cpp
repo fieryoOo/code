@@ -1,230 +1,31 @@
 #include "SacRec.h"
+#include "Curve.h"
 #include <unistd.h>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <string>
-#include <algorithm>
+#include <chrono>
 #include <stdexcept>
 
-/* ----- single point data structures ----- */
-template <class T> class Curve;
-class KDeriv;
-class Point {
+/* -------------------- the RNG class-------------------- */
+class Rand {
+   std::default_random_engine generator1;
+   std::uniform_real_distribution<float> d_uniform;
+   std::normal_distribution<float> d_normal;
 public:
-	Point( float perin=NaN, float velin=NaN, float sdensin=1. ) 
-		: per(perin), vel(velin), sdensity(sdensin) {}
+   Rand() /* add a true random number from std::random_device to the time seed to ensure thread safety */
+      : generator1( std::chrono::system_clock::now().time_since_epoch().count() + std::random_device{}() )
+      , d_uniform(0., 1.)
+      , d_normal(0., 1.) {}
 
-	Point( const std::string& input ) {
-		int nrd = sscanf(input.c_str(), "%f %f %f", &per, &vel, &sdensity);
-		if( nrd < 2 )
-			throw std::runtime_error("Error(Point::Point): format error");
-	}
+   //~Rand() {} // should not be defined!!!
 
-	friend bool operator< ( const Point& p1, const Point& p2 ) {
-		return (p1.per < p2.per);
-	}
+   inline float Uniform() { return d_uniform(generator1); }
+   inline float Normal() { return d_normal(generator1); }
 
-	friend std::ostream& operator<< ( std::ostream& o, const Point& pt ) {
-		o << pt.per << " " << pt.vel << " " << pt.sdensity;
-		return o;
-	}
-
-	friend Curve<Point>;
-	friend KDeriv;
-
-	static constexpr float NaN = -12345., pi = 3.1415926536;
-
-protected:
-	float per = NaN, vel = NaN, sdensity = 1.;
 };
 
-class Dispersion;
-class Ddata : public Point {
-public:
-	Ddata( float perin=NaN, float velin=NaN, float sdensin=1. )
-		: Point(perin, velin, sdensin) {}
-
-	Ddata(const std::string& input) 
-		: Point(input) {
-		om = 2. * pi / per;
-		k_ang = om / vel;
-	}
-
-	friend Curve<Ddata>;
-	friend Dispersion;
-
-private:
-	float om, k_ang;	//angular wavenumber
-};
-
-/* ----- data containers ----- */
-template <class T>
-class Curve {
-public:
-		Curve() {}
-		Curve( const std::string& fname ) { Load(fname); }
-		void Load( const std::string& fname ) {
-			// check infile
-			std::ifstream fin(fname);
-			if( ! fin )
-				throw std::runtime_error("Error(Curve::Load): cannot access dispersion infile " + fname);
-			// read
-			for(std::string line; std::getline(fin, line); ) {
-				dataV.push_back( T(line) );
-			}
-			std::cout<<dataV.size()<<" points loaded from file "<<fname<<std::endl;
-			// sort
-			std::sort(dataV.begin(), dataV.end());
-			// debug
-			//for( const auto& d : dataV ) std::cerr<<d<<std::endl;
-		}
-
-		void clear() { dataV.clear();	}
-		void push_back( float per, float vel, float om ){ dataV.push_back( Point(per, vel, om) ); }
-
-		float xmin() { return dataV.front().per; }
-		float xmax() { return dataV.back().per; }
-
-		float Val( const float per ) {
-			const auto itupp = std::upper_bound( dataV.begin(), dataV.end(), T(per) );
-			if( itupp == dataV.end() ) {
-				if( fabs((*(itupp-1)).per - per) < 0.1 ) return (*(itupp-1)).vel;
-				else return Ddata::NaN;
-			}
-			if( itupp<dataV.begin()+1 || itupp>=dataV.end() )
-				return T::NaN;
-			const auto itlow = itupp - 1;
-			float vdiff = (*itupp).vel - (*itlow).vel, Tdiff = (*itupp).per - (*itlow).per;
-			float deriv = vdiff / Tdiff;
-			return (*itlow).vel + ( per-(*itlow).per ) * deriv;
-		}
-
-		float Deriv( const float per ) {
-			const auto itupp = std::upper_bound( dataV.begin(), dataV.end(), T(per) );
-			if( itupp<dataV.begin()+1 || itupp>=dataV.end() )
-				return T::NaN;
-			const auto itlow = itupp - 1;
-			return ( (*itupp).vel - (*itlow).vel ) / ( (*itupp).per - (*itlow).per );
-		}
-
-		void FindValue(float val, std::vector<float>& perV) {
-			perV.clear();
-			if( dataV.size() <= 1 ) return;
-			for( int i=0; i<dataV.size()-1; i++ ) {
-				const auto& datacur = dataV[i];
-				float velh = dataV[i+1].vel, vell = datacur.vel;
-				if( val == vell ) {	// equal to or
-					perV.push_back(datacur.per);
-				} else if( (val-vell) * (val-velh) < 0. ) { // in between
-					float perh = dataV[i+1].per, perl = datacur.per;
-					float vdiff = velh - vell, pdiff = perh - perl;
-					//std::cerr<<"looking for "<<val<<" in between "<<perl<<"-"<<perh<<"sec "<<vell<<"-"<<velh<<"s/km"<<std::endl;
-					perV.push_back( perl + (val-vell) * pdiff / vdiff );
-				}
-			}
-			const auto& datacur = dataV.back();
-			if( val == datacur.vel ) perV.push_back(datacur.per);
-		}
-
-protected:
-		std::vector<T> dataV;
-};
-
-class KDeriv : public Curve<Point> {
-public:
-		float Deriv_2om( const float per ) {
-			const auto itupp = std::upper_bound( dataV.begin(), dataV.end(), Point(per) );
-			if( itupp<dataV.begin()+1 || itupp>=dataV.end() )
-				return Point::NaN;
-			const auto itlow = itupp - 1;
-			return ( (*itupp).vel - (*itlow).vel ) / ( (*itupp).sdensity - (*itlow).sdensity );
-		}
-
-		float Reciprocal( std::vector<Point>& grvV ) {
-			grvV.resize( dataV.size() );
-			for(int i=0; i<dataV.size(); i++)
-				grvV[i] = Point(dataV[i].per, 1./dataV[i].vel, dataV[i].sdensity);
-		}
-};
-
-class Dispersion : public Curve<Ddata> {
-public:
-		Dispersion( const std::string& fname )
-			: Curve(fname) {}
-
-		float Om( const float per ) {
-			const auto itupp = std::upper_bound( dataV.begin(), dataV.end(), Ddata(per) );
-			if( itupp == dataV.end() ) {
-				if( fabs((*(itupp-1)).per - per) < 0.1 ) return (*(itupp-1)).om;
-				else return Ddata::NaN;
-			}
-			if( itupp<dataV.begin()+1 || itupp>=dataV.end() )
-				return Ddata::NaN;
-			const auto itlow = itupp - 1;
-			float odiff = (*itupp).om - (*itlow).om, Tdiff = (*itupp).per - (*itlow).per;
-			float deriv = odiff / Tdiff;
-			return (*itlow).om + ( per-(*itlow).per ) * deriv;
-		}
-
-		float Sdens( const float per ) {
-			const auto itupp = std::upper_bound( dataV.begin(), dataV.end(), Ddata(per) );
-			if( itupp == dataV.end() ) {
-				if( fabs((*(itupp-1)).per - per) < 0.1 ) return (*(itupp-1)).sdensity;
-				else return Ddata::NaN;
-			}
-			if( itupp<dataV.begin()+1 || itupp>=dataV.end() )
-				return Ddata::NaN;
-			const auto itlow = itupp - 1;
-			float sdiff = (*itupp).sdensity - (*itlow).sdensity, Tdiff = (*itupp).per - (*itlow).per;
-			float deriv = sdiff / Tdiff;
-			return (*itlow).sdensity + ( per-(*itlow).per ) * deriv;
-		}
-
-		float Deriv_k2om( const float per ) {
-			const auto itupp = std::upper_bound( dataV.begin(), dataV.end(), Ddata(per) );
-			if( itupp<dataV.begin()+1 || itupp>=dataV.end() )
-				return Ddata::NaN;
-			const auto itlow = itupp - 1;
-			return ( (*itupp).k_ang - (*itlow).k_ang ) / ( (*itupp).om - (*itlow).om );
-		}
-
-		bool Deriv_k2om( KDeriv& curveout ) {
-			curveout.clear();
-			if( dataV.size() <= 1 ) return false;
-			for( auto it=dataV.begin()+1; it<dataV.end(); it++ ) {
-				float per = 0.5 * ( (*it).per + (*(it-1)).per );
-				float om = Om( per );
-				float deriv = Deriv_k2om( per );
-				curveout.push_back(per, deriv, om);
-			}
-		}
-
-		void ComputeSpectrum( const std::string& sacname ) {
-			SacRec sac(sacname);
-			sac.Load();
-			SacRec sac_am;
-			sac.ToAm(sac_am);
-			sac_am.Smooth(0.0002, sac);
-			float *sigsac = sac.sig.get();
-			for( auto& data : dataV ) {
-				float freq = 1./data.per;
-				int ifreq = (int)floor(freq/sac.shd.delta+0.5);
-				data.sdensity = sigsac[ifreq];
-				//std::cout<<freq<<" "<<data.sdensity<<std::endl;
-			}
-		}
-
-		void Write( const std::string& fname ) {
-			std::ofstream fout( fname );
-			if( ! fout ) {
-				std::cerr<<"Error(Dispersion::Write): cannot write to file "<<fname<<std::endl;;
-				exit(-2);
-			}
-			for( const auto& spP : dataV )
-				fout<<spP<<"\n";
-		}
-};
 
 inline bool fExist( const std::string& fname ) { return ( access( fname.c_str(), F_OK ) != -1 ); }
 
@@ -248,16 +49,16 @@ int main(int argc, char* argv[]) {
 		disp.ComputeSpectrum(argv[4]);
 
 	// take derivative of wavenumber wrt omiga
-	KDeriv kderivs;
+	KDeriv kderivs, grvs;
 	disp.Deriv_k2om( kderivs );
-	std::vector<Point> grvV;
-	kderivs.Reciprocal( grvV );
+	//std::vector<Point> grvV;
+	kderivs.Reciprocal( grvs );
 
 	//std::cout<<" per range: "<<disp.xmin()<<" - "<<disp.xmax()<<std::endl;
 	std::cout<<" per range: "<<kderivs.xmin()<<" - "<<kderivs.xmax()<<std::endl;
 
 	// synthetic at distance 500km
-	float pi = Ddata::pi, oopi = 1./pi;
+	float pi = M_PI, oopi = 1./pi;
 	float ph_init = pi/4.;
 
 	// sac header
@@ -297,7 +98,11 @@ int main(int argc, char* argv[]) {
 			sigsac[it] += sdens * cos(om*t - wavenum*dist + ph_init);
 		}
 	}
-	for (int it=0; it<shd.npts; it++) sigsac[it] *= dom;
+	Rand randO;
+	float noiselevel = 0.02;
+	for (int it=0; it<shd.npts; it++) {
+		sigsac[it] = sigsac[it]*dom + noiselevel * (2.*randO.Normal()-1.);
+	}
 
 	/* stationary phase
 	// affected time window
@@ -353,13 +158,9 @@ int main(int argc, char* argv[]) {
 	//}
 	*/
 	// output group dispersion
-	std::ofstream fout(argv[2]);
-	if( ! fout ) {
-		std::cerr<<"Error(main): cannot write to file "<<argv[2]<<std::endl;;
-		exit(-2);
-	}
-	for( const auto& grvP : grvV )
-		fout<<grvP<<std::endl;
+	grvs.Write( argv[2] );
+	//std::ofstream fout( argv[2] );
+	//for( const auto& grv : grvV ) fout << grv << "\n";
 
 	// output spectrum
 	if( spin ) {

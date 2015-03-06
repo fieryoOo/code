@@ -72,6 +72,7 @@ public:
    /* update/reformat header time if shd.nzmsec is modified and is out of the range [0,1000) */
    void UpdateTime();
    /* search for min&max signal positions and amplitudes */
+	void MinMax (int& imin, int& imax);
 	void MinMax (int& imin, int& imax, float tbegin, float tend);
    void MinMax ( float tbegin, float tend, float& tmin, float& min, float& tmax, float& max );
    /* compute the root-mean-square average in a given window */
@@ -109,9 +110,10 @@ public:
    void Filter ( double f1, double f2, double f3, double f4 ) { Filter(f1, f2, f3, f4, *this); }	// in-place (in series when sig is large)
    void Filter ( double f1, double f2, double f3, double f4, SacRec& srout );				// out-of-place (in series when sig is large)
    void Filter_p ( double f1, double f2, double f3, double f4, SacRec& srout );			// always parallel
-	/* cosine tapers */
+	/* tapers */
 	void cosTaperL( const float fl, const float fh );
 	void cosTaperR( const float fl, const float fh );
+	void gauTaper( const float fc, const float fh );
    /* remove mean and trend */
    void RTrend();
    /* remove response and apply filter */
@@ -160,8 +162,9 @@ public:
 	// to run the fftw, 16 times the original npts is required ( in&out complex double array with size doubled for specturm ). 20 is used to be safe
 	void SetMaxMemForParallel( float MemInMb ) { maxnpts4parallel = (MemInMb * 1024. * 1024. - 1000.) / (4. * 20.); }
 
-protected:
 	static constexpr float NaN = -12345.;
+
+protected:
 	int maxnpts4parallel = 1e6;
 
 private:

@@ -1,72 +1,7 @@
 #include "SacRec.h"
+#include "Curve.h"
 #include <iostream>
 #include <fstream>
-
-class Parabola;
-class Point{
-public:
-	Point(const float xin = NaN, const float yin = NaN)
-		: x(xin), y(yin) {}
-
-	friend std::ostream& operator<<(std::ostream& o, const Point& p) {
-		o<<p.x<<" "<<p.y;
-		return o;
-	}
-
-	friend Parabola;
-
-protected:
-	static constexpr float NaN = -12345.;
-
-private:
-	float x, y;
-};
-
-class Parabola {
-public:
-	Parabola( const Point& P1in, const Point& P2in, const Point& P3in )
-		: P1(P1in), P2(P2in), P3(P3in) {}
-
-	void Solve(){
-		float x1 = P1.x, y1 = P1.y;
-		float x2 = P2.x, y2 = P2.y;
-		float x3 = P3.x, y3 = P3.y;
-		float xs1 = x1*x1, xs2 = x2*x2, xs3 = x3*x3;
-		float denom = (x1-x2) * (x1-x3) * (x2-x3);
-		a = (x3*(y2-y1) + x2*(y1-y3) + x1*(y3-y2)) / denom;
-		b = (xs3*(y1-y2) + xs2*(y3-y1) + xs1*(y2-y3)) / denom;
-		c = (x2*x3*(x2-x3)*y1 + x3*x1*(x3-x1)*y2 + x1*x2*(x1-x2)*y3) / denom;
-	}
-
-	Point Vertex() {
-		if(a==NaN || b==NaN || c==NaN)
-			Solve();
-		if( PV.x==NaN || PV.y==NaN ) {
-			PV.x = - b / (2.*a);
-			PV.y = c - a*PV.x*PV.x;
-		}
-		return PV;
-	}
-
-	float A() { 
-		if(a==NaN) Solve(); 
-		return a;
-	}
-	float B() { 
-		if(b==NaN) Solve(); 
-		return b;
-	}
-	float C() { 
-		if(c==NaN) Solve(); 
-		return c;
-	}
-
-private:
-	Point P1, P2, P3;
-	Point PV;
-	float NaN = Point::NaN;
-	float a=NaN, b=NaN, c=NaN;
-};
 
 
 int main( int argc, char* argv[] ) {
