@@ -1,5 +1,5 @@
 #include "SacRec.h"
-#include "Curve.h"
+#include "Dispersion.h"
 #include <unistd.h>
 #include <iostream>
 #include <fstream>
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	Rand randO;
-	float noiselevel = 0.02;
+	float noiselevel = 0.0;
 	for (int it=0; it<shd.npts; it++) {
 		sigsac[it] = sigsac[it]*dom + noiselevel * (2.*randO.Normal()-1.);
 	}

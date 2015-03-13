@@ -1,5 +1,6 @@
 #include "SacRec.h"
-#include "Curve.h"
+#include "Dispersion.h"
+#include "BSpline.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -9,8 +10,8 @@
 
 inline int nint( float f ) { return (int)floor(f+0.5); }
 int main(int argc, char* argv[]) {
-	if( argc != 3 ) {
-		std::cerr<<"Usage: "<<argv[0]<<" [sac_in] [tmax]\n";
+	if( argc != 4 ) {
+		std::cerr<<"Usage: "<<argv[0]<<" [sac_in] [tmax] [permax]\n";
 		return -1;
 	}
 
@@ -26,16 +27,18 @@ int main(int argc, char* argv[]) {
 		for( ; i<ie; i++ ) sigsac[i] *= cos( ftmp_cos * (i-ib) );
 		for( ; i<sac.shd.npts; i++ ) sigsac[i] = 0.;
 		sigsac = nullptr;
+//sac.Write(std::string(argv[1])+"_tapered");
 
 		// FFT
 		SacRec sac_am, sac_am_o, sac_ph_o, sac_ph;
 		sac.ToAmPh( sac_am_o, sac_ph_o );
+sac_am_o.Write( std::string(argv[1]) + ".am" );
+sac_ph_o.Write( std::string(argv[1]) + ".ph" );
 		sac_ph = sac_ph_o;
-		float dist = sac.shd.dist;
 		//sac.clear(); sac_am_o.clear(); 
 		sac.sig.reset();
 
-		// correct 2pi in phase
+		// unwrap phase
 		float fsmhlen = 0.008;
 		float twopi = 2. * M_PI;
 		auto& shd = sac_ph.shd;
@@ -43,15 +46,55 @@ int main(int argc, char* argv[]) {
 		for(int i=1; i<shd.npts; i++) {
 			sigph[i] = sigph[i] - nint( (sigph[i]-sigph[i-1])/twopi ) * twopi;
 		}
-		sigph = nullptr;
-		SacRec sac_tmp;
-		sac_ph.Smooth(fsmhlen, sac_tmp);
-		sac_ph = std::move(sac_tmp);
+//sac_ph.Write("Phase.SAC");
+		//SacRec sac_tmp;
+		//sac_ph.Smooth(fsmhlen, sac_tmp);
+		//sac_ph = std::move(sac_tmp);
+
+		// store phase info into a Curve
+		Curve<Point> curve_ph; curve_ph.reserve(shd.npts);
+		for(int i=0; i<shd.npts; i++) {
+			curve_ph.push_back(i*shd.delta, sigph[i]);
+		}
+		sigph = nullptr; sac_ph.clear();
+		// compute B-Spline on phase
+		Curve<Point> curve_ph_sm;
+		BSpline bspline( curve_ph, 1200, 1 );
+		bspline.Evaluate( curve_ph_sm );
+
+curve_ph.Write("Phase.SAC_unwrapped");
+curve_ph_sm.Write("Phase.SAC_spline");
+		// estimate rms misfit at each point
+		curve_ph_sm -= curve_ph;
+curve_ph_sm.Write("Phase.SAC_residue");
+		Curve<Point> curve_ph_rms;
+		curve_ph_sm.BinRMS( fsmhlen, curve_ph_rms );
+curve_ph_rms.Write("Phase.SAC_rms");
+		curve_ph_sm.clear();
+
+		// convert phase to velocity, discarding points with misfit > mismax
+		float dist = sac.shd.dist;
+		float mismax = 0.2;								// maximum allowed rms misfit in phase
+		float oo2pi = 1./twopi, vel = 3.8;			// reference velocity
+		auto iterbeg = curve_ph.lower_bound(1./atof(argv[3]));							// ignore per > 100.
+		float n2pi = nint( dist*(iterbeg->x)/vel - ((iterbeg->y)*oo2pi+0.125) );	// pick the branch closet to ref vel
+		Dispersion disp;
+		for(auto iter=iterbeg; iter<curve_ph.end(); iter++) {
+			auto iterrms = curve_ph_rms.begin() + (iter-curve_ph.begin());
+			if( iterrms->y > mismax ) continue;
+			float &freq = iter->x;
+			float ftmp1 = dist*freq, ftmp2 = (iter->y)*oo2pi + 0.125;	// pi/4 shift for AN
+			vel = ftmp1 / (ftmp2 + n2pi);
+			disp.push_back(1./freq, vel);
+		}
+		curve_ph.clear();
+		curve_ph_rms.clear();
 
 		// smooth amplitude ( for invalidating noise in the next step )
-		sac_am_o.Smooth( fsmhlen, sac_am );
-		float *sigam = sac_am.sig.get(), *sigamo = sac_am_o.sig.get();
+		//sac_am_o.Smooth( fsmhlen, sac_am );
+		//float *sigam = sac_am.sig.get(), *sigamo = sac_am_o.sig.get();
 		
+/*
 		// work on the phase
 		Dispersion disp;
 		sigph = sac_ph.sig.get();
@@ -66,19 +109,23 @@ int main(int argc, char* argv[]) {
 			vel = ftmp1 / (ftmp2 + n2pi);
 			disp.push_back(1./freq, vel);
 		}
-		sigph = sigam = sigamo = nullptr;
+		sigph = nullptr; //sigam = sigamo = nullptr;
+*/
 		disp.Sort();
+
 
 		// take derivative of wavenumber wrt omiga
 		KDeriv kderivs, grvs;
-		disp.Deriv_k2om( kderivs );
-		kderivs.Reciprocal( grvs );
+		//disp.Deriv_k2om( kderivs );
+		//kderivs.Reciprocal( grvs );
+//std::cerr<<"3"<<std::endl;
 
 		// check group curve and remove noisy points
+/*
 		float maxVerror = 0.01;
 		Point grvP;
 		for( grvs.rewind(); grvs.get(grvP); grvs.next() ) {
-			float &per = grvP.per, &grv = grvP.vel;
+			float &per = grvP.x, &grv = grvP.y;
 			if( per < 1.5/sac_am_o.shd.e ) continue;
 //if( grv<0.5 || grv>5. ) continue;
 			SacRec sac_am = sac_am_o, sac_env;
@@ -93,10 +140,12 @@ int main(int argc, char* argv[]) {
 
 			std::cout<<per<<" "<<grv<<" "<<disp.Val(per)<<"\n";
 		}
+*/
 		// output
 		std::string outname( argv[1] );
+disp.Write( "aa_phv" );
 		disp.Write( outname + "_phv" );
-		grvs.Write( outname + "_grv" );
+		//grvs.Write( outname + "_grv" );
 
 	} catch( std::exception& e ) {
 		std::cerr<<"Error(main): "<<e.what()<<"\n";

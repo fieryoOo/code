@@ -4,9 +4,9 @@ BIN3 = CurveDiff
 BIN4 = DispersionFromSAC
 #BIN5 = SAC_envelope
 
-LIBS = -L${HOME}/usr/lib -lfftw3 -lSacRec
+LIBS = -L${HOME}/usr/lib -lfftw3 -lSacRec -lmultivariate-splines-1-2
 
-cflags = -lstdc++ -std=c++11 -O3
+cflags = -lstdc++ -std=c++11 -g
 
 #OBJS = SacRec.o
 OBJS = 

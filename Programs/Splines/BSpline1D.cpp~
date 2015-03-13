@@ -1,0 +1,70 @@
+#include "datatable.h"
+#include "pspline.h"
+//#include "bspline.h"
+//#include "rbfspline.h"
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <limits>
+
+using namespace MultivariateSplines;
+
+int main( int argc, char* argv[] ) {
+	if( argc != 3 ) {
+		std::cerr<<"Usage: "<<argv[0]<<" [input file (x, y)] [smooth penalty(0. - 1.?)]"<<std::endl;
+		return -1;
+	}
+
+	try {
+		// read from file
+		std::ifstream fin( argv[1] );
+		if( ! fin ) {
+			std::cerr<<"Error(main): cannot write to file "<<argv[1]<<std::endl;
+			return -2;
+		}
+		// into data table
+		DenseVector loc(1);
+		DataTable datain;
+		float xmin = std::numeric_limits<float>::max(), xmax = std::numeric_limits<float>::min();
+		for(std::string line; std::getline(fin, line); ) {
+			float x, y;
+			sscanf(line.c_str(), "%f %f", &x, &y);
+			loc(0) = x;
+			datain.addSample(loc, y);
+			if( x < xmin ) xmin = x;
+			if( x > xmax ) xmax = x;
+		}
+
+		// build cubic B-spline
+		//BSpline bsplineL(datain, BSplineType::LINEAR);
+		//BSpline bsplineC(datain, BSplineType::CUBIC_FREE);
+		// build P-spline (penalized)
+		//PSpline pspline1(datain, 0.03);
+		PSpline pspline(datain, atof(argv[2]));
+		// Build radial basis function spline that interpolate the samples
+		//RBFSpline rbfspline(datain, RadialBasisFunctionType::THIN_PLATE_SPLINE);
+
+		// output
+		std::string outname(argv[1]);
+		outname += "_spline";
+		std::ofstream fout(outname);
+		float step = 0.1 * (xmax-xmin) / datain.getNumSamples();
+		for(float x=xmin+step; x<xmax; x+=step) {
+			loc(0) = x;
+			//fout<<loc<<" "<<bsplineL.eval(loc)<<" "<<bsplineC.eval(loc)<<" "<<pspline.eval(loc)<<" "<<rbfspline.eval(loc)<<"\n";
+			fout<<loc<<" "<<pspline.eval(loc)<<"\n";
+		}
+
+		//datain.printSamples(fout);
+	} catch ( MultivariateSplines::Exception& e ) {
+		std::cerr<<"MSException(main): "<<e.what()<<std::endl;
+	} catch ( std::exception& e ) {
+		std::cerr<<"stdException(main): "<<e.what()<<std::endl;
+	} catch (...) {
+		std::cerr<<"Error(main): unknown exception detected!"<<std::endl;
+	}
+
+
+	return 0;
+}
