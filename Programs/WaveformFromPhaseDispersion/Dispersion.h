@@ -40,14 +40,12 @@ public:
 
 		//float Reciprocal( std::vector<Point>& grvV ) {
 		void Reciprocal( KDeriv& grvs ) {
-//std::cerr<<dataV.size()<<std::endl;
-/*
 			//grvV.resize( dataV.size() );
-			grvs.clear();
+			grvs.clear(); grvs.reserve( dataV.size() );
 			for(int i=0; i<dataV.size(); i++) {
 				grvs.push_back(dataV[i].x, 1./dataV[i].y, dataV[i].sdensity);
 				//grvV[i] = Point(dataV[i].x, 1./dataV[i].vel, dataV[i].sdensity);
-			}*/
+			}
 		}
 };
 

@@ -66,7 +66,7 @@ curve_ph.Write("Phase.SAC_unwrapped");
 curve_ph_sm.Write("Phase.SAC_spline");
 		// estimate rms misfit at each point
 		curve_ph_sm -= curve_ph;
-curve_ph_sm.Write("Phase.SAC_residue");
+		//curve_ph_sm = curve_ph - curve_ph_sm;
 		Curve<Point> curve_ph_rms;
 		curve_ph_sm.BinRMS( fsmhlen, curve_ph_rms );
 curve_ph_rms.Write("Phase.SAC_rms");
@@ -112,13 +112,17 @@ curve_ph_rms.Write("Phase.SAC_rms");
 		sigph = nullptr; //sigam = sigamo = nullptr;
 */
 		disp.Sort();
+/*
+		BSpline bspline2( disp, 1200, 1 );
+		bspline2.Evaluate( curve_ph_sm );
+curve_ph_sm.Write("aa");
+*/
 
 
 		// take derivative of wavenumber wrt omiga
 		KDeriv kderivs, grvs;
-		//disp.Deriv_k2om( kderivs );
-		//kderivs.Reciprocal( grvs );
-//std::cerr<<"3"<<std::endl;
+		disp.Deriv_k2om( kderivs );
+		kderivs.Reciprocal( grvs );
 
 		// check group curve and remove noisy points
 /*
@@ -143,9 +147,8 @@ curve_ph_rms.Write("Phase.SAC_rms");
 */
 		// output
 		std::string outname( argv[1] );
-disp.Write( "aa_phv" );
 		disp.Write( outname + "_phv" );
-		//grvs.Write( outname + "_grv" );
+		grvs.Write( outname + "_grv" );
 
 	} catch( std::exception& e ) {
 		std::cerr<<"Error(main): "<<e.what()<<"\n";

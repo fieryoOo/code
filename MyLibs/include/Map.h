@@ -8,12 +8,16 @@
 #include <vector>
 #include <memory>
 
+#ifndef FuncName
+#define FuncName __FUNCTION__
+#endif
+
 #ifndef POINT
 #define POINT
 template < class T >
 class Point {
-protected:
-   T lon, lat;
+public:
+   T lon = -12345., lat = -12345.;
 public:
    Point(T lonin = -12345., T latin = -12345.) 
       : lon(lonin), lat(latin) {}
@@ -28,18 +32,25 @@ public:
    inline	T& Lat() { return lat; }
    inline const T& Lon() const { return lon; }
    inline	T& Lon() { return lon; }
+
    friend std::ostream& operator << (std::ostream& o, Point a) { 
       //o << "(" << a.lon << ", " << a.lat<< ")"; 
       o.setf(std::ios::fixed);
       o << std::left << std::setprecision(4) << a.lon << " " << a.lat; 
       return o; 
    }
+
+	friend bool operator==( const Point<T>& p1, const Point<T>& p2 ) {
+		return (p1.lon==p2.lon && p1.lat==p2.lat);
+	}
+
 };
 #endif
 
 
 template < class T >
 class DataPoint : public Point<T> {
+public:
    T dis, data;
 
 public:
@@ -67,6 +78,7 @@ public:
 class Map {
 public:
    //Map( const char *inname );
+	Map( const float grdlon = 1., const float grdlat = 1. );
    Map( const char *inname, const float grdlon = 1.0, const float grdlat = 1.0 );
    Map( const char *inname, const Point<float>& srcin, const float grdlon = 1.0, const float grdlat = 1.0 );
    Map( const Map& );
@@ -83,6 +95,12 @@ public:
 	float LonMax() const;
 	float LatMin() const;
 	float LatMax() const;
+
+	/* ------------ IO and resets ------------ */
+	void Load( const std::string& fnamein );
+	/* ------------ set source location ------------ */
+	void SetSource( const float lon, const float lat ) { SetSource( Point<float>(lon, lat) ); }
+	void SetSource( const Point<float>& srcin );
 
 	/* ------------ compute number of points near the given location ------------ */
 	float NumberOfPoints(Point<float> rec, const float xhdis, const float yhdis) const {
@@ -116,6 +134,8 @@ protected:
 	static constexpr float NaN = -12345.;
 
 private:
+	std::string fname;
+	Point<float> src;
    struct Mimpl;
    std::unique_ptr<Mimpl> pimplM;
 /*
@@ -127,5 +147,27 @@ private:
 */
 };
 
+namespace ErrorM {
+   class Base : public std::runtime_error {
+   public:
+      Base(const std::string message)
+         : runtime_error(message) {
+            //PrintStacktrace();
+      }
+   };
+
+	class BadFile : public Base {
+   public:
+      BadFile(const std::string funcname, const std::string info = "")
+         : Base("Error("+funcname+"): Cannot access file ("+info+").") {}
+   };
+
+	class BadParam : public Base {
+   public:
+      BadParam(const std::string funcname, const std::string info = "")
+         : Base("Error("+funcname+"): Bad parameters ("+info+").") {}
+   };
+
+}
 
 #endif

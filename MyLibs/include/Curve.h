@@ -222,8 +222,11 @@ public:
 		}
 
 		// math operators
-		Curve<T> operator-=( const Curve<T>& c2 ) { (*this) = (*this) - c2; }
-		friend Curve<T> operator-(const Curve<T>& c1, const Curve<T>& c2) {
+		Curve<T>& operator-=( const Curve<T>& c2 ) { 
+			(*this) = (*this) - c2; 
+			return *this;
+		}
+		friend const Curve<T> operator-(const Curve<T>& c1, const Curve<T>& c2) {
 			Curve<T> c3; c3.reserve( c1.size() );
 			for( auto p1 : c1.dataV ) {
 				float val2 = c2.Val(p1.x);
@@ -236,6 +239,7 @@ public:
 
 protected:
 		std::vector<T> dataV;
+		//std::deque<T> dataV;
 private:
 		typename std::vector<T>::iterator iter = dataV.begin();
 		size_t nsorted = 0;

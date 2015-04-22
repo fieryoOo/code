@@ -483,10 +483,15 @@ SacRec& SacRec::operator= ( const SacRec& recin ) {
    pimpl.reset( new SRimpl(*(recin.pimpl)) );
    fname = recin.fname; report = recin.report;
 	shd = recin.shd;
-   int npts=recin.shd.npts; sig.reset(new float[npts]);
-	if( ! sig )
-		throw ErrorSR::MemError( FuncName, "new failed!");
-   std::copy(recin.sig.get(), recin.sig.get()+npts, sig.get());
+   int npts=recin.shd.npts; 
+	if( npts > 0 ) {
+		sig.reset(new float[npts]);
+		if( ! sig )
+			throw ErrorSR::MemError( FuncName, "new failed!");
+		std::copy(recin.sig.get(), recin.sig.get()+npts, sig.get());
+	} else if(sig) {
+		sig.reset();
+	}
 	return *this;
 }
 

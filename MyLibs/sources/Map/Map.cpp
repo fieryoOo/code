@@ -6,12 +6,10 @@
 #include <fstream>
 
 struct Map::Mimpl {
-	std::string fname;
-	Point<float> src;
-	int nlon, nlat;
-	float grd_lon, grd_lat;
-	float lonmin, lonmax;
-	float latmin, latmax;
+	int nlon = NaN, nlat = NaN;
+	float grd_lon = 1., grd_lat = 1.;
+	float lonmin = NaN, lonmax = NaN;
+	float latmin = NaN, latmax = NaN;
 
 	float dis_lat1D;
 	std::vector<float> dis_lon1D;
@@ -20,36 +18,15 @@ struct Map::Mimpl {
 	Array2D< std::vector< DataPoint<float> > > dataM;
 
 
-	Mimpl( const char* inname, const Point<float> srcin = Point<float>() )
-		: fname(inname), src(srcin)
-		  , nlon(NaN), nlat(NaN), grd_lon(NaN), grd_lat(NaN) 
-		  , lonmin(NaN), lonmax(NaN), latmin(NaN), latmax(NaN) {
-		  }
-
-
-	bool Load( bool autosrc = false ) {
-		/* check src location */
-		if( ! autosrc ) {
-			if( src.Lon() == NaN || src.Lat() == NaN ) return false;
-		}
-		/* read in the map */
+	void ReadData( const std::string& fname ) {
 		std::ifstream fin(fname.c_str());
-		if( ! fin ) return false;
-		dataV.clear();
-		/* read the 1st line */
-		std::string line;
-		if( ! std::getline(fin, line) ) return false;
+		if( ! fin )
+			throw ErrorM::BadFile(FuncName, "read from "+fname);
 		float lon, lat, data;
-		sscanf(line.c_str(), "%f %f %f", &lon, &lat, &data);
-		lonmin = lonmax = lon;
-		latmin = latmax = lat;
-		if( autosrc ) {
-			lon = lon>90. ? lon-90. : lon+270.;
-			lat = lat>0 ? lat-90. : lat+90.;
-			src = Point<float>(lon, lat);
-		}
-		fin.seekg(0); // rewind
+		//sscanf(line.c_str(), "%f %f %f", &lon, &lat, &data);
+		//fin.seekg(0); // rewind
 		/* load in all data */
+		dataV.clear();
 		for(std::string line; std::getline(fin, line); ) {
 			float lon, lat, data;
 			if( sscanf(line.c_str(), "%f %f %f", &lon, &lat, &data) < 2 ) {
@@ -57,38 +34,37 @@ struct Map::Mimpl {
 				continue;
 			}
 			if( lon < 0. ) lon += 360.;
-			float dis = Path<float>(src, Point<float>(lon,lat)).Dist();
-			//calc_dist( src.Lat(), src.Lon(), lat, lon, &dis );
-			//calc_azimuth( src.Lat(), src.Lon(), lat, lon, &azi );
-			dataV.push_back( DataPoint<float>(lon, lat, data, dis) );
+			//float dis = Path<float>(srcin, Point<float>(lon,lat)).Dist();
+			dataV.push_back( DataPoint<float>(lon, lat, data) );
 		}
 		fin.close();
-		if( dataV.size() == 0 ) return false;
+		if( dataV.size() == 0 )
+			throw ErrorM::BadFile(FuncName, "empty file "+fname);
+
 		//std::cout<<"### "<<dataV.size()<<" map points loaded. ###"<<std::endl;
-		/* map boundaries */
+		/* /map boundaries */
+		lonmin = lonmax = dataV[0].Lon();
+		latmin = latmax = dataV[0].Lat();
 		for(size_t i=0; i<dataV.size(); i++) {
-			DataPoint<float>& dpcur = dataV[i];
+			const auto& dpcur = dataV[i];
 			if( lonmax < dpcur.Lon() ) {
 				lonmax = dpcur.Lon();
-			} 
-			else if( lonmin > dpcur.Lon() ) {
+			} else if( lonmin > dpcur.Lon() ) {
 				lonmin = dpcur.Lon();
 			}
 			if( latmax < dpcur.Lat() ) {
 				latmax = dpcur.Lat();
-			} 
-			else if( latmin > dpcur.Lat() ) {
+			} else if( latmin > dpcur.Lat() ) {
 				latmin = dpcur.Lat();
 			}
 		}
-		return true;
 	}
 
-	void Hash( const float grdlon, const float grdlat ) {
+	void Hash() {
 		if( dataV.size() == 0 ) return;
 		/* grid/hash size */
 		//grd_lon = grd_lat = sqrt( (lonmax-lonmin) * (latmax-latmin) / sqrt((float)dataV.size()) );
-		grd_lon = grdlon; grd_lat = grdlat;
+		//grd_lon = grdlon; grd_lat = grdlat;
 		nlon = (int)ceil( (lonmax-lonmin) / grd_lon ) + 1;
 		nlat = (int)ceil( (latmax-latmin) / grd_lat ) + 1;
 		dataM.Resize(nlon, nlat);
@@ -99,6 +75,7 @@ struct Map::Mimpl {
 			int ilat = (int)floor((dpcur.Lat()-latmin) / grd_lat + 0.5);
 			dataM(ilon, ilat).push_back(dpcur);
 		}
+		dataV.clear();
 		/* compute distance of 1 degree in lon/lat */
 		dis_lat1D = 111.;
 		dis_lon1D.resize( dataM.NumCols() );
@@ -129,24 +106,22 @@ struct Map::Mimpl {
 
 
 /* -------------- con/destructors and assignment operators ----------------- */
-Map::Map( const char *inname, const float grdlon, const float grdlat )
-	: pimplM( new Mimpl(inname) ) {
-		if( ! pimplM->Load( true ) ) { // Load with auto-source
-			std::cerr<<"Error(Map::Map): Load failed!"<<std::endl;
-			exit(0);
-		}
-		pimplM->Hash( grdlon, grdlat );
-	}
+Map::Map( const float grdlon, const float grdlat ) 
+	: pimplM( new Mimpl() ) {
+	pimplM->grd_lon = grdlon;
+	pimplM->grd_lat = grdlat;
+}
 
+Map::Map( const char *inname, const float grdlon, const float grdlat )
+	: Map( inname, Point<float>(), grdlon, grdlat) {}
 
 Map::Map( const char *inname, const Point<float>& srcin, const float grdlon, const float grdlat ) 
-	: pimplM( new Mimpl(inname, srcin) ) {
-		if( ! pimplM->Load( false ) ) { // Load without auto-source
-			std::cerr<<"Error(Map::Map): Load failed!"<<std::endl;
-			exit(0);
-		}
-		pimplM->Hash( grdlon, grdlat );
-	}
+	: pimplM( new Mimpl() ), fname(inname), src(srcin) {
+	pimplM->grd_lon = grdlon;
+	pimplM->grd_lat = grdlat;
+	Load( fname );
+	SetSource( src );
+}
 
 Map::Map( const Map& mp_other ) : pimplM( new Mimpl(*(mp_other.pimplM)) ) {}
 
@@ -165,17 +140,44 @@ Map& Map::operator= ( Map&& mp_other ) {
 Map::~Map() {}
 
 
-/* ------------ set source location ------------ */
-//void Map::SetSource( const Point<float>& src ) {
-//	pimplM->src = src;
-//}
-
 
 /* ----- map boundaries ----- */
 float Map::LonMin() const { return pimplM->lonmin; }
 float Map::LonMax() const { return pimplM->lonmax; }
 float Map::LatMin() const { return pimplM->latmin; }
 float Map::LatMax() const { return pimplM->latmax; }
+
+/* ------------ IO and resets ------------ */
+void Map::Load( const std::string& fnamein ) {
+	fname = fnamein;
+	/* check/autodefine src location
+	if( src.Lon() == NaN || src.Lat() == NaN ) {
+		std::ifstream fin( fnamein );
+		std::string line;
+		float lon, lat, data;
+		if( fin && std::getline(fin, line) ) {
+			sscanf(line.c_str(), "%f %f %f", &lon, &lat, &data);
+		} else {
+			throw ErrorM::BadFile(FuncName, "read from "+fnamein);
+		}
+		lon = lon>90. ? lon-90. : lon+270.;
+		lat = lat>0 ? lat-90. : lat+90.;
+		src = Point<float>(lon, lat);
+	} */
+	// open/check the file
+	pimplM->ReadData( fname );
+	pimplM->Hash();
+}
+
+/* ------------ set source location ------------ */
+void Map::SetSource( const Point<float>& srcin ) {
+	src = srcin;
+	auto& dataM = pimplM->dataM;
+	for(int irow=0; irow<dataM.NumRows(); irow++)
+		for(int icol=0; icol<dataM.NumCols(); icol++)
+			for( auto& dp : dataM(irow, icol) )
+				dp.dis = Path<float>( src, Point<float>(dp.lon, dp.lat) ).Dist();
+}
 
 /* ------------ compute number of points near the given location ------------ */
 float Map::NumberOfPoints(Point<float> rec, const float xhdis, const float yhdis, float& loneff, float& lateff) const {
@@ -271,12 +273,15 @@ float Map::PointAverage(Point<float> rec, float hdis, float& weit) {
 
 /* ------------ compute average value along the path src-rec ------------ */
 DataPoint<float> Map::PathAverage(Point<float> rec, float lamda, float& perc) {
+	// check source
+	if( src == Point<float>() )
+		throw ErrorM::BadParam(FuncName, "invalid src location");
+
 	// references
 	Array2D< std::vector< DataPoint<float> > >& dataM = pimplM->dataM;
 	float lonmin = pimplM->lonmin, latmin = pimplM->latmin;
 	float grd_lon = pimplM->grd_lon, grd_lat = pimplM->grd_lat;
 
-	Point<float> src = pimplM->src;
 	/* rec parameters */
 	float dis = Path<float>(src, rec).Dist();
 	//calc_dist( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &dis );
@@ -345,12 +350,15 @@ DataPoint<float> Map::PathAverage(Point<float> rec, float lamda, float& perc) {
 
 /* ------------ compute average along the path src-rec weighted by the reciprocal of the map value ------------ */
 DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& perc, const std::string outname) {
+	// check source
+	if( src == Point<float>() )
+		throw ErrorM::BadParam(FuncName, "invalid src location");
+
 	// references
 	Array2D< std::vector< DataPoint<float> > >& dataM = pimplM->dataM;
 	float lonmin = pimplM->lonmin, latmin = pimplM->latmin;
 	float grd_lon = pimplM->grd_lon, grd_lat = pimplM->grd_lat;
 
-	Point<float> src = pimplM->src;
 	/* rec parameters */
 	float dis = Path<float>(src, rec).Dist();
 	//calc_dist( src.Lat(), src.Lon(), rec.Lat(), rec.Lon(), &dis );
@@ -387,6 +395,8 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& per
 			float loncur = lonmin+irow*grd_lon, latcur = latmin+icol*grd_lat;
 			float disEsrc = pimplM->estimate_dist( src, Point<float>(loncur,latcur) );
 			float disErec = pimplM->estimate_dist( rec, Point<float>(loncur,latcur) );
+//std::cerr<<" "<<disEsrc<<" "<<disErec<<" "<<max_2a<<std::endl;
+//std::cerr<<" "<<Path<float>(src, Point<float>(loncur,latcur)).Dist()<<" "<<Path<float>(rec, Point<float>(loncur,latcur)).Dist()<<std::endl;
 			if( disEsrc + disErec > max_2a+20. ) continue; // 20. for estimating error
 			for(size_t idata=0; idata<dataM(irow, icol).size(); idata++) {
 				DataPoint<float> dpcur = dataM(irow, icol)[idata];
@@ -410,6 +420,7 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& per
 			}
 		}
 	}
+	//std::cerr<<"datasum = "<<datasum<<"   weit = "<<weit<<"   dismax = "<<dismax<<std::endl;
 	if(weit==0.) datasum = NaN;
 	else datasum = weit/datasum;
 	perc = dismax>dis ? 1 : dismax/dis;
