@@ -102,6 +102,9 @@ public:
 	void SetSource( const float lon, const float lat ) { SetSource( Point<float>(lon, lat) ); }
 	void SetSource( const Point<float>& srcin );
 
+	/* --- clip the map around the source location (to speed up the average methods) --- */
+	void Clip( const float lonmin, const float lonmax, const float latmin, const float latmax );
+
 	/* ------------ compute number of points near the given location ------------ */
 	float NumberOfPoints(Point<float> rec, const float xhdis, const float yhdis) const {
 		float loneff, lateff;
