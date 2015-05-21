@@ -2,6 +2,7 @@
 /* data file: (lon lat ...)
 	location list: (lon lat ...) */
 
+#include "StaList.h"
 #include <cstring>
 #include <string>
 #include <vector>
@@ -10,6 +11,7 @@
 #include <fstream>
 #include <algorithm>
 
+/*
 struct StaInfo {
    std::string name;
    float lon, lat;
@@ -21,7 +23,7 @@ public:
    StaInfo( const std::string namein = "", float lonin = NaN, float latin = NaN )
       : name(namein), lon(lonin), lat(latin) {}
 
-   bool IsSameSta( const StaInfo& s2 ) const { return (name == s2.name); }
+   bool IsSameName( const StaInfo& s2 ) const { return (name == s2.name); }
 	bool IsSameLocation( const StaInfo& s2 ) const {
 		float dislon = lon-s2.lon, dislat = lat-s2.lat;
 		return (dislon*dislon + dislat*dislat < maxmislocS);
@@ -39,7 +41,7 @@ public:
 };
 
 bool CompareLon ( const StaInfo& s1, const StaInfo& s2 ) { return (s1.lon<s2.lon); }
-
+*/
 
 int main(int argc, char* argv[]) {
    if( argc!=4 && argc!=5 ) {
@@ -56,6 +58,11 @@ int main(int argc, char* argv[]) {
 		}
 
    /* read in data file */
+	StaList datalst( argv[1], true );	// store the whole line instead of the sta-name in the 'name' field
+	if( datalst.size() == 0 ) exit(-3);
+   std::cout<<"   "<<datalst.size()<<" data lines read in."<<std::endl;
+	datalst.SortByLon();
+	/*
    std::ifstream fin(argv[1]);
    if( ! fin ) {
       std::cerr<<"Error(main): Cannot read from file "<<argv[1]<<std::endl;
@@ -73,10 +80,17 @@ int main(int argc, char* argv[]) {
 		dataV.push_back(datacur);
    }
    fin.close(); fin.clear();
-   std::cout<<"   "<<dataV.size()<<" data lines read in."<<std::endl;
 	if( dataV.size() == 0 ) exit(-3);
 
+   // sort datas by longitude
+	std::sort(dataV.begin(), dataV.end(), CompareLon);
+	*/
+
    /* read in location list */
+	StaList loclst( argv[2], true );
+	if( loclst.size() == 0 ) exit(-3);
+   std::cout<<"   "<<loclst.size()<<" locations read in."<<std::endl;
+	/*
    fin.open(argv[2]);
    if( ! fin ) {
       std::cerr<<"Error(main): Cannot read from file "<<argv[2]<<std::endl;
@@ -93,11 +107,7 @@ int main(int argc, char* argv[]) {
 		locV.push_back(loccur);
    }
    fin.close();
-   std::cout<<"   "<<locV.size()<<" locations read in."<<std::endl;
-	if( locV.size() == 0 ) exit(-3);
-
-   /* sort datas by longitude */
-	std::sort(dataV.begin(), dataV.end(), CompareLon);
+	*/
 
 	/* for each location, search in the dataV for the same location */
 	std::ofstream fout(argv[3]);
@@ -106,7 +116,16 @@ int main(int argc, char* argv[]) {
       exit(-2);
 	}
 	int nmatch = 0;
+	const auto& locV = loclst.DataRef();
 	for(const auto& loc : locV) {
+		StaInfo data_find;
+		if( datalst.SearchLoc( loc.lon, loc.lat, data_find ) ) {	// found
+			fout<<data_find.name<<"\n"; nmatch++;
+		} else {	// not found
+			if( samecol ) fout<<loc.lon<<" "<<loc.lat<<std::endl;
+		}
+
+		/*
 		// iterator to the first data in dataV with a lon>=loc.lon-StaInfo::maxmisloc
 		auto loclb = loc; loclb.lon -= StaInfo::maxmisloc;
 		auto idatal = std::lower_bound( dataV.begin(), dataV.end(), loclb, CompareLon );
@@ -122,6 +141,7 @@ int main(int argc, char* argv[]) {
 		} else { // not found
 			if( samecol ) fout<<loc.lon<<" "<<loc.lat<<std::endl;
 		}
+		*/
 	}
 	fout.close();
    std::cout<<"   "<<nmatch<<" matches found."<<std::endl;
