@@ -23,7 +23,7 @@ int main( int argc, char* argv[] ) {
 		// FFT
 		SacRec sac_am, sac_ph;
 		sac.ToAmPh(sac_am, sac_ph);
-		sac.clear();
+		sac.sig.reset(); //sac.clear();
 
 		// output files
 		std::string outname( argv[1] );
@@ -51,12 +51,17 @@ int main( int argc, char* argv[] ) {
 			// output FTAN amp and phase
 			float disodt = dist / sac_env.shd.delta;
 			float *sigenv = sac_env.sig.get();
-			for( int i=0; i<sac_env.shd.npts; i++ ) {
+			float velold = 20.1;
+			// start at vel=20. and loop down to vel=0.
+			for( int i=(int)ceil(disodt/(velold-0.1)); i<sac_env.shd.npts; i++ ) {
 				float vel = disodt / i;
+				if( velold-vel<0.01 ) continue;	// skip if delta(v) is too small
 				//float wavenum = i / (disodt*per);
 				fenv << per << " " << vel << " " << sigenv[i] << "\n";
 				fpha << per << " " << vel << " " << sigpha[i] << "\n";
+				velold = vel;
 			}
+			fenv << "\n"; fpha << "\n"; // add blank line for gnuplot pm3d
 		}
 	} catch(...) {
 		std::cerr<<"Error(main): exception detected!"<<std::endl;

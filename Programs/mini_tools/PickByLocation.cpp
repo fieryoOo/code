@@ -13,7 +13,7 @@
 struct StaInfo {
    std::string name;
    float lon, lat;
-	static constexpr float maxmisloc = 0.01;
+	static constexpr float maxmisloc = 0.001;	// allow ~0.2km mislocation
 	static constexpr float maxmislocS = maxmisloc*maxmisloc;
 	static constexpr float NaN = -12345.;
 
@@ -117,6 +117,7 @@ int main(int argc, char* argv[]) {
 		for( ; idata<idatau; idata++ )
 			if( loc.IsSameLocation(*idata) ) break;
 		if( idata < idatau ) { // found
+			//fout<<(*idata).name<<" "<<loc<<"\n"; nmatch++;
 			fout<<(*idata).name<<"\n"; nmatch++;
 		} else { // not found
 			if( samecol ) fout<<loc.lon<<" "<<loc.lat<<std::endl;

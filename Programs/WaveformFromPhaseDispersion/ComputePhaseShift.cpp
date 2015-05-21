@@ -26,10 +26,12 @@ int main( int argc, char* argv[] ) {
 	// find T of maximum correlation at each period
 	float perfactor = 1.05;
 	float shdb = saccor.shd.b, delta = saccor.shd.delta;
-	for( float per=2.; per<50.; per*=perfactor ) {
+	for( float per=5.; per<50.; per*=perfactor ) {
 		// gauss filt
+		const float freq = 1. / per;
+		const float dfreq = 1./exp(log(per)-0.15) - freq;
 		SacRec sacflt;
-		saccor.GaussianFilt( 1./per, 0.02, sacflt );
+		saccor.GaussianFilt( freq, dfreq, sacflt );
 		// find maximum
 		int imin, imax;
 		sacflt.MinMax(imin, imax, -per*0.51, per*0.51);

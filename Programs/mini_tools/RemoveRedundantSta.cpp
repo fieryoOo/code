@@ -10,7 +10,7 @@ struct StaInfo {
    std::string name;
    std::string line;
    float lon, lat;
-	static constexpr float maxmisloc = 0.01;
+	static constexpr float maxmisloc = 0.001;	// allow ~0.1km mislocation
 	static constexpr float maxmislocS = maxmisloc*maxmisloc;
 	static constexpr float NaN = -12345.;
 
@@ -80,6 +80,7 @@ int main(int argc, char* argv[]) {
 				bool rmsta2 = remove2nd;	// remove_conflictions or
 				if( sta1.IsSameLocation( sta2 ) ) {	// same location
 					rmsta2 = true;	// remove the second sta
+					std::cout<<"redundant station "<<sta1<<"  -  "<<sta2<<std::endl;
 				} else {
 					cflctDetected = true;
 					std::cerr<<"Warning(main): name confliction detected for "<<sta1<<"  -  "<<sta2<<std::endl;
