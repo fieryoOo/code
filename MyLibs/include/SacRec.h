@@ -8,6 +8,7 @@
 #include <string>
 #include <memory>
 #include <limits>
+#include <stdexcept>
 
 #ifndef FuncName
 #define FuncName __FUNCTION__

@@ -1,14 +1,16 @@
 #ifndef DISAZI_H
 #define DISAZI_H
 
+#include "Point.h"
 #include <iostream>
 #include <iomanip>
 #include <cmath>
 #include <stdexcept>
 //using namespace std;
 
-#ifndef POINT
-#define POINT
+// in case Point.h not available
+#ifndef POINT_H
+#define POINT_H
 template <class T>
 class Point {
 protected:
