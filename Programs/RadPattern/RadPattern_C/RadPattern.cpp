@@ -8,11 +8,11 @@ const int nazi = RadPattern::nazi;
 extern"C" {
    void rad_pattern_r_(char *feig_buff, int *eig_len, int *phvnper, int *phvdper,
                        const float *strike, const float *dip, const float *rake, const float *depth,
-		       const float *per, int *nper,
+							  const float *per, int *nper,
                        float *azi, float grT[][nazi], float phT[][nazi], float amp[][nazi]);
    void rad_pattern_l_(char *feig_buff, int *eig_len, int *phvnper, int *phvdper,
                        const float *strike, const float *dip, const float *rake, const float *depth,
-		       const float *per, int *nper,
+							  const float *per, int *nper,
                        float *azi, float grT[][nazi], float phT[][nazi], float amp[][nazi]);
 }
 
@@ -23,7 +23,7 @@ struct RadPattern::Rimpl {
    //std::string outname_mis;
    std::string feignmem, fphvnmem; // name of files of the currently-in-the-memory contents
 
-	static const int NaN = -12345;
+	static const int NaN = RadPattern::NaN;
    int phvnper = NaN, phvdper = NaN;
    int feig_len = NaN;
    char *feig_buff = nullptr;
@@ -209,7 +209,7 @@ bool RadPattern::Predict( char typein, const std::string& feigname, const std::s
 	//aziV = std::vector<float>( azi, azi+nazi );
 
 	// invalidate focal predictions with amplitudes < amp_avg * AmpValidPerc
-	const float NaN = Rimpl::NaN;
+	//const float NaN = Rimpl::NaN;
 	for( int iper=0; iper<perlst.size(); iper++ ) {
 		float per = perlst[iper];
 		// determine min amplitude
@@ -253,7 +253,7 @@ bool RadPattern::GetPred( const float per, const float azi,
 	// low and high azimuth
 	float azil = iazi*dazi, azih = azil+dazi;
 	float azifactor = (azi-azil) / dazi, ftmp1, ftmp2;
-	const float NaN = Rimpl::NaN;
+	//const float NaN = Rimpl::NaN;
 	// group delay
 	ftmp1 = (Igrt->second)[iazi], ftmp2 = (Igrt->second)[iazi+1];
 	if( ftmp1==NaN || ftmp2==NaN ) {
@@ -271,4 +271,26 @@ bool RadPattern::GetPred( const float per, const float azi,
 	amp = ftmp1 + (ftmp2 - ftmp1) * azifactor;
 
 	return true;
+}
+
+void RadPattern::OutputPreds( const std::string& fname, const float Afactor ) {
+	if( grtM.size() == 0 ) return;
+
+	std::ofstream fout( fname );
+   if( ! fout ) throw ErrorRP::BadFile(FuncName, fname);
+	for( auto grtP : grtM ) {
+		float per = grtP.first;
+		auto grtV = grtP.second;
+		auto phtV = phtM.find(per)->second;
+		auto ampV = ampM.find(per)->second;
+		for( int iazi=0; iazi<nazi; iazi++ ) {
+			float azi = iazi*dazi;
+			float grt = grtV.at(iazi);
+			if( grt == RadPattern::NaN ) continue;
+			float pht = phtV.at(iazi);
+			float amp = ampV.at(iazi);
+			fout<<azi<<" "<<grt<<" "<<pht<<" "<<amp*Afactor<<" "<<per<<"\n";
+		}
+		fout<<"\n\n";
+	}
 }

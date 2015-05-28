@@ -26,7 +26,7 @@ else
 	extralib=""
 fi
 rm -f $flibsrc ${libname}.o
-gcc -std=c++0x -O3 -fPIC -c $fsrc
+gcc -std=c++11 -O3 -fPIC -c $fsrc
 gcc -shared -Wl,-soname,lib${libname}.so.1 $extralib -o $flibsrc ${libname}.o
 
 cd ../../lib

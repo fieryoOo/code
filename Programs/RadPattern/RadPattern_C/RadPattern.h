@@ -97,7 +97,10 @@ public:
 	/* prediction at one single azimuth. return false if the given azimuth is invalidated due to small amplitude */
 	bool GetPred( const float per, const float azi,	float& grt, float& pht, float& amp ) const;
 
+	void OutputPreds( const std::string& fname, const float Afactor = 1. );
+
 public:
+	static constexpr float NaN = -12345.;
 	static constexpr int nazi = 181;
 	static constexpr int dazi = 2;
 	static constexpr int InvalidateHwidth = 3;	// half width in iazi of the focal pred invalidating window
