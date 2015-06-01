@@ -16,7 +16,10 @@ public:
    static constexpr float NaN = -12345.;
 
 public:
-   Point(T lonin = NaN, T latin = NaN)
+   Point() {}
+   Point( T init ) 
+		: lon(init), lat(init) {}
+   Point(T lonin, T latin)
       : lon(lonin), lat(latin) {}
    Point( const std::string& line ) {
       LoadLine(line);
@@ -47,9 +50,100 @@ public:
       return (p1.lon==p2.lon && p1.lat==p2.lat);
    }
 
+	/* math operators */
+
 	friend bool operator<( const Point<T>& p1, const Point<T>& p2 ) {
 		return p1.lon<p2.lon;
 	}
+
+	// unary negation 
+	Point<T> operator-() const { return Point<T>( -lon, -lat ); }
+
+	// addition 
+	Point<T>& operator+=( const Point<T>& p2 ) {
+		lon += p2.lon; lat += p2.lat;
+		return *this; 
+	}
+	friend Point<T> operator+( const Point<T>& p1, const Point<T>& p2 ) {
+		Point<T> pres = p1;
+		pres += p2;
+		return pres;
+	}
+
+	// subtraction
+   Point<T>& operator-=( const Point<T>& p2 ) {
+		(*this) += -p2;
+      return *this;
+   }
+   friend Point<T> operator-( const Point<T>& p1, const Point<T>& p2 ) {
+		Point<T> pres = p1;
+      pres -= p2;
+      return pres;
+   }
+
+	// multiplication (*float)
+	Point<T>& operator*=( const float mul ) { 
+		lon *= mul; lat *= mul;
+		return *this; 
+	}
+	friend Point<T> operator*( const Point<T>& p1, float mul ) {
+		Point<T> pres = p1;
+		pres *= mul;
+		return pres;
+	}
+	friend Point<T> operator*( float mul, const Point<T>& p1 ) {
+		Point<T> pres = p1;
+		pres *= mul;
+		return pres;
+	}
+
+	// multiplication (*AziData)
+	Point<T>& operator*=( const Point<T>& p2 ) { 
+		lon *= p2.lon; lat *= p2.lat;
+		return *this; 
+	}
+	friend Point<T> operator*( const Point<T>& p1, const Point<T>& p2 ) {
+		Point<T> pres = p1;
+		pres *= p2;
+		return pres;
+	}
+
+	// division (*float)
+	Point<T>& operator/=( const float den ) {
+		float mul = 1./den;
+		*this *= mul;
+		return *this;
+	}
+	friend Point<T> operator/( const Point<T>& p1, float den ) {
+		Point<T> pres = p1;
+		pres /= den;
+		return pres;
+	}
+	friend Point<T> operator/( float den, const Point<T>& p1 ) {
+		Point<T> pres;
+		pres.lon = den / p1.lon;
+		pres.lat = den / p1.lat;
+		return pres;
+	}
+
+	// division (*AziData)
+	Point<T>& operator/=( const Point<T>& p2 ) { 
+		lon /= p2.lon; lat /= p2.lat;
+		return *this; 
+	}
+	friend Point<T> operator/( const Point<T>& p1, const Point<T>& p2 ) {
+		Point<T> pres = p1;
+		pres /= p2;
+		return pres;
+	}
+
+	// square root
+	Point<T> sqrt() const { return Point<T>( std::sqrt(lon), std::sqrt(lat) ); }
+	friend Point<T> sqrt( const Point<T>& p1 ) { return p1.sqrt();	}
+
+	// fabs
+	Point<T> fabs() const { return Point<T>( std::fabs(lon), std::fabs(lat) ); }
+	friend Point<T> fabs( const Point<T>& p1 ) { return p1.fabs();	}
 };
 
 #endif

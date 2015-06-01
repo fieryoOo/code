@@ -38,7 +38,6 @@ public:
 };
 #endif
 
-
 template <class T>
 class Path {
 public:
@@ -239,6 +238,14 @@ begin:
 };
 
 /*
+template <class T>
+Point<T> PgeoToPxy( const Point<T> Pgeo, const Point<T> Pcenter ) {
+	auto path = Path<T>(Pcenter, Pgeo);
+	T dis = path.Dist(), azi = path.Azi1()*M_PI/180.;
+	return Point<T>( dis*sin(azi), dis*cos(azi) );
+}
+
+
 	template <class T>
 	bool Check_azi_cov(T *lon, T *lat, int nsta, T mdis, T *flag) {
 		int i, j, jj, k, ndata;
