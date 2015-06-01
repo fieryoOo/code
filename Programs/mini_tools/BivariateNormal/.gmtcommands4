@@ -1,0 +1,11 @@
+# GMT common arguments shelf
+-Ba0.02f0.005:.B_1000_1D.txt:WeSn
+-JN245.119/15
+-JX10/10
+-R245.03/245.208/41.063/41.2097
+-X5
+-x15
+-Y5
+-y0
+-jN245.119/15
+EOF
