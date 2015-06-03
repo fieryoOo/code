@@ -43,7 +43,7 @@ public:
 		GeoToXY();
 	}
 
-	void Output( const std::string fname ) {
+	void OutputXY( const std::string fname ) {
 		if( _data.size() != _dataGeo.size() )
 			throw std::runtime_error( std::string("Error(") + FuncName + "): Geo-XY data size mismatch " );
 			
@@ -246,8 +246,8 @@ int main( int argc, char *argv[] ) {
 
 	DataHandler dh( argv[1] );
 
-	std::string fname( argv[1] ); fname += "_XY";
-	dh.Output( fname );
+	//std::string fname( argv[1] ); fname += "_XY";
+	//dh.OutputXY( fname );
 	//std::cerr<<dh.size()<<" data points loaded"<<std::endl;
 	//std::cerr<<"correlation_coef = "<<dh.CC()<<std::endl;
 
