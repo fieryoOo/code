@@ -1,6 +1,7 @@
 #ifndef POINT_H
 #define POINT_H
 
+#include <cmath>
 #include <iostream>
 #include <sstream>
 #include <iomanip>

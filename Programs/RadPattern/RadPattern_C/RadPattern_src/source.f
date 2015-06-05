@@ -1,4 +1,4 @@
-            subroutine source(sigR,sigL,c1,s1,wvn,v,dvdz,br,bl)
+            subroutine sourceRad(sigR,sigL,c1,s1,wvn,v,dvdz,br,bl)
 C--to calculate spectral source function bl(6),br(6)
 C----------INPUT ARGUMENTS-----------------------------------------
 C----code is R or L------------------------------------------------

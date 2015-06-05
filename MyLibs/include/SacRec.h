@@ -5,6 +5,7 @@
 #include "MyOMP.h"
 //#include <cstddef>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <memory>
 #include <limits>
@@ -66,8 +67,14 @@ public:
 
    /* ------------------------------ header operations ------------------------------ */
    void ChHdr(const std::string& field, const std::string& value);
+	const std::string chname() const {
+		std::stringstream ss(shd.kcmpnm);
+		std::string chname; ss >> chname;
+		return chname;
+	}
 
    /* ------------------------------ header/signal information ------------------------------ */
+	inline size_t Index( const float time ) const;
    /* compute the absolute time in sec relative to 1900.01.00 */
    double AbsTime ();
    /* update/reformat header time if shd.nzmsec is modified and is out of the range [0,1000) */
@@ -79,8 +86,8 @@ public:
    /* compute the root-mean-square average in a given window */
    void RMSAvg ( float tbegin, float tend, float& rms ) { RMSAvg( tbegin, tend, 1, rms); }
    void RMSAvg ( float tbegin, float tend, int step, float& rms );
-	bool MeanStd ( float tbegin, float tend, float& mean, float& std ) { return MeanStd(tbegin, tend, 1, mean, std); }
-	bool MeanStd ( float tbegin, float tend, int step, float& mean, float& std );
+	bool MeanStd ( float tbegin, float tend, float& mean, float& std ) const { return MeanStd(tbegin, tend, 1, mean, std); }
+	bool MeanStd ( float tbegin, float tend, int step, float& mean, float& std ) const;
 
    /* ------------------------------ single-sac operations ------------------------------ */
    void Mul( const float mul );
@@ -142,12 +149,19 @@ public:
    }
    void merge( SacRec sacrec2 );
    int arrange( const char *recname = nullptr );
-	void Correlate( SacRec& sac2 ) { Correlate(sac2, *this); }
-	/* Correlate with another sac record
-		ctype=0: Correlate (default) 
+
+	/* ---------- compute the correlation coefficient with an input SacRec ---------- */
+	float Correlation( const SacRec& sac2 ) const {
+		return Correlation( sac2, shd.b, shd.e );
+	}
+	float Correlation( const SacRec& sac2, const float tb, const float te ) const;
+
+	/* Cross-Correlate with another sac record
+		ctype=0: Cross-Correlate (default) 
 		ctype=1: deconvolve (sac.am/sac2.am)
 		ctype=2: deconvolve (sac2.am/sac.am) */
-	void Correlate( SacRec& sac2, SacRec& sacout, int ctype = 0 );
+	void CrossCorrelate( SacRec& sac2 ) { CrossCorrelate(sac2, *this); }
+	void CrossCorrelate( SacRec& sac2, SacRec& sacout, int ctype = 0 );
 
 	/* ------------------------------- cut by event ---------------------------------- */
 	void ZoomToEvent( const std::string etime, float evlon, float evlat, float tb, float tlen, std::string ename = "" );

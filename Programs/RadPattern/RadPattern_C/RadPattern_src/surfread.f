@@ -1,4 +1,4 @@
-       subroutine surfread(feig_buff,eiglen,sigR,sigL,symb,nt,nd,
+       subroutine surfreadRad(feig_buff,eiglen,sigR,sigL,symb,nt,nd,
      +                     depth,t,cr,ur,wvr,cl,ul,wvl,v,dvdz,ampr,ampl)
 C------to read SURFLEV output for producing synthetic seismograms--
 C----------------INPUT ARGUMENTS-----------------------------------

@@ -1,4 +1,4 @@
-                   subroutine angles2tensor(strike_d,dip_d,slip_d,m)
+                   subroutine angles2tensorRad(strike_d,dip_d,slip_d,m)
 C       input:  3 angles in degrees
 C       output: 6 components of the moment tensor in the order xx,yy,zz,xy,xz,yz
 C       Mxx, Mxy, Myy, Mxz, Myz, Mzz

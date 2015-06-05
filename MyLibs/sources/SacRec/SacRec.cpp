@@ -826,6 +826,7 @@ void SacRec::UpdateTime() {
 
 /* search for min&max signal positions and amplitudes */
 inline static int nint( float in ) { return static_cast<int>(floor(in+0.5)); }
+inline size_t SacRec::Index( const float time ) const { return nint((time-shd.b)/shd.delta); }
 void SacRec::MinMax (int& imin, int& imax) {
 	float min, max;
 	float *sigsac = sig.get();
@@ -845,7 +846,7 @@ void SacRec::MinMax (int& imin, int& imax, float tbegin, float tend) {
    imin = imax = 0;
 	if( tbegin == NaN ) tbegin = shd.b;
 	if( tend == NaN ) tend = shd.e;
-   for ( int i = nint((tbegin-shd.b)/shd.delta); i < nint((tend-shd.b)/shd.delta+1.) ; i++ ) {
+   for ( int i = Index(tbegin); i < Index(tend)+1; i++ ) {
        if ( min > sigsac[i] ) { min = sigsac[i]; imin = i; }
        else if ( max < sigsac[i] ) { max = sigsac[i]; imax = i; }
    }
@@ -856,7 +857,7 @@ void SacRec::MinMax (float tbegin, float tend, float& tmin, float& min, float& t
 	float *sigsac = sig.get();
    min = max = sigsac[0];
    int imin = 0, imax = 0;
-   for ( int i = nint((tbegin-shd.b)/shd.delta); i < nint((tend-shd.b)/shd.delta+1.) ; i++ ) {
+   for ( int i = Index(tbegin); i < Index(tend)+1 ; i++ ) {
        if ( min > sigsac[i] ) { min = sigsac[i]; imin = i; }
        else if ( max < sigsac[i] ) { max = sigsac[i]; imax = i; }
    }
@@ -871,7 +872,7 @@ void SacRec::RMSAvg ( float tbegin, float tend, int step, float& rms ) {
 		throw ErrorSR::EmptySig(FuncName);
 	/* decide avg window */
    float maxfloat = std::numeric_limits<float>::max();
-   int neff = 0, ibeg = nint((tbegin-shd.b)/shd.delta), iend = nint((tend-shd.b)/shd.delta+1.);
+   int neff = 0, ibeg = Index(tbegin), iend = Index(tend)+1;
 	/*
 	if( ibeg < 0 ) {
 		ibeg = 0;
@@ -942,13 +943,15 @@ void SacRec::Smooth( float timehlen, SacRec& sacout ) const {
 
 
 /* compute mean and std in a given window */
-bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& std ) {
+bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& std ) const {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
 
 	// store valid data points
    float maxfloat = std::numeric_limits<float>::max();
-   int neff = 0, ibeg = nint((tbegin-shd.b)/shd.delta), iend = nint((tend-shd.b)/shd.delta+1.);
+   int neff = 0, ibeg = Index(tbegin), iend = Index(tend)+1;
+	if( ibeg<0 || iend>shd.npts ) return false;
+
 	std::vector<float> dataV;
 	float *sigsac = sig.get();
    for ( int i = ibeg; i < iend ; i+=step ) {
@@ -1692,12 +1695,41 @@ void SacRec::RunAvg( float timehlen, float Eperl, float Eperh ) {
 
 }
 
-/* Correlate with another sac record
-	ctype=0: Correlate (default) 
+/* ---------- compute the correlation coefficient with an input SacRec ---------- */
+float SacRec::Correlation( const SacRec& sac2, const float tb, const float te ) const {
+	// check input
+	if( !sig || !sac2.sig )
+		throw ErrorSR::EmptySig(FuncName);
+
+	const auto& sac1 = *this;
+
+	// compute mean and std-devs
+	bool succeed = true;
+	float mean1, mean2, std1, std2;
+	succeed &= sac1.MeanStd( tb, te, mean1, std1 );
+	succeed &= sac2.MeanStd( tb, te, mean2, std2 );
+	if( ! succeed )
+		throw ErrorSR::BadParam(FuncName, "time window out of range: " + std::to_string(tb)+" - "+std::to_string(te));
+
+	// compute correlation coef
+	float *sigsac1 = sac1.sig.get();
+	float *sigsac2 = sac2.sig.get();
+	float cc = 0.;
+	size_t ib = Index(tb), ie = Index(te) + 1;
+	for( size_t i=ib; i<ie; i++ )
+		cc += (sigsac1[i]-mean1) * (sigsac2[i]-mean2);
+	//std::cerr<<cc<<"   "<<tb<<" "<<ib<<" "<<te<<" "<<ie<<"   "<<mean1<<" "<<std1<<" "<<mean2<<" "<<std2<<std::endl;
+	cc /= ( (ie-ib-1) * std1 * std2 );
+
+	return cc;
+}
+
+/* Cross-Correlate with another sac record
+	ctype=0: Cross-Correlate (default) 
 	ctype=1: deconvolve (sac.am/sac2.am)
 	ctype=2: deconvolve (sac2.am/sac.am) */
 /*
-void SacRec::Correlate( SacRec& sac2, SacRec& sacout, int ctype ) {
+void SacRec::CrossCorrelate( SacRec& sac2, SacRec& sacout, int ctype ) {
 	// check input
 	if( !sig || !sac2.sig )
 		throw ErrorSR::EmptySig(FuncName);
@@ -1712,11 +1744,11 @@ void SacRec::Correlate( SacRec& sac2, SacRec& sacout, int ctype ) {
 	SacRec sac2_am, sac2_ph;
 	sac2.ToAmPh(sac2_am, sac2_ph);
 
-	Correlate( sac1_am, sac1_ph, sac2_am, sac2_ph, sacout, ctype );
+	CrossCorrelate( sac1_am, sac1_ph, sac2_am, sac2_ph, sacout, ctype );
 
 }
 */
-void SacRec::Correlate( SacRec& sac2, SacRec& sacout, int ctype ) {
+void SacRec::CrossCorrelate( SacRec& sac2, SacRec& sacout, int ctype ) {
 	// check input
 	if( !sig || !sac2.sig )
 		throw ErrorSR::EmptySig(FuncName);
@@ -1795,8 +1827,9 @@ void SacRec::Correlate( SacRec& sac2, SacRec& sacout, int ctype ) {
 	int lag = shd.npts-1, ns = (npts-1) * 2;
 	sacout.shd = shd;
 	sacout.shd.npts = lag*2 + 1;
-	sacout.shd.e = lag * sacout.shd.delta;
-	sacout.shd.b = - sacout.shd.e;
+	float Tshift = sac2.shd.b-shd.b, Tlag = lag * sacout.shd.delta;
+	sacout.shd.b = -Tlag + Tshift;
+	sacout.shd.e = Tlag + Tshift;
 	sacout.sig.reset( new float[lag*2+1]() );
 	float *cor = sacout.sig.get(), *CCout = sac_CC.sig.get();
    for( int i = 1; i< (lag+1); i++) {

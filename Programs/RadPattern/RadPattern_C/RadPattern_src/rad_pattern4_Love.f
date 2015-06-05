@@ -56,11 +56,11 @@ c-----------reading OLD_SURF_DEEP output------------c
       if(nt.ge.ntmax) then
          STOP"(rad_pattern_r): num of pers in .phv exceeds the limit!"
       endif
-      call surfread(feig_buff(1:eiglen),eiglen,sigR,sigL,symbik,nt,nd,
+      call surfreadRad(feig_buff(1:eiglen),eiglen,sigR,sigL,symbik,nt,nd,
      +              depth,t,cr,ur,wvr,cl,ul,wvl,v,dvdz,ampr,ampl)
 
 c----------Source term calculations-----------------c
-      call angles2tensor(strike,dip,rake,tm)
+      call angles2tensorRad(strike,dip,rake,tm)
 
 c    period loop
       DO j=1,nt
@@ -82,7 +82,7 @@ c        azimuthal loop
             cs=cos(AZ_rad)
             sc=sin(AZ_rad)
 c           convolution with moment tensor
-            call source(sigR,sigL,cs,sc,wvn,vu,du,br,bl)
+            call sourceRad(sigR,sigL,cs,sc,wvn,vu,du,br,bl)
             sumr=(0.0,0.0)
             do m=1,6
                sumr= sumr+tm(m)*bl(m)
