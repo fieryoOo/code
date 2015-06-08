@@ -41,7 +41,8 @@ if ( `echo $low_end $avg_low_end | awk '{if($1<$2){print 1}else{print 0}}'` ) th
 endif
 
 # if even
-if( $#argv == 3 && "${argv[3]}" == "-e" ) then
+if( $#argv == 3 ) then
+	if ( "${argv[3]}" != "-e" ) break
 	set avg=`echo $low_end $high_end | awk '{print 0.5*($2+$1)}'`
 	set inc_low=`echo $low_end $high_end | awk '{print ($2-$1)/6.}'`
 	set inc_high=$inc_low

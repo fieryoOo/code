@@ -690,18 +690,29 @@ void SacRec::Addf( const SacRec& sac2 ) {
    if( !sig || !sac2.sig )
 		throw ErrorSR::EmptySig(FuncName);
 	if( shd.npts != sac2.shd.npts )
-		throw ErrorSR::SizeMismatch(FuncName, std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
+		throw ErrorSR::HeaderMismatch(FuncName, "npts: "+std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
 	//const auto& sig2 = sac2.sig;
 	float *sigsac = sig.get(), *sigsac2 = sac2.sig.get();
    for(int i=0; i<shd.npts; i++) 
 		sigsac[i] += sigsac2[i];
 }
 
+void SacRec::Subf( const SacRec& sac2 ) {
+   if( !sig || !sac2.sig )
+		throw ErrorSR::EmptySig(FuncName);
+	if( shd.npts != sac2.shd.npts )
+		throw ErrorSR::HeaderMismatch(FuncName, "npts: "+std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
+	//const auto& sig2 = sac2.sig;
+	float *sigsac = sig.get(), *sigsac2 = sac2.sig.get();
+   for(int i=0; i<shd.npts; i++) 
+		sigsac[i] -= sigsac2[i];
+}
+
 void SacRec::Divf( const SacRec& sac2 ) {
    if( !sig || !sac2.sig )
 		throw ErrorSR::EmptySig(FuncName);
 	if( shd.npts != sac2.shd.npts )
-		throw ErrorSR::SizeMismatch(FuncName, std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
+		throw ErrorSR::HeaderMismatch(FuncName, "npts: "+std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
 	//const auto& sig2 = sac2.sig;
 	float *sigsac = sig.get(), *sigsac2 = sac2.sig.get();
    for(int i=0; i<shd.npts; i++) 
@@ -714,7 +725,7 @@ void SacRec::PullUpTo( const SacRec& sac2 ) {
 	if( !sig )
 		*this = sac2;
 	if( shd.npts != sac2.shd.npts )
-		throw ErrorSR::SizeMismatch(FuncName, std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
+		throw ErrorSR::HeaderMismatch(FuncName, "npts: "+std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
 	//const auto& sig2 = sac2.sig;
 	float *sigsac = sig.get(), *sigsac2 = sac2.sig.get();
    for(int i=0; i<shd.npts; i++) 
@@ -824,9 +835,19 @@ void SacRec::UpdateTime() {
 }
 
 
-/* search for min&max signal positions and amplitudes */
+/* indexing */
 inline static int nint( float in ) { return static_cast<int>(floor(in+0.5)); }
-inline size_t SacRec::Index( const float time ) const { return nint((time-shd.b)/shd.delta); }
+inline size_t SacRec::Index( const float time ) const {
+	int index = nint((time-shd.b)/shd.delta);
+	if( index<0 || index>= shd.npts )
+		throw ErrorSR::BadParam(FuncName, "index out of range");
+	return index; 
+}
+inline float SacRec::Time( const size_t index ) const {
+	return shd.b + index*shd.delta;
+}
+
+/* search for min&max signal positions and amplitudes */
 void SacRec::MinMax (int& imin, int& imax) {
 	float min, max;
 	float *sigsac = sig.get();
@@ -943,13 +964,34 @@ void SacRec::Smooth( float timehlen, SacRec& sacout ) const {
 
 
 /* compute mean and std in a given window */
+bool SacRec::Mean ( float tbegin, float tend, int step, float& mean ) const {
+   if( ! sig )
+		throw ErrorSR::EmptySig(FuncName);
+
+	// data window
+   float maxfloat = std::numeric_limits<float>::max();
+   int ibeg = Index(tbegin), iend = Index(tend)+1;
+	if( ibeg<0 || iend>shd.npts ) return false;
+
+	//compute mean on valid data points
+	float *sigsac = sig.get();
+	mean = 0.; int neff = 0;
+   for ( int i = ibeg; i < iend ; i+=step ) {
+      if( sigsac[i] >= maxfloat ) continue;
+		mean += sigsac[i];
+		neff++;
+   }
+	if( neff == 0 ) return false;
+	mean /= neff;
+}
+
 bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& std ) const {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
 
 	// store valid data points
    float maxfloat = std::numeric_limits<float>::max();
-   int neff = 0, ibeg = Index(tbegin), iend = Index(tend)+1;
+   int ibeg = Index(tbegin), iend = Index(tend)+1;
 	if( ibeg<0 || iend>shd.npts ) return false;
 
 	std::vector<float> dataV;
@@ -979,7 +1021,7 @@ bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& s
 
 /* ---------------------------------------- time - frequency ---------------------------------------- */
 /* convert to amplitude */
-void SacRec::ToAmPh( SacRec& sac_am, SacRec& sac_ph ) {
+void SacRec::ToAmPh( SacRec& sac_am, SacRec& sac_ph ) const {
 	if( shd.npts > maxnpts4parallel ) {
 		#pragma omp critical(largesig)
 		{
@@ -989,7 +1031,7 @@ void SacRec::ToAmPh( SacRec& sac_am, SacRec& sac_ph ) {
 		ToAmPh_p(sac_am, sac_ph);
 	}
 }
-void SacRec::ToAmPh_p( SacRec& sac_am, SacRec& sac_ph ) {
+void SacRec::ToAmPh_p( SacRec& sac_am, SacRec& sac_ph ) const {
    if( ! sig ) 	// check signal
 		throw ErrorSR::EmptySig(FuncName);
    if( &sac_am != this ) {	// initialize sac_am if not filtering in place 
@@ -1052,9 +1094,11 @@ void SacRec::FromAmPh_p( SacRec& sac_am, SacRec& sac_ph, const short outtype ) {
 	// check signals
    if( !sac_am.sig || !sac_ph.sig )
       throw ErrorSR::EmptySig(FuncName);
+	if( sac_am.shd.delta != sac_ph.shd.delta )
+		throw ErrorSR::HeaderMismatch(FuncName, "dt");
 	int nk = sac_am.shd.npts;
 	if( nk != sac_ph.shd.npts )
-		throw ErrorSR::SizeMismatch(FuncName, std::to_string(nk)+" - "+std::to_string(sac_ph.shd.npts) );
+		throw ErrorSR::HeaderMismatch(FuncName, "npts: "+std::to_string(nk)+" - "+std::to_string(sac_ph.shd.npts) );
 	// allocate memory
 	int ns = (nk-1) * 2;
 	fftw_complex *in = (fftw_complex *) fftw_malloc ( ns * sizeof(fftw_complex) );//fftw_alloc_complex(ns);
@@ -1700,6 +1744,8 @@ float SacRec::Correlation( const SacRec& sac2, const float tb, const float te ) 
 	// check input
 	if( !sig || !sac2.sig )
 		throw ErrorSR::EmptySig(FuncName);
+	if( shd.delta != sac2.shd.delta )
+		throw ErrorSR::HeaderMismatch(FuncName, "dt");
 
 	const auto& sac1 = *this;
 
@@ -1711,15 +1757,23 @@ float SacRec::Correlation( const SacRec& sac2, const float tb, const float te ) 
 	if( ! succeed )
 		throw ErrorSR::BadParam(FuncName, "time window out of range: " + std::to_string(tb)+" - "+std::to_string(te));
 
-	// compute correlation coef
+	// get/check indexes
 	float *sigsac1 = sac1.sig.get();
 	float *sigsac2 = sac2.sig.get();
 	float cc = 0.;
-	size_t ib = Index(tb), ie = Index(te) + 1;
-	for( size_t i=ib; i<ie; i++ )
-		cc += (sigsac1[i]-mean1) * (sigsac2[i]-mean2);
+	size_t ib1 = Index(tb), ie1 = Index(te) + 1;
+	size_t ib2 = sac2.Index(tb), ie2 = sac2.Index(te) + 1;
+	if( Time(ib1) != sac2.Time(ib2) )
+		throw ErrorSR::HeaderMismatch(FuncName, "sampling grid");
+
+	// compute correlation coef
+	size_t i1 = ib1, i2 = ib2;
+	while( i1 < ie1 ) {
+		cc += (sigsac1[i1]-mean1) * (sigsac2[i2]-mean2);
+		i1++; i2++;
+	}
 	//std::cerr<<cc<<"   "<<tb<<" "<<ib<<" "<<te<<" "<<ie<<"   "<<mean1<<" "<<std1<<" "<<mean2<<" "<<std2<<std::endl;
-	cc /= ( (ie-ib-1) * std1 * std2 );
+	cc /= ( (ie1-ib1-1) * std1 * std2 );
 
 	return cc;
 }
@@ -1752,8 +1806,10 @@ void SacRec::CrossCorrelate( SacRec& sac2, SacRec& sacout, int ctype ) {
 	// check input
 	if( !sig || !sac2.sig )
 		throw ErrorSR::EmptySig(FuncName);
+	if( shd.delta != sac2.shd.delta )
+		throw ErrorSR::HeaderMismatch(FuncName, "dt");
 	if( shd.npts != sac2.shd.npts )
-		throw ErrorSR::SizeMismatch(FuncName, std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
+		throw ErrorSR::HeaderMismatch(FuncName, "npts: "+std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
 
 	// sig1 time -> freq
 	SacRec sac1_am, sac1_ph;

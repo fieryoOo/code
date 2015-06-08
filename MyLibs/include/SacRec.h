@@ -10,6 +10,7 @@
 #include <memory>
 #include <limits>
 #include <stdexcept>
+#include <cmath>
 
 #ifndef FuncName
 #define FuncName __FUNCTION__
@@ -67,6 +68,12 @@ public:
 
    /* ------------------------------ header operations ------------------------------ */
    void ChHdr(const std::string& field, const std::string& value);
+
+	const std::string stname() const {
+		std::stringstream ss(shd.kstnm);
+		std::string stname; ss >> stname;
+		return stname;
+	}
 	const std::string chname() const {
 		std::stringstream ss(shd.kcmpnm);
 		std::string chname; ss >> chname;
@@ -75,6 +82,7 @@ public:
 
    /* ------------------------------ header/signal information ------------------------------ */
 	inline size_t Index( const float time ) const;
+	inline float Time( const size_t index ) const;
    /* compute the absolute time in sec relative to 1900.01.00 */
    double AbsTime ();
    /* update/reformat header time if shd.nzmsec is modified and is out of the range [0,1000) */
@@ -86,21 +94,26 @@ public:
    /* compute the root-mean-square average in a given window */
    void RMSAvg ( float tbegin, float tend, float& rms ) { RMSAvg( tbegin, tend, 1, rms); }
    void RMSAvg ( float tbegin, float tend, int step, float& rms );
+	bool Mean ( float& mean ) const { return Mean(shd.b, shd.e, mean); }
+	bool Mean ( float tbegin, float tend, float& mean ) const { return Mean(tbegin, tend, 1, mean); }
+	bool Mean ( float tbegin, float tend, int step, float& mean ) const;
+	bool MeanStd ( float& mean, float& std ) const { return MeanStd(shd.b, shd.e, mean, std); }
 	bool MeanStd ( float tbegin, float tend, float& mean, float& std ) const { return MeanStd(tbegin, tend, 1, mean, std); }
 	bool MeanStd ( float tbegin, float tend, int step, float& mean, float& std ) const;
 
    /* ------------------------------ single-sac operations ------------------------------ */
    void Mul( const float mul );
 	void Addf( const SacRec& sac2 );
+	void Subf( const SacRec& sac2 );
 	void Divf( const SacRec& sac2 );
 	void PullUpTo( const SacRec& sac2 );
    void ToAm() { ToAm(*this);	}
-   void ToAm( SacRec& sac_am ) {
+   void ToAm( SacRec& sac_am ) const {
 		SacRec sac_ph;
 		ToAmPh( sac_am, sac_ph );
 	}
-	void ToAmPh( SacRec& sac_am, SacRec& sac_ph );	// in series when sig is large
-	void ToAmPh_p( SacRec& sac_am, SacRec& sac_ph );	// always parallel
+	void ToAmPh( SacRec& sac_am, SacRec& sac_ph ) const;	// in series when sig is large
+	void ToAmPh_p( SacRec& sac_am, SacRec& sac_ph ) const;	// always parallel
 	void FromAmPh( SacRec& sac_am, SacRec& sac_ph, const short outtype = 0 );		// in series when sig is large
 	void FromAmPh_p( SacRec& sac_am, SacRec& sac_ph, const short outtype = 0 );	//	always parallel
 	/* filters */
@@ -131,6 +144,7 @@ public:
 	}
    void RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexe );
    /* resample (with anti-aliasing filter) the signal to given sps */
+   void Resample() { Resample( floor(1.0/shd.delta+0.5) ); }
    void Resample( float sps );
 	/* smoothing ( running average ) */
 	void Smooth( float timehlen, SacRec& sacout ) const;
@@ -234,10 +248,10 @@ namespace ErrorSR {
          : Base(funcname, "Insufficient data points ("+info+").") {}
    };
 
-   class SizeMismatch : public Base {
+   class HeaderMismatch : public Base {
    public:
-      SizeMismatch(const std::string funcname, const std::string info = "")
-         : Base(funcname, "Size mismatch ("+info+").") {}
+      HeaderMismatch(const std::string funcname, const std::string info = "")
+         : Base(funcname, "Header mismatch ("+info+").") {}
    };
 
    class ExternalError : public Base {
