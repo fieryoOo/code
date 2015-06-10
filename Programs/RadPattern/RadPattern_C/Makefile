@@ -14,8 +14,8 @@ CC = g++
 
 ldlibs = -lstdc++ -lX11 -lm
 # -lmath -lev -lio -lmap
-OBJS = driver.o RadPattern.o $(VPATH)/rad_pattern4_Love.o $(VPATH)/rad_pattern4_Rayl.o $(VPATH)/source.o $(VPATH)/surfread.o \
-       $(VPATH)/angles2tensor.o $(VPATH)/pha.o $(VPATH)/unwrapR.o $(VPATH)/unwrapL.o
+OBJS = driver.o RadPattern.o $(VPATH)/rad_pattern4_Love.o $(VPATH)/rad_pattern4_Rayl.o $(VPATH)/sourceRad.o $(VPATH)/surfreadRad.o \
+       $(VPATH)/angles2tensorRad.o $(VPATH)/phaRad.o $(VPATH)/unwrapR.o $(VPATH)/unwrapL.o
 #intpol.o unwrap_contin.o
 #include $(DSAPMAKE)
 

@@ -1,5 +1,5 @@
 #include "SacRec.h"
-#include "MyLogger.h"
+//#include "MyLogger.h"
 //#include "SysTools.h"
 #include <fftw3.h>
 #include <cstdio>
@@ -441,7 +441,7 @@ namespace System {
 };
 
 
-extern MyLogger logger;
+//extern MyLogger logger;
 /* ---------------------------------------- constructors and operators ---------------------------------------- */
 /* default constructor */
 SacRec::SacRec( std::ostream& reportin )
@@ -586,9 +586,9 @@ void SacRec::Load () {
 
 /* write to file '*outfname' */
 void SacRec::WriteHD (const std::string& outfname) {
-   /* open file */
+   // open file with ios::in|ios::out (no ios::trunc) to avoid deleting the contents
    //std::fstream fsac(outfname, std::ios::in | std::ios::out);
-   std::fstream fsac(outfname);
+   std::fstream fsac(outfname);	// fstream defaults as std::ios::in|stdLLios::out
    if( ! fsac )
 		throw ErrorSR::BadFile( FuncName, "writing to " + std::string(outfname) );
    /* update header */
@@ -676,12 +676,9 @@ int read_rec(int rec_flag, char *fname, int len, int *rec_b, int *rec_e, int *nr
 */
 
 /* ---------- sac operations ---------- */
-//#define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
-//#define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
-
-//pthread_mutex_t fiolock;
-
 void SacRec::Mul( const float mul ) {
+   if( !sig )
+		throw ErrorSR::EmptySig(FuncName);
 	float *sigsac = sig.get();
    for(int i=0; i<shd.npts; i++) sigsac[i] *= mul;
 }
@@ -888,7 +885,7 @@ void SacRec::MinMax (float tbegin, float tend, float& tmin, float& min, float& t
 
 
 /* compute the root-mean-square average in a given window */
-void SacRec::RMSAvg ( float tbegin, float tend, int step, float& rms ) {
+float SacRec::RMSAvg ( float tbegin, float tend, int step ) {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
 	/* decide avg window */
@@ -909,7 +906,7 @@ void SacRec::RMSAvg ( float tbegin, float tend, int step, float& rms ) {
 	if( ibeg<0 || iend>shd.npts || ibeg >= iend )
 		throw ErrorSR::BadParam(FuncName, "invalid time window input");
 
-   rms = 0.;
+   float rms = 0.;
 	float *sigsac = sig.get();
    for ( int i = ibeg; i < iend ; i+=step ) {
       if( sigsac[i] >= maxfloat ) continue;
@@ -917,6 +914,7 @@ void SacRec::RMSAvg ( float tbegin, float tend, int step, float& rms ) {
       neff++;
    }
    rms = sqrt(rms/(neff-1));
+	return rms;
 }
 
 /* smoothing (running average) */
@@ -1018,6 +1016,19 @@ bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& s
 	return true;
 }
 
+
+/* performs integration using the trapezoidal rule */
+void SacRec::Integrate( SacRec& sac_out ) const {
+	if( &sac_out != this ) sac_out = *this;
+	float dt = shd.delta, hdt = dt * 0.5;
+	float sum = -hdt * sig[0];
+	sac_out.Transform( [&](float& val) {
+		float fadd = val * hdt;
+		sum += fadd;
+		val = sum;
+		sum += fadd;
+	} );
+}
 
 /* ---------------------------------------- time - frequency ---------------------------------------- */
 /* convert to amplitude */
@@ -1319,8 +1330,8 @@ void SacRec::merge( SacRec sacrec2 ) {
    
    SAC_HD& shd2 = sacrec2.shd;
    // starting and ending time
-   double t1b = this->AbsTime();
-   double t2b = sacrec2.AbsTime();
+   double t1b = this->AbsTime() + shd.b;
+   double t2b = sacrec2.AbsTime() + sacrec2.shd.b;
    double t1e = t1b + (shd.npts-1)*shd.delta;
    double t2e = t2b + (shd2.npts-1)*shd2.delta;
    double T1 = std::min(t1b, t2b), T2 = std::max(t1e, t2e);
@@ -1348,12 +1359,12 @@ void SacRec::merge( SacRec sacrec2 ) {
    if( t1b > t2b ) {
       reversed = true;
       nb = (int)floor((t1b-t2b)/dt+0.5);
-      tshift = (shd.b-shd2.b) + (nb*dt-(t1b-t2b));
+		tshift = (nb*dt-(t1b-t2b));// + (shd.b-shd2.b);
    }
    else {
       reversed = false;
       nb = (int)floor((t2b-t1b)/dt+0.5);
-      tshift = (shd2.b-shd.b) + (nb*dt-(t2b-t1b));
+		tshift = (nb*dt-(t2b-t1b));// + (shd2.b-shd.b);
    }
    if( fabs(tshift) > 1.e-3 )
 		(*report) << "signal shifted by " << tshift << "secs" << std::endl;
@@ -1625,30 +1636,36 @@ void SacRec::Resample( float sps ) {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
 		
-   int ithread = 0;
-   /* anti-aliasing filter */
+	// grid step size
    float dt = 1./sps;
+	if( dt < shd.delta )
+		throw ErrorSR::BadParam( FuncName, "Upsampling not implemented" );
    int iinc = (int)floor(dt/shd.delta+0.5);
+	
+   // anti-aliasing filter
    if(iinc!=1) {
       double f3 = sps/2.2, f4 = sps/2.01;
 		Filter(-1., 0., f3, f4);
    }
 
-   /* allocate space for the new sig pointer */
-   int i, j;
+	// calculate starting grid
+   float t0 = shd.nzmsec*0.001+shd.b, nb = ceil(t0*sps), t0new = nb * dt;
+   int i = (int)floor((t0new-t0)/shd.delta);
+	if( iinc==1 && t0==0. ) return;	// nothing needs to be done
+
+   // allocate space for the new sig pointer
    int nptst = (int)floor((shd.npts-1)*shd.delta*sps+0.5)+10;
-   float nb;
    std::unique_ptr<float[]> sig2(new float[nptst]);
 	if( ! sig2 )
 		throw ErrorSR::MemError( FuncName, "new failed!");
-   //if( (*sig2 = (float *) malloc (nptst * sizeof(float)))==nullptr ) perror("malloc sig2");
-   long double fra1, fra2;
 	float *sigsac = sig.get(), *sigsac2 = sig2.get();
-   nb = ceil((shd.nzmsec*0.001+shd.b)*sps);
-   i = (int)floor((nb*dt-shd.nzmsec*0.001-shd.b)/shd.delta);
+
+	// re-sample
+   //if( (*sig2 = (float *) malloc (nptst * sizeof(float)))==nullptr ) perror("malloc sig2");
+   int j;
    if(fabs(iinc*shd.delta-dt)<1.e-7) { //sps is a factor of 1/delta
-      fra2 = (nb*dt-i*shd.delta-shd.nzmsec*0.001-shd.b)/shd.delta;
-      fra1 = 1.-fra2;
+      long double fra2 = (t0new-t0-i*shd.delta)/shd.delta;
+      long double fra1 = 1.-fra2;
       if(fra2==0)
          for(j=0;i<shd.npts;j++) {
             sigsac2[j] = sigsac[i];
@@ -1664,10 +1681,10 @@ void SacRec::Resample( float sps ) {
       (*report) << "possible rounding error! sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << std::endl;
       long double ti, tj;
       iinc = (int)floor(dt/shd.delta);
-      ti = i*shd.delta+shd.nzmsec*0.001+shd.b;
-      tj = nb*dt;
+      ti = i*shd.delta + t0;
+      tj = t0new;
       for(j=0;i<shd.npts-1;j++) {
-         fra2 = tj-ti;
+         long double fra2 = tj-ti;
          sigsac2[j] = sigsac[i] + (sigsac[i+1]-sigsac[i])*fra2;
          tj += dt;
          i += iinc;
@@ -1676,9 +1693,12 @@ void SacRec::Resample( float sps ) {
       }
    }
    sig = std::move(sig2);
-   shd.nzmsec = (int)(nb*dt*1000+0.5);
-   shd.b = 0.;
-   if(shd.nzmsec>=1000) UpdateTime();
+   //shd.b = 0.;
+   //shd.nzmsec = (int)(nb*dt*1000+0.5);
+   //if(shd.nzmsec>=1000) UpdateTime();
+	// modify shd.b instead of the KZtime
+	shd.nzmsec = 0.;
+	shd.b = t0new;
    shd.delta = dt;
    shd.npts = j;
 }

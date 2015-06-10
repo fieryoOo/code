@@ -120,9 +120,9 @@ int main(int argc, char* argv[]) {
 	for(const auto& loc : locV) {
 		StaInfo data_find;
 		if( datalst.SearchLoc( loc.lon, loc.lat, data_find ) ) {	// found
-			fout<<data_find.name<<"\n"; nmatch++;
+			fout<<data_find.name<<"   "<<loc.name<<"\n"; nmatch++;
 		} else {	// not found
-			if( samecol ) fout<<loc.lon<<" "<<loc.lat<<std::endl;
+			if( samecol ) fout<<"NOT_FOUND_AT   "<<loc.name<<std::endl;
 		}
 
 		/*

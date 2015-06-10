@@ -89,7 +89,7 @@ c           convolution with moment tensor
             aq=cabs(sumr)
             sume=real(sumr)
             sumi=aimag(sumr)
-            pq(jkl,j)=pha(sumi,sume)
+            pq(jkl,j)=phaRad(sumi,sume)
             aml(jkl,j)=aq*ampr(j)*const
          EndDo
 1     ENDDO

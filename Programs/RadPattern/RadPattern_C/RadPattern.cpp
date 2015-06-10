@@ -192,7 +192,9 @@ bool RadPattern::Predict( char typein, const std::string& feigname, const std::s
    //float azi[nazi], grT[nper][nazi], phT[nper][nazi], amp[nper][nazi];
 	for( int iper=0; iper<perlst.size(); iper++ ) {
 		float per = perlst[iper];
+
 /*
+		// copy as is
 		auto &grV = grtM[per], &phV = phtM[per], &amV = ampM[per];
       grV = std::vector<float>( grT[iper], grT[iper]+nazi );
       phV = std::vector<float>( phT[iper], phT[iper]+nazi );

@@ -91,7 +91,7 @@ C               sumr= sumr+tm(m)*br(m)
             aq=cabs(sumr)
             sume=real(sumr)
             sumi=aimag(sumr)
-            pq(jkl,j)=pha(sumi,sume)
+            pq(jkl,j)=phaRad(sumi,sume)
             aml(jkl,j)=aq*ampl(j)*const
          EndDo
 1     ENDDO

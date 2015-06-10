@@ -48,30 +48,14 @@ int main( int argc, char* argv[] ) {
       std::cerr<<"Warning(main): integer expected for strike/dip/rake/depth. Corrected to the nearest integer(s)!"<<std::endl;
    }
    */
-   FocalInfo<float> finfo(strike, dip, rake, dep);
-   std::cout<<"### Input Focal info = "<<finfo<<". ###"<<std::endl;
+   //FocalInfo<float> finfo(strike, dip, rake, dep);
+   std::cout<<"### Input Focal info = ("<<strike<<" "<<dip<<" "<<rake<<" "<<dep<<"). ###"<<std::endl;
 
+	//bool GetPred( const float per, const float azi,	float& grt, float& pht, float& amp ) const;
    /* run rad_pattern_r */
-   std::vector< std::vector<AziData> > per_azi_pred;
    RadPattern rp;
-   rp.Predict( type, argv[2], argv[3], finfo, perlst, per_azi_pred );
-
-   /* output */
-   std::ofstream fout(argv[9]);
-   if( ! fout ) {
-      std::cerr<<"Cannot write to file "<<argv[9]<<std::endl;
-      exit(0);
-   }
-   for(int iper=0; iper<per_azi_pred.size(); iper++) {
-      float per_cur = perlst.at(iper);
-      std::vector<AziData>& dataV_cur = per_azi_pred.at(iper);
-      for(int idat=0; idat<dataV_cur.size(); idat++) {
-	 AziData& data_cur = dataV_cur[idat];
-	 fout<<data_cur.azi<<"  "<<data_cur.misG<<" "<<data_cur.misP<<" "<<data_cur.A<<"  "<<per_cur<<std::endl;
-      }
-      fout<<std::endl<<std::endl;
-   }
-   fout.close();
+   rp.Predict( type, argv[2], argv[3], strike, dip, rake, dep, perlst );
+	rp.OutputPreds( argv[9] );
 
    return 0;
 }

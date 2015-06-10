@@ -29,6 +29,60 @@ private:
 */
 
 
+namespace ErrorSR {
+
+   class Base : public std::runtime_error {
+   public:
+		Base( const std::string funcname, const std::string message )
+			: runtime_error(funcname + ": " + message) {
+				//PrintStacktrace();
+			}
+	};
+
+   class BadFile : public Base {
+   public:
+      BadFile(const std::string funcname, const std::string info = "")
+         : Base(funcname, "Invalid or non-accessable file ("+info+").") {}
+   };
+
+   class BadParam : public Base {
+   public:
+      BadParam(const std::string funcname, const std::string info = "")
+         : Base(funcname, "Bad parameters ("+info+").") {}
+   };
+
+   class EmptySig : public Base {
+   public:
+      EmptySig(const std::string funcname, const std::string info = "")
+         : Base(funcname, "No sac signal loaded in the memory ("+info+").") {}
+   };
+
+   class InsufData : public Base {
+   public:
+      InsufData(const std::string funcname, const std::string info = "")
+         : Base(funcname, "Insufficient data points ("+info+").") {}
+   };
+
+   class HeaderMismatch : public Base {
+   public:
+      HeaderMismatch(const std::string funcname, const std::string info = "")
+         : Base(funcname, "Header mismatch ("+info+").") {}
+   };
+
+   class ExternalError : public Base {
+   public:
+		ExternalError(const std::string funcname, const std::string info = "")
+         : Base(funcname, "External error ("+info+").") {}
+   };
+
+   class MemError : public Base {
+   public:
+		MemError(const std::string funcname, const std::string info = "")
+         : Base(funcname, "Memory error ("+info+").") {}
+   };
+};
+
+
 class SacRec {
 public:
    std::string fname;			// input file name
@@ -92,8 +146,8 @@ public:
 	void MinMax (int& imin, int& imax, float tbegin, float tend);
    void MinMax ( float tbegin, float tend, float& tmin, float& min, float& tmax, float& max );
    /* compute the root-mean-square average in a given window */
-   void RMSAvg ( float tbegin, float tend, float& rms ) { RMSAvg( tbegin, tend, 1, rms); }
-   void RMSAvg ( float tbegin, float tend, int step, float& rms );
+   float RMSAvg ( float tbegin, float tend ) { return RMSAvg( tbegin, tend, 1); }
+   float RMSAvg ( float tbegin, float tend, int step );
 	bool Mean ( float& mean ) const { return Mean(shd.b, shd.e, mean); }
 	bool Mean ( float tbegin, float tend, float& mean ) const { return Mean(tbegin, tend, 1, mean); }
 	bool Mean ( float tbegin, float tend, int step, float& mean ) const;
@@ -102,10 +156,23 @@ public:
 	bool MeanStd ( float tbegin, float tend, int step, float& mean, float& std ) const;
 
    /* ------------------------------ single-sac operations ------------------------------ */
+	template<class Functor>	void Transform(const Functor& func) {
+		if( !sig )
+			throw ErrorSR::EmptySig(FuncName);
+
+		float* sigsac = sig.get();
+		for(int i=0; i<shd.npts; i++)	func(sigsac[i]);
+	}
+
    void Mul( const float mul );
 	void Addf( const SacRec& sac2 );
 	void Subf( const SacRec& sac2 );
 	void Divf( const SacRec& sac2 );
+
+	/* performs integration using the trapezoidal rule */
+	void Integrate() { Integrate(*this); }
+	void Integrate( SacRec& sac_out ) const;
+
 	void PullUpTo( const SacRec& sac2 );
    void ToAm() { ToAm(*this);	}
    void ToAm( SacRec& sac_am ) const {
@@ -213,58 +280,5 @@ private:
    std::unique_ptr<float[]> am, ph;
 };
 */
-
-namespace ErrorSR {
-
-   class Base : public std::runtime_error {
-   public:
-		Base( const std::string funcname, const std::string message )
-			: runtime_error(funcname + ": " + message) {
-				//PrintStacktrace();
-			}
-	};
-
-   class BadFile : public Base {
-   public:
-      BadFile(const std::string funcname, const std::string info = "")
-         : Base(funcname, "Invalid or non-accessable file ("+info+").") {}
-   };
-
-   class BadParam : public Base {
-   public:
-      BadParam(const std::string funcname, const std::string info = "")
-         : Base(funcname, "Bad parameters ("+info+").") {}
-   };
-
-   class EmptySig : public Base {
-   public:
-      EmptySig(const std::string funcname, const std::string info = "")
-         : Base(funcname, "No sac signal loaded in the memory ("+info+").") {}
-   };
-
-   class InsufData : public Base {
-   public:
-      InsufData(const std::string funcname, const std::string info = "")
-         : Base(funcname, "Insufficient data points ("+info+").") {}
-   };
-
-   class HeaderMismatch : public Base {
-   public:
-      HeaderMismatch(const std::string funcname, const std::string info = "")
-         : Base(funcname, "Header mismatch ("+info+").") {}
-   };
-
-   class ExternalError : public Base {
-   public:
-		ExternalError(const std::string funcname, const std::string info = "")
-         : Base(funcname, "External error ("+info+").") {}
-   };
-
-   class MemError : public Base {
-   public:
-		MemError(const std::string funcname, const std::string info = "")
-         : Base(funcname, "Memory error ("+info+").") {}
-   };
-};
 
 #endif
