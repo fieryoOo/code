@@ -123,6 +123,11 @@ public:
    /* ------------------------------ header operations ------------------------------ */
    void ChHdr(const std::string& field, const std::string& value);
 
+	const std::string ntname() const {
+		std::stringstream ss(shd.knetwk);
+		std::string ntname; ss >> ntname;
+		return ntname;
+	}
 	const std::string stname() const {
 		std::stringstream ss(shd.kstnm);
 		std::string stname; ss >> stname;
@@ -156,12 +161,13 @@ public:
 	bool MeanStd ( float tbegin, float tend, int step, float& mean, float& std ) const;
 
    /* ------------------------------ single-sac operations ------------------------------ */
-	template<class Functor>	void Transform(const Functor& func) {
+	template<class Functor>	void Transform(const Functor& func, const size_t ib=0, int ie=NaN) {
 		if( !sig )
 			throw ErrorSR::EmptySig(FuncName);
 
+		if( ie == NaN ) ie = shd.npts;
 		float* sigsac = sig.get();
-		for(int i=0; i<shd.npts; i++)	func(sigsac[i]);
+		for(int i=ib; i<ie; i++)	func(sigsac[i]);
 	}
 
    void Mul( const float mul );
@@ -169,9 +175,17 @@ public:
 	void Subf( const SacRec& sac2 );
 	void Divf( const SacRec& sac2 );
 
-	/* performs integration using the trapezoidal rule */
+	/* performs integration in the time domain using the trapezoidal rule */
+	void IntegrateT() { IntegrateT(*this); }
+	void IntegrateT( SacRec& sac_out ) const;
+
+	/* performs integration in the frequency domain (omega arithmetic) */
 	void Integrate() { Integrate(*this); }
 	void Integrate( SacRec& sac_out ) const;
+
+	/* performs differentiation in the frequency domain (omega arithmetic) */
+	void Differentiate() { Differentiate(*this); }
+	void Differentiate( SacRec& sac_out ) const;
 
 	void PullUpTo( const SacRec& sac2 );
    void ToAm() { ToAm(*this);	}
