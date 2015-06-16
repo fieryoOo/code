@@ -127,7 +127,7 @@ int  main ( int argc, char *argv[] )
 	    std::string& ename(evlst[iev].event_name);
 
 	    // set fosac
-	    stmp = "fosac " + ename + "." + stalst[ista].name + "." + chlst[ich] + ".sac";
+	    stmp = "fosac " + ename + "." + stalst[ista].name + "." + chlst[ich] + ".osac";
 	    DRtmp.Set(stmp.c_str());
 	    // set ffsac
 	    stmp = "ffsac " + ename + "." + stalst[ista].name + "." + chlst[ich] + ".sac";
@@ -139,7 +139,7 @@ int  main ( int argc, char *argv[] )
 	    //if( ! DRtmp.CheckPreExtract() ) exit(0);
 
 	    // extract sac: donot skip | don't write yet
-	    if( ! DRtmp.ExtractSac(0, false) ) continue;
+	    if( ! DRtmp.ExtractSac(0, true) ) continue;
 
 	    // reResponse: remove RESP file | don't write yet
 	    DRtmp.RmRESP(false);

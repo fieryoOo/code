@@ -1,0 +1,457 @@
+#LyX 1.6.7 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
+\begin_document
+\begin_header
+\textclass book
+\begin_preamble
+\usepackage{hyperref}
+
+\let\myUrl\url
+\renewcommand{\url}[1]{(\myUrl{#1})}
+\end_preamble
+\use_default_options false
+\language english
+\inputencoding latin1
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\paperfontsize 11
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 0
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Section
+syndat Program
+\end_layout
+
+\begin_layout Standard
+The 
+\series bold
+syndat
+\series default
+ program makes synthetic seismograms by convolution of Green's functions
+ (
+\series bold
+green
+\series default
+ program output) with the seismic moment tensor of the chosen event.
+\end_layout
+
+\begin_layout Subsection
+Command Line
+\end_layout
+
+\begin_layout Standard
+\noindent
+There are three different ways to start the 
+\series bold
+syndat
+\series default
+ program: 
+\end_layout
+
+\begin_layout Enumerate
+Interactive dialog for setting input parameters:
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+\noindent
+
+\series bold
+syndat
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+Single shell command with redirection of the standard input from a parameter
+ file 
+\shape italic
+parameter_file
+\shape default
+ containing exactly the same information and in the same order as in the
+ interactive dialog - one answer per line:
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+\noindent
+
+\series bold
+syndat
+\series default
+ 
+\begin_inset Formula $<$
+\end_inset
+
+ 
+\shape italic
+parameter_file
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+Direct shell script.
+ In this case, the contents of the parameter file are directly included
+ in the shell script between the delimiters 
+\begin_inset Quotes eld
+\end_inset
+
+WORD'':
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+\noindent
+
+\series bold
+syndat
+\series default
+ 
+\begin_inset Formula $<<$
+\end_inset
+
+ WORD 
+\begin_inset Newline newline
+\end_inset
+
+ ........
+ 
+\begin_inset Newline newline
+\end_inset
+
+ ........
+ 
+\begin_inset Newline newline
+\end_inset
+
+ WORD
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\noindent
+See Chapter 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "cha:Examples"
+
+\end_inset
+
+ for examples.
+\end_layout
+
+\begin_layout Standard
+The parameter file consists of five lines: 
+\end_layout
+
+\begin_layout Description
+Line
+\begin_inset space ~
+\end_inset
+
+1: 
+\shape italic
+cmt_event
+\shape default
+
+\begin_inset Newline newline
+\end_inset
+
+ This is the path to the file with the CMT solution for a single event.
+ It must be the same 
+\shape italic
+cmt_event
+\shape default
+ file as used in the construction of the Green's functions by the 
+\series bold
+green
+\series default
+ program.
+ It uses part of the file defining the seismic moment tensor components,
+ scalar moment, and focal planes.
+ 
+\series bold
+Format:
+\series default
+ Any string up to 256 characters long.
+ 
+\end_layout
+
+\begin_layout Description
+Line
+\begin_inset space ~
+\end_inset
+
+2: 
+\shape italic
+plane
+\shape default
+
+\begin_inset Newline newline
+\end_inset
+
+This defines the method for introducing the moment tensor components.
+ If 
+\begin_inset Formula $plane=0$
+\end_inset
+
+, the tensor components come in directly from the 
+\shape italic
+cmt_event
+\shape default
+ file as is.
+ If 
+\begin_inset Formula $plane=1$
+\end_inset
+
+, the program takes the scalar moment and angles from focal plane 1 and
+ computes the moment tensor components.
+ For 
+\begin_inset Formula $plane=2$
+\end_inset
+
+, the program computes the tensor components using the scalar moment and
+ focal plane 2.
+ 
+\series bold
+Format:
+\series default
+ Unformatted.
+ 
+\end_layout
+
+\begin_layout Description
+Line
+\begin_inset space ~
+\end_inset
+
+3: 
+\shape italic
+in_dbname
+\shape default
+
+\begin_inset Newline newline
+\end_inset
+
+ 
+\shape italic
+in_dbname
+\shape default
+  is the input database name for the input Green's functions.
+ The 
+\shape italic
+.wfdisc
+\shape default
+ relation of the 
+\shape italic
+in_dbname
+\shape default
+  database must be the output 
+\shape italic
+.wfdisc
+\shape default
+ relation of the 
+\series bold
+green
+\series default
+ program.
+ 
+\series bold
+Format:
+\series default
+ Any string up to 256 characters long.
+ 
+\end_layout
+
+\begin_layout Description
+Line
+\begin_inset space ~
+\end_inset
+
+4: 
+\shape italic
+out_dbname
+\shape default
+
+\begin_inset Newline newline
+\end_inset
+
+This is the output database name for the 
+\shape italic
+.wfdisc
+\shape default
+ relation for synthetic seismograms.
+ Each row of the 
+\shape italic
+.wfdisc
+\shape default
+ relation refers to a binary file with synthetic data in nm/sec.
+ 
+\series bold
+Format:
+\series default
+ Any string up to 256 characters long.
+ 
+\end_layout
+
+\begin_layout Description
+Line
+\begin_inset space ~
+\end_inset
+
+5: 
+\shape italic
+datatype
+\shape default
+
+\begin_inset Newline newline
+\end_inset
+
+This defines the type of synthetic data.
+ If 
+\begin_inset Formula $datatype=0$
+\end_inset
+
+ the output synthetic waveforms are accelerograms in 
+\begin_inset Formula $nm/s^{2}$
+\end_inset
+
+.
+ This is recommended native 
+\series bold
+Mineos
+\series default
+ output.
+ If 
+\begin_inset Formula $datatype=1$
+\end_inset
+
+ the output is velocity waveform in 
+\begin_inset Formula $nm/s$
+\end_inset
+
+, and if 
+\begin_inset Formula $datatype=2$
+\end_inset
+
+ the output is displacement in 
+\begin_inset Formula $nm$
+\end_inset
+
+.
+ This is done by additional conversion of accelerograms to velocity or displacem
+ent.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+% Input data
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Input Data
+\end_layout
+
+\begin_layout Description
+
+\series bold
+\emph on
+cmt_event
+\series default
+\emph default
+ See description in Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Input-data (green)"
+
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+\emph on
+in_dbname
+\series default
+\emph default
+ 
+\shape italic
+out_dbname
+\shape default
+ database for the 
+\shape italic
+.wfdisc
+\shape default
+ relation from the 
+\series bold
+green
+\series default
+ program.
+ 
+\end_layout
+
+\begin_layout Subsection
+Output Data
+\end_layout
+
+\begin_layout Description
+
+\series bold
+\emph on
+out_dbname
+\series default
+\emph default
+ Database name for the final synthetic seismograms referenced by the 
+\shape italic
+.wfdisc
+\shape default
+ relation.
+\end_layout
+
+\end_body
+\end_document

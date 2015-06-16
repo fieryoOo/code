@@ -1,0 +1,533 @@
+#LyX 1.4.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 245
+\begin_document
+\begin_header
+\textclass book
+\begin_preamble
+\usepackage{hyperref}
+
+\let\myUrl\url
+\renewcommand{\url}[1]{(\myUrl{#1})}
+\end_preamble
+\language english
+\inputencoding latin1
+\fontscheme default
+\graphics default
+\paperfontsize 11
+\spacing single
+\papersize default
+\use_geometry true
+\use_amsmath 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\leftmargin 1in
+\topmargin 1in
+\rightmargin 1in
+\bottommargin 1in
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\end_header
+
+\begin_body
+
+\begin_layout Chapter
+
+\family typewriter
+fdb
+\family default
+ and 
+\family typewriter
+time
+\family default
+ Subroutines/Functions
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+fdb
+\family default
+ Subprograms
+\end_layout
+
+\begin_layout Standard
+The 
+\series bold
+fdb
+\series default
+ (fortran database) subroutines/functions come from the CU-Boulder 
+\series bold
+fdb 
+\series default
+ FORTRAN 77 library.
+ They provide a FORTRAN interface to 
+\shape italic
+.site, .sitechan, .wfdisc
+\shape default
+, and 
+\shape italic
+.eigen
+\shape default
+ relations.
+ Most of 
+\series bold
+fdb
+\series default
+ subroutines/functions have very short and simple source code.
+ The list of function names with a brief description is listed below: 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine read_site
+\series default
+ reads 
+\shape italic
+.site
+\shape default
+ relation from file 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine write_site
+\series default
+ writes 
+\shape italic
+.site
+\shape default
+ relation to file 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine default_site
+\series default
+ sets up default (empty) tuple of 
+\shape italic
+.site
+\shape default
+ relation in memory 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine read_sitechan
+\series default
+ reads 
+\shape italic
+.sitechan
+\shape default
+ relation from file 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine write_sitechan
+\series default
+ writes 
+\shape italic
+.sitechan
+\shape default
+ relation to file 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine default_sitechan
+\series default
+ sets up default (empty) tuple of 
+\shape italic
+.sitechan
+\shape default
+ relation in memory 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine read_wfdisc
+\series default
+ reads 
+\shape italic
+.wfdisc
+\shape default
+ relation from file 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine write_wfdisc
+\series default
+ writes 
+\shape italic
+.wfdisc
+\shape default
+ relation to file 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine put_wfdisc
+\series default
+ writes for selected 
+\shape italic
+.wfdisc
+\shape default
+ tuple associated binary file 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine get_wfdisc
+\series default
+ reads for selected 
+\shape italic
+.wfdisc
+\shape default
+ tuple associated binary file 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine select_sitechan
+\series default
+ grouping 
+\shape italic
+.sitechan
+\shape default
+ relation by components (single Z component or 3-components) 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine default_wfdisc
+\series default
+ sets up default (empty) tuple of 
+\shape italic
+.wfdisc
+\shape default
+ relation in memory triple of channels) 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine open_eigen
+\series default
+ opens an 
+\shape italic
+.eigen
+\shape default
+ file and associated binary file 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine close_eigen
+\series default
+ closes an 
+\shape italic
+.eigen
+\shape default
+ file and associated binary file 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine write_eigen
+\series default
+ writes a single tuple into the 
+\shape italic
+.eigen
+\shape default
+ file 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine read_eigen
+\series default
+ reads a single tuple from the 
+\shape italic
+.eigen
+\shape default
+ file 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine null_eigen
+\series default
+ sets up default (empty) tuple of 
+\shape italic
+.eigen
+\shape default
+ relation in memory 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine get_eigen
+\series default
+ reads current 
+\shape italic
+.eigen
+\shape default
+ relation's tuple associated binary file 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine put_eigen
+\series default
+ writes current 
+\shape italic
+.eigen
+\shape default
+ relation's tuple associated binary file 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+integer*4 factor2
+\series default
+ factors an integer number into two factors
+\end_layout
+
+\begin_layout Section
+
+\family typewriter
+time
+\family default
+ Subprograms
+\end_layout
+
+\begin_layout Standard
+The 
+\series bold
+time
+\series default
+ subroutines/functions perform conversions from human to epoch time and
+ vice versa.
+ Function 
+\series bold
+loctime
+\series default
+ returns local system time as a text string.
+ A short description follows: 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine\InsetSpace ~
+epochtoh (t,\InsetSpace ~
+year,\InsetSpace ~
+doy,\InsetSpace ~
+hour,\InsetSpace ~
+min,\InsetSpace ~
+sec)
+\series default
+ converts epoch time, 
+\series bold
+double* t
+\series default
+, into human time 
+\series bold
+year, 
+\series default
+day of year (
+\series bold
+doy
+\series default
+)
+\series bold
+, hour
+\series default
+, minutes (
+\series bold
+min
+\series default
+), 
+\series bold
+sec
+\series default
+.
+ Note: 
+\series bold
+integer*4 
+\series default
+applies to
+\series bold
+ year, doy, hour, min
+\series default
+ and 
+\series bold
+real*8 
+\series default
+applies to
+\series bold
+ sec.
+ 
+\series default
+Day of year
+\series bold
+ (doy)
+\series default
+ is the number of days counted from the first day of the year.
+\end_layout
+
+\begin_layout Description
+
+\series bold
+real*8\InsetSpace ~
+function\InsetSpace ~
+htoepoch\InsetSpace ~
+(year,\InsetSpace ~
+doy,\InsetSpace ~
+hour,\InsetSpace ~
+min,\InsetSpace ~
+sec)
+\series default
+ returns epoch time.
+ Input arguments are 
+\series bold
+year, doy, hour
+\series default
+, minutes (
+\series bold
+min
+\series default
+), 
+\series bold
+sec
+\series default
+.
+ Note: 
+\series bold
+integer*4 
+\series default
+applies to
+\series bold
+ year, doy, hour, min
+\series default
+ and 
+\series bold
+real*8 
+\series default
+applies to
+\series bold
+ sec.
+\end_layout
+
+\begin_layout Description
+
+\series bold
+subroutine\InsetSpace ~
+doytom\InsetSpace ~
+(year,\InsetSpace ~
+doy,\InsetSpace ~
+mon,\InsetSpace ~
+day)
+\series default
+ converts 
+\series bold
+year
+\series default
+ and day of year (
+\series bold
+doy
+\series default
+) into month (
+\series bold
+mon
+\series default
+) and day of month (
+\series bold
+day
+\series default
+).
+ The type of all arguments is 
+\series bold
+integer*4
+\series default
+.
+ 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+integer*4\InsetSpace ~
+function\InsetSpace ~
+mtodoy\InsetSpace ~
+(year,\InsetSpace ~
+mon,\InsetSpace ~
+day)
+\series default
+ returns days of year.
+ Input arguments are 
+\series bold
+year
+\series default
+, month (
+\series bold
+mon
+\series default
+), and 
+\series bold
+day
+\series default
+.
+ The type of all arguments is 
+\series bold
+integer*4
+\series default
+.
+ 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+character*17\InsetSpace ~
+function\InsetSpace ~
+loctime()
+\series default
+ returns local system time of form 
+\series bold
+mm/dd/yy-hh:mm:ss
+\series default
+.
+\end_layout
+
+\end_body
+\end_document

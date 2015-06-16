@@ -58,7 +58,12 @@ public:
       /* load header */
       std::string sacname(outdir);
       sacname.append("/"); sacname.append(fosac);
-      if( ! ( sacrec.LoadHD(sacname.c_str()) ) ) return false;
+      //if( ! ( sacrec.LoadHD(sacname.c_str()) ) ) return false;
+		try {
+			sacrec.LoadHD(sacname.c_str());
+		} catch( std::exception& e ) {
+			return false;
+		}
       //SAC_HD *shd = read_shd(fosac);
       //if( shd==NULL ) return 0;
       //npts = sacrec.shd.npts;
@@ -494,6 +499,7 @@ bool DailyRec::extractSac( int fskipesac, bool writeout, std::ostringstream& rep
    /* output the merged sac file */
    if( writeout ) {
       std::string outname = pimpl->outdir + "/" + pimpl->fosac;
+		std::cout<<"ExtractSac: Writing osac "<<outname<<std::endl;
       sacT.Write(outname.c_str());
    }
 
@@ -522,6 +528,7 @@ bool DailyRec::RmRESP(bool writeout) {
    // write out
    if( writeout ) {
       std::string outname = pimpl->outdir + "/" + pimpl->ffsac;
+		std::cout<<"RmRESP: Writing fsac "<<outname<<std::endl;
       sacT.Write(outname.c_str());
    }
    return true;
@@ -553,7 +560,12 @@ bool DailyRec::ZoomToEvent( std::string& ename, float evlon, float evlat, float 
    shd.b -= shift;
 
    // cut to tb - te
-   if( ! sacT.cut( tb, te ) ) return false;
+   //if( ! sacT.cut( tb, te ) ) return false;
+	try {
+		sacT.cut( tb, te );
+	} catch( std::exception& e ) {
+		return false;
+	}
 
    // assign event location
    sprintf(shd.kevnm, "%s", ename.c_str());
@@ -562,6 +574,7 @@ bool DailyRec::ZoomToEvent( std::string& ename, float evlon, float evlat, float 
    // write to disk
    if( writeout ) {
       std::string outname = pimpl->outdir + "/" + pimpl->ffsac;
+		std::cout<<"ZoomToEvent: Writing fsac "<<outname<<std::endl;
       sacT.Write(outname.c_str());
    }
 

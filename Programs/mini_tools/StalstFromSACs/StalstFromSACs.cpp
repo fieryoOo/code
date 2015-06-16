@@ -65,13 +65,10 @@ int main(int argc, char* argv[]) {
 			std::cerr<<"Warning(main): LoadHD failed -- "<<e.what()<<std::endl;
 			continue;
 		}
-      SAC_HD& shd = sacrec.shd;
-      // get station name
-      std::stringstream sin(shd.kstnm);
-      std::string staname;
-      if( ! (sin >> staname) ) continue;
       // form StaInfo
-      StaInfo SIcur(staname.c_str(), shd.stlo, shd.stla);
+		std::string staid = sacrec.ntname() + " " + sacrec.stname();
+      SAC_HD& shd = sacrec.shd;
+      StaInfo SIcur(staid.c_str(), shd.stlo, shd.stla);
       // search for this same station in stalst
       std::deque<StaInfo>::iterator ista;
       ista = std::lower_bound( stalst.begin(), stalst.end(), SIcur, CompareName );
@@ -83,6 +80,7 @@ int main(int argc, char* argv[]) {
       }
       //stalst.push_back(SIcur);
       stalst.insert(ista, SIcur);
+		std::cout<<"..."<<100.0*isac/saclst.size()<<"\% done...\n\x1b[A";
    }
    std::cout<<"   "<<stalst.size()<<" station infos loaded."<<std::endl;
 
