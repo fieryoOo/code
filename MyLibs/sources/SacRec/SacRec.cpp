@@ -1,4 +1,5 @@
 #include "SacRec.h"
+#include "DisAzi.h"
 //#include "MyLogger.h"
 //#include "SysTools.h"
 #include <fftw3.h>
@@ -328,6 +329,17 @@ struct SacRec::SRimpl {
       }
       return jd + d;
    }
+
+	#ifdef DISAZI_H
+	void ComputeDisAzi( SAC_HD& shd ) {
+		try {
+			Path<float> path( shd.evlo, shd.evla, shd.stlo, shd.stla );
+			shd.dist = path.Dist(); shd.az = path.Azi1(); shd.baz = path.Azi2();
+		} catch (const std::exception& e) {}
+	}
+	#else
+	void ComputeDisAzi( SAC_HD& shd ) { throw ErrorSR::UndefMethod( FuncName, "DisAzi.h not included!" ); }
+	#endif
 };
 
 
@@ -791,6 +803,25 @@ void SacRec::ChHdr(const std::string& fieldin, const std::string& value){
 		throw ErrorSR::BadParam(FuncName, "Invalid header field (" + field + ") or value (" + value + ")");
 }
 
+
+float SacRec::Dis() const {
+	auto shdl = shd;
+	if( shdl.dist == NaN ) pimpl->ComputeDisAzi( shdl );
+	return shdl.dist;
+}
+float SacRec::Dis() {
+	if( shd.dist == NaN ) pimpl->ComputeDisAzi( shd );
+	return shd.dist;
+}
+float SacRec::Azi() const {
+	auto shdl = shd;
+	if( shdl.az == NaN ) pimpl->ComputeDisAzi( shdl );
+	return shdl.az;
+}
+float SacRec::Azi() {
+	if( shd.az == NaN ) pimpl->ComputeDisAzi( shd );
+	return shd.az;
+}
 
 double SacRec::AbsTime () {
    //if( ! sig ) return -1.;

@@ -1,0 +1,112 @@
+
+1. Directory contents.
+======================
+  This directory is the complete precomputed output of test example 
+  for the MINEOS package. The output of the minos_bran and eigcon
+  programs are excluded due to large size. The test had been computed
+  for the model prem_noocean, for 10 seismic stations around the word,
+  and for an event in Southern China:
+  lat = 25.39N, lon = 101.40E, depth = 33.00 km, Mb = 5.4, Ms = 5.9,
+  region - YUNNAN PROVINCE, M0 = 8.33e24 dyn*cm,
+  fault plane 1 (degree) = 27 (deep) 78 (sleep) -6 (strike),
+  fault plane 2 (degree) = 184 (deep) 84 (sleep) -168 (strike).
+  Eigenfunctions are computed in: frequency range 0 - 125 mHz,
+  radial order n range 1-30, and angular order l range 1 - 8000.
+  The most important information related with the test are the the 7 databases:
+    test_S         - eigenfunction databas for speroidal mode
+    test_T         - eigenfunction databas for toroidal mode
+    test_R         - eigenfunction databas for radial mode
+    green          - Green function database;
+    Syndat         - synthetic seismograms database
+    short          - input .site and .sitechan database
+    long           - another example of .site and .sitechan database for 
+                     150 stations
+
+    The file china_cmt_event is the event CMT data for the green program
+
+2. View the precompiled example results.
+=======================================
+                      
+2.1 Viewing relation tables using ANTELOPE dbe.
+                      
+    Enter command:
+                  
+  ... % dbe Syndat
+                  
+  dbe opens small graphic windows with title Syndat controlled by the mouse.
+  Open the desired relation by left mouse click on some button with
+  labels: "origin", "site", "sitechan", or "wfdisc". dbe opens for you
+  a subwindow with the corresponding table. Use vertical or horizontal
+  scrollbars to see data. dbe shows not all fields in a relation.
+  To see more click left mouse on the main Menu "View"-->"Arrange"
+  pick up new set of fields, and click "OK". To kill a subwindow press
+  "Dismiss" at the bottom by left mouse click. Repeat this procedure
+  for all relations. At the and click "Quit" on the main window.
+                      
+2.2 Viewing synthetic seismograms with ANTELOPE dbpick.
+                      
+    Enter command:
+                  
+  ... % dbpick Syndat
+                     
+  dbpick opens graphic windows with title Syndat controlled by the mouse.
+  The shell window from which dbpick starts becomes the input/output
+  text control terminal to input dbpick commands and output dbpick
+  messages.
+1. Fit the window. Click right mouse near the horizontal slider
+  at the bottom of the window and click again label "Fit" on the
+  dropdown menu. You will see the whole range of data.
+2. Use the vertical slider to move across stations. Stop at some place
+  and select some stations with a left mouse click. Use the
+  menu sequence from the main menu to view selected stations on a
+  separate subwindow, namely, "Traces"-->"NewWin"
+3. Fix the amplitude scale with the left mouse. "Amp:A"-->"Fixed".
+  To unfix use "Amp:A"-->"Auto"
+4. Click right or left mouse on blue seismogram field to move
+  record to the left or to the right.
+5. To select part of the data and magnify it to the full horizontal width
+  use the next procedure. Set mouse in some position on seismogram.
+  Press "Shift" keyboard key and left mouse simultaneously, hold
+  both and drag mouse to the right up to desired position. The yellow
+  rectangle will shows the selected segment, Release "Shift" and left
+  mouse. Click left mouse again. Needs some practice to get good.
+6. Filtering. Use menu "Filter:N". Recommended filters:
+  "Filter:N"-->"0.005-0.1BP" (bandpass filter in frequency range:
+  0.005-0.1 Hz, T: 10-200 s) or "Filter:N"-->"0.005-0.05BP" (T: 20-200 s).
+  "Filter:N"-->"None" will release filtering.
+7. Mark data with iaspei travel times.
+  Close all subwindows or exit from dbpick with quit command:
+      dbpick> quit
+  If quit, start it again: ... % dbpick Syndat
+  enter two commands:
+                      
+      dbpick> se 1
+      dbpick> sp P,S,PP,SS
+                      
+  The first command reads the event from the .origin table and the second one
+  marks  for that event the iaspei (default model) travel times of
+  different phases. The phase name conception is standard, like, PPP, PKP, etc.
+  WARNING. Some versions of dbpick output all channels in a
+  single screen and the vertical slider does not work. It is very hard to see
+  station and channel names. To fight against this you can select a
+  small portion of the data with a procedure described in point 5 of 2.3. 
+  But you must use key "Control" instead of "Shift" and drag mouse
+  down the screen. Select the portion of data and analyse it in the
+  new subwindow.
+                      
+2.3 Viewing synthetic seismograms with SAC
+                      
+  Users who prefer to view data with SAC have to convert data to SAC
+  format to some dir, say Syndat_SAC 
+
+       ... % cucss2sac Syndat Syndat_SAC
+
+  then, enter the commands
+
+       ... % cd Syndat_SAC
+       ... % sac
+                      
+  and work with data in the SAC environment.
+
+NOTE that Green functions (green database) may be viewed in the same way
+as synthetic seismograms (Syndat database).

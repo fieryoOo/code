@@ -69,6 +69,13 @@ namespace ErrorSR {
          : Base(funcname, "Header mismatch ("+info+").") {}
    };
 
+	
+   class UndefMethod : public Base {
+   public:
+		UndefMethod(const std::string funcname, const std::string info = "")
+         : Base(funcname, "Undefined method ("+info+").") {}
+   };
+
    class ExternalError : public Base {
    public:
 		ExternalError(const std::string funcname, const std::string info = "")
@@ -122,6 +129,11 @@ public:
 
    /* ------------------------------ header operations ------------------------------ */
    void ChHdr(const std::string& field, const std::string& value);
+
+	float Dis() const;
+	float Dis();
+	float Azi() const;
+	float Azi();
 
 	const std::string ntname() const {
 		std::stringstream ss(shd.knetwk);

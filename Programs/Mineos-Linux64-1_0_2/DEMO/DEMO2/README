@@ -1,0 +1,17 @@
+
+This directory keeps the precomputed etalon results for
+comparison with your own test runs in the directory DEMO3.
+Do not change this directory contents until you
+will be sure that MINEOS package works right.
+
+Directory contents:
+
+README          - this file
+test_S          - eigenfunction databas for speroidal mode
+test_T          - eigenfunction databas for toroidal mode
+green           - Green function database;
+Syndat          - synthetic seismograms database
+short           - input .site and .sitechan database
+china_cmt_event - event CMT data for the green/syndat programs
+db_list         - list of the eigenfunction databases for the green program
+RUN_.....       - various scripts
