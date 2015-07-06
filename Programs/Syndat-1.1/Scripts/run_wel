@@ -1,0 +1,37 @@
+#!/bin/tcsh
+# test for synthetic seismograms
+# $1 - event latitude, deg
+# $2 - event longitude, deg
+# $3 - depth
+# $4 - M0
+# $5- strike, deg
+# $6 - dip, deg
+# $7- rake, deg
+# $8 - list of station names
+# 2011/11/06 03:53:10 35.537 -96.747 5 5.60 Oklahoma
+#set s=`echo $1 | gawk 'BEGIN{r=atan2(1,1)/45}{q = sin(r*$1)/cos(r*$1)*0.993277;print atan2(q,1)/r;}'`
+set s=$1
+set p=`awk '{}END{f=int('$s'*4+0.5)/4;l='$2'+0;if(l < 0)l+=360;l*=4;l=int(l+0.5)/4; printf("%5.2f_%6.2f", f,l);}' < /dev/null`
+echo "$1 $2 ==> $s $2 ==> $p"
+../bin/SURF_DISP ../in_data/$p R R 0 0 4 60 0.25 -a -f
+echo "../bin/SURF_DISP ../in_data/$p R R 0 0 4 60 0.25 -a -f"
+cat > RUNR << EOF
+../data/WUSmap.25.bin
+../data/Station.list
+1000 5001 1.0 5.0 40.0 1 100000
+C
+$4 $5 $6 $7    # 3.05e24 235.0 85.0 -175.0
+$1 $2   # elat elon - source
+EOF
+cat $8 >> RUNR
+if( -d w) rm -rf  w
+mkdir w
+if( -d sac) rm -rf sac
+mkdir sac
+if( -d SPEC) rm -rf SPEC
+mkdir SPEC
+../bin/surfsyn  RUNR R.R bred R 0 $3
+if( -d BRED) rm -rf BRED
+mkdir BRED
+mv -f R.* RUNR BRED
+exit

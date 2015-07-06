@@ -469,6 +469,12 @@ SacRec::SacRec( const std::string& fnamein, std::ostream& reportin )
 	pimpl(new SRimpl() ) {
 }
 
+/* constructor with initial signal npts */
+SacRec::SacRec( const size_t npts, std::ostream& reportin )
+	: SacRec( reportin ) {
+	ResizeSig(npts);
+}
+
 /* copy constructor */
 SacRec::SacRec( const SacRec& recin )
  : fname(recin.fname), report(recin.report),
@@ -728,6 +734,16 @@ void SacRec::Divf( const SacRec& sac2 ) {
 		if( sigsac2[i]!=0. ) sigsac[i] /= sigsac2[i];
 }
 
+float SacRec::SNR( const float tsignall, const float tsignalh, const float tnoisel, const float tnoiseh ) const {
+	float tmin, tmax, min, max;
+	MinMax( tsignall, tsignalh, tmin, min, tmax, max );
+	float Asig = std::max(max, -min);
+	float RMSnoise = RMSAvg(tnoisel, tnoiseh);
+	float SNR = Asig / RMSnoise;
+	//shd.user1 = SNR;
+	return SNR;
+}
+
 void SacRec::PullUpTo( const SacRec& sac2 ) {
    if( !sac2.sig )
 		throw ErrorSR::EmptySig(FuncName);
@@ -876,7 +892,7 @@ inline float SacRec::Time( const size_t index ) const {
 }
 
 /* search for min&max signal positions and amplitudes */
-void SacRec::MinMax (int& imin, int& imax) {
+void SacRec::MinMax (int& imin, int& imax) const {
 	float min, max;
 	float *sigsac = sig.get();
 	min = max = sigsac[0];
@@ -886,7 +902,7 @@ void SacRec::MinMax (int& imin, int& imax) {
        else if ( max < sigsac[i] ) { max = sigsac[i]; imax = i; }
    }
 }
-void SacRec::MinMax (int& imin, int& imax, float tbegin, float tend) {
+void SacRec::MinMax (int& imin, int& imax, float tbegin, float tend) const {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
 	float *sigsac = sig.get();
@@ -900,7 +916,7 @@ void SacRec::MinMax (int& imin, int& imax, float tbegin, float tend) {
        else if ( max < sigsac[i] ) { max = sigsac[i]; imax = i; }
    }
 }
-void SacRec::MinMax (float tbegin, float tend, float& tmin, float& min, float& tmax, float& max) {
+void SacRec::MinMax (float tbegin, float tend, float& tmin, float& min, float& tmax, float& max) const {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
 	float *sigsac = sig.get();
@@ -916,7 +932,7 @@ void SacRec::MinMax (float tbegin, float tend, float& tmin, float& min, float& t
 
 
 /* compute the root-mean-square average in a given window */
-float SacRec::RMSAvg ( float tbegin, float tend, int step ) {
+float SacRec::RMSAvg ( float tbegin, float tend, int step ) const {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
 	/* decide avg window */

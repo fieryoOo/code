@@ -1,0 +1,15 @@
+#include "SynGenerator.h"
+#include <iostream>
+#include <string>
+#include <cstdio>
+
+int main( int argc, char* argv[] ) {
+	if( argc != 6 && argc != 7 ) {
+		std::cerr<<"Usage: "<<argv[0]<<" [fparam] [feigen] [wavetype] [mode# (0=fundamental)] [depth] [fix_vel (optional)]"<<std::endl;
+		return -1;
+	}
+
+	SynGenerator synG( argv[1], argv[2], atof(argv[4])+1, atof(argv[5]) );
+
+	return 0;
+}

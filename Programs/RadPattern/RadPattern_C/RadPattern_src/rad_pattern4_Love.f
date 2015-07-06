@@ -3,7 +3,7 @@
      +                         azimuth,groupT,phaseT,amplitude)
 c To calculate group_delay as a function of azimuth and period
       integer*4 ntmax, phvnper, dperin
-      parameter (ntmax=200)
+      parameter (ntmax=500)
       integer*4 pos1, pos2
       integer*4 eiglen
       real*4 v(3,ntmax),dvdz(3,ntmax),ampr(ntmax),ampl(ntmax)

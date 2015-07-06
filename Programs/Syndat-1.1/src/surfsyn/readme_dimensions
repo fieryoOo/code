@@ -1,0 +1,22 @@
+From SURF_DEEP
+
+ale=1./(2.*c*ugr*sumi0)/sqrt(6.28318)*1.e-15
+
+Initially:
+sum_i0 =g/cm**3*km
+c= km/s
+ugr=km/s
+
+Green function spectrum ale = s**2/km**2*cm**3/g/km  = s**2*10**(-15) s**2/g
+
+spectrum of force g*cm/s**2*s 
+
+spectral_amplitude = force*ale =cm*s
+
+displacement = spectral_amplitude*d(omega) = cm
+-------------------------------------------------
+           al(j)=suml*ampl(j)*aM*const1
+           az(j)=sumr*ampr(j)*aM*const1
+const1= 1.E-07
+
+From cm to nanometers: nanometr =10.E-09 m; 10.E-07 sm

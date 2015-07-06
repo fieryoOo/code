@@ -54,7 +54,8 @@ psxy /home/tianye/Programs/head/platebound.gmt $SCA $REG -W5/255/0/0 -M"99999 99
 psscale  -C$cptfile -P -D-3.5/7.5/15/1 -O -K -L  >> $output_ps_file
 
 #psxy $sta_lst $SCA $REG -St.3 -W3 -Ggray -O -K >> $output_ps_file
-echo $clong $clati | psxy $SCA $REG -Sc2 -W4,red -G128/128/128 -O -K >> $output_ps_file
+#echo $clong $clati | psxy $SCA $REG -Sc1 -W4,red -G128/128/128 -O -K >> $output_ps_file
+echo $clong $clati | psxy $SCA $REG -Sa0.5 -W3 -Gred -O -K >> $output_ps_file
 
 # LABELS
 pstext -R0/10/0/10 -JX10c  -V -O -N -G0 -Y3c -X0.5c << END >>  $output_ps_file

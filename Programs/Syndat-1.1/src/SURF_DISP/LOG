@@ -1,0 +1,18 @@
+ surface wave forward calculations for earthquake seismology problems:
+ options for flattenning, attenuation, partial derivatives,
+ eigenfunctions and their derivatives by depth
+ dt=  0.50000000000000000     
+ kmax=          13
+ NLAYERS=          50  NUMB. OF PERIODS=          13
+     YOUR CHOICE:
+ DDEPTH=  0.50000000000000000     
+ WAVE TYPE = RAYLEIGH   
+ FLATTENNING          
+ START c1=   1.6098030000000001     
+ KEY_ATTEN= F
+ KEY_FLAT = T
+ KEY_EIGEN= F
+ KEY_EIG_N= F
+ KEY_DERIV= F
+ MODE=           0 ;  NUMBER OF PERIODS IN  OUTPUT=          13
+ ALL IS DONE

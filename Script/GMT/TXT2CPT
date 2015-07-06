@@ -11,10 +11,10 @@ else
 endif
 
 set in_map=$argv[1]
-set avg=`awk 'BEGIN{avg=0}{avg+=$3}END{print avg/NR}' $in_map`
-set std=`awk -v avg=$avg 'BEGIN{std=0}{std+=($3-avg)**2}END{print sqrt(std/(NR-1))}' $in_map`
+set avg=`awk '$3==$3' $in_map | awk 'BEGIN{avg=0}{avg+=$3}END{print avg/NR}'`
+set std=`awk '$3==$3' $in_map | awk -v avg=$avg 'BEGIN{std=0}{std+=($3-avg)**2}END{print sqrt(std/(NR-1))}'`
 if( `echo $avg $std | awk '{if($1==$2){print 1}else{print 0}}'` ) goto next
-awk -v avg=$avg -v std=$std '$3<avg+std*2 && $3>avg-std*2' $in_map > TXT2CPT_temp
+awk '$3==$3' $in_map | awk -v avg=$avg -v std=$std '$3<avg+std*2 && $3>avg-std*2' > TXT2CPT_temp
 set avg=`awk 'BEGIN{avg=0}{avg+=$3}END{print avg/NR}' TXT2CPT_temp`
 set avg_high_end=`awk -v avg=$avg -v cf=$color_factor 'BEGIN{avg_h=0;N=0}{if($3>avg){avg_h+=$3;N+=1}}END{if(N==0){print avg}else{print cf*avg_h/N-(cf-1)*avg}}' TXT2CPT_temp`
 set flag=`echo $avg $avg_high_end | awk '{if($1==$2){print 1}else{print 0}}'`

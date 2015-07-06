@@ -14,7 +14,7 @@
 
 
 struct StaInfo : public Point<float> {
-   std::string name;
+   std::string name, net;
 	/*
    //float lon, lat;
    static constexpr float maxmisloc = 0.001; // allow ~0.2km mislocation
@@ -26,8 +26,8 @@ public:
    StaInfo()
 		: Point<float>() {}
 
-   StaInfo( const std::string& namein, const float lonin, const float latin )
-      : Point<float>(lonin, latin), name(namein) {}
+   StaInfo( const std::string& namein, const float lonin, const float latin, const std::string netin = "" )
+      : Point<float>(lonin, latin), name(namein), net(netin) {}
 
 	StaInfo( const std::string& line, const bool storeline = false ) { 
 		if( ! LoadLine( line, storeline ) )
@@ -36,14 +36,18 @@ public:
 
    virtual bool LoadLine( const std::string& line, bool storeline = false ) {
 		std::stringstream ss(line);
+		// check/load first three terms
 		bool suc = (ss >> lon >> lat >> name);
 		if( ! suc ) {
 			std::stringstream ss(line);
 			suc = (ss >> name >> lon >> lat);
 		}
 		if( ! suc ) return false;
+		// store name and correct longitude
 		if( lon < 0. ) lon += 360.;
 		if( storeline ) name = line;
+		// fourth term, if present, is taken as the network name
+		ss >> net;
 
 		return true;
    }
