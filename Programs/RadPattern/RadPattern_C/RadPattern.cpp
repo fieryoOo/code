@@ -6,11 +6,11 @@
 /* FORTRAN entrance */
 const int nazi = RadPattern::nazi;
 extern"C" {
-   void rad_pattern_r_(char *feig_buff, int *eig_len, int *phvnper, int *phvdper,
+   void rad_pattern_r_(char *feig_buff, int *eig_len, int *phvnper, float *phvdper,
                        const float *strike, const float *dip, const float *rake, const float *depth,
 							  const float *per, int *nper,
                        float *azi, float grT[][nazi], float phT[][nazi], float amp[][nazi]);
-   void rad_pattern_l_(char *feig_buff, int *eig_len, int *phvnper, int *phvdper,
+   void rad_pattern_l_(char *feig_buff, int *eig_len, int *phvnper, float *phvdper,
                        const float *strike, const float *dip, const float *rake, const float *depth,
 							  const float *per, int *nper,
                        float *azi, float grT[][nazi], float phT[][nazi], float amp[][nazi]);
@@ -24,8 +24,8 @@ struct RadPattern::Rimpl {
    std::string feignmem, fphvnmem; // name of files of the currently-in-the-memory contents
 
 	static const int NaN = RadPattern::NaN;
-   int phvnper = NaN, phvdper = NaN;
    int feig_len = NaN;
+   int phvnper = NaN; float phvdper = NaN;
    char *feig_buff = nullptr;
 
    /* ---------- con/destructors ---------- */
@@ -154,8 +154,8 @@ bool RadPattern::Predict( char typein, const std::string& feigname, const std::s
       for( std::string line; std::getline(fin, line); ) {
          float ftmp1, ftmp2, ftmp3;
          if( sscanf(line.c_str(), "%f %f %f", &ftmp1, &ftmp2, &ftmp3) != 3 ) continue;
-         if( pimplR->phvnper == 0 ) pimplR->phvdper = ftmp1;
-         else if( pimplR->phvnper == 1 ) pimplR->phvdper = ftmp1 - pimplR->phvdper;
+         if( pimplR->phvnper == 0 ) pimplR->phvdper = ftmp1; //std::cerr<<"dper = "<<pimplR->phvdper<<" ftmp1 = "<<ftmp1<<std::endl; }
+         else if( pimplR->phvnper == 1 ) pimplR->phvdper = ftmp1 - pimplR->phvdper; //std::cerr<<"dper = "<<pimplR->phvdper<<" ftmp1 = "<<ftmp1<<std::endl; }
          (pimplR->phvnper)++;
       }
       fin.close();
@@ -176,6 +176,7 @@ bool RadPattern::Predict( char typein, const std::string& feigname, const std::s
    if( type == 'R' ) {
       rad_pattern_r_( pimplR->feig_buff, &(pimplR->feig_len), &(pimplR->phvnper), &(pimplR->phvdper),
                       &(stk), &(dip), &(rak), &(dep), &(perlst.at(0)), &nper, azi, grT, phT, amp );
+      //std::cerr<<pimplR->feignmem<<" "<<pimplR->feig_len<<" "<<pimplR->phvnper<<" "<<pimplR->phvdper<<"  "<<stk<<" "<<dip<<" "<<rak<<" "<<dep<<"   "<<nper<<std::endl;
    } else if( type == 'L' ) {
       rad_pattern_l_( pimplR->feig_buff, &(pimplR->feig_len), &(pimplR->phvnper), &(pimplR->phvdper),
                       &(stk), &(dip), &(rak), &(dep), &(perlst.at(0)), &nper, azi, grT, phT, amp );
@@ -300,6 +301,7 @@ void RadPattern::OutputPreds( const std::string& fname, const float Afactor ) {
 			float pht = phtV.at(iazi);
 			float amp = ampV.at(iazi);
 			fout<<azi<<" "<<grt<<" "<<pht<<" "<<amp*Afactor<<" "<<per<<"\n";
+			//std::cerr<<azi<<" "<<grt<<" "<<pht<<" "<<amp*Afactor<<" "<<per<<"\n";
 		}
 		fout<<"\n\n";
 	}

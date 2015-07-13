@@ -2,7 +2,7 @@
 c-    to unwrap phase spectrum and get group time-----
 C---equal increment by T
 C---d(phi)/d(omega)=d(phi)/dT**2/(-pi2)
-	   real*4 ph(200),tph(200),grt(200),per(200)
+	   real*4 ph(200),tph(200),grt(200),per(200),dper
            integer jump(10)
 	   data pi2/6.2831854/,const/50./
 C-------------saving original phase temporarily--S

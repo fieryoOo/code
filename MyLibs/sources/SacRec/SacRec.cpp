@@ -887,11 +887,9 @@ inline size_t SacRec::Index( const float time ) const {
 		throw ErrorSR::BadParam(FuncName, "index out of range");
 	return index; 
 }
-inline float SacRec::Time( const size_t index ) const {
-	return shd.b + index*shd.delta;
-}
 
 /* search for min&max signal positions and amplitudes */
+/*
 void SacRec::MinMax (int& imin, int& imax) const {
 	float min, max;
 	float *sigsac = sig.get();
@@ -902,6 +900,7 @@ void SacRec::MinMax (int& imin, int& imax) const {
        else if ( max < sigsac[i] ) { max = sigsac[i]; imax = i; }
    }
 }
+*/
 void SacRec::MinMax (int& imin, int& imax, float tbegin, float tend) const {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
@@ -929,7 +928,6 @@ void SacRec::MinMax (float tbegin, float tend, float& tmin, float& min, float& t
    tmin = shd.b + imin*shd.delta;
    tmax = shd.b + imax*shd.delta;
 }
-
 
 /* compute the root-mean-square average in a given window */
 float SacRec::RMSAvg ( float tbegin, float tend, int step ) const {
@@ -963,6 +961,46 @@ float SacRec::RMSAvg ( float tbegin, float tend, int step ) const {
    rms = sqrt(rms/(neff-1));
 	return rms;
 }
+
+
+/* compute accurate time of the peak (fit with a parabola) */
+float SacRec::Tpeak() const {
+	// find isig closest to the peak
+   int imin, imax;
+   MinMax(imin, imax);
+   float* sigsac = sig.get();
+	if( fabs(sigsac[imin])>fabs(sigsac[imax]) ) imax = imin;
+	// fit a parabola to get the accurate peak time
+#ifndef PARABOLA_H
+	return Time(imax);
+#else
+   if( imax==0 || imax==shd.npts-1 ) {
+      return Time(imax);
+   } else {
+      PointC p1(Time(imax-1), sigsac[imax-1]);
+      PointC p2(Time(imax),   sigsac[imax]  );
+      PointC p3(Time(imax+1), sigsac[imax+1]);
+      return Parabola( p1, p2, p3 ).Vertex().x;
+   }
+#endif
+}
+
+/* compute accurate sig value at a given time (fit with a parabola) */
+float SacRec::Sig( float time ) const {
+	int itime = Index(time);
+#ifndef PARABOLA_H
+	return sig[itime];
+#else
+	if( itime == 0 ) itime += 1;
+	else if( itime == shd.npts-1 ) itime -= 1;
+	float* sigsac = sig.get();
+	PointC p1(Time(itime-1), sigsac[itime-1]);
+	PointC p2(Time(itime),   sigsac[itime]  );
+	PointC p3(Time(itime+1), sigsac[itime+1]);
+	return Parabola( p1, p2, p3 )(time);
+#endif
+}
+
 
 /* smoothing (running average) */
 void SacRec::Smooth( float timehlen, SacRec& sacout ) const {
@@ -1729,7 +1767,7 @@ void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std
 }
 
 /* down sampling with anti-aliasing filter */
-void SacRec::Resample( float sps ) {
+void SacRec::Resample( float sps, bool fitParabola ) {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
 		
@@ -1751,7 +1789,8 @@ void SacRec::Resample( float sps ) {
 	if( iinc==1 && t0==0. ) return;	// nothing needs to be done
 
    // allocate space for the new sig pointer
-   int nptst = (int)floor((shd.npts-1)*shd.delta*sps+0.5)+10;
+	int nptst = (int)floor( ( t0 + (shd.npts-1)*shd.delta - t0new ) * sps ) + 1;
+   //int nptst = nint((shd.npts-1)*shd.delta*sps)+10;
    std::unique_ptr<float[]> sig2(new float[nptst]);
 	if( ! sig2 )
 		throw ErrorSR::MemError( FuncName, "new failed!");
@@ -1760,7 +1799,15 @@ void SacRec::Resample( float sps ) {
 	// re-sample
    //if( (*sig2 = (float *) malloc (nptst * sizeof(float)))==nullptr ) perror("malloc sig2");
    int j;
-   if(fabs(iinc*shd.delta-dt)<1.e-7) { //sps is a factor of 1/delta
+	if( fitParabola ) {	// slower yet more accurate
+		shd.b += shd.nzmsec*0.001;
+      //long double ti = i*shd.delta + t0;
+      long double tj = t0new;
+		for(int j=0; j<nptst; j++) {
+			sigsac2[j] = Sig(tj);
+			tj += dt;
+		}
+   } else if(fabs(iinc*shd.delta-dt)<1.e-7) { //sps is a factor of 1/delta
       long double fra2 = (t0new-t0-i*shd.delta)/shd.delta;
       long double fra1 = 1.-fra2;
       if(fra2==0)
@@ -1773,8 +1820,7 @@ void SacRec::Resample( float sps ) {
             sigsac2[j] = sigsac[i]*fra1 + sigsac[i+1]*fra2;
             i += iinc;
          }
-   }
-   else { //sps isn't a factor, slower way
+   } else { //sps isn't a factor, slower way
       (*report) << "possible rounding error! sps isn't a factor of " << (int)floor(1/shd.delta+0.5) << std::endl;
       long double ti, tj;
       iinc = (int)floor(dt/shd.delta);

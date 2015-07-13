@@ -1,6 +1,7 @@
 #ifndef CURVE_H
 #define CURVE_H
 
+#include "Parabola.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -38,34 +39,36 @@ namespace ErrorCv {
 };
 
 
+#ifndef POINTC
+#define POINTC
 /* ----- single point data structures ----- */
 //template <class T> class Curve;
 //class KDeriv;
 //class Parabola;
-class Point {
+class PointC {
 public:
-	Point( float xin=NaN, float yin=NaN, float sdensin=1. ) 
+	PointC( float xin=NaN, float yin=NaN, float sdensin=1. ) 
 		: x(xin), y(yin), sdensity(sdensin) {}
 
-	Point( const std::string& input ) {
+	PointC( const std::string& input ) {
 		int nrd = sscanf(input.c_str(), "%f %f %f", &x, &y, &sdensity);
 		if( nrd < 2 )
 			throw ErrorCv::BadInput( FuncName, "format error in string "+input );
 	}
 
-	friend bool operator< ( const Point& p1, const Point& p2 ) {
+	friend bool operator< ( const PointC& p1, const PointC& p2 ) {
 		return (p1.x < p2.x);
 	}
 
-	friend std::ostream& operator<< ( std::ostream& o, const Point& pt ) {
+	friend std::ostream& operator<< ( std::ostream& o, const PointC& pt ) {
 		o << pt.x << " " << pt.y << " " << pt.sdensity;
 		return o;
 	}
 
-	//friend Curve<Point>;
+	//friend Curve<PointC>;
 	//friend KDeriv;
 	//friend Parabola;
-	//friend Curve<Point> operator-(const Curve<Point>& c1, const Curve<Point>& c2);
+	//friend Curve<PointC> operator-(const Curve<PointC>& c1, const Curve<PointC>& c2);
 
 	static constexpr float NaN = -12345.;
 	static constexpr float twopi = M_PI * 2.;
@@ -73,6 +76,7 @@ public:
 //protected:
 	float x = NaN, y = NaN, sdensity = 1.;
 };
+#endif	// POINTC
 
 /* ----- data containers ----- */
 template <class T>
@@ -101,7 +105,7 @@ public:
 		void clear() { dataV.clear();	}
 		size_t size() const { return dataV.size(); }
 		void reserve( size_t size ) { dataV.reserve(size);	}
-		void push_back( float x, float y, float om = 1. ){ dataV.push_back( Point(x, y, om) ); }
+		void push_back( float x, float y, float om = 1. ){ dataV.push_back( PointC(x, y, om) ); }
 		void Sort() { 
 			std::sort(dataV.begin(), dataV.end()); 
 			nsorted = dataV.size();
@@ -230,7 +234,7 @@ public:
 			Curve<T> c3; c3.reserve( c1.size() );
 			for( auto p1 : c1.dataV ) {
 				float val2 = c2.Val(p1.x);
-				if( val2 == Point::NaN ) continue;
+				if( val2 == PointC::NaN ) continue;
 				p1.y -= val2;
 				c3.dataV.push_back(p1);
 			}
@@ -246,51 +250,5 @@ private:
 };
 
 
-
-class Parabola {
-public:
-	Parabola( const Point& P1in, const Point& P2in, const Point& P3in )
-		: P1(P1in), P2(P2in), P3(P3in) {}
-
-	void Solve(){
-		float x1 = P1.x, y1 = P1.y;
-		float x2 = P2.x, y2 = P2.y;
-		float x3 = P3.x, y3 = P3.y;
-		float xs1 = x1*x1, xs2 = x2*x2, xs3 = x3*x3;
-		float denom = (x1-x2) * (x1-x3) * (x2-x3);
-		a = (x3*(y2-y1) + x2*(y1-y3) + x1*(y3-y2)) / denom;
-		b = (xs3*(y1-y2) + xs2*(y3-y1) + xs1*(y2-y3)) / denom;
-		c = (x2*x3*(x2-x3)*y1 + x3*x1*(x3-x1)*y2 + x1*x2*(x1-x2)*y3) / denom;
-	}
-
-	Point Vertex() {
-		if(a==NaN || b==NaN || c==NaN)
-			Solve();
-		if( PV.x==NaN || PV.y==NaN ) {
-			PV.x = - b / (2.*a);
-			PV.y = c - a*PV.x*PV.y;
-		}
-		return PV;
-	}
-
-	float A() { 
-		if(a==NaN) Solve(); 
-		return a;
-	}
-	float B() { 
-		if(b==NaN) Solve(); 
-		return b;
-	}
-	float C() { 
-		if(c==NaN) Solve(); 
-		return c;
-	}
-
-private:
-	Point P1, P2, P3;
-	Point PV;
-	float NaN = Point::NaN;
-	float a=NaN, b=NaN, c=NaN;
-};
 
 #endif

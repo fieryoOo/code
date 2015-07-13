@@ -3,6 +3,7 @@
 
 #include "mysac64.h"
 #include "MyOMP.h"
+#include "Parabola.h"
 //#include <cstddef>
 #include <iostream>
 #include <sstream>
@@ -165,13 +166,13 @@ public:
 
    /* ------------------------------ header/signal information ------------------------------ */
 	inline size_t Index( const float time ) const;
-	inline float Time( const size_t index ) const;
+	inline float Time( const size_t index ) const { return shd.b + index*shd.delta; }
    /* compute the absolute time in sec relative to 1900.01.00 */
    double AbsTime ();
    /* update/reformat header time if shd.nzmsec is modified and is out of the range [0,1000) */
    void UpdateTime();
    /* search for min&max signal positions and amplitudes */
-	void MinMax (int& imin, int& imax) const;
+	void MinMax (int& imin, int& imax) const { MinMax( imin, imax, shd.b, shd.e ); }
 	void MinMax (int& imin, int& imax, float tbegin, float tend) const;
    void MinMax ( float tbegin, float tend, float& tmin, float& min, float& tmax, float& max ) const;
    /* compute the root-mean-square average in a given window */
@@ -183,6 +184,8 @@ public:
 	bool MeanStd ( float& mean, float& std ) const { return MeanStd(shd.b, shd.e, mean, std); }
 	bool MeanStd ( float tbegin, float tend, float& mean, float& std ) const { return MeanStd(tbegin, tend, 1, mean, std); }
 	bool MeanStd ( float tbegin, float tend, int step, float& mean, float& std ) const;
+	float Tpeak() const;	// compute accurate time of the peak (fit with a parabola)
+	float Sig( float time ) const;	// compute accurate sig value at a given time (fit with a parabola)
 
    /* ------------------------------ single-sac operations ------------------------------ */
 	template<class Functor>	void Transform(const Functor& func, const size_t ib=0, int ie=NaN) {
@@ -251,8 +254,8 @@ public:
 	}
    void RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexe );
    /* resample (with anti-aliasing filter) the signal to given sps */
-   void Resample() { Resample( floor(1.0/shd.delta+0.5) ); }
-   void Resample( float sps );
+   void Resample( bool fitParabola = false ) { Resample( floor(1.0/shd.delta+0.5), fitParabola ); }
+   void Resample( float sps, bool fitParabola = false );
 	/* smoothing ( running average ) */
 	void Smooth( float timehlen, SacRec& sacout ) const;
 	void Hilbert() { Hilbert(*this); }

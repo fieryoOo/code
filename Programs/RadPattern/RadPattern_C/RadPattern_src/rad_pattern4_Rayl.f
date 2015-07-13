@@ -2,7 +2,8 @@
      +                         strike,dip,rake,depth, period,nper,
      +                         azimuth,groupT,phaseT,amplitude)
 c To calculate group_delay as a function of azimuth and period
-      integer*4 ntmax, phvnper, dperin
+      integer*4 ntmax, phvnper
+      real*4 dper, dperin
       parameter (ntmax=500)
       integer*4 pos1, pos2
       integer*4 eiglen
