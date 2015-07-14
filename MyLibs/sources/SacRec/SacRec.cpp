@@ -1,5 +1,6 @@
 #include "SacRec.h"
 #include "DisAzi.h"
+#include "Parabola.h"
 //#include "MyLogger.h"
 //#include "SysTools.h"
 #include <fftw3.h>
@@ -989,7 +990,7 @@ float SacRec::Tpeak() const {
 float SacRec::Sig( float time ) const {
 	int itime = Index(time);
 #ifndef PARABOLA_H
-	return sig[itime];
+	return sig.at(itime);
 #else
 	if( itime == 0 ) itime += 1;
 	else if( itime == shd.npts-1 ) itime -= 1;
@@ -997,6 +998,7 @@ float SacRec::Sig( float time ) const {
 	PointC p1(Time(itime-1), sigsac[itime-1]);
 	PointC p2(Time(itime),   sigsac[itime]  );
 	PointC p3(Time(itime+1), sigsac[itime+1]);
+	//std::cerr<<p1<<"\n"<<p2<<"\n"<<p3<<"\nresult: "<<time<<" "<<Parabola( p1, p2, p3 )(time)<<std::endl;
 	return Parabola( p1, p2, p3 )(time);
 #endif
 }
@@ -1803,7 +1805,7 @@ void SacRec::Resample( float sps, bool fitParabola ) {
 		shd.b += shd.nzmsec*0.001;
       //long double ti = i*shd.delta + t0;
       long double tj = t0new;
-		for(int j=0; j<nptst; j++) {
+		for(j=0; j<nptst; j++) {
 			sigsac2[j] = Sig(tj);
 			tj += dt;
 		}

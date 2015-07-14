@@ -3,7 +3,6 @@
 
 #include "mysac64.h"
 #include "MyOMP.h"
-#include "Parabola.h"
 //#include <cstddef>
 #include <iostream>
 #include <sstream>
@@ -254,8 +253,8 @@ public:
 	}
    void RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexe );
    /* resample (with anti-aliasing filter) the signal to given sps */
-   void Resample( bool fitParabola = false ) { Resample( floor(1.0/shd.delta+0.5), fitParabola ); }
-   void Resample( float sps, bool fitParabola = false );
+   void Resample( bool fitParabola = true ) { Resample( floor(1.0/shd.delta+0.5), fitParabola ); }
+   void Resample( float sps, bool fitParabola = true );
 	/* smoothing ( running average ) */
 	void Smooth( float timehlen, SacRec& sacout ) const;
 	void Hilbert() { Hilbert(*this); }

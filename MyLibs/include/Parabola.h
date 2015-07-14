@@ -2,6 +2,7 @@
 #define PARABOLA_H
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <vector>
 #include <algorithm>
@@ -19,11 +20,11 @@
 //class Parabola;
 class PointC {
 public:
-	PointC( float xin=NaN, float yin=NaN, float sdensin=1. ) 
+	PointC( long double xin=NaN, long double yin=NaN, long double sdensin=1. ) 
 		: x(xin), y(yin), sdensity(sdensin) {}
 
 	PointC( const std::string& input ) {
-		int nrd = sscanf(input.c_str(), "%f %f %f", &x, &y, &sdensity);
+		int nrd = sscanf(input.c_str(), "%lf %lf %lf", &x, &y, &sdensity);
 		if( nrd < 2 )
 			throw std::runtime_error( std::string("Error(") + FuncName + "): Bad input (format error in string " + input + ")." );
 	}
@@ -33,6 +34,7 @@ public:
 	}
 
 	friend std::ostream& operator<< ( std::ostream& o, const PointC& pt ) {
+		//o << std::setprecision(15);
 		o << pt.x << " " << pt.y << " " << pt.sdensity;
 		return o;
 	}
@@ -42,11 +44,11 @@ public:
 	//friend Parabola;
 	//friend Curve<PointC> operator-(const Curve<PointC>& c1, const Curve<PointC>& c2);
 
-	static constexpr float NaN = -12345.;
-	static constexpr float twopi = M_PI * 2.;
+	static constexpr long double NaN = -12345.;
+	static constexpr long double twopi = M_PI * 2.;
 
 //protected:
-	float x = NaN, y = NaN, sdensity = 1.;
+	long double x = NaN, y = NaN, sdensity = 1.;
 };
 #endif	// POINTC
 
@@ -58,14 +60,15 @@ public:
 		: P1(P1in), P2(P2in), P3(P3in) {}
 
 	void Solve() const{
-		float x1 = P1.x, y1 = P1.y;
-		float x2 = P2.x, y2 = P2.y;
-		float x3 = P3.x, y3 = P3.y;
-		float xs1 = x1*x1, xs2 = x2*x2, xs3 = x3*x3;
-		float denom = (x1-x2) * (x1-x3) * (x2-x3);
+		long double x1 = P1.x, y1 = P1.y;
+		long double x2 = P2.x, y2 = P2.y;
+		long double x3 = P3.x, y3 = P3.y;
+		long double xs1 = x1*x1, xs2 = x2*x2, xs3 = x3*x3;
+		long double denom = (x1-x2) * (x1-x3) * (x2-x3);
 		a = (x3*(y2-y1) + x2*(y1-y3) + x1*(y3-y2)) / denom;
 		b = (xs3*(y1-y2) + xs2*(y3-y1) + xs1*(y2-y3)) / denom;
 		c = (x2*x3*(x2-x3)*y1 + x3*x1*(x3-x1)*y2 + x1*x2*(x1-x2)*y3) / denom;
+		//std::cerr<<"results: "<<a<<" "<<b<<" "<<c<<std::endl;
 	}
 
 	PointC Vertex() const {
@@ -77,31 +80,31 @@ public:
 		return PV;
 	}
 
-	float A() const { 
+	long double A() const { 
 		if(a==NaN) Solve(); 
 		return a;
 	}
-	float B() const { 
+	long double B() const { 
 		if(b==NaN) Solve(); 
 		return b;
 	}
-	float C() const { 
+	long double C() const { 
 		if(c==NaN) Solve(); 
 		return c;
 	}
 
-	float operator()( const float x ) const {
+	long double operator()( const long double x ) const {
 		if(a==NaN || b==NaN || c==NaN) Solve();
 		return ( a*x*x + b*x + c );
 	}
 
 protected:
-	static constexpr float NaN = PointC::NaN;
+	static constexpr long double NaN = PointC::NaN;
 
 private:
-	PointC P1, P2, P3;
+	const PointC P1, P2, P3;
 	mutable PointC PV;
-	mutable float a=NaN, b=NaN, c=NaN;
+	mutable long double a=NaN, b=NaN, c=NaN;
 };
 
 #endif

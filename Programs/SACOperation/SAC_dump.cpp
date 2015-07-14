@@ -11,9 +11,12 @@ int main( int argc, char* argv[] ) {
 		SacRec sac( argv[1] );
 		sac.Load();
 		sac.Dump( argv[2] );
-	} catch(...) {
-		std::cerr<<"Error(main): exception detected!"<<std::endl;
+	} catch( std::exception& e ) {
+		std::cerr<<e.what()<<std::endl;
 		return -2;
+	} catch(...) {
+		std::cerr<<"Error(main): unknown exception!"<<std::endl;
+		return -3;
 	}
 
 	return 0;
