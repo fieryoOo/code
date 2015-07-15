@@ -19,10 +19,10 @@ cloc=`awk 'BEGIN{lonsum=0; latsum=0}{lonsum+=$1; latsum+=$2;}END{print lonsum/NR
 clon=`echo $cloc | awk '{print $1}'`; clat=`echo $cloc | awk '{print $2}'`
 stds=`awk -v clon=$clon -v clat=$clat 'BEGIN{lonstd=0; latstd=0}{lonstd+=($1-clon)**2; latstd+=($2-clat)**2}END{print (lonstd/(NR-1))**0.5, (latstd/(NR-1))**0.5}' $fintmp`
 slon=`echo $stds | awk '{print $1}'`; slat=`echo $stds | awk '{print $2}'`
-lonmin=`echo $clon $slon | awk 'BEGIN{lonmin=360.}{if(lonmin>$1)lonmin=$1}END{lonm=$1-$2*2.; if(lonm>lonmin){print lonm}else{print lonmin}}'
-lonmax=`echo $clon $slon | awk 'BEGIN{lonmax=-360.}{if(lonmax<$1)lonmax=$1}END{lonm=$1+$2*2.; if(lonm<lonmax){print lonm}else{print lonmax}}'
-latmin=`echo $clat $slat | awk 'BEGIN{latmin=90.}{if(latmin>$1)latmin=$1}END{latm=$1-$2*2.; if(latm>latmin){print latm}else{print latmin}}'
-latmax=`echo $clat $slat | awk 'BEGIN{latmax=-90.}{if(latmax<$1)latmax=$1}END{latm=$1+$2*2.; if(latm<latmax){print latm}else{print latmax}}'
+lonmin=`awk -v clon=$clon -v slon=$slon 'BEGIN{lonmin=360.}{if(lonmin>$1)lonmin=$1}END{lonmin+=(lonmin-clon)*0.05; lonm=clon-slon*2.; if(lonm>lonmin){print lonm}else{print lonmin}}' $fintmp`
+lonmax=`awk -v clon=$clon -v slon=$slon 'BEGIN{lonmax=-360.}{if(lonmax<$1)lonmax=$1}END{lonmax+=(lonmax-clon)*0.05; lonm=clon+slon*2.; if(lonm<lonmax){print lonm}else{print lonmax}}' $fintmp`
+latmin=`awk -v clat=$clat -v slat=$slat 'BEGIN{latmin=90.}{if(latmin>$2)latmin=$2}END{latmin+=(latmin-clat)*0.05; latm=clat-slat*2.; if(latm>latmin){print latm}else{print latmin}}' $fintmp`
+latmax=`awk -v clat=$clat -v slat=$slat 'BEGIN{latmax=-90.}{if(latmax<$2)latmax=$2}END{latmax+=(latmax-clat)*0.05; latm=clat+slat*2.; if(latm<latmax){print latm}else{print latmax}}' $fintmp`
 #REG=`echo $cloc $stds | awk '{print "-R"$1-$3*2."/"$1+$3*2."/"$2-$4*2."/"$2+$4*2.}'`
 REG=-R${lonmin}/${lonmax}/${latmin}/${latmax}
 echo "region = "$REG
