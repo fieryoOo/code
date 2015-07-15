@@ -135,7 +135,7 @@ public:
    void WriteHD( const std::string& fname );
    void Write( const std::string& fname );
 	/* dump signal to txt */
-	void Dump( const std::string fname );
+	void Dump( const std::string fname = "" );
 	/* clear sac and release memory */
 	void clear() { sig.reset(); shd = sac_null; fname.clear(); }
 

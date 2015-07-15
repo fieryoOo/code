@@ -27,7 +27,9 @@ public:
    }
 
    virtual bool LoadLine( const std::string& line ) {
-      return ( sscanf(line.c_str(), "%f %f", &lon, &lat) == 2 );
+      //return ( sscanf(line.c_str(), "%f %f", &lon, &lat) == 2 );
+		std::stringstream ss(line);
+		return (ss >> lon >> lat);
    }
 
    inline const T& Lat() const { return lat; }

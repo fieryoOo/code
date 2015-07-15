@@ -14,7 +14,7 @@ int main( int argc, char* argv[] ) {
 	SacRec sac1, sac2, saccor;
 	sac1.Load(argv[1]);
 	sac2.Load(argv[2]);
-	sac1.Correlate(sac2, saccor);
+	sac1.CrossCorrelate(sac2, saccor);
 
 	// file for output 
 	std::ofstream fout(argv[3]);
@@ -38,9 +38,9 @@ int main( int argc, char* argv[] ) {
 		if( imax<=0 || imax> sacflt.shd.npts-2 ) continue;
 		// the max, left, and right points
 		float *sigsac = sacflt.sig.get();
-		Point p1( shdb + (imax-1)*delta, sigsac[imax-1] );
-		Point p2( shdb + imax*delta, sigsac[imax] );
-		Point p3( shdb + (imax+1)*delta, sigsac[imax+1] );
+		PointC p1( shdb + (imax-1)*delta, sigsac[imax-1] );
+		PointC p2( shdb + imax*delta, sigsac[imax] );
+		PointC p3( shdb + (imax+1)*delta, sigsac[imax+1] );
 		Parabola pr(p1, p2, p3);
 		fout<<per<<" "<<pr.Vertex()<<std::endl;
 	}

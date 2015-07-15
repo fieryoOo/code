@@ -664,12 +664,14 @@ void SacRec::Write (const std::string& outfname) {
 void SacRec::Dump( const std::string fname ) {
 	if( !sig || shd.npts<=0 )
 		throw ErrorSR::EmptySig(FuncName);
+	bool tofile = !fname.empty();
 	std::ofstream fout(fname);
-	if( ! fout )
+	if( tofile && !fout )
 		throw ErrorSR::BadFile( FuncName, "writing to " + fname );
+	std::ostream& sout = tofile ? fout : std::cout;
 	float b = shd.b, dt = shd.delta, *sigsac = sig.get();
 	for( int i=0; i<shd.npts; i++ )
-		fout<<b+i*dt<<" "<<sigsac[i]<<"\n";
+		sout<<b+i*dt<<" "<<sigsac[i]<<"\n";
 }
 
 /*

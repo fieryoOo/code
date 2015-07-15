@@ -1,1 +1,1 @@
-/home/tianye/code/Programs/Splines/BSpline.h
+../Splines/BSpline.h

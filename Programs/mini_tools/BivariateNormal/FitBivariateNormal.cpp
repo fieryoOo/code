@@ -3,6 +3,7 @@
 #include "DisAzi.h"
 #include <Eigen/Dense>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -14,9 +15,9 @@ using namespace Eigen;
 
 
 struct CSData { 
-	CSData( const float probin, const float chiSin )
+	CSData( const double probin, const double chiSin )
 		: prob(probin), chiS(chiSin) {}
-	float prob, chiS;
+	double prob, chiS;
 
 	friend bool operator< (const CSData& cd1, const CSData& cd2) { return cd1.prob<cd2.prob; }
 };
@@ -30,7 +31,7 @@ public:
 		std::ifstream fin(fname);
 		if( !fin ) throw std::runtime_error( std::string("Error(") + FuncName + "): cannot read from file " + fname );
 		for( std::string line; std::getline(fin, line); ) {
-			Point<float> pt;
+			Point<double> pt;
 			if( ! pt.LoadLine(line) ) continue;
 			if( pt.lon<0. ) pt.lon += 360.;
 			_dataGeo.push_back(pt);
@@ -53,64 +54,64 @@ public:
 		}
 	}
 
-	void Boundaries( float& lonmin, float& lonmax, float& latmin, float& latmax ) {
+	void Boundaries( double& lonmin, double& lonmax, double& latmin, double& latmax ) {
 		lonmin = _lonmin; lonmax = _lonmax;
 		latmin = _latmin; latmax = _latmax;
 	}
 
-	void ErrorEllipse( const float prob, float& x0, float& y0, float& a, float& b, float& theta ) {
+	void ErrorEllipse( const double prob, double& x0, double& y0, double& a, double& b, double& theta ) {
 		if( _lambda1==NaN || _lambda2==NaN || _theta==NaN )
 			ComputeEigen();
 		x0 = _meanlon;
 		y0 = _meanlat;
-		float chi_S = chiS( prob );
+		double chi_S = chiS( prob );
 		a = 2. * sqrt(_lambda1 * chi_S);
 		b = 2. * sqrt(_lambda2 * chi_S);
 		theta = _theta;
 	}
 
-	float PDF( const float lon, const float lat ) {
-		Point<float> Pxy = PgeoToPxy(Point<float>(_meanlon,_meanlat), Point<float>(lon,lat));
-		float ftmpx = ( Pxy.lon - meanX() ) / stdX();
-		float ftmpy = ( Pxy.lat - meanY() ) / stdY();
+	double PDF( const double lon, const double lat ) {
+		Point<double> Pxy = PgeoToPxy(Point<double>(_meanlon,_meanlat), Point<double>(lon,lat));
+		double ftmpx = ( Pxy.lon - meanX() ) / stdX();
+		double ftmpy = ( Pxy.lat - meanY() ) / stdY();
 		return CPDF1() * exp( CPDF2() * (ftmpx*ftmpx + ftmpy*ftmpy - 2*CC()*ftmpx*ftmpy) );
 	}
 
-	Point<float> ToPxy( const float lon, const float lat ) {
-		return PgeoToPxy(Point<float>(_meanlon,_meanlat), Point<float>(lon,lat));
+	Point<double> ToPxy( const double lon, const double lat ) {
+		return PgeoToPxy(Point<double>(_meanlon,_meanlat), Point<double>(lon,lat));
 	}
 
-	float CPDF1() {
+	double CPDF1() {
 		if( _cpdf1 == NaN ) ComputeCPDF();
 		return _cpdf1;
 	}
 
-	float CPDF2() {
+	double CPDF2() {
 		if( _cpdf2 == NaN ) ComputeCPDF();
 		return _cpdf2;
 	}
 
-	float CC() {
+	double CC() {
 		if( _cc == NaN ) ComputeCC();
 		return _cc;
 	}
 
-	float meanX() {
+	double meanX() {
 		if( _meanx == NaN ) ComputeMeanSTD();
 		return _meanx;
 	}
 
-	float meanY() {
+	double meanY() {
 		if( _meany == NaN ) ComputeMeanSTD();
 		return _meany;
 	}
 
-	float stdX() {
+	double stdX() {
 		if( _stdx == NaN ) ComputeMeanSTD();
 		return _stdx;
 	}
 
-	float stdY() {
+	double stdY() {
 		if( _stdy == NaN ) ComputeMeanSTD();
 		return _stdy;
 	}
@@ -118,21 +119,21 @@ public:
 	size_t size() { return _data.size(); }
 
 protected:
-	static constexpr float NaN = -12345.;
+	static constexpr double NaN = -12345.;
 	static const std::vector<CSData>& chiSV;
 
 private:
-	std::vector< Point<float> > _dataGeo, _data;
-	float _meanlon = NaN, _meanlat = NaN;
-	float _meanx = NaN, _meany = NaN;
-	float _stdx = NaN, _stdy = NaN;
-	float _cov = NaN, _cc = NaN;
-	float _cpdf1 = NaN, _cpdf2 = NaN;
-	float _lambda1 = NaN, _lambda2 = NaN, _theta = NaN;
-	float _lonmin = 360., _lonmax = 0.;
-	float _latmin = 90., _latmax = -90.;
+	std::vector< Point<double> > _dataGeo, _data;
+	double _meanlon = NaN, _meanlat = NaN;
+	double _meanx = NaN, _meany = NaN;
+	double _stdx = NaN, _stdy = NaN;
+	double _cov = NaN, _cc = NaN;
+	double _cpdf1 = NaN, _cpdf2 = NaN;
+	double _lambda1 = NaN, _lambda2 = NaN, _theta = NaN;
+	double _lonmin = 360., _lonmax = 0.;
+	double _latmin = 90., _latmax = -90.;
 
-	float chiS( const float prob ) {
+	double chiS( const double prob ) {
 		if( prob<0.00001 || prob>0.99999 )
 			throw std::runtime_error( std::string("Error(") + FuncName + "): invalid probability (shoud be 0.00001-0.99999)" );
 		// search in chiSV
@@ -141,7 +142,7 @@ private:
 		if( iup == chiSV.end() ) return (iup-1)->chiS;
 		auto ilo = iup - 1;
 		// interpolate
-		float chiS_prob = ilo->chiS + (iup->chiS - ilo->chiS) * (prob - ilo->prob) / (iup->prob - ilo->prob);
+		double chiS_prob = ilo->chiS + (iup->chiS - ilo->chiS) * (prob - ilo->prob) / (iup->prob - ilo->prob);
 		return chiS_prob;
 	}
 
@@ -153,7 +154,7 @@ private:
 	}
 	void GeoToXY() {
 		ComputeMeanGeo();
-		Point<float> Pcenter(_meanlon, _meanlat);
+		Point<double> Pcenter(_meanlon, _meanlat);
 		_data.clear();
 		for( const auto& p_geo : _dataGeo ) {
 			_data.push_back( PgeoToPxy(Pcenter, p_geo) );
@@ -162,7 +163,7 @@ private:
 	}
 
 	void ComputeMeanGeo() {
-		Point<float> pmean, pstd;
+		Point<double> pmean, pstd;
 		if( VO::MeanSTD( _dataGeo.begin(), _dataGeo.end(), pmean, pstd, false ) ) {
 			_meanlon = pmean.lon; _meanlat = pmean.lat;
 			//_stdlon = pstd.lon; _stdlat = pstd.lat;
@@ -170,7 +171,7 @@ private:
 	}
 
 	void ComputeMeanSTD() {
-		Point<float> pmean, pstd;
+		Point<double> pmean, pstd;
 		if( VO::MeanSTD( _data.begin(), _data.end(), pmean, pstd, false ) ) {
 			_meanx = pmean.lon; _meany = pmean.lat;
 			_stdx = pstd.lon; _stdy = pstd.lat;
@@ -196,8 +197,8 @@ private:
 	void ComputeEigen() {
 		// covariance matrix
 		//size_t Nptsmo = _data.size() - 1;
-		float varX = stdX() * stdX();
-		float varY = stdY() * stdY();
+		double varX = stdX() * stdX();
+		double varY = stdY() * stdY();
 		if( _cov == NaN ) ComputeCov();
 		MatrixXd covM(2,2);
 		covM << varX, _cov,
@@ -222,9 +223,9 @@ private:
 		}
 		// rotation angle
 		_theta = atan2(eigvec(1), eigvec(0)) * 180./M_PI;
-		//float A = 1. / (stdX()*stdX());
-		//float B = -2. * CC() / (stdX()*stdY());
-		//float C = 1. / (stdY()*stdY());
+		//double A = 1. / (stdX()*stdX());
+		//double B = -2. * CC() / (stdX()*stdY());
+		//double C = 1. / (stdY()*stdY());
 		//_theta = 0.5 * atan2(B, A-C) * 180./M_PI;
 	}
 
@@ -251,27 +252,29 @@ int main( int argc, char *argv[] ) {
 	//std::cerr<<dh.size()<<" data points loaded"<<std::endl;
 	//std::cerr<<"correlation_coef = "<<dh.CC()<<std::endl;
 
-	float lon0, lat0, a, b, theta;
+	double lon0, lat0, a, b, theta;
 	dh.ErrorEllipse( atof(argv[2]), lon0, lat0, a, b, theta );
+	std::cout<<std::setprecision(9);
 	std::cout<<lon0<<" "<<lat0<<" "<<theta<<" "<<a<<" "<<b<<std::endl;
 
 	if( argc == 3 ) return 0;
 
 	// compute pdfs if requested
 	// define output boundaries
-	float lonmin, lonmax, latmin, latmax;
+	double lonmin, lonmax, latmin, latmax;
 	dh.Boundaries( lonmin, lonmax, latmin, latmax );
-	float lonspan = lonmax - lonmin, latspan = latmax - latmin;
-	float mperc = 0.3;
+	double lonspan = lonmax - lonmin, latspan = latmax - latmin;
+	double mperc = 0.3;
 	lonmin -= lonspan*mperc; lonmax += lonspan*mperc;
 	latmin -= latspan*mperc; latmax += latspan*mperc;
-	float step=0.005*(lonmax-lonmin), Agrid = step*step;
+	double step=0.005*(lonmax-lonmin), Agrid = step*step;
 	// compute
 	std::ofstream fout( argv[3] );
-	//float cdf = 0.;
-	for( float lon=lonmin; lon<=lonmax; lon+=step ) {
-		for( float lat=latmin; lat<latmax; lat+=step ) {
-			float pdf = dh.PDF(lon,lat);
+	//double cdf = 0.;
+	fout<<std::setprecision(9);
+	for( double lon=lonmin; lon<=lonmax; lon+=step ) {
+		for( double lat=latmin; lat<latmax; lat+=step ) {
+			double pdf = dh.PDF(lon,lat);
 			//cdf += pdf * Agrid;
 			fout<<lon<<" "<<lat<<" "<<pdf<<" "<<dh.ToPxy(lon, lat)<<"\n";
 		}
