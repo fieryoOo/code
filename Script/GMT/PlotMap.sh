@@ -18,8 +18,13 @@ awk '{lon=$1; if(lon<0.){lon+=360.} print lon, $2, $3, $4}' $fin > $fintmp
 cloc=`awk 'BEGIN{lonsum=0; latsum=0}{lonsum+=$1; latsum+=$2;}END{print lonsum/NR, latsum/NR}' $fintmp`
 clon=`echo $cloc | awk '{print $1}'`; clat=`echo $cloc | awk '{print $2}'`
 stds=`awk -v clon=$clon -v clat=$clat 'BEGIN{lonstd=0; latstd=0}{lonstd+=($1-clon)**2; latstd+=($2-clat)**2}END{print (lonstd/(NR-1))**0.5, (latstd/(NR-1))**0.5}' $fintmp`
-#slon=`echo $stds | awk '{print $1}'`; slat=`echo $stds | awk '{print $2}'`
-REG=`echo $cloc $stds | awk '{print "-R"$1-$3*2."/"$1+$3*2."/"$2-$4*2."/"$2+$4*2.}'`
+slon=`echo $stds | awk '{print $1}'`; slat=`echo $stds | awk '{print $2}'`
+lonmin=`echo $clon $slon | awk 'BEGIN{lonmin=360.}{if(lonmin>$1)lonmin=$1}END{lonm=$1-$2*2.; if(lonm>lonmin){print lonm}else{print lonmin}}'
+lonmax=`echo $clon $slon | awk 'BEGIN{lonmax=-360.}{if(lonmax<$1)lonmax=$1}END{lonm=$1+$2*2.; if(lonm<lonmax){print lonm}else{print lonmax}}'
+latmin=`echo $clat $slat | awk 'BEGIN{latmin=90.}{if(latmin>$1)latmin=$1}END{latm=$1-$2*2.; if(latm>latmin){print latm}else{print latmin}}'
+latmax=`echo $clat $slat | awk 'BEGIN{latmax=-90.}{if(latmax<$1)latmax=$1}END{latm=$1+$2*2.; if(latm<latmax){print latm}else{print latmax}}'
+#REG=`echo $cloc $stds | awk '{print "-R"$1-$3*2."/"$1+$3*2."/"$2-$4*2."/"$2+$4*2.}'`
+REG=-R${lonmin}/${lonmax}/${latmin}/${latmax}
 echo "region = "$REG
 
 # compute surface
