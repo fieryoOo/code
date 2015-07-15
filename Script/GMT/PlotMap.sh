@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# != 1 ] && [ $# != 2 ] && [ $# != 3 ]; then
-	echo "Usage: "$0" [file-in] [plot-text (optional, 0=no-default, 1=yes)] [fcpt (optional)]"
+	echo "Usage: "$0" [file-in] [plot-sta (optional, 0=no-default, 1=circle, 2=circle-with-name)] [fcpt (optional)]"
 	exit
 fi
 
@@ -60,9 +60,6 @@ ftobedeleted[idel]=$fgrds; let idel++
 grdsample $fgrd -Q -G$fgrds $REG -I$sms
 grdimage $SCA $REG $fgrds -C$fcpt -Ba3f2/a3f2WeSn:."$fin": -O -K >> $psout
 
-psxy $fintmp $REG $SCA -Sc.2 -W3,white -O -K >> $psout
-psxy $fintmp $REG $SCA -Sc.25 -W3,black -O -K >> $psout
-
 pscoast $SCA $REG -A100 -N1/3/0/0/0 -N2/3/0/0/0 -O -K -W3 >> $psout
 
 dirhead=/projects/yeti4009/code/Programs/head
@@ -71,8 +68,14 @@ psxy ${dirhead}/wus_province_II.dat $SCA $REG -W5/255/0/0 -M"99999 99999"  -O -K
 psxy ${dirhead}/platebound.gmt $SCA $REG -W5/255/0/0 -M"99999 99999"  -O -K >> $psout
 psscale  -C$fcpt -D6.2/-1./12.4/0.5h -O -K >> $psout
 
+# stations
+if [ $# -ge 2 ] && [ $2 -ge 1 ]; then
+	psxy $fintmp $REG $SCA -Sc.2 -W3,white -O -K >> $psout
+	psxy $fintmp $REG $SCA -Sc.25 -W3,black -O -K >> $psout
+fi
+
 # texts
-if [ $# -ge 2 ] && [ $2 == 1 ]; then
+if [ $# -ge 2 ] && [ $2 == 2 ]; then
 	awk '{print $1,$2,"8 0.0 7 CB",$4}' $fintmp | pstext -R -J -O -K -G0 >>  $psout
 fi
 
