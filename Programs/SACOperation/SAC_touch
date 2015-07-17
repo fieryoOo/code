@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ $# != 1 ]; then
+	echo "Usage: "$0" [fsac]"
+	exit
+fi
+
+fsac=$1
+${SACHOME}/bin/sac ${HOME}/usr/macros/sacinit.m <<- END
+	r $fsac
+	w over
+	quit
+END

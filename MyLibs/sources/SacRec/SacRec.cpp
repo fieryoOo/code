@@ -674,6 +674,20 @@ void SacRec::Dump( const std::string fname ) {
 		sout<<b+i*dt<<" "<<sigsac[i]<<"\n";
 }
 
+/* ------------------------------- header operations ------------------------------- */
+void SacRec::PrintHD( const std::string field, std::ostream &o ) const {
+	shd.StreamTo(field, o); 
+}
+void SacRec::DumpHD( const std::string fname ) {
+	bool tofile = !fname.empty();
+	std::ofstream fout(fname);
+	if( tofile && !fout )
+		throw ErrorSR::BadFile( FuncName, "writing to " + fname );
+	std::ostream& sout = tofile ? fout : std::cout;
+
+	sout << shd;
+}
+
 /*
 int read_rec(int rec_flag, char *fname, int len, int *rec_b, int *rec_e, int *nrec) {
    FILE *frec;
@@ -761,66 +775,6 @@ void SacRec::PullUpTo( const SacRec& sac2 ) {
 		//sigsac[i] = std::max(sigsac[i], sigsac2[i]);
 }
 
-
-#include <cctype>
-void SacRec::ChHdr(const std::string& fieldin, const std::string& value){
-   std::stringstream sin(value);
-	std::string field(fieldin);
-   std::transform(field.begin(), field.end(), field.begin(), ::tolower);
-   bool succeed = false;
-
-   if( field == "dist" ) succeed = sin >> shd.dist;
-   else if( field == "az" ) succeed = sin >> shd.az;
-   else if( field == "baz" ) succeed = sin >> shd.baz;
-   else if( field == "gcarc" ) succeed = sin >> shd.gcarc;
-   else if( field == "b" ) succeed = sin >> shd.b;
-   else if( field == "e" ) succeed = sin >> shd.e;
-
-   else if( field == "knetwk" ) succeed = sin >> shd.knetwk;
-   else if( field == "kstnm" ) succeed = sin >> shd.kstnm;
-   else if( field == "stlo" ) succeed = sin >> shd.stlo;
-   else if( field == "stla" ) succeed = sin >> shd.stla;
-   else if( field == "stel" ) succeed = sin >> shd.stel;
-   else if( field == "stdp" ) succeed = sin >> shd.stdp;
-
-   else if( field == "kevnm" ) succeed = sin >> shd.kevnm;
-   else if( field == "evlo" ) succeed = sin >> shd.evlo;
-   else if( field == "evla" ) succeed = sin >> shd.evla;
-   else if( field == "evel" ) succeed = sin >> shd.evel;
-   else if( field == "evdp" ) succeed = sin >> shd.evdp;
-
-   else if( field == "nzyear" ) succeed = sin >> shd.nzyear;
-   else if( field == "nzjday" ) succeed = sin >> shd.nzjday;
-   else if( field == "nzhour" ) succeed = sin >> shd.nzhour;
-   else if( field == "nzmin" ) succeed = sin >> shd.nzmin;
-   else if( field == "nzsec" ) succeed = sin >> shd.nzsec;
-   else if( field == "nzmsec" ) succeed = sin >> shd.nzmsec;
-
-   else if( field == "kcmpnm" ) succeed = sin >> shd.kcmpnm;
-   else if( field == "cmpaz" ) succeed = sin >> shd.cmpaz;
-   else if( field == "cmpinc" ) succeed = sin >> shd.cmpinc;
-
-   else if( field == "o" ) succeed = sin >> shd.o;
-   else if( field == "ko" ) succeed = sin >> shd.ko;
-   else if( field == "a" ) succeed = sin >> shd.a;
-   else if( field == "ka" ) succeed = sin >> shd.ka;
-   else if( field == "f" ) succeed = sin >> shd.f;
-   else if( field == "kf" ) succeed = sin >> shd.kf;
-
-   else if( field == "user0" ) succeed = sin >> shd.user0;
-   else if( field == "user1" ) succeed = sin >> shd.user1;
-   else if( field == "user2" ) succeed = sin >> shd.user2;
-   else if( field == "user3" ) succeed = sin >> shd.user3;
-   else if( field == "user4" ) succeed = sin >> shd.user4;
-   else if( field == "user5" ) succeed = sin >> shd.user5;
-   else if( field == "user6" ) succeed = sin >> shd.user6;
-   else if( field == "user7" ) succeed = sin >> shd.user7;
-   else if( field == "user8" ) succeed = sin >> shd.user8;
-   else if( field == "user9" ) succeed = sin >> shd.user9;
-
-	if( ! succeed )
-		throw ErrorSR::BadParam(FuncName, "Invalid header field (" + field + ") or value (" + value + ")");
-}
 
 
 float SacRec::Dis() const {
@@ -1435,8 +1389,8 @@ void SacRec::Envelope( SacRec& sacout ) {
 
 /* ---------------------------------------- cut and merge ---------------------------------------- */
 void SacRec::cut( float tb, float te, SacRec& sac_result ) {
-	int nb = (int)floor( (tb-shd.b) / shd.delta + 0.5 );
-   int ne = (int)floor( (te-shd.b) / shd.delta + 0.5 );
+   int nb = nint( (tb-shd.b) / shd.delta );
+   int ne = nint( (te-shd.b) / shd.delta );
    if( nb>=ne || ne<0 || nb>shd.npts )
 		throw ErrorSR::BadParam( FuncName, "Invalid nb/ne/npts = " + std::to_string(nb) +
 										 "/" + std::to_string(ne) + "/" + std::to_string(shd.npts) );

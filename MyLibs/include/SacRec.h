@@ -131,16 +131,21 @@ public:
    /* read sac header+signal from file 'fname', memory is allocated on heap */
    void Load( const std::string& fnamein ) { fname = fnamein; Load(); }
    void Load();
+	/* clear sac and release memory */
+	void clear() { sig.reset(); shd = sac_null; fname.clear(); }
    /* write to file '*fname' */
    void WriteHD( const std::string& fname );
    void Write( const std::string& fname );
-	/* dump signal to txt */
+	/* dump signal to stdout/txt */
 	void Dump( const std::string fname = "" );
-	/* clear sac and release memory */
-	void clear() { sig.reset(); shd = sac_null; fname.clear(); }
-
-   /* ------------------------------ header operations ------------------------------ */
-   void ChHdr(const std::string& field, const std::string& value);
+	/* dump header to stdout/txt */
+	void DumpHD( const std::string fname = "" );
+	/* print a single header field */
+	void PrintHD( const std::string field, std::ostream &o = std::cout ) const;
+   /* change a single header filed */
+	void ChHdr(const std::string& field, const std::string& value){
+		std::istringstream sin( field + " " + value ); sin >> shd;
+	}
 
 	float Dis() const;
 	float Dis();
