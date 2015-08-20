@@ -192,13 +192,22 @@ public:
 	float Sig( float time ) const;	// compute accurate sig value at a given time (fit with a parabola)
 
    /* ------------------------------ single-sac operations ------------------------------ */
-	template<class Functor>	void Transform(const Functor& func, const size_t ib=0, int ie=NaN) {
-		if( !sig )
-			throw ErrorSR::EmptySig(FuncName);
+	template<class Functor>	void Transform(const Functor& func, size_t ib=0, int ie=NaN) {
+		if( !sig ) throw ErrorSR::EmptySig(FuncName);
 
-		if( ie == NaN ) ie = shd.npts;
+		if( ib < 0 ) ib = 0;
+		if( ie==NaN || ie>shd.npts ) ie = shd.npts;
 		float* sigsac = sig.get();
 		for(int i=ib; i<ie; i++)	func(sigsac[i]);
+	}
+
+	template<class Functor>	void Transform2(const Functor& func, size_t ib=0, int ie=NaN) {
+		if( !sig ) throw ErrorSR::EmptySig(FuncName);
+
+		if( ib < 0 ) ib = 0;
+		if( ie==NaN || ie>shd.npts ) ie = shd.npts;
+		float* sigsac = sig.get();
+		for(int i=ib; i<ie; i++)	func(Time(i), sigsac[i]);
 	}
 
    void Mul( const float mul );

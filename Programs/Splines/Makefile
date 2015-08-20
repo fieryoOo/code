@@ -8,8 +8,8 @@ all : $(BIN)
 $(BIN) : $(BIN).o
 	g++ $(cflags) $(libs) -O3 -o $@ $^
 
-%.o : %.cpp
-	g++ $(cflags) -c $^
+%.o : %.cpp BSpline.h Curve.h Parabola.h
+	g++ $(cflags) -c $<
 
 clean :
 	rm -f $(BIN) $(BIN).o

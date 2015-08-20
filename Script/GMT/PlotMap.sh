@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# != 1 ] && [ $# != 2 ] && [ $# != 3 ]; then
-	echo "Usage: "$0" [file-in] [plot-sta (optional, 0=no-default, 1=circle, 2=circle-with-name)] [fcpt (optional)]"
+	echo "Usage: "$0" [file-in] [plot-sta (optional, 0=no-default, 1=circle, 2=circle-with-color, 3=circle-with-name)] [fcpt (optional)]"
 	exit
 fi
 
@@ -21,6 +21,7 @@ stds=`awk -v clon=$clon -v clat=$clat 'BEGIN{lonstd=0; latstd=0}{lonstd+=($1-clo
 slon=`echo $stds | awk '{print $1}'`; slat=`echo $stds | awk '{print $2}'`
 lonmin=`awk -v clon=$clon -v slon=$slon 'BEGIN{lonmin=360.}{if(lonmin>$1)lonmin=$1}END{lonmin+=(lonmin-clon)*0.05; lonm=clon-slon*2.; if(lonm>lonmin){print lonm}else{print lonmin}}' $fintmp`
 lonmax=`awk -v clon=$clon -v slon=$slon 'BEGIN{lonmax=-360.}{if(lonmax<$1)lonmax=$1}END{lonmax+=(lonmax-clon)*0.05; lonm=clon+slon*2.; if(lonm<lonmax){print lonm}else{print lonmax}}' $fintmp`
+awk -v clon=$clon -v slon=$slon 'BEGIN{lonmax=-360.}{if(lonmax<$1)lonmax=$1}END{print lonmax,clon; lonmax+=(lonmax-clon)*0.05; lonm=clon+slon*2.; print lonmax, lonm}' $fintmp
 latmin=`awk -v clat=$clat -v slat=$slat 'BEGIN{latmin=90.}{if(latmin>$2)latmin=$2}END{latmin+=(latmin-clat)*0.05; latm=clat-slat*2.; if(latm>latmin){print latm}else{print latmin}}' $fintmp`
 latmax=`awk -v clat=$clat -v slat=$slat 'BEGIN{latmax=-90.}{if(latmax<$2)latmax=$2}END{latmax+=(latmax-clat)*0.05; latm=clat+slat*2.; if(latm<latmax){print latm}else{print latmax}}' $fintmp`
 #REG=`echo $cloc $stds | awk '{print "-R"$1-$3*2."/"$1+$3*2."/"$2-$4*2."/"$2+$4*2.}'`
@@ -54,12 +55,16 @@ else
 	#ftobedeleted[idel]=$fcpt; let idel++
 fi
 
+# gmt
+gmtset HEADER_FONT_SIZE 15
+gmtset LABEL_FONT_SIZE 12
+gmtset ANNOT_FONT_SIZE 10
 # plot starts
-SCA=-JN$clon/5i
+SCA=-JN$clon/6i
 psout=${fin}.ps
 pwd | psxy -H $REG $SCA -X4. -Y8. -P  -V -K  > $psout
 
-sms=`echo $ts | awk '{print $1/5.0}'`
+sms=`echo $res | awk '{print $1/5.0}'`
 fgrds=${fintmp}.grds
 ftobedeleted[idel]=$fgrds; let idel++
 grdsample $fgrd -Q -G$fgrds $REG -I$sms
@@ -73,15 +78,19 @@ psxy ${dirhead}/wus_province_II.dat $SCA $REG -W5/255/0/0 -M"99999 99999"  -O -K
 psxy ${dirhead}/platebound.gmt $SCA $REG -W5/255/0/0 -M"99999 99999"  -O -K >> $psout
 psscale  -C$fcpt -D6.2/-1./12.4/0.5h -O -K >> $psout
 
-# stations
-if [ $# -ge 2 ] && [ $2 -ge 1 ]; then
-	psxy $fintmp $REG $SCA -Sc.2 -W3,white -O -K >> $psout
-	psxy $fintmp $REG $SCA -Sc.25 -W3,black -O -K >> $psout
-fi
+if [ $# -ge 2 ]; then
+	# stations
+	if [ $2 == 1 ]; then
+		psxy $fintmp $REG $SCA -Sc.15 -W3,white -O -K >> $psout
+		psxy $fintmp $REG $SCA -Sc.2 -W3,black -O -K >> $psout
+	elif [ $2 -gt 1 ]; then
+		psxy $fintmp $REG $SCA -Sc.18 -C$fcpt -W3,black -O -K >> $psout
+	fi
 
-# texts
-if [ $# -ge 2 ] && [ $2 == 2 ]; then
-	awk '{print $1,$2,"8 0.0 7 CB",$4}' $fintmp | pstext -R -J -O -K -G0 >>  $psout
+	# texts
+	if [ $2 == 3 ]; then
+		awk '{print $1,$2,"8 0.0 7 CB",$4}' $fintmp | pstext -R -J -O -K -Wwhite -G0 >>  $psout
+	fi
 fi
 
 # plot ends

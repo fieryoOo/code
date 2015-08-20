@@ -29,7 +29,7 @@ int main( int argc, char* argv[] ) {
 	for( float per=5.; per<50.; per*=perfactor ) {
 		// gauss filt
 		const float freq = 1. / per;
-		const float dfreq = 1./exp(log(per)-0.15) - freq;
+		const float dfreq = 1./exp(log(per)-0.05) - freq;
 		SacRec sacflt;
 		saccor.GaussianFilt( freq, dfreq, sacflt );
 		// find maximum

@@ -1,0 +1,1 @@
+../../MyLibs/include/Parabola.h
