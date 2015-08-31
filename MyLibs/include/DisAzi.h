@@ -44,11 +44,17 @@ public:
    Path(const T lo1in=NaN, const T la1in=NaN, 
         const T lo2in=NaN, const T la2in=NaN)
       : long1(lo1in), lati1(la1in), long2(lo2in), lati2(la2in)
-      , dist(NaN), alpha1(NaN), alpha2(NaN) {}
+      , dist(NaN), alpha1(NaN), alpha2(NaN)
+		, pi(3.1415926535898), pio180(0.0174532925199433)
+		, Ra(6378.137), Rb(6356.7523142), Raaobbmo(0.0067394967566)
+		, f(0.00335281066474748), oneminusf(0.99664718933525252) {}
 
    Path(const Point<T>& p1, const Point<T>& p2)
       : long1(p1.Lon()), lati1(p1.Lat()), long2(p2.Lon()), lati2(p2.Lat())
-      , dist(NaN), alpha1(NaN), alpha2(NaN) {}
+      , dist(NaN), alpha1(NaN), alpha2(NaN)
+		, pi(3.1415926535898), pio180(0.0174532925199433)
+		, Ra(6378.137), Rb(6356.7523142), Raaobbmo(0.0067394967566)
+		, f(0.00335281066474748), oneminusf(0.99664718933525252) {}
 
    ~Path(){}
 
@@ -77,6 +83,7 @@ public:
    }
 
 protected:
+/*
 	static constexpr float NaN = -12345.;
 	static constexpr double pi = 3.1415926535898;
 	static constexpr double pio180 = 0.0174532925199433;
@@ -85,10 +92,19 @@ protected:
 	static constexpr double Raaobbmo = 0.0067394967566;
 	static constexpr double f = 0.00335281066474748;
 	static constexpr double oneminusf = 0.99664718933525252;
+*/
 
 private:
    T dist, alpha1, alpha2;
    T lati1, long1, lati2, long2;
+	static const int NaN = -12345;
+	const double pi;
+	const double pio180;
+	const double Ra;
+	const double Rb;
+	const double Raaobbmo;
+	const double f;
+	const double oneminusf;
 
 	void calc_dist() {
 		if( lati1==NaN || long1==NaN || lati2==NaN || long2==NaN )

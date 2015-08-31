@@ -9,18 +9,18 @@
 template <class T>
 class Point {
 public:
-   T lon = NaN, lat = NaN;
+   T lon, lat;
 
 public:
-   static constexpr float maxmisloc = 0.001; // allow ~0.1km mislocation
-   static constexpr float maxmislocS = maxmisloc*maxmisloc;
-   static constexpr float NaN = -12345.;
+   //static constexpr float maxmisloc = 0.001; // allow ~0.1km mislocation
+   //static constexpr float maxmislocS = maxmisloc*maxmisloc;
+   static const int NaN = -12345.;
 
 public:
    Point() {}
    Point( T init ) 
 		: lon(init), lat(init) {}
-   Point(T lonin, T latin)
+   Point(T lonin = NaN, T latin = NaN)
       : lon(lonin), lat(latin) {}
    Point( const std::string& line ) {
       LoadLine(line);
@@ -39,7 +39,7 @@ public:
 
    bool IsSameLocation( const Point& p2 ) const {
       float dislon = lon-p2.lon, dislat = lat-p2.lat;
-      return (dislon*dislon + dislat*dislat < maxmislocS);
+      return (dislon*dislon + dislat*dislat < 1.0e-6);
    }
 
    friend std::ostream& operator << (std::ostream& o, Point a) {
