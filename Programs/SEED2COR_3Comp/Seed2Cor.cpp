@@ -8,6 +8,7 @@
 #include "MyOMP.h"
 #include "SysTools.h"
 #include "CCRec.h"
+#include "StaPair.h"
 #include <ctime>
 #include <sys/time.h>
 #include <iostream>
@@ -22,17 +23,11 @@ void FNormAll( std::deque<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, b
 bool FileExists(const char* filename);
 bool FileExists(const std::string & filename);
 std::vector < std::string > GchannelList(CCDatabase & CDB);
-void GStaMonList( std::vector < Station > & StaList, std::vector < std::string > & MDIR, CCDatabase & CDB);
-void GCCtodoList(std::vector < Station > & StaList, std::vector < std::string > & MDIR, std::vector<CC_todo> & CC_List, std::vector < std::string > & CHAN, int skipccflag);
+void GCCtodoList( std::vector<StaPair> & CC_List, std::vector < StaInfo > & StaList, std::vector < std::string > & MDIR, std::vector < std::vector < std::string > > & CHAll, int skipccflag);
 /* convert amp & ph files to CC, by Lili Feng */
-void CCList2CC( std::vector<CC_todo> & CC_List, std::vector < std::string > & CHAN, CCDatabase & CDB);
+void CCList2CC( std::vector<StaPair> & CC_List, std::vector < std::vector < std::string > > ChanAll, CCDatabase & CDB);
 /* daily component correction, by Lili Feng*/
 void Rotation_daily(std::deque < SacRec > & SACV, std::vector < std::string > Rout);
-/* stack CC data according to CCstack, by Lili Feng*/
-void StackAll(std::vector < Station > & StaList, std::vector < std::string > & MDIR, std::vector < std::string > & CHAN, CCDatabase & CDB);
-//bool checkflags(int esacflag, int respflag, int ampflag);
-/* rotate CC of ENZ to RTZ, by Lili Feng*/
-bool Rotation(sta_pairs & stapair, std::vector < std::string > & CHAN, std::vector < std::string > & DIR, std::string CHPRE);
 extern MyLogger logger;
 MyLogger logger;
 extern MEMO memo;
@@ -254,32 +249,25 @@ int main(int argc, char *argv[])
         time_before = clock();
         if(cdb.GetParams().fskipcrco == 3) return 0;
         int fskipcc=cdb.GetParams().fskipcrco;
-        std::vector < std::string > channel = GchannelList( cdb ); // generate channel list
-        std::string CH_pre;
-        CH_pre.append(channel[0].begin(),channel[0].end()-1);
-        std::vector < Station > stationlist;
-        std::vector < std::string > monthdir;
-        std::vector< CC_todo > CC_todolist;
-        GStaMonList( stationlist, monthdir, cdb ); // generate station list and monthdir list
-        GCCtodoList( stationlist, monthdir, CC_todolist, channel, fskipcc ); // generate CC_todolist
-        CCList2CC( CC_todolist, channel, cdb ); // Do CC according to CC_todolist
-        StackAll( stationlist, monthdir, channel, cdb );
-        /*---- Do Rotation ----*/
-        std::vector <sta_pairs> stapair_list;
-        for (int s1=0; s1<stationlist.size(); s1++)  // Generate CCtodo List
-            for (int s2=0; s2<stationlist.size(); s2++)
-            {
-                if (stationlist[s1].sta>stationlist[s2].sta || !stationlist[s1].checkdoCC(stationlist[s2]) ) continue;
-                stapair_list.push_back(sta_pairs(stationlist[s1].sta,stationlist[s2].sta));
-            }
-        std::vector< std::string > all_dir;
-        all_dir.push_back("COR");
-        #pragma omp parallel for
-        for (int i=0; i<stapair_list.size(); i++)
-            Rotation(stapair_list[i], channel, all_dir, CH_pre);
+        // Get channel list
+        std::vector < std::string > chanL1 = cdb.GchannelList( 1 );
+        std::vector < std::string > chanL2 = cdb.GchannelList( 2 );
+        std::vector < std::string > chanL3 = cdb.GchannelList( 3 );
+        std::vector < std::vector < std::string > > ChannelAll;
+        if ( ! chanL1.empty() )
+            ChannelAll.push_back(chanL1);
+        if ( ! chanL2.empty() )
+            ChannelAll.push_back(chanL2);
+        if ( ! chanL3.empty() )
+            ChannelAll.push_back(chanL3);
+        std::vector < StaInfo > stationlist=cdb.GStaList();
+        std::vector < std::string > monthdir=cdb.GMonLst();
+        std::vector< StaPair > CC_todolist;
+        GCCtodoList( CC_todolist, stationlist, monthdir,  ChannelAll, fskipcc ); // generate CC_todolist
+        CCList2CC( CC_todolist, ChannelAll, cdb ); // Do CC according to CC_todolist
         /*---- CC code end here ----*/
         logger.Hold( INFO, "All threads finished.", FuncName );
-        std::cout<<"Elapsed Time: "<<(float(clock()-time_before))/CLOCKS_PER_SEC<<" secs"<<std::endl;
+//        std::cout<<"Elapsed Time: "<<(float(clock()-time_before))/CLOCKS_PER_SEC<<" secs"<<std::endl;
     }
     catch ( std::exception& e )
     {

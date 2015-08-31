@@ -31,7 +31,7 @@ struct SeedInfo
 /* station wrapper consists of stationname, longitude, and latitude */
 struct StaInfo
 {
-    std::string name;
+    std::string name, net;
     float lon, lat;
     int CCflag;
     StaInfo() : lon(0.), lat(0.) {}
@@ -50,6 +50,24 @@ struct StaInfo
         o<<"( "<<sr.name<<" "<<sr.lon<<" "<<sr.lat<<" "<<" )";
         return o;
     }
+
+    bool checkdoCC(const StaInfo & STA )
+    {
+        if  (CCflag==STA.CCflag && CCflag==0)
+            return false;
+        else if(CCflag!=STA.CCflag && CCflag!=0 && STA.CCflag!=0)
+            return false;
+        else if (CCflag< 0 && name==STA.name)
+        {
+            //logger.Hold( INFO, "GROUP: "+ std::to_string(groupflag)+". "+"DO NOT DO AUTO", FuncName );
+            std::cout << "GROUP: "<<CCflag<<std::endl;
+            std::cout<<"DO NOT DO AUTO"<<std::endl;
+            return false;
+        }
+        else
+            return true;
+    }
+
 };
 
 

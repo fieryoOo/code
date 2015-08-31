@@ -37,7 +37,10 @@ struct CCPARAM
     // (skip cc between sta-pairs that are 1> both flagged 0 or 2> both not 0 but flagged with different numbers)
     // set optional_flag to Negative number to skip autocorrelation
     std::string seedfname;				//SEED file list (down_US_ALL/OBS_BHZ_2012.FEB.29.203762.seed 2012 2 29)
-    std::string chlst_info;				//the line that contains channel name list
+    std::string chlst_info;                 // the line that contains all channel name list
+    std::string chlst1_info;				//the line that contains channel name list 1
+    std::string chlst2_info;				//the line that contains channel name list 2
+    std::string chlst3_info;				//the line that contains channel name list 3
     int sps = NaN;							//target sampling rate
     float gapfrac = NaN;					//maximum allowed gap fraction in input sac record
     float t1 = NaN;						//cutting begining time in sec
@@ -76,9 +79,6 @@ private:
 };
 
 
-
-
-
 /* ------------------------------ CCDatabase ------------------------------ */
 class CCDatabase
 {
@@ -107,13 +107,16 @@ public:
         return CCParams;
     }
 
-    /* Get the next daily record from the database. Assign file names and make directory if necessary */
+/* Get the next daily record from the database. Assign file names and make directory if necessary */
     bool NextRecTest();
     bool NextRec();
     bool NextEvent();
     void Rewind();
     bool GetRec(DailyInfo&);
     bool GetRec_AllCH( std::vector<DailyInfo>& dinfoV );
+    std::vector < std::string > GchannelList(const int flag);
+    std::vector < StaInfo > GStaList();
+    std::vector < std::string > GMonLst();
     /*
        void InitialPthread();
        void FillMonths();

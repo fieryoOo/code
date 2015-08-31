@@ -15,7 +15,7 @@ DBG = -g
 
 all : $(EXECUTABLE)
 
-FOBJS = CCList.o FTNorm.o CCRec.o vincenty.o CCDatabase.o SeedRec.o SacRec.o SysTools.o $(EXECUTABLE).o
+FOBJS = StaPair.o CCList.o FTNorm.o CCRec.o vincenty.o CCDatabase.o SeedRec.o SacRec.o SysTools.o $(EXECUTABLE).o
 
 $(EXECUTABLE) : $(FOBJS)
 	$(CC) -o $@ $^ $(LDLIBS) $(CFLAGS)

@@ -41,6 +41,72 @@ void CCDatabase::FillDInfo()
     dinfo_rdy = false;
 }
 
+std::vector < std::string > CCDatabase::GchannelList(const int flag)
+{
+    Channellist CHLst;
+    if (flag==1)
+        CHLst.Load( CCParams.chlst1_info );
+    else if (flag==2)
+        CHLst.Load( CCParams.chlst2_info );
+    else if (flag==3)
+        CHLst.Load( CCParams.chlst3_info );
+    else
+        CHLst=chlst;
+    std::vector < std::string > channel;
+    CHLst.Rewind();
+    while (1)
+    {
+        if (CHLst.IsEnded()) break;
+        channel.push_back(*CHLst.GetRec());
+        CHLst.NextRec();
+    }
+    return channel;
+}
+
+std::vector < StaInfo > CCDatabase::GStaList()
+{
+    std::vector < StaInfo > stations;
+    stalst.Rewind();
+    while (1)
+    {
+        if (stalst.IsEnded()) break;
+        stations.push_back(*stalst.GetRec());
+        stalst.NextRec();
+    }
+    return stations;
+}
+std::vector < std::string > CCDatabase::GMonLst()
+{
+    seedlst.Rewind();
+    std::vector < std::string > MonList;
+    int year=-999, month=-999, Nyear, Nmonth;
+    bool newMFlag;
+    const std::vector<std::string> MName
+    {
+        "INVALID",
+        "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+        "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+    };
+    while (1)
+    {
+        if (seedlst.IsEnded()) break;
+        Nyear=(*(seedlst.GetRec())).year;
+        Nmonth=(*(seedlst.GetRec())).month;
+        if (year!=Nyear || month !=Nmonth)
+            newMFlag=true;
+        year=Nyear;
+        month=Nmonth;
+        if (newMFlag==true)
+        {
+            MonList.push_back(std::to_string(year)+"."+MName[month]);
+            newMFlag=false;
+        }
+        seedlst.NextRec();
+    }
+    return MonList;
+}
+
+
 /* pull out the next daily record from the database */
 bool CCDatabase::NextRecTest()
 {
@@ -202,10 +268,20 @@ CCPARAM::SetRet CCPARAM::Set( const std::string& input )
     {
         if( !(sin >> seedfname) ) return BadValue;
     }
-    else if( field == "chlst" || field == "chlst_info" )
+    else if( field == "chlst1" )
     {
-        if( !std::getline(sin, chlst_info, '#') ) return BadValue;
-        chlst_info = chlst_info.substr( chlst_info.find_first_not_of(" \t") );
+        if( !std::getline(sin, chlst1_info, '#') ) return BadValue;
+        chlst1_info = chlst1_info.substr( chlst1_info.find_first_not_of(" \t") );
+    }
+    else if( field == "chlst2" )
+    {
+        if( !std::getline(sin, chlst2_info, '#') ) return BadValue;
+        chlst2_info = chlst2_info.substr( chlst2_info.find_first_not_of(" \t") );
+    }
+    else if( field == "chlst3" )
+    {
+        if( !std::getline(sin, chlst3_info, '#') ) return BadValue;
+        chlst3_info = chlst3_info.substr( chlst3_info.find_first_not_of(" \t") );
     }
     else if( field == "sps" )
     {
@@ -310,6 +386,7 @@ CCPARAM::SetRet CCPARAM::Set( const std::string& input )
     {
         if( !(sin >> fstackall) ) return BadValue;
     }
+    chlst_info=chlst1_info+chlst2_info+chlst3_info;
 
     return EmptyInfo;
 }
@@ -317,7 +394,7 @@ bool CCPARAM::CheckAll()
 {
     /* check one parameter at a time (29 total) */
     bool ERR = false;
-    std::cout<<"---------------------------Checking input parameters---------------------------"<<std::endl;
+    std::cout<<"---------------------------Checking Input Parameters---------------------------"<<std::endl;
     //1. rdsexe
     std::cout<<"rdseed excutable:\t"<<rdsexe<<std::endl;
     if( rdsexe.empty() || access(rdsexe.c_str(), R_OK)!=0 )
@@ -404,13 +481,20 @@ bool CCPARAM::CheckAll()
             filetmp.close();
         }
     }
-    //5. chlst_info
-    std::cout<<"channel list info:\t"<<chlst_info<<std::endl;
-    if( chlst_info.empty() )
+    //5-1. chlst1_info
+    std::cout<<"channel list 1 info:\t"<<chlst1_info<<std::endl;
+    if( chlst1_info.empty() )
     {
         std::cerr<<"   Error: empty string "<<std::endl;
         ERR = true;
     }
+    //5-2. chlst2_info
+    if( ! chlst2_info.empty() )
+        std::cout<<"channel list 2 info:\t"<<chlst2_info<<std::endl;
+    //5-3. chlst2_info
+    if ( ! chlst3_info.empty() )
+        std::cout<<"channel list 2 info:\t"<<chlst3_info<<std::endl;
+
     //6. sps
     std::cout<<"target sampling rate:\t"<<sps<<std::endl;
     if( sps == NaN )
@@ -690,13 +774,11 @@ bool CCPARAM::CheckAll()
     case 2:
         std::cout<<"monthly + daily"<<std::endl;
         break;
-    case 3:
-        std::cout<<"delete monthly + daily"<<std::endl;
-        break;
     default:
         std::cerr<<std::endl<<"   Error: unknow outflag("<<CorOutflag<<")!"<<std::endl;
         ERR = true;
     }
+    // 30. StackAll
     if (fstackall==1) std::cout<<"Stack all data."<<std::endl;
     else std::cout<<"Skip stack all"<<std::endl;
     //check for EOF
@@ -799,7 +881,7 @@ struct StaFinder
     StaFinder(StaInfo b) : a(b) {}
     bool operator()(StaInfo b)
     {
-        return a.name.compare(b.name)==0;
+        return a.name.compare(b.name)==0 && ( a.net.empty() || b.net.empty() || a.net.compare(b.net)==0 );
     }
 };
 void Stationlist::Load( const std::string& fname )
@@ -816,28 +898,45 @@ void Stationlist::Load( const std::string& fname )
     for(; std::getline(fsta, buff);)
     {
         char stmp[buff.length()];
-        if( sscanf(buff.c_str(), "%s %f %f %d", stmp, &(SRtmp.lon), &(SRtmp.lat), &(SRtmp.CCflag)) != 4 )  /// modified by Leon
+        char stmp2[buff.length()];
+        if ( sscanf(buff.c_str(), "%s %f %f %d %s", stmp, &(SRtmp.lon), &(SRtmp.lat), &(SRtmp.CCflag), stmp2 ) != 5 )
         {
-            std::cout<<"   For Station:  "<<stmp<<" no input CC flag, set to 1"<<std::endl;
-            SRtmp.CCflag=1;
-            if( (sscanf(buff.c_str(),"%s %f %f", stmp, &(SRtmp.lon), &(SRtmp.lat))) != 3 )
+            if( sscanf(buff.c_str(), "%s %f %f %d", stmp, &(SRtmp.lon), &(SRtmp.lat), &(SRtmp.CCflag)) != 4 )
             {
-                std::cerr<<"Warning(Stationlist::Load): format error in file "<<fname<<std::endl;
-                continue;
+                if( sscanf(buff.c_str(), "%s %f %f %s", stmp, &(SRtmp.lon), &(SRtmp.lat), stmp2) == 4 )
+                {
+                    std::string tempnet=stmp2;
+                    std::string tempnet2;
+                    if ( *tempnet.begin()=='#' )
+                    {
+                        tempnet2.append(tempnet.begin()+1, tempnet.end());
+                        SRtmp.net=tempnet2;
+                    }
+                    else
+                        SRtmp.net=tempnet;
+                }
+                std::cout<<"   For Station:"<<SRtmp.net<<" "<<stmp<<" no input CC flag, set to 1"<<std::endl;
+                SRtmp.CCflag=1;
+                if( (sscanf(buff.c_str(),"%s %f %f", stmp, &(SRtmp.lon), &(SRtmp.lat))) != 3 )
+                {
+                    std::cerr<<"Warning(Stationlist::Load): format error in file "<<fname<<std::endl;
+                    continue;
+                }
             }
         }
+
         SRtmp.name = stmp;
         icurrent = find_if(list.begin(), list.end(), StaFinder(SRtmp) );
         if( icurrent != list.end() )
         {
             if( *icurrent == SRtmp )
             {
-                std::cerr<<"Warning(Stationlist::Load): "<<SRtmp<<" already in the list. Will be ignored!"<<std::endl;
+                std::cerr<<"Warning(Stationlist::Load):"<< SRtmp.net<<" "<<SRtmp<<" already in the list. Will be ignored!"<<std::endl;
                 continue;
             }
             else
             {
-                std::cerr<<"Error(Stationlist::Load): station name confliction detected: "<<*icurrent<<" - "<<SRtmp<<std::endl;
+                std::cerr<<"Error(Stationlist::Load): station name confliction detected: "<<(*icurrent).net <<" "<<*icurrent<<" - "<<SRtmp.net<<" "<<SRtmp<<std::endl;
                 exit(0);
             }
         }
