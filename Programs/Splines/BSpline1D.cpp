@@ -19,7 +19,7 @@ int main( int argc, char* argv[] ) {
 
 	try {
 		BSpline bspline( argv[1], atof(argv[2]) );
-		Curve<Point> curveout;
+		Curve<PointC> curveout;
 		bspline.Evaluate( curveout );
 
 		// output

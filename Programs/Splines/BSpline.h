@@ -17,14 +17,14 @@ public:
 	BSpline( const std::string& fname, const float penaltyin = 0., const int stepfactorin = 10 ) 
 		: curve(fname), penalty(penaltyin), stepfactor(stepfactorin) {}
 
-	BSpline( Curve<Point> curvein, const float penaltyin = 0., const int stepfactorin = 10 ) 
+	BSpline( Curve<PointC> curvein, const float penaltyin = 0., const int stepfactorin = 10 ) 
 		: curve(curvein), penalty(penaltyin), stepfactor(stepfactorin) {}
 
-	void Evaluate( Curve<Point>& curveout ) {
+	void Evaluate( Curve<PointC>& curveout ) {
 		using namespace MultivariateSplines;
 		DenseVector loc(1);
       DataTable datain;
-      Point dataP;
+      PointC dataP;
       for( curve.rewind(); curve.get(dataP); curve.next() ) {
 			loc(0) = dataP.x;
 			datain.addSample(loc, dataP.y);
@@ -34,14 +34,19 @@ public:
 		PSpline pspline(datain, penalty);
 
 		// output step
-      float xmin = curve.xmin(), xmax = curve.xmax();
-		float step = (xmax-xmin) / (datain.getNumSamples()*stepfactor);
+      double xmin = curve.xmin(), xmax = curve.xmax();
+		int nstep = datain.getNumSamples()*stepfactor;
+		double step = (xmax-xmin) / nstep;
+		xmin += step; xmax -= step;	// prevent out-of-bound exception
+		step = (xmax-xmin) / nstep;
+		
 		// output
 		curveout.clear();
 		curveout.reserve( (int)((xmax-xmin)/step) + 2 );
-      for(float x=xmin; x<xmax; x+=step) {
+      for(double x=xmin; x<xmax; x+=step) {
          loc(0) = x;
-			curveout.push_back( x, (float)pspline.eval(loc) );
+			//std::cerr<<"Evaluate at "<<x<<std::endl;
+			curveout.push_back( x, (double)pspline.eval(loc) );
       }
 
 	}
@@ -58,7 +63,7 @@ public:
 private:
 	float penalty = 0.;
 	int stepfactor = 10;
-	Curve<Point> curve;
+	Curve<PointC> curve;
 };
 
 #endif

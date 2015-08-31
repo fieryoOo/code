@@ -24,9 +24,10 @@ public:
 		: x(xin), y(yin), sdensity(sdensin) {}
 
 	PointC( const std::string& input ) {
-		int nrd = sscanf(input.c_str(), "%lf %lf %lf", &x, &y, &sdensity);
+		int nrd = sscanf(input.c_str(), "%Lf %Lf %Lf", &x, &y, &sdensity);
 		if( nrd < 2 )
 			throw std::runtime_error( std::string("Error(") + FuncName + "): Bad input (format error in string " + input + ")." );
+		//std::cerr<<"PointC: "<<input<<" "<<x<<" "<<y<<" "<<sdensity<<std::endl;
 	}
 
 	friend bool operator< ( const PointC& p1, const PointC& p2 ) {

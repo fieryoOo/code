@@ -1,1 +1,1 @@
-/home/tianye/code/MyLibs/include/Curve.h
+../../MyLibs/include/Curve.h

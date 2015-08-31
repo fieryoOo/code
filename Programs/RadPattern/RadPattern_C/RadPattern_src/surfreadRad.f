@@ -18,9 +18,9 @@ C------amp -ampitude factor; ratio is ellipticity------
       character*1 sigR,sigL
       character*2 symb
       real*4 depold, vaold, vdold, dfactor
-      real*4 v(3,200),dvdz(3,200),ratio(200)
-      real*4 t(200),ur(200),cr(200),wvr(200),ampr(200),qR(200)
-      real*4        ul(200),cl(200),wvl(200),ampl(200),qL(200)
+      real*4 v(3,nt+10),dvdz(3,nt+10),ratio(nt+10)
+      real*4 t(nt+10),ur(nt+10),cr(nt+10),wvr(nt+10),ampr(nt+10),qR(nt+10)
+      real*4        ul(nt+10),cl(nt+10),wvl(nt+10),ampl(nt+10),qL(nt+10)
       data pi2/6.28318/,tlim/10000.0/,eps/1.0/
 C-----------------------------------------------------------------
       lsy=lnblnk(symb)
@@ -35,7 +35,7 @@ C----------Reading Love stuff----------------------S
 c         open(1,file=infile,STATUS='OLD')
          pos1=1
          do m=1,200000
-             call readline80(feig_buff, pos1, pos2, bred)
+             call readlineR80(feig_buff, pos1, pos2, bred)
              if(pos1.ge.eiglen) goto 11
 c            read(feig_buff(pos1:pos2),'(a)',end =11),bred
 c            pos2 = INDEX(feig_buff(pos1:),NEW_LINE('a'))
@@ -53,7 +53,7 @@ C----------Reading Love stuff----------------------S
 1       ires=1
         Do k=1,nt
             if(nd_real.eq.nd)  then
-               call readline80(feig_buff, pos1, pos2, vzdor)
+               call readlineR80(feig_buff, pos1, pos2, vzdor)
                if(pos1.ge.eiglen) goto 11
 c               read(feig_buff(pos1:pos2),'(a)',end=11)vzdor
 c               pos2 = INDEX(feig_buff(pos1:),NEW_LINE('a'))
@@ -61,17 +61,17 @@ c               pos1 = pos1+pos2
 c               pos2 = pos1+80
             endif
 c            read(1, '(6(E14.7,2X))') t(k),cl(k),ul(k),wvl(k),ampl(k),qL(k)
-            call readline300(feig_buff, pos1, pos2, linetmp)
+            call readlineR300(feig_buff, pos1, pos2, linetmp)
             read(linetmp, '(6(E14.7,2X))') t(k),cl(k),ul(k),wvl(k),ampl(k),qL(k)
 c            read(1,'(a)') ,vzdor
-            call readline80(feig_buff, pos1, pos2, vzdor)
+            call readlineR80(feig_buff, pos1, pos2, vzdor)
 c           Love component---S
             depold=0.
             vaold=0.
             vdold=0.
             do l=1,nd
 c               read(1,'(a)')mura
-               call readline80(feig_buff, pos1, pos2, mura)
+               call readlineR80(feig_buff, pos1, pos2, mura)
                if(pos1.ge.eiglen) goto 11
                if(mura(2:4).eq.'@@@')then
                   nd_real=l-1 
@@ -103,7 +103,7 @@ c         open(1,file=infile,STATUS='OLD')
 C----------------------Search for Rayleigh--------S
          pos1=1
          do m=1,200000
-            call readline80(feig_buff, pos1, pos2, bred)
+            call readlineR80(feig_buff, pos1, pos2, bred)
             if(pos1.ge.eiglen) goto 99
 c            read(1,'(a)',end =99),bred
             do j=1,80
@@ -118,22 +118,22 @@ C----------------------------------PERIOD LOOP------S
 2        DO k=1,nt
             nd_real=nd
 c            read(1,'(a)',end=9797)vzdor
-            call readline80(feig_buff, pos1, pos2, vzdor)
+            call readlineR80(feig_buff, pos1, pos2, vzdor)
             if(pos1.ge.eiglen) goto 9797
 c            read(1, '(7(E14.7,2X))') t(k),cr(k),ur(k),wvr(k),ampr(k),ratio(k),qR(k)
-            call readline300(feig_buff, pos1, pos2, linetmp)
+            call readlineR300(feig_buff, pos1, pos2, linetmp)
 c        write(*,*) "a new line with k=",k," : ",linetmp
             read(linetmp, '(7(E14.7,2X))') t(k),cr(k),ur(k),wvr(k),ampr(k),ratio(k),qR(k)
 C           PRint*,k,t(k),ampr(k)
 c            read(1,'(a)') ,vzdor
-            call readline80(feig_buff, pos1, pos2, vzdor)
+            call readlineR80(feig_buff, pos1, pos2, vzdor)
 C----------Rayl. Horizontal component------S
             depold=0.
             vaold=0.
             vdold=0.
             do l=1,nd+2
 c               read(1,'(a)')mura
-               call readline80(feig_buff, pos1, pos2, mura)
+               call readlineR80(feig_buff, pos1, pos2, mura)
                if(mura(2:4).eq.'$$$')then 
                   nd_real=l-1
                   go to 5554
@@ -157,7 +157,7 @@ C----------Rayl. Vertical   component------S
             vdold=0.
             do l=1,nd_real
 c               read(1,*),dep,va,vd
-               call readline300(feig_buff, pos1, pos2, linetmp)
+               call readlineR300(feig_buff, pos1, pos2, linetmp)
                read(linetmp,*),dep,va,vd
                if(depold.le.depth.and.depth.lt.dep) then
 c               if(abs(dep-depth).lt.eps) then
@@ -182,7 +182,9 @@ c9797     close(1)
       END
 
 
-      subroutine readline80( fbuff, pos1, pos2, linetmp )
+#ifndef READLINES
+#define READLINES
+      subroutine readlineR80( fbuff, pos1, pos2, linetmp )
       integer*4 pos1, pos2
       character*20000000 fbuff
       character*80 linetmp
@@ -192,7 +194,7 @@ c9797     close(1)
       pos1 = pos1+pos2
       end
 
-      subroutine readline300( fbuff, pos1, pos2, linetmp )
+      subroutine readlineR300( fbuff, pos1, pos2, linetmp )
       integer*4 pos1, pos2
       character*20000000 fbuff
       character*300 linetmp
@@ -201,3 +203,4 @@ c9797     close(1)
       pos2 = INDEX(fbuff(pos1:),NEW_LINE('a'))
       pos1 = pos1+pos2
       end
+#endif
