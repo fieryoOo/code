@@ -17,7 +17,6 @@ public:
    static const int NaN = -12345.;
 
 public:
-   Point() {}
    Point( T init ) 
 		: lon(init), lat(init) {}
    Point(T lonin = NaN, T latin = NaN)

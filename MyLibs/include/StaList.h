@@ -15,12 +15,10 @@
 
 struct StaInfo : public Point<float> {
    std::string name, net;
-	/*
    //float lon, lat;
    static constexpr float maxmisloc = 0.001; // allow ~0.2km mislocation
    static constexpr float maxmislocS = maxmisloc*maxmisloc;
-   static constexpr float NaN = -12345.;
-	*/
+   //static constexpr float NaN = -12345.;
 
 public:
    StaInfo()
