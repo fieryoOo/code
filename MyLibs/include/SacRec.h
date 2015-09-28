@@ -110,6 +110,13 @@ public:
    /* destructor */
    ~SacRec(); 
 
+	/* check signal/header validation */
+	void updateDeps();
+	bool isValid() {
+		updateDeps();
+		return (shd.delta>0 && shd.npts>0 && shd.depmin==shd.depmin && shd.depmax==shd.depmax);
+	}
+
 	/* assign header and allocate memory */
 	void MutateAs ( const SacRec& recin );
 
@@ -156,6 +163,11 @@ public:
 		std::stringstream ss(shd.knetwk);
 		std::string ntname; ss >> ntname;
 		return ntname;
+	}
+	const std::string evname() const {
+		std::stringstream ss(shd.kevnm);
+		std::string evname; ss >> evname;
+		return evname;
 	}
 	const std::string stname() const {
 		std::stringstream ss(shd.kstnm);
@@ -260,15 +272,16 @@ public:
 	void gauTaper( const float fc, const float fh );
    /* remove mean and trend */
    void RTrend();
-   /* remove response and apply filter */
-   void RmRESP( const std::string& fresp, float perl, float perh ) {
+   /* remove response and apply filter 
+		type: 0=displacement, 1=velocity, 2=acceleration */
+   void RmRESP( const std::string& fresp, float perl, float perh, const int type = 1 ) {
 		std::string evrexe;
-		RmRESP( fresp, perl, perh, evrexe );
+		RmRESP( fresp, perl, perh, evrexe, type );
 	}
-   void RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexe );
+   void RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexe, const int type = 1 );
    /* resample (with anti-aliasing filter) the signal to given sps */
-   void Resample( bool fitParabola = true ) { Resample( floor(1.0/shd.delta+0.5), fitParabola ); }
-   void Resample( float sps, bool fitParabola = true );
+   //void Resample( bool fitParabola = true ) { Resample( floor(1.0/shd.delta+0.5), fitParabola ); }
+   void Resample( int sps = -1, bool fitParabola = true );
 	/* smoothing ( running average ) */
 	void Smooth( float timehlen, SacRec& sacout ) const;
 	void Hilbert() { Hilbert(*this); }
@@ -313,6 +326,13 @@ public:
 	void AlwaysParallel() { maxnpts4parallel = std::numeric_limits<int>::max(); }
 	// to run the fftw, 16 times the original npts is required ( in&out complex double array with size doubled for specturm ). 20 is used to be safe
 	void SetMaxMemForParallel( float MemInMb ) { maxnpts4parallel = (MemInMb * 1024. * 1024. - 1000.) / (4. * 20.); }
+
+	// define string output
+   friend std::ostream& operator<< ( std::ostream& o, const SacRec& sac ) {
+		o << sac.fname << "  " << sac.evname() << " " << sac.shd.evlo << " " << sac.shd.evla
+		  << "  " << sac.stname() << " " << sac.shd.stlo << " " << sac.shd.stla;
+		return o;
+	}
 
 	static constexpr float NaN = -12345.;
 

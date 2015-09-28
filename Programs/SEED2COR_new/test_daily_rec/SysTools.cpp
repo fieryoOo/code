@@ -1,1 +1,1 @@
-/projects/yeti4009/code/MyLibs/sources/SysTools/SysTools.cpp
+../../../MyLibs/sources/SysTools/SysTools.cpp

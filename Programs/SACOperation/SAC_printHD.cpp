@@ -13,8 +13,9 @@ int main( int argc, char* argv[] ) {
 		if( argc == 2 ) { 
 			std::cout<<sac.shd;
 		} else for(int i=2; i<argc; i++) {
-			sac.PrintHD(argv[i], std::cout); std::cout<<"\n";
+			sac.PrintHD(argv[i], std::cout); std::cout<<" ";
 		}
+		std::cout<<std::endl;
 	} catch( std::exception& e ) {
 		std::cerr<<e.what()<<std::endl;
 		return -2;

@@ -59,6 +59,8 @@ struct SAC_HD {
 		if( dumpfield("gcarc") ) o << prefix << gcarc << suffix;
 		if( dumpfield("b") ) o << prefix << b << suffix;
 		if( dumpfield("e") ) o << prefix << e << suffix;
+		if( dumpfield("depmin") ) o << prefix << depmin << suffix;
+		if( dumpfield("depmax") ) o << prefix << depmax << suffix;
 
 		if( dumpfield("knetwk") ) o << prefix << std::string(knetwk, 8) << suffix;
 		if( dumpfield("kstnm") ) o << prefix << std::string(kstnm, 8) << suffix;
