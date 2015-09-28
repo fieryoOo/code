@@ -145,7 +145,7 @@ namespace VO {
 					  const typename std::vector<T>::iterator id_ubound,	// data range
 					  const std::vector<float>::iterator iw_lbound, 
 					  const std::vector<float>::iterator iw_ubound,			// weight range
-					  T& mean, T& std, const bool stdofmean ) {
+					  T& mean, T& std, const bool stdofmean = false ) {
 		//size_t dsize = data.size();
 		size_t dsize = id_ubound - id_lbound;
       if( dsize == 0 ) return false;
@@ -153,7 +153,7 @@ namespace VO {
 			throw SizeMismatch(FuncName, "data - weight");
       // compute mean
       float V1 = 0.;
-      mean = T{0.};
+      mean = T{0};
       for(auto iter=id_lbound; iter<id_ubound; iter++) {
 			float weight = *( iw_lbound + (iter-id_lbound) );
          mean += (*iter) * weight;
@@ -167,7 +167,7 @@ namespace VO {
       }
       // compute std
       float V2 = 0.;
-      std = T{0.};
+      std = T{0};
       for(auto iter=id_lbound; iter<id_ubound; iter++) {
 			float weight = *( iw_lbound + (iter-id_lbound) );
          T Ttmp = (*iter) - mean;
@@ -186,7 +186,7 @@ namespace VO {
 	template < class T >
    bool MeanSTD( const typename std::vector<T>::iterator id_lbound, 
 					  const typename std::vector<T>::iterator id_ubound,		// data range
-					  T& mean, T& std, const bool stdofmean ) {
+					  T& mean, T& std, const bool stdofmean = false ) {
       std::vector<float> weit( id_ubound-id_lbound, 1. );
       return MeanSTD( id_lbound, id_ubound, weit.begin(), weit.end(), mean, std, stdofmean );
    }
