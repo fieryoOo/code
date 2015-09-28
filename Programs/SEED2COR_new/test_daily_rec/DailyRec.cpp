@@ -464,7 +464,7 @@ bool DailyRec::extractSac( int fskipesac, bool writeout, std::ostringstream& rep
    curp += offset;
    */
    sacT.Load(filelst.at(0).c_str());
-   sacT.Resample(pimpl->sps);
+   sacT.Resample((float)pimpl->sps);
    fRemove(filelst.at(0).c_str());
    bool merged = false;
    //while( (sscanf(&filelst[curp], "%s%n", sacname, &offset)) == 1 ) {
@@ -472,7 +472,7 @@ bool DailyRec::extractSac( int fskipesac, bool writeout, std::ostringstream& rep
    for(int i=1; i<filelst.size(); i++) {
       SacRec sacnew(filelst.at(i).c_str());
       sacnew.Load();
-      sacnew.Resample(pimpl->sps);
+      sacnew.Resample((float)pimpl->sps);
       sacT.merge(sacnew);
       fRemove(filelst.at(i).c_str());
       merged = true;

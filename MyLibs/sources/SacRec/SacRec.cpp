@@ -626,6 +626,17 @@ void SacRec::WriteHD (const std::string& outfname) {
    fsac.close();
 }
 
+void SacRec::updateDeps() {
+   /* search min and max amplitude */
+	float *sigsac = sig.get();
+   shd.depmin = sigsac[0];
+   shd.depmax = sigsac[0];
+   for ( int i = 0; i < shd.npts ; i++ ) {
+       if ( shd.depmin > sigsac[i] ) shd.depmin = sigsac[i];
+       else if ( shd.depmax < sigsac[i] ) shd.depmax = sigsac[i];
+   }
+}
+
 void SacRec::Write (const std::string& outfname) {
    /* check if signal is loaded */
    if( ! sig )
@@ -640,15 +651,8 @@ void SacRec::Write (const std::string& outfname) {
    shd.lovrok = (int)TRUE;
    shd.internal4 = 6L;
 
-   /* search min and max amplitude */
-	float *sigsac = sig.get();
-   shd.depmin = sigsac[0];
-   shd.depmax = sigsac[0];
-   for ( int i = 0; i < shd.npts ; i++ ) {
-       if ( shd.depmin > sigsac[i] ) shd.depmin = sigsac[i];
-       else if ( shd.depmax < sigsac[i] ) shd.depmax = sigsac[i];
-   }
-
+	// update depmin and depmax
+	updateDeps();
    /* check and re-format header time if necessary */
    UpdateTime();
 
@@ -656,7 +660,7 @@ void SacRec::Write (const std::string& outfname) {
 	#pragma omp critical(sacIO)
 	{
    fsac.write( reinterpret_cast<char *>(&shd), sizeof(SAC_HD) );
-   fsac.write( reinterpret_cast<char *>(sigsac), sizeof(float)*shd.npts );
+   fsac.write( reinterpret_cast<char *>(sig.get()), sizeof(float)*shd.npts );
    fsac.close();
 	}
 }
@@ -1632,7 +1636,7 @@ void SacRec::RTrend() {
 
 
 /* remove response and apply filter */
-void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexein ) {
+void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexein, const int type ) {
 	
    // check evrexe
 	std::string evrexe(evrexein);
@@ -1644,8 +1648,8 @@ void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std
    // run evalresp
    int nf = 100;
    char buff[300], sta[8], ch[8], net[8];
-   //float f2 = 1./perh, f1 = f2*0.9, f3 = 1./perl, f4 = f3*1.1;
-   float f2 = 1./perh, f1 = f2*0.8, f3 = 1./perl, f4 = f3*1.2;
+   float f2 = 1./perh, f1 = f2*0.9, f3 = 1./perl, f4 = f3*1.1;
+   //float f2 = 1./perh, f1 = f2*0.8, f3 = 1./perl, f4 = f3*1.2;
    sscanf(shd.kstnm, "%s", sta);
    sscanf(shd.kcmpnm, "%s", ch);
    sscanf(shd.knetwk, "%s", net);
@@ -1722,12 +1726,25 @@ void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std
 	} else {
 		pimpl->FDivide (f1, f2, f3, f4, freq, amp, pha, nf, shd, sig.get());
 	}
+
+	// convert to the requested data type:
+	switch(type) {
+		case 0:
+			Integrate(); break;
+		case 1:
+			break;
+		case 2:
+			Differentiate(); break;
+		default:
+			throw ErrorSR::BadParam( FuncName, "unknown datatype (type="+std::to_string(type)+") for sac output." );
+	}
 }
 
 /* down sampling with anti-aliasing filter */
-void SacRec::Resample( float sps, bool fitParabola ) {
+void SacRec::Resample( int sps, bool fitParabola ) {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
+	if( sps <= 0 ) sps = floor(1.0/shd.delta+0.5);
 		
 	// grid step size
    float dt = 1./sps;

@@ -76,7 +76,7 @@ public:
       fprintf(ff,"\n");								/* summary file */
       fprintf(ff,"%s\n", staname.c_str() );	/* station list */
       fprintf(ff,"%s\n", chname.c_str() );	/* channel list */
-		fprintf(ff,"\n");								/* network list */
+		//fprintf(ff,"\n");								/* network list */
 		if( netname == "*" ) {						/* network list */
 			fprintf(ff,"\n");
 		} else {
