@@ -182,8 +182,6 @@ c9797     close(1)
       END
 
 
-#ifndef READLINES
-#define READLINES
       subroutine readlineR80( fbuff, pos1, pos2, linetmp )
       integer*4 pos1, pos2
       character*20000000 fbuff
@@ -203,4 +201,3 @@ c9797     close(1)
       pos2 = INDEX(fbuff(pos1:),NEW_LINE('a'))
       pos1 = pos1+pos2
       end
-#endif
