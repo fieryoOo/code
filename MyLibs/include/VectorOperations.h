@@ -69,6 +69,21 @@ namespace VO {
 	}
 
 	template < class T >
+	void Output( const std::vector<T>& dataV1, const std::vector<T>& dataV2, const std::string& fname, const bool app = false ) {
+		if( dataV1.size() != dataV2.size() )
+			throw BadParam(FuncName, "size mismatch");
+		std::ofstream fout;
+		if( app ) fout.open( fname, std::ofstream::app );
+		else fout.open( fname );
+		if( ! fout )
+			throw BadFile(FuncName, "open "+fname);
+
+		if( app )fout<<"\n\n";
+		for( int i=0; i<dataV1.size(); i++ )
+			fout << dataV1[i] << "   " << dataV2[i] << "\n";
+	}
+
+	template < class T >
 	bool isSorted( const std::vector<T>& dataV ) {
 		int dsize = dataV.size();
 		if( dsize > 1 ) {
@@ -120,8 +135,8 @@ namespace VO {
       // compute mean
       mean = T{0.};
       for(auto iter=id_lbound; iter<id_ubound; iter++)
-         mean += *iter;
-      mean /= dsize;
+         mean = mean + *iter;
+      mean = mean / dsize;
       // stop if only one or two points in data vector
       if( dsize < 3 ) {
          L1 = T{};
@@ -131,10 +146,10 @@ namespace VO {
       float V2 = 0.;
       L1 = T{0.};
       for(auto iter=id_lbound; iter<id_ubound; iter++)
-         L1 += fabs( *iter - mean );
+         L1 = L1 + fabs( *iter - mean );
 		float denom = dsize-1;
-		if( stdofmean ) denom *= sqrt((double)dsize);
-      L1 /= denom;
+		if( stdofmean ) denom = denom * sqrt((double)dsize);
+      L1 = L1 / denom;
       return true;
 	}
 
@@ -156,10 +171,10 @@ namespace VO {
       mean = T{0};
       for(auto iter=id_lbound; iter<id_ubound; iter++) {
 			float weight = *( iw_lbound + (iter-id_lbound) );
-         mean += (*iter) * weight;
-         V1 += weight;
+         mean = mean + (*iter) * weight;
+         V1 = V1 + weight;
       }
-      mean /= V1;
+      mean = mean / V1;
       // stop if only one or two points in data vector
       if( dsize < 3 ) {
          std = T{};
@@ -171,15 +186,15 @@ namespace VO {
       for(auto iter=id_lbound; iter<id_ubound; iter++) {
 			float weight = *( iw_lbound + (iter-id_lbound) );
          T Ttmp = (*iter) - mean;
-         std += Ttmp * Ttmp * weight;
-         V2 += weight * weight;
+         std = std + Ttmp * Ttmp * weight;
+         V2 = V2 + weight * weight;
       }
       float denom = V1*V1-V2;
       //if( frdm <= 0. ) {
       // mean = NaN;
       // return false;
       //}
-		if( stdofmean ) denom *= dsize;
+		if( stdofmean ) denom = denom * dsize;
       std = sqrt( std * V1 / denom );
       return true;
    }
@@ -196,7 +211,7 @@ namespace VO {
 	// stdofmean: output std-dev (false) or std-dev of the mean (true)
 	template < class T >
    void BinAvg( std::vector<T>& datain, std::vector<T>& meanoutV, std::vector<T>& stdoutV,
-					 const float binstep, const float binhwidth, const float MIN_BIN_SIZE = 1,
+					 const float binstep, const float binhwidth, const float azib = 0., const float MIN_BIN_SIZE = 1,
 					 const size_t norm_order = 2, const bool aziavg = false, const bool stdofmean = false ) {
       // check if datain is sorted 
 		if( ! isSorted(datain) )
@@ -217,7 +232,7 @@ namespace VO {
 			throw BadParam(FuncName, "undefined norm order");
 		}
       for(float iazi=0; iazi<nbin; iazi++) {
-         float azi = iazi * binstep;
+         float azi = azib + iazi * binstep;
          // search for dataV window boundaries
          T T_lbound, T_ubound;
          T_lbound.azi = azi-binhwidth; T_ubound.azi = azi+binhwidth;

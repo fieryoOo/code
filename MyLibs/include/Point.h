@@ -31,6 +31,8 @@ public:
 		return (ss >> lon >> lat);
    }
 
+	bool isValid() { return (lon!=NaN && lat!=NaN); }
+
    inline const T& Lat() const { return lat; }
    inline       T& Lat() { return lat; }
    inline const T& Lon() const { return lon; }
@@ -40,6 +42,8 @@ public:
       float dislon = lon-p2.lon, dislat = lat-p2.lat;
       return (dislon*dislon + dislat*dislat < 1.0e-6);
    }
+
+	const std::string toString() { return std::to_string(lon) + " " + std::to_string(lat); }
 
    friend std::ostream& operator << (std::ostream& o, Point a) {
       //o << "(" << a.lon << ", " << a.lat<< ")"; 
