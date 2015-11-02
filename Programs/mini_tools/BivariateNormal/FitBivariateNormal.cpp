@@ -64,7 +64,12 @@ public:
 			ComputeEigen();
 		x0 = _meanlon;
 		y0 = _meanlat;
-		double chi_S = chiS( prob );
+		double chi_S;
+		if( prob < 0 )	{	// input assumed to be multiple of standard-deviation
+			chi_S = prob * prob;
+		} else {
+			chi_S = chiS( prob );
+		}
 		a = 2. * sqrt(_lambda1 * chi_S);
 		b = 2. * sqrt(_lambda2 * chi_S);
 		theta = _theta;
@@ -210,8 +215,8 @@ private:
 			std::cerr<<"Exception: complex eigen value(s)!"<<std::endl;
 			exit(-3);
 		}
-		_lambda1 = eigvals(0).real();
-		_lambda2 = eigvals(1).real();
+		_lambda1 = eigvals(0).real();	// variance #1
+		_lambda2 = eigvals(1).real();	// variance #2
 		// eigen vectors
 		MatrixXd eigvecs = es.eigenvectors().real();
 		VectorXd eigvec(2);
@@ -241,7 +246,7 @@ const std::vector<CSData>& DataHandler::chiSV = chiSV_data;
 
 int main( int argc, char *argv[] ) {
 	if( argc != 3 && argc != 4 ) {
-		std::cerr<<"Usage: "<<argv[0]<<" [infile(>=2 columns)] [prob confidence] [prob outfile (optional)]"<<std::endl;
+		std::cerr<<"Usage: "<<argv[0]<<" [infile(>=2 columns)] [prob confidence(0.-1.) or #sigma(-int)] [prob outfile (optional)]"<<std::endl;
 		return -1;
 	}
 

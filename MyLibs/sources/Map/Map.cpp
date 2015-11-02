@@ -78,7 +78,9 @@ struct Map::Mimpl {
 		}
 		dataV.clear();
 		/* compute distance of 1 degree in lon/lat */
-		dis_lat1D = 111.;
+		//dis_lat1D = 111.;
+		float clon = 0.5 * (lonmin + lonmax);
+		dis_lat1D = Path<float>(clon, 0., clon, 1.).Dist();
 		//dis_lon1D.resize( dataM.NumCols() );
 		dis_lon1D.clear();
 		float latcur = latmin;

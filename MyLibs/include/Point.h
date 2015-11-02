@@ -17,13 +17,15 @@ public:
    static const int NaN = -12345.;
 
 public:
-   Point( T init ) 
+   Point( T init = NaN ) 
 		: lon(init), lat(init) {}
-   Point(T lonin = NaN, T latin = NaN)
+   Point(T lonin, T latin)
       : lon(lonin), lat(latin) {}
    Point( const std::string& line ) {
       LoadLine(line);
    }
+
+	void correctLon() { if(lon<0.) lon+=360.; }
 
    virtual bool LoadLine( const std::string& line ) {
       //return ( sscanf(line.c_str(), "%f %f", &lon, &lat) == 2 );

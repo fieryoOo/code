@@ -315,11 +315,8 @@ public:
 				c3.reserve( c1.size() );
 				for( auto p1 : c1.dataV ) {
 					float val2 = c2.Val(p1.x);
-					if( val2 == PointC::NaN ) {
-						c1.Write("debug1.txt");
-						c2.Write("debug2.txt");
+					if( val2 == PointC::NaN )
 						throw ErrorCv::OutOfRange( FuncName, "x value = "+std::to_string(p1.x) );
-					}
 					p1.y = func( p1.y, val2 );
 					c3.dataV.push_back(p1);
 				}
