@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# != 1 ] && [ $# != 2 ] && [ $# != 3 ]; then
-	echo "Usage: "$0" [file-in] [plot-sta (optional, 0=no-default, 1=circle, 2=circle-with-color, 3=circle-with-name)] [fcpt (optional)]"
+	echo "Usage: "$0" [file-in] [plot-sta (optional, 0=no-default, 1=circle, 2=circle-with-color, 3=circle-with-name, 4=circle_only)] [fcpt (optional)]"
 	exit
 fi
 
@@ -46,6 +46,10 @@ ftobedeleted[idel]=$fgrd; let idel++
 
 surface $fbmtmp2 -T$ts -G$fgrd -I$res $REG
 
+# plotting type
+plot_type=0
+if [ $# -ge 2 ]; then plot_type=$2; fi
+
 # cpt file
 if [ $# == 3 ]; then
 	fcpt=$3
@@ -64,11 +68,13 @@ SCA=-JN$clon/6i
 psout=${fin}.ps
 pwd | psxy -H $REG $SCA -X4. -Y8. -P  -V -K  > $psout
 
-sms=`echo $res | awk '{print $1/5.0}'`
-fgrds=${fintmp}.grds
-ftobedeleted[idel]=$fgrds; let idel++
-grdsample $fgrd -Q -G$fgrds $REG -I$sms
-grdimage $SCA $REG $fgrds -C$fcpt -Ba3f2/a3f2WeSn:."$fin": -O -K >> $psout
+if [ $plot_type != 4 ]; then
+	sms=`echo $res | awk '{print $1/5.0}'`
+	fgrds=${fintmp}.grds
+	ftobedeleted[idel]=$fgrds; let idel++
+	grdsample $fgrd -Q -G$fgrds $REG -I$sms
+	grdimage $SCA $REG $fgrds -C$fcpt -Ba3f2/a3f2WeSn:."$fin": -O -K >> $psout
+fi
 
 pscoast $SCA $REG -A100 -N1/3/0/0/0 -N2/3/0/0/0 -O -K -W3 >> $psout
 
@@ -78,19 +84,17 @@ psxy ${dirhead}/wus_province_II.dat $SCA $REG -W5/255/0/0 -M"99999 99999"  -O -K
 psxy ${dirhead}/platebound.gmt $SCA $REG -W5/255/0/0 -M"99999 99999"  -O -K >> $psout
 psscale  -C$fcpt -D6.2/-1./12.4/0.5h -O -K >> $psout
 
-if [ $# -ge 2 ]; then
-	# stations
-	if [ $2 == 1 ]; then
-		psxy $fintmp $REG $SCA -Sc.15 -W3,white -O -K >> $psout
-		psxy $fintmp $REG $SCA -Sc.2 -W3,black -O -K >> $psout
-	elif [ $2 -gt 1 ]; then
-		psxy $fintmp $REG $SCA -Sc.18 -C$fcpt -W3,black -O -K >> $psout
-	fi
+# stations
+if [ ${plot_type} == 1 ]; then
+	psxy $fintmp $REG $SCA -Sc.35 -W3,white -O -K >> $psout
+	psxy $fintmp $REG $SCA -Sc.4 -W3,black -O -K >> $psout
+elif [ ${plot_type} -gt 1 ]; then
+	psxy $fintmp $REG $SCA -Sc.38 -C$fcpt -W3,black -O -K >> $psout
+fi
 
-	# texts
-	if [ $2 == 3 ]; then
-		awk '{print $1,$2,"8 0.0 7 CB",$4}' $fintmp | pstext -R -J -O -K -Wwhite -G0 >>  $psout
-	fi
+# texts
+if [ ${plot_type} == 3 ]; then
+	awk '{print $1,$2,"8 0.0 7 CB",$4}' $fintmp | pstext -R -J -O -K -Wwhite -G0 >>  $psout
 fi
 
 # plot ends

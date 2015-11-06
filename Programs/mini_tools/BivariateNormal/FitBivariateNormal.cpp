@@ -231,6 +231,7 @@ private:
 
 };
 
+// the degree two chi-square probability
 static const std::vector<CSData> chiSV_data = 
 	{ CSData(0.00001, 0.000020), CSData(0.10000, 0.210721), CSData(0.20000, 0.446287),
 	  CSData(0.30000, 0.713350), CSData(0.40000, 1.021651), CSData(0.50000, 1.386294),
