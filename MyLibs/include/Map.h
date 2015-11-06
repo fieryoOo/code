@@ -87,18 +87,20 @@ public:
    float PointAverage(Point<float> rec, float hdis, float& weit);
 
    /* ------------ compute average value along the path src-rec ------------ */
-   float PathAverage(Point<float> Prec, float lamda) {
+	// acc = false: accurate to ~ 0.2 km, 10 times faster
+	// acc = true: accurate to ~ 0.1 m (reduce toler in DisAzi.h if higher accuracy is required)
+   float PathAverage(Point<float> Prec, const float lambda = 0., const bool acc = false) {
       float perc;
-      return (PathAverage(Prec, lamda, perc)).Data();
+      return (PathAverage(Prec, perc, lambda, acc)).Data();
    }
-   DataPoint<float> PathAverage(Point<float> Prec, float lamda, float& perc);
+   DataPoint<float> PathAverage(Point<float> Prec, float& perc, const float lambda = 0., const bool acc = false);
 
    /* ------------ compute average along the path src-rec weighted by the reciprocal of map values ------------ */
-   float PathAverage_Reci(Point<float> Prec, float lamda) {
+   float PathAverage_Reci(Point<float> Prec, const float lambda = 0., const bool acc = false) {
       float perc;
-      return (PathAverage_Reci(Prec, lamda, perc)).Data();
+      return (PathAverage_Reci(Prec, perc, lambda, acc)).Data();
    }
-   DataPoint<float> PathAverage_Reci(Point<float> Prec, float lamda, float& perc, const std::string outname = "");
+   DataPoint<float> PathAverage_Reci(Point<float> Prec, float& perc, const float lambda = 0., const bool acc = false);
   
 protected:
 	static constexpr float NaN = -12345.;
