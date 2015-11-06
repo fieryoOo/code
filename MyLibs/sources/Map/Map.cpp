@@ -327,7 +327,7 @@ float Map::PointAverage(Point<float> rec, float hdis, float& weit) {
 
 
 /* ------------ compute average value along the path src-rec ------------ */
-DataPoint<float> Map::PathAverage(Point<float> rec, float lamda, float& perc) {
+DataPoint<float> Map::PathAverage(Point<float> rec, float& perc, const float lambda, const bool acc) {
 	// check source
 	if( src == Point<float>() )
 		throw ErrorM::BadParam(FuncName, "invalid src location");
@@ -354,7 +354,7 @@ DataPoint<float> Map::PathAverage(Point<float> rec, float lamda, float& perc) {
 	float Nmin = 3.; //(2 ~ 20?) Don't know much about sw kernel
 	// define ellipse
 	float f = dis*0.5; // known values
-	float amax = f+lamda/(2.*Nmin);// asqrmax = amax*amax;
+	float amax = f+lambda/(2.*Nmin);// asqrmax = amax*amax;
 	//float bsqrmax = amax*amax - f*f; //maximum affective bsquare from Nmin
 	//float bmax = sqrt(bsqrmax); // maximum affective width in the perpendicular direction
 	float dab = amax - f, dab2 = dab*2.;
@@ -366,6 +366,7 @@ DataPoint<float> Map::PathAverage(Point<float> rec, float lamda, float& perc) {
 	//float Nhaf = 12.;
 	float alpha = -1.125 / (dab*dab); //- 0.5 / (dab*2.*0.33 * dab*2.*0.33);
 	float dismax = 0.;
+	auto fDist_ptr = acc ? &Path<float>::Dist : &Path<float>::DistF;
 	for(int irow=0; irow<dataM.NumRows(); irow++) {
 		for(int icol=0; icol<dataM.NumCols(); icol++) {
 			// distances from (irow, icol) to src/rec
@@ -380,7 +381,7 @@ DataPoint<float> Map::PathAverage(Point<float> rec, float lamda, float& perc) {
 				float dis_src = dpcur.Dis(); //pimplM->estimate_dist(src, dpcur);
 				float dis_rec = pimplM->estimate_dist(rec, dpcur);
 				if( dis_src+dis_rec > max_esti ) continue; // 2.*dab == hdis * 3.
-				dis_rec = Path<float>(rec, dpcur).Dist();
+				dis_rec = (Path<float>(rec, dpcur).*fDist_ptr)();
 				//calc_dist(src.Lat(), src.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_src);
 				//calc_dist(rec.Lat(), rec.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_rec);
 				float dis_ellip = dis_src + dis_rec - dis; // dis == 2.*f
@@ -406,7 +407,7 @@ DataPoint<float> Map::PathAverage(Point<float> rec, float lamda, float& perc) {
 
 
 /* ------------ compute average along the path src-rec weighted by the reciprocal of the map value ------------ */
-DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& perc, const std::string outname) {
+DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float& perc, const float lambda, const bool acc) {
 	// check source
 	if( src == Point<float>() )
 		throw ErrorM::BadParam(FuncName, "invalid src location");
@@ -434,7 +435,7 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& per
 	float Nmin = 3.; //(2 ~ 20?) Don't know much about sw kernel; note that the data in the zone are weighted with a smaller hlaf length, so the effective N is larger!!!
 	// define ellipse
 	float f = dis*0.5; // known values
-	float dab = lamda/(2.*Nmin), dab2 = dab*2.;
+	float dab = lambda/(2.*Nmin), dab2 = dab*2.;
 	float amax = f+dab;// asqrmax = amax*amax;
 	//float bsqrmax = amax*amax - f*f; //maximum affective bsquare from Nmin
 	//float bmax = sqrt(bsqrmax); // maximum affective width in the perpendicular direction
@@ -446,8 +447,9 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& per
 	//float Nhaf = 12.;
 	float alpha = -1.125 / (dab*dab); //- 0.5 / (dab*2.*0.33 * dab*2.*0.33);
 	float dismax = 0., dismin = 99999.;
-	std::ofstream fout;
-	if( !outname.empty() ) fout.open(outname);
+	//std::ofstream fout;
+	//if( !outname.empty() ) fout.open(outname);
+	auto fDist_ptr = acc ? &Path<float>::Dist : &Path<float>::DistF;
 	for(int irow=0; irow<dataM.NumRows(); irow++) {
 		for(int icol=0; icol<dataM.NumCols(); icol++) {
 			// distances from (irow, icol) to src/rec
@@ -468,7 +470,7 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float lamda, float& per
 				//std::cerr<<(Point<float>)src<<" "<<(Point<float>)dpcur<<"   "<<dis_src<<" "<<dis_rec<<" "<<dis_rec1<<"   "<<max_esti<<"   "<<grd_lon<<"\n";
 				float dis_rec = pimplM->estimate_dist(rec, dpcur);
 				if( dis_src+dis_rec > max_esti ) continue; // 2.*dab == hdis * 3.
-				dis_rec = Path<float>(rec, dpcur).Dist();
+				dis_rec = (Path<float>(rec, dpcur).*fDist_ptr)();
 				//calc_dist(src.Lat(), src.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_src);
 				//calc_dist(rec.Lat(), rec.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_rec);
 				float dis_ellip = dis_src + dis_rec - dis; // dis == 2.*f
