@@ -143,6 +143,8 @@ public:
    /* write to file '*fname' */
    void WriteHD( const std::string& fname );
    void Write( const std::string& fname );
+	/* load a txt file */
+	void LoadTXT( const std::string& fname );
 	/* dump signal to stdout/txt */
 	void Dump( const std::string fname = "" );
 	/* dump header to stdout/txt */

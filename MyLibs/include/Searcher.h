@@ -29,6 +29,7 @@ namespace Searcher {
 
 	// empirical formula for alpha
 	inline float Alpha( const int nsearch, const float Tfactor ) {
+		if( Tfactor <= 0 ) return 0.;
 		return std::pow(0.01/Tfactor,1.25/nsearch);	// emperically decided alpha
 	}
 
@@ -78,20 +79,20 @@ namespace Searcher {
 	// Tinit: initial temperature ( controls initial temperature. called when Tinit is real )
 	// Tfactor: T_initial = E_initial * Tfactor ( controls initial temperature. called when Tfactor is int )
 	// alpha: T_current = T_last * alpha ( controls rate of temperature decay )
-	// saveSI: -1=no, 0=all, 1=accepted
+	// outSI: -1=no, 0=all, 1=accepted
 	template < class MI, class MS, class DH >
-	std::vector< SearchInfo<MI> > SimulatedAnnealing( MS& ms, DH& dh, const int nsearch,
-																	  float alpha, const int Tfactor,
-																	  std::ostream& sout = std::cout, short saveSI = -1 ) {
+	std::vector< SearchInfo<MI> > SimulatedAnnealing( MS& ms, DH& dh, const int nsearch, float alpha, const int Tfactor,
+																	  std::ostream& sout = std::cout, short outSI = -1, bool saveV = false,
+																	  const int istart = 0 ) {
 		if( alpha < 0. )
 			alpha = std::pow(0.01/Tfactor,1.25/nsearch);	// emperically decided
-		return SimulatedAnnealing<MI>( ms, dh, nsearch, alpha, -(float)Tfactor, sout, saveSI );
+		return SimulatedAnnealing<MI>( ms, dh, nsearch, alpha, -(float)Tfactor, sout, outSI, saveV, istart );
 	}
 
 	template < class MI, class MS, class DH >
-	std::vector< SearchInfo<MI> > SimulatedAnnealing( MS& ms, DH& dh, const int nsearch,
-																	  const float alpha, const float Tinit,
-																	  std::ostream& sout = std::cout, short saveSI = -1 ) {
+	std::vector< SearchInfo<MI> > SimulatedAnnealing( MS& ms, DH& dh, const int nsearch, const float alpha, const float Tinit,
+																	  std::ostream& sout = std::cout, short outSI = -1, bool saveV = false, 
+																	  const int istart = 0 ) {
 		// initialize random number generator
 		_poc = 0.; float pocinc = 1./(nsearch+2);
 		std::default_random_engine generator1( std::chrono::system_clock::now().time_since_epoch().count() + std::random_device{}() );
@@ -103,8 +104,8 @@ namespace Searcher {
 		const IModelSpace<MI>& ims = ms;
 		const IDataHandler<MI>& idh = dh;
 
-		bool saveacc = saveSI>=0;
-		bool saverej = saveSI==0;
+		bool outacc = outSI>=0;
+		bool outrej = outSI==0;
 
 		// search starts
 		if( ! (alpha==1 && Tinit==2.0) )	// not MonteCarlo
@@ -119,15 +120,15 @@ namespace Searcher {
 		float T = Tinit>0. ? Tinit : std::fabs(E*Tinit);
 		// SearchInfo vector
 		std::vector< SearchInfo<MI> > VSinfo; 
-		VSinfo.reserve( nsearch/2*(saveacc+saverej) );
+		VSinfo.reserve( nsearch/2*(outacc+outrej) );
 		// save initial
-		SearchInfo<MI> sibest( 0, T, ms, Ndata0, E, true );
-		if( saveacc ) VSinfo.push_back( sibest );
+		SearchInfo<MI> sibest( istart, T, ms, Ndata0, E, true );
+		if( saveV ) VSinfo.push_back( sibest );
 		sout<<sibest<<"\n";
 		_poc += pocinc;
 		// main loop
 		#pragma omp parallel for schedule(dynamic, 1) private(Ndata)
-		for( int i=0; i<nsearch; i++ ) {
+		for( int i=istart; i<istart+nsearch; i++ ) {
 			float Enew; int isaccepted = 0;	// 0 for rejected
 			MI minew;
 			try {
@@ -152,13 +153,18 @@ namespace Searcher {
 					Ebest = Enew;
 					sibest = si;
 				}
-				if( saveacc ) VSinfo.push_back( si );
-			} else if( saverej ) VSinfo.push_back( si );
+				if( outacc ) {
+					// output search info
+					if(saveV) VSinfo.push_back( si );
+					sout<<si<<"\n";
+				}
+			} else if( outrej ) {
+				if(saveV) VSinfo.push_back( si );
+				sout<<si<<"\n";
+			}
 			// temperature decrease
 			T *= alpha;
 			_poc += pocinc;	// update perc-of-completion
-			// output search info
-			sout<<si<<"\n";
 			if( i % 100 == 0 ) sout.flush();
 			} // critical ends
 		}

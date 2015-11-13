@@ -665,6 +665,46 @@ void SacRec::Write (const std::string& outfname) {
 	}
 }
 
+void SacRec::LoadTXT( const std::string& fname ) {
+	
+   std::ifstream fin(fname);
+   if( ! fin )
+		throw ErrorSR::BadFile( FuncName, "reading from " + fname );
+	// read from fin
+	std::vector< std::array<float, 2> > dataV;
+	float delta = -123.;
+	#pragma omp critical(sacIO)
+	{
+	float xold = -123.;
+	for(std::string line; std::getline(fin, line); ) {
+		std::stringstream ss(line);
+		float x, y; 
+		if( !(ss >> x >> y) ) continue;
+		dataV.push_back( {x, y} );
+		if( delta!=-123. ) {
+			float factor = (x - xold) / delta;
+			if( factor != (int)factor )
+				throw ErrorSR::HeaderMismatch( FuncName, "irregular x" );
+		} else if( xold!=-123. ) { delta = x - xold; }
+		xold = x;
+	}
+	}
+	// write header
+	shd.delta = delta;
+	shd.b = dataV.front()[0]; shd.e = dataV.back()[0];
+	shd.npts = (shd.e - shd.b) / delta + 1;
+	// allocate memory for sac signal
+   sig.reset(new float[shd.npts]());
+	if( ! sig )
+		throw ErrorSR::MemError( FuncName, "new failed!");
+   float* sigsac = sig.get();
+	// fill signal
+	for( const auto& dp : dataV ) {
+		int ix = (dp[0] - shd.b) / delta;
+		sigsac[ix] = dp[1];
+	}
+}
+
 void SacRec::Dump( const std::string fname ) {
 	if( !sig || shd.npts<=0 )
 		throw ErrorSR::EmptySig(FuncName);

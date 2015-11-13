@@ -5,8 +5,7 @@
 #include <vector>
 
 template <class T>
-class Array2D
-{
+class Array2D {
 private:
     std::vector<T> StridedSlice( int start, int length, int stride ) const;
 
@@ -22,10 +21,14 @@ public:
 
     // Size and structure
     void clear();
-    void resize( int rows, int cols );
+    void resize( int rows, int cols, const T& initVal = T() );
     int NumRows() const                       { return m_rows; }
     int NumCols() const                    { return m_cols; }
     int Size() const                   { return m_data.size(); }
+	 typename std::vector<T>::const_iterator begin() const { return m_data.begin(); }
+	 typename std::vector<T>::iterator begin() { return m_data.begin(); }
+	 typename std::vector<T>::const_iterator end() const { return m_data.end(); }
+	 typename std::vector<T>::iterator end() { return m_data.end(); }
 
     // Direct vector access and indexing
     //operator const std::vector<T>& () const        { return m_data; }
@@ -89,10 +92,10 @@ template <class T>
 void Array2D<T>::clear() {	m_data.clear(); }
 
 template <class T>
-void Array2D<T>::resize( int rows, int cols ) {
+void Array2D<T>::resize( int rows, int cols, const T& initVal ) {
    m_rows = rows;
    m_cols = cols;
-   m_data.resize( rows * cols );
+   m_data.resize( rows * cols, initVal );
 }
 
 

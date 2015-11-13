@@ -73,7 +73,7 @@ public:
 		return o;
 	}
 
-	inline const T& DistF() {
+	inline const T& DistF() const {
       if( distf == NaN ) calc_dist_fast();
 		return distf;
 	}
@@ -111,7 +111,8 @@ protected:
 */
 
 private:
-   T distf, dist, alpha1, alpha2;
+	mutable T distf;
+   T dist, alpha1, alpha2;
    T lati1, long1, lati2, long2;
 	static const int NaN = -12345;
 	const double pi;
@@ -125,7 +126,7 @@ private:
 	// toler ~ dis / R: 1.6e-10 toler ~ 1 mm
 	int iter = NaN;	// for debug
 
-	void calc_dist_fast() {
+	void calc_dist_fast() const {
 		if( lati1==NaN || long1==NaN || lati2==NaN || long2==NaN )
 			throw std::runtime_error("Error(calc_azimuth): empty location(s)!");
 

@@ -45,6 +45,10 @@ public:
       return (dislon*dislon + dislat*dislat < 1.0e-6);
    }
 
+	bool isWithin( const Point& BL, const Point& TR ) const {
+		return lon>=BL.lon&&lon<TR.lon && lat>=BL.lat&&lat<TR.lat;
+	}
+
 	const std::string toString() { return std::to_string(lon) + " " + std::to_string(lat); }
 
    friend std::ostream& operator << (std::ostream& o, Point a) {
