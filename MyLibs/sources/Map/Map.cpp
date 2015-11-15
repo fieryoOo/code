@@ -140,18 +140,15 @@ struct Map::Mimpl {
 
 	/* matrix #2: store by singles */
 	bool HashM2() {
-		CompMapGrids();
+		if( ! CompMapGrids() ) return false;
 		int nlon = (int)ceil( (lonmax-lonmin) / grd2_lon ) + 1;
 		int nlat = (int)ceil( (latmax-latmin) / grd2_lat ) + 1;
 		dataM2.clear(); 
 		dataM2.resize(nlon, nlat, ppair< DataPoint<float> >( dataavg.begin(), 1 ) );
 		for( auto iter=dataV.begin(); iter<dataV.end(); iter++ ) {
 			const auto& dp = *iter;
-			float ilonf = roundoff(dp.lon-lonmin) / grd2_lon;
-			float ilatf = roundoff(dp.lat-latmin) / grd2_lat;
-			int ilon = (int)floor(ilonf + 0.5);
-			int ilat = (int)floor(ilatf + 0.5);
-			if( roundoff(ilon-ilonf)!=0 || roundoff(ilat-ilatf)!=0 ) { std::cerr<<dp<<" "<<lonmin<<" "<<latmin<<"   "<<grd2_lon<<" "<<grd2_lat<<"  not equal!"<<std::endl; return false; }
+			float ilon = (int)floor( (dp.lon-lonmin) / grd2_lon + 0.5 );
+			float ilat = (int)floor( (dp.lat-latmin) / grd2_lat + 0.5 );
          dataM2(ilon, ilat) = ppair< DataPoint<float> >(iter, 1);
       }
 		if( (float)dataM2.Size() / dataV.size() < 0.9 ) {
@@ -191,16 +188,19 @@ struct Map::Mimpl {
 		}
 	}
 
-   void CompMapGrids() {
+   bool CompMapGrids() {
       // compute x grid
+		// sort by lon
       auto dataVtmp = dataV;
       std::sort( dataVtmp.begin(), dataVtmp.end(), [](const DataPoint<float>& n1, const DataPoint<float>& n2) {
             return n1.lon < n2.lon;
       } );
+		// remove redundances
       auto last = std::unique(dataVtmp.begin(), dataVtmp.end(), [&](const DataPoint<float>& n1, const DataPoint<float>& n2) {
          return roundoff(n1.lon-n2.lon) == 0;
       } );
       dataVtmp.erase(last, dataVtmp.end());
+		// search for smallest diff
       //xmin = dataVtmp.front().x;
       //xmax = dataVtmp.back().x;
       grd2_lon = roundoff(dataVtmp[1].lon - dataVtmp[0].lon);
@@ -208,15 +208,25 @@ struct Map::Mimpl {
          float xgrdc = roundoff(dataVtmp[i].lon-dataVtmp[i-1].lon);
          if( grd2_lon > xgrdc ) grd2_lon = xgrdc;
       }
+		// check for irregular grids
+      for(int i=2; i<dataVtmp.size(); i++) {
+         float xgrdc = roundoff(dataVtmp[i].lon-dataVtmp[i-1].lon);
+			float mulf = xgrdc / grd2_lon;
+			int muli = (int)floor(mulf + 0.5);
+			if( roundoff(mulf-muli)!=0 ) return false;
+      }
       // compute y grid
+		// sort by lon
       dataVtmp = dataV;
       std::sort( dataVtmp.begin(), dataVtmp.end(), [](const DataPoint<float>& n1, const DataPoint<float>& n2) {
             return n1.lat < n2.lat;
       } );
+		// remove redundances
       last = std::unique(dataVtmp.begin(), dataVtmp.end(), [&](const DataPoint<float>& n1, const DataPoint<float>& n2) {
          return roundoff(n1.lat-n2.lat) == 0;
       } );
       dataVtmp.erase(last, dataVtmp.end());
+		// search for smallest diff
       //ymin = dataVtmp.front().y;
       //ymax = dataVtmp.back().y;
       grd2_lat = roundoff(dataVtmp[1].lat - dataVtmp[0].lat);
@@ -224,6 +234,15 @@ struct Map::Mimpl {
          float ygrdc = roundoff(dataVtmp[i].lat-dataVtmp[i-1].lat);
          if( grd2_lat > ygrdc ) grd2_lat = ygrdc;
       }
+		// check for irregular grids
+      for(int i=2; i<dataVtmp.size(); i++) {
+         float ygrdc = roundoff(dataVtmp[i].lat-dataVtmp[i-1].lat);
+			float mulf = ygrdc / grd2_lat;
+			int muli = (int)floor(mulf + 0.5);
+			if( roundoff(mulf-muli)!=0 ) return false;
+      }
+
+		return true;
    }
 
 	inline float estimate_dist(const Point<float>& p1, const Point<float>& p2) {
@@ -268,6 +287,18 @@ std::cerr<<p1<<" "<<p2<<"   "<<dis_lon<<" "<<dis_lat<<"\n";
 			return Interp4( *(dataM(ilon_l, ilat_l).begin()), *(dataM(ilon_l, ilat_u).begin()),
 								 *(dataM(ilon_u, ilat_l).begin()), *(dataM(ilon_u, ilat_u).begin()), P );
 		} else {
+			float dismin = 99999.;
+			float valbest = dataavg[0].data;
+			for( int ilon=ilon_l; ilon<=ilon_u; ilon++ )
+				for( int ilat=ilat_l; ilat<=ilat_u; ilat++ )
+					for( const auto& dp : dataM(ilon,ilat) ) {
+						float dis = estimate_dist(dp, P);
+						if( dismin > dis ) {
+							dismin = dis; valbest = dp.data;
+						}
+					}
+			return valbest;
+			/* too slow!
 			std::vector< std::vector< DataPoint<float> >::const_iterator > iV;
 			for( int ilon=ilon_l; ilon<=ilon_u; ilon++ )
 				for( int ilat=ilat_l; ilat<=ilat_u; ilat++ )
@@ -283,6 +314,7 @@ std::cerr<<p1<<" "<<p2<<"   "<<dis_lon<<" "<<dis_lat<<"\n";
 					return estimate_dist(*i1, P) < estimate_dist(*i2, P);
 			} );
 			return Interp4( *(iV[0]), *(iV[1]), *(iV[2]), *(iV[3]), P );
+			*/
 		}
 	}
 
@@ -530,8 +562,8 @@ DataPoint<float> Map::PathAverage(Point<float> rec, float& perc, const float lam
 	if( lambda < 0. ) {
 		throw ErrorM::BadParam(FuncName, "negative lambda");
 	} else if ( lambda == 0. ) { // call direct ray tracing if lambda == 0
-		if( !pimplM->isReg )
-			throw ErrorM::BadParam(FuncName, "lambda cannot be 0 when map is irregular");
+		//if( !pimplM->isReg )
+		//	throw ErrorM::BadParam(FuncName, "lambda cannot be 0 when map is irregular");
 		int N = 0; float avg = 0.;
 		TraceGCP(src, rec, trace_step, [&](float val) { avg += val; N++; } );
 		avg /= N; perc = 1.;
@@ -617,8 +649,8 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float& perc, const floa
 	if( lambda < 0. ) {
 		throw ErrorM::BadParam(FuncName, "negative lambda");
 	} else if ( lambda == 0. ) { // call direct ray tracing if lambda == 0
-		if( !pimplM->isReg )
-			throw ErrorM::BadParam(FuncName, "lambda cannot be 0 when map is irregular");
+		//if( !pimplM->isReg )
+		//	throw ErrorM::BadParam(FuncName, "lambda cannot be 0 when map is irregular");
 		int N = 0; float avg = 0.;
 		TraceGCP(src, rec, trace_step, [&](float val) { avg += 1./val; N++;} );
 		avg = N / avg; perc = 1.;
