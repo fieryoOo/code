@@ -47,8 +47,11 @@ public:
       : long1(lo1in), lati1(la1in), long2(lo2in), lati2(la2in)
       , dist(dis), distf(dis), alpha1(a1), alpha2(a2)
 		, pi(3.1415926535898), pio180(0.0174532925199433)
-		, Ra(6378.137), Rb(6356.752314245), Raaobbmo(0.0067394967566)
-		, f(0.00335281066474748), Rboa(0.99664718933525252), toler(1.0e-8) {}
+		, Ra(6378.137), Rb(6356.752314245), Raaobbmo(0.0067394967423330954)
+		, f(0.00335281066474748), Rboa(0.99664718933525252), toler(1.0e-8) {
+		if(long1 < 0.) long1 += 360.;
+		if(long2 < 0.) long2 += 360.;
+	}
 
    Path(const Point<T>& p1, const Point<T>& p2)
 		: Path( p1.Lon(), p1.Lat(), p2.Lon(), p2.Lat() ) {}
@@ -58,12 +61,29 @@ public:
 
    ~Path(){}
 
-	const Point<T> P1() { return Point<T>(long1, lati1); }
-	const Point<T> P2() { 
+	void reset(const T lo1in=NaN, const T la1in=NaN,
+				  const T lo2in=NaN, const T la2in=NaN,
+				  const T dis=NaN, const T a1=NaN, const T a2=NaN) {
+		long1 = lo1in; lati1 = la1in; long2 = lo2in; lati2 = la2in;
+      dist = distf = dis; alpha1 = a1; alpha2 = a2;
+		if(long1 < 0.) long1 += 360.;
+		if(long2 < 0.) long2 += 360.;
+	}
+
+	void reset(const Point<T>& p1, const Point<T>& p2) {
+		reset( p1.Lon(), p1.Lat(), p2.Lon(), p2.Lat() );
+	}
+
+	void reset(const Point<T>& p1, const float dis, const float alp1) {
+		reset( p1.Lon(), p1.Lat(), NaN, NaN, dis, alp1 );
+	}
+
+	const Point<T> P1() const { return Point<T>(long1, lati1); }
+	const Point<T> P2() const { 
 		if( long2==NaN || lati2==NaN ) calc_P2();
 		return Point<T>(long2, lati2); 
 	}
-	const Point<T> PC() {
+	const Point<T> PC() const {
 		if( long2==NaN || lati2==NaN ) calc_P2();
 		return Point<T>(0.5*(long1+long2), 0.5*(lati1+lati2)); 
 	}
@@ -78,22 +98,22 @@ public:
 		return distf;
 	}
 
-   inline const T& Dist() {
+   inline const T& Dist() const {
       if( dist == NaN ) calc_dist();
       return dist;
    }
 
-   inline const T& Azi1() {
-      if( alpha1 == NaN ) calc_azimuth();
+   inline const T& Azi1() const {
+      if( alpha1 == NaN ) calc_dist();
       return alpha1;
    }
 
-   inline const T& Azi2() {
+   inline const T& Azi2() const {
       if( alpha2 == NaN )
 			if( dist!=NaN && alpha1!=NaN )
 				calc_P2();
 			else
-				calc_azimuth();
+				calc_dist();
       return alpha2;
    }
 
@@ -111,9 +131,9 @@ protected:
 */
 
 private:
-	mutable T distf;
-   T dist, alpha1, alpha2;
-   T lati1, long1, lati2, long2;
+   T lati1, long1;
+	mutable T lati2, long2;
+   mutable T distf, dist, alpha1, alpha2;
 	static const int NaN = -12345;
 	const double pi;
 	const double pio180;
@@ -124,11 +144,16 @@ private:
 	const double Rboa;
 	const double toler;
 	// toler ~ dis / R: 1.6e-10 toler ~ 1 mm
-	int iter = NaN;	// for debug
+	mutable int iter = NaN;	// for debug
 
 	void calc_dist_fast() const {
 		if( lati1==NaN || long1==NaN || lati2==NaN || long2==NaN )
-			throw std::runtime_error("Error(calc_azimuth): empty location(s)!");
+			throw std::runtime_error("Error(calc_dist_fast): empty location(s)!");
+
+		const T dlong = fabs(long1 - long2);
+		if( lati1==lati2 && (dlong==0. || dlong==360.) ) {
+			distf = 0.; return;
+		}
 
 		const T ff = (lati1 + lati2) * pio180 * 0.5;
 		const T g = (lati1 - lati2) * pio180 * 0.5;
@@ -150,138 +175,95 @@ private:
 		distf = d * (1. + f * (h1*sin_f2*cos_g2 - h2*cos_f2*sin_g2) ) * Ra;
 	}
 
-	void calc_dist() {
-		if( lati1==NaN || long1==NaN || lati2==NaN || long2==NaN )
-			throw std::runtime_error("Error(calc_azimuth): empty location(s)!");
-
-		//T Rx,latio1,longo1;//,dlt_long,dlt_lati;
-
-		//if(long1<0.||long1>=360.) long1 -= (int)floor(long1/360.)*360.;
-		//if(long2<0.||long2>=360.) long2 -= (int)floor(long2/360.)*360.;
-		while( long1 < 0. ) long1 += 360.;
-		while( long1 >= 360. ) long1 -= 360.;
-		while( long2 < 0. ) long2 += 360.;
-		while( long2 >= 360. ) long2 -= 360.;
-
-		T dlt_long = fabs(long1-long2);
-		//if(lati1==-lati2 && dlt_long==180){
-		//	distf = dist = 20003.917357;
-		//	return;
-		//}
-
-		//dlt_lati=fabs(lati2-lati1);
-		//dlt_long=long2-long1;
-
-		//if (dlt_long > 180.000)  dlt_long = 360.000000 - dlt_long;
-		//if (dlt_long < -180.000) dlt_long = 360.000 - fabs(dlt_long);
-		//dlt_long = fabs(dlt_long);
-		if( dlt_long > 180. ) dlt_long = 360. - dlt_long;
-
-		T cv,cv1,cv2,cv3,cv4,cv5,cvC,numda1;
-		T numda;
-		T mius, cvA, cvB, deltacv;
-
-		T U1 = atan2(Rboa*sin(lati1*pio180),cos(lati1*pio180));
-		T U2 = atan2(Rboa*sin(lati2*pio180),cos(lati2*pio180));
-		T sinU1 = sin(U1), cosU1 = cos(U1);
-		T sinU2 = sin(U2), cosU2 = cos(U2);
-		dlt_long *= pio180;
-
-		numda1 = dlt_long;
-		int itermax = 20; //bool flag = false;
-		iter = 0;
-		do {
-			iter++;
-			numda = numda1;
-			T sinnumda = sin(numda), cosnumda = cos(numda);
-			T ftmp1 = cosU2*sinnumda, ftmp2 = cosU1*sinU2-sinU1*cosU2*cosnumda;
-			T ftmp3 = sinU1*sinU2, ftmp4 = cosU1*cosU2;
-			cv1 = sqrt( ftmp1*ftmp1 + ftmp2*ftmp2 );
-			cv2 = ftmp3 + ftmp4*cosnumda;
-			cv = atan2(cv1,cv2);
-			if(cv==0) cv = 1.e-10;//0.00000000001;
-			cv3 = ftmp4*sinnumda/sin(cv);
-			cv4 = 1 - cv3*cv3;
-			if(cv4==0) cv4 = 1.e-10;//0.00000000001;
-			cv5 = cos(cv) - 2*ftmp3/cv4;
-			cvC = f*0.0625*cv4*(4 + f*(4 - 3*cv4));
-			numda1 = dlt_long + (1-cvC)*f*cv3*(cv + cvC*cv1*(cv5 + cvC*cv2*(-1 +2*cv5*cv5)));
-			if(iter>itermax){
-				break;
-				/*
-				flag=true;
-				latio1=lati1*pio180;
-				ftmp1 = Ra*cos(latio1); ftmp2 = Rb*sin(latio1);
-				T ftmp3 = Ra*ftmp1, ftmp4 = Rb*ftmp2;
-				Rx=sqrt((ftmp3*ftmp3+ftmp4*ftmp4)/(ftmp1*ftmp1+ftmp2*ftmp2));
-				Rx=pi*(Rx+Ra)*0.5;
-				latio1=lati1;
-				longo1=long1;
-				lati1=lati2;
-				long1=long2;
-				lati2=-latio1;
-				long2=longo1+180;
-				goto begin;
-				*/
-			}
-		} while (fabs(numda - numda1) > toler);
-
-		if( iter > itermax ) {
-			calc_dist_fast();
-			dist = distf;
-		} else {
-			mius = cv4*Raaobbmo;
-			cvA = 1+mius/16384*(4096 + mius*(-768 + mius*(320 - 175*mius)));
-			cvB = mius/1024.*(256+ mius*(-128 + mius*(74 - 47*mius)));
-			deltacv = cvB*cv1*(cv5 +cvB/4*(cv2*(-1 + 2*cv5*cv5)-cvB/6*cv5*(-3+4*cv1*cv1)*(-3+4*cv5*cv5) ));
-			distf = dist = Rb * cvA *(cv - deltacv);
-		}
-
-		/*
-		if(flag==1){
-			T sindlt = sin(dlt_long), cosdlt = cos(dlt_long);
-			alpha1=atan2(cosU2*sindlt, cosU1*sinU2 - sinU1*cosU2*cosdlt)/pio180;
-			alpha2=atan2(cosU1*sindlt, -sinU1*cosU2 + cosU1*sinU2*cosdlt)/pio180;
-			if( fabs(long2-long1)>180 ) { alpha1 = 360.-alpha1; alpha2 = 360.-alpha2;}
-			if( long2 < long1 ) { alpha1 = 360.-alpha1; alpha2 = 360.-alpha2; }
-			float theta = alpha1;
-			if(theta>180) theta=360-theta;
-			theta=fabs(90-theta);
-			Ds=Rx*(90-theta)/90.+(Ra+Rb)*pio180*theta;
-			dist = Ds-dist; 
-			distf = dist;
-		}
-		*/
+	inline static const T cvt_lat( const T b, const T lat) {
+		return ( atan2( b * sin(lat), cos(lat)) );
 	}
 
-	void calc_azimuth() {
+	inline static const T big_a_poly( const T usquared) {
+		return( 1. + usquared *
+				(4096 + usquared * (-768 + usquared * (320 - 175 * usquared))) / 16384.);
+	}
+
+	inline static const T big_b_poly( const T usquared) {
+		return( usquared *
+				(256. + usquared * (-128. + usquared * (74 - 47 * usquared))) / 1024.);
+	}
+
+	void calc_dist() const {
+		if( lati1==NaN || long1==NaN || lati2==NaN || long2==NaN )
+			throw std::runtime_error("Error(calc_dist): empty location(s)!");
+
+		T dlt_long = fabs(long1-long2);
+		if( dlt_long > 180. ) dlt_long = 360. - dlt_long;
+		dlt_long *= pio180;
+
+		// same point
+		if( lati1==lati2 && dlt_long==0. ) {
+			dist = distf = 0.;
+			alpha1 = alpha2 = 999.;
+			return ;
+		}
+
+		T U1 = cvt_lat( Rboa, lati1*pio180 );
+		T U2 = cvt_lat( Rboa, lati2*pio180 );
+		T sinU1 = sin(U1), cosU1 = cos(U1);
+		T sinU2 = sin(U2), cosU2 = cos(U2);
+
+		T numbda = dlt_long, numbda_old;
+		int itermax = 20; //bool flag = false;
+		iter = 0;
+		T sigma, sin_sigma, cos_sigma;
+		T cos_s_alp, cos_2sigmam;
+		do {
+			iter++;
+			numbda_old = numbda;
+			T sinnumbda = sin(numbda), cosnumbda = cos(numbda);
+			T ftmp1 = cosU2*sinnumbda, ftmp2 = cosU1*sinU2-sinU1*cosU2*cosnumbda;
+			T ftmp3 = sinU1*sinU2, ftmp4 = cosU1*cosU2;
+			sin_sigma = sqrt( ftmp1*ftmp1 + ftmp2*ftmp2 );
+			cos_sigma = ftmp3 + ftmp4*cosnumbda;
+			sigma = atan2(sin_sigma,cos_sigma);
+			if(sigma==0) sigma = 1.e-10;//0.00000000001;
+			T sin_alp = ftmp4*sinnumbda/sin_sigma;
+			cos_s_alp = 1 - sin_alp*sin_alp;
+			if(cos_s_alp==0) cos_s_alp = 1.e-10;//0.00000000001;
+			cos_2sigmam = cos_sigma - 2*ftmp3/cos_s_alp;
+			T C = f*0.0625*cos_s_alp*(4 + f*(4 - 3*cos_s_alp));
+			numbda = dlt_long + (1-C)*f*sin_alp*(sigma + C*sin_sigma*(cos_2sigmam + C*cos_sigma*(-1 +2*cos_2sigmam*cos_2sigmam)));
+		} while( fabs(numbda - numbda_old)>toler && iter<itermax);
+
+		if( iter > itermax ) {	// anti podal
+			calc_dist_fast();
+			dist = distf;
+			alpha1 = alpha2 = 999.;
+		} else {
+			T mius = cos_s_alp*Raaobbmo;
+			T A = big_a_poly(mius);
+			T B = big_b_poly(mius);
+			T d_sigma = B*sin_sigma*(cos_2sigmam +0.25*B*(cos_sigma*(-1 + 2*cos_2sigmam*cos_2sigmam)
+							-B/6*cos_2sigmam*(-3+4*sin_sigma*sin_sigma)*(-3+4*cos_2sigmam*cos_2sigmam) ));
+			distf = dist = Rb * A *(sigma - d_sigma);
+		}
+
+		alpha1=atan2(cosU2*sin(numbda), cosU1*sinU2 - sinU1*cosU2*cos(numbda))/pio180;
+		alpha2=atan2(cosU1*sin(numbda), -sinU1*cosU2 + cosU1*sinU2*cos(numbda))/pio180;
+		if( fabs(long2-long1)>180 ) { alpha1 = 360 - alpha1; alpha2 = 360 - alpha2; }
+		if( long2 < long1 ) { alpha1 = 360 - alpha1; alpha2 = 360 - alpha2; }
+	}
+
+	/*
+	void calc_azimuth() const {
 		if( lati1==NaN || long1==NaN || lati2==NaN || long2==NaN )
 			throw std::runtime_error("Error(calc_azimuth): empty location(s)!");
 
 
-		//T pi = 3.14159265358979324; //4.0*atan(1.0);
-		//T pio180 = 0.017453292519943295;
-		//Ra = 6378.137;
-		//Rb = 6356.7523142;
-		//T f = 0.0033528106647474805; //1/298.257223563;
 		T dlt_long = fabs(long1-long2);
 
-		//if(long1<0.||long1>=360.) long1 -= (int)floor(long1/360.)*360.;
-		//if(long2<0.||long2>=360.) long2 -= (int)floor(long2/360.)*360.;
-		while( long1 < 0. ) long1 += 360.;
-		while( long1 >= 360. ) long1 -= 360.;
-		while( long2 < 0. ) long2 += 360.;
-		while( long2 >= 360. ) long2 -= 360.;
 		if(lati1==-lati2 && dlt_long==180){
 			alpha1 = alpha2 = 999.;
 			return;
 		}
 
-		//dlt_lati=fabs(lati2-lati1);
-		//dlt_long=long2-long1;
-		//if (dlt_long > 180.000)  dlt_long = 360.000000 - dlt_long;
-		//if (dlt_long < -180.000) dlt_long = 360.000 - fabs(dlt_long);
-		//dlt_long = fabs(dlt_long);
 		if( dlt_long > 180. ) dlt_long = 360. - dlt_long;
 
 		T U1 = atan(Rboa*tan(lati1*pio180));
@@ -295,23 +277,10 @@ private:
 		if( fabs(long2-long1)>180 ) { alpha1 = 360 - alpha1; alpha2 = 360 - alpha2; }
 		if( long2 < long1 ) { alpha1 = 360 - alpha1; alpha2 = 360 - alpha2; }
 
-	}
+	} 
+	*/
 
-	inline static const T big_a_poly( const T usquared) {
-		return( 1. + usquared *
-				(4096 + usquared * (-768 + usquared * (320 - 175 * usquared))) / 16384.);
-	}
-
-	inline static const T big_b_poly( const T usquared) {
-		return( usquared *
-				(256. + usquared * (-128. + usquared * (74 - 47 * usquared))) / 1024.);
-	}
-
-	inline static const T cvt_lat( const T b, const T lat) {
-		return ( atan2( b * sin(lat), cos(lat)) );
-	}
-
-	void calc_P2() {
+	void calc_P2() const {
 		if( lati1==NaN || long1==NaN || dist==NaN || alpha1==NaN )
 			throw std::runtime_error("Error(calc_P2): record incomplete");
 		const T Rboa = 1. - f;       /* if a = 1 */
