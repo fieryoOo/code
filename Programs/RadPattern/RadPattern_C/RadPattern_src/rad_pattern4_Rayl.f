@@ -21,7 +21,7 @@ c(phvlen)
       real*4 cl(ntmax),ul(ntmax),wvl(ntmax)
       real*4 temp_ph(ntmax),unph(ntmax),grt(ntmax)
       data marg/6/,pi/3.1415927/,oo2pi/0.1591549431/,r/2./,eps/0.0001/
-      data const/1.E+20/
+      data const/1.E+20/,const2/5013256549262000.0/
 
 C----------- Initiation------------
       drad=180./pi
@@ -91,7 +91,10 @@ c           convolution with moment tensor
             sume=real(sumr)
             sumi=aimag(sumr)
             pq(jkl,j)=phaRad(sumi,sume)
-            aml(jkl,j)=aq*ampr(j)*const
+cYT            aml(jkl,j)=aq*ampr(j)*const
+cYT         source amp norm term : ampr = 1./(2.*c*ugr*sumi0)/sqrt(6.28318)*1.e-15
+cYT            aml(jkl,j)=aq* sqrt( ampr(j)*1.0e15*sqrt(8.0*pi) )
+            aml(jkl,j)=aq*sqrt(ampr(j)*const2)
          EndDo
 1     ENDDO
 

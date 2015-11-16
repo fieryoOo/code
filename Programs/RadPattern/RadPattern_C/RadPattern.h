@@ -79,7 +79,7 @@ typedef float ftype;
 class RadPattern {
 public:
 	char type;
-	float stk, dip, rak, dep;
+	float stk, dip, rak, dep, M0;
 
    RadPattern();
    RadPattern( const RadPattern& );
@@ -90,17 +90,26 @@ public:
 
    /* Predict Rayleigh/Love wave radiation patterns */
    bool Predict( char type, const std::string& feigname, const std::string& fphvname,
-					  const ftype strike, const ftype dip, const ftype rake, const ftype depth,
-					  const std::vector<float>& perlst );
+					  const ftype strike, const ftype dip, const ftype rake,
+					  const ftype depth, const ftype M0, const std::vector<float>& perlst );
 				//std::vector< std::vector<AziData> >& per_azi_pred );
 
+	/* get I0 at per */
+	float I0( const float per ) const;
+
 	/* prediction at one single azimuth. return false if the given azimuth is invalidated due to small amplitude */
-	bool GetPred( const float per, const float azi,	float& grt, float& pht, float& amp ) const;
+	// M0 = scalar seismic momentum
+	// dis = distance; alpha = attenuation coeff
+	// J = mode energy integration (from eigen);
+	// U = local group velocity
+	bool GetPred( const float per, const float azi,	float& grt, float& pht, float& amp,
+					  const float dis = NaN, const float alpha = NaN, const float J = NaN, const float U = NaN ) const;
 
 	void OutputPreds( const std::string& fname, const float Afactor = 1. );
 
 public:
 	static constexpr float NaN = -12345.;
+	static constexpr float oofourpi = 0.25e-13 / M_PI;	// unit convertion = 1.0e-13
 	static constexpr int nazi = 181;
 	static constexpr int dazi = 2;
 	static constexpr int InvalidateHwidth = 3;	// half width in iazi of the focal pred invalidating window
@@ -110,7 +119,11 @@ private:
    struct Rimpl;
    std::unique_ptr<Rimpl> pimplR;
 
+	// sample azimuths
 	std::vector<float> aziV;
+	// I0 (mod energy integral) keyed by period
+	std::map< float, float > I0M;
+	// group, phase, amplitudes keyed by period
 	std::map< float, std::vector<float> > grtM, phtM, ampM;
 
 	void ShiftCopy( std::vector<float>& Vout, const float* arrayin, const int nazi ) const;

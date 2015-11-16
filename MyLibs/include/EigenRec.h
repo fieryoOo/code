@@ -41,6 +41,8 @@ struct PerData {
 
 class EigenRec {
 public:
+	std::vector<PerData> perDV;
+
 	EigenRec( const std::string& fname, const int imod = 1, std::ostream& sout = std::cout )
 		: fname(fname), _imod(imod), _sout(sout) {
 		preLoad();
@@ -62,7 +64,6 @@ private:
 	const int _imod = 1;
 	std::ostream& _sout = std::cout;
 	int ifline = -1;	// keep track of file line#
-	std::vector<PerData> perDV;
 	//std::vector<PerData>::iterator iPD = perDV.begin();
 
 	/* Eigen file format:

@@ -1,4 +1,5 @@
 #include "RadPattern.h"
+#include "EigenRec.h"
 #include <fstream>
 #include <cstring>
 #include <algorithm>
@@ -102,15 +103,15 @@ void RadPattern::ShiftCopy( std::vector<float>& Vout, const float* arrayin, cons
 
 /* predict radpattern for rayleigh and love waves */
 bool RadPattern::Predict( char typein, const std::string& feigname, const std::string& fphvname,
-			  const ftype stkin, const ftype dipin, const ftype rakin, const ftype depin,
-			  const std::vector<float>& perlst ) {
+								  const ftype stkin, const ftype dipin, const ftype rakin,
+								  const ftype depin, const ftype M0in, const std::vector<float>& perlst ) {
 			  //std::vector< std::vector<AziData> >& per_azi_pred ) {
    if( typein!='R' && typein!='L' )
       throw ErrorRP::BadParam(FuncName, "unknown type = "+type);
 
 	// return if the requested new state is exactly the same as the one stored
-	if( type==typein && stk==stkin && dip==dipin && 
-		 rak==rakin && dep==depin && perlst.size()<=grtM.size() ) {
+	if( type==typein && stk==stkin && dip==dipin && rak==rakin &&
+		 dep==depin && M0==M0in && perlst.size()<=grtM.size() ) {
 		bool allfound = true;
 		for( const auto per : perlst )
 			if( grtM.find(per) == grtM.end() ) {
@@ -124,6 +125,7 @@ bool RadPattern::Predict( char typein, const std::string& feigname, const std::s
 	type = typein; 
 	stk = stkin; dip = dipin;
 	rak = rakin; dep = depin;
+	M0 = M0in;
 
   #pragma omp critical
   { // omp critical begins
@@ -143,6 +145,16 @@ bool RadPattern::Predict( char typein, const std::string& feigname, const std::s
       fin.read(pimplR->feig_buff, pimplR->feig_len);
       fin.close();
       pimplR->feignmem = feigname;
+
+		// read mod energy integrals
+		EigenRec er(feigname);
+		I0M.clear();
+		for( const auto& pd : er.perDV) {
+			float per = pd.per, I0;
+			std::stringstream ss(pd.info2);
+			if( ! (ss >> I0) ) continue;
+			I0M[per] = I0;
+		}
    }
 
    // read in nper and dper from fphv
@@ -251,9 +263,16 @@ bool RadPattern::Predict( char typein, const std::string& feigname, const std::s
 	return true;	// updated!
 }
 
+float RadPattern::I0( const float per ) const {
+	auto iI0 = I0M.find(per);
+	if( iI0 == I0M.end() )
+		throw ErrorRP::BadParam(FuncName, "un-predicted period");
+	return (iI0->second);
+}
 
 bool RadPattern::GetPred( const float per, const float azi,
-								  float& grt, float& pht, float& amp ) const {
+								  float& grt, float& pht, float& amp,
+								  const float dis, const float alpha, const float J, const float U ) const {
 	// check validities of period and azimuth
 	auto Igrt = grtM.find(per);
 	if( Igrt == grtM.end() )
@@ -280,6 +299,17 @@ bool RadPattern::GetPred( const float per, const float azi,
 	auto Iamp = ampM.find(per);
 	ftmp1 = (Iamp->second)[iazi], ftmp2 = (Iamp->second)[iazi+1];
 	amp = ftmp1 + (ftmp2 - ftmp1) * azifactor;
+	// correct (scale up) amp if extra info is given
+	if( U != NaN ) {
+		// M0 = scalar seismic momentum
+		// dis = distance; alpha = average attenuation coeff
+		// J = receiver mode energy integration (from eigen);
+		// U = local group velocity at the receiver location
+		amp *= ( oofourpi * M0 *			// oofourpi = const in source&propogation combined
+					exp(-dis*alpha) *			// anelastic propogation
+					sqrt(per / (dis*J*U)) );// receiver norm term * second part of propogation
+					//(Jsrc*Csrc*Usrc)) ) );	// source norm term is accounted for in rad_pattern
+	}
 
 	return true;
 }
