@@ -80,6 +80,8 @@ public:
 	void SetSource( const float lon, const float lat ) { SetSource( Point<float>(lon, lat) ); }
 	void SetSource( const Point<float>& srcin );
 
+	size_t size() const;
+
 	/* --- clip the map around the source location (to speed up the average methods) --- */
 	void Clip( const float lonmin, const float lonmax, const float latmin, const float latmax );
 
@@ -121,10 +123,15 @@ public:
 	template<class Functor>
 	void TraceGCP( Point<float> Psrc, const Point<float>& Prec, float dis_step, const Functor& func );
 
+	friend std::ostream& operator<<( std::ostream& o, const Map& map ) {
+		o<<map.LonMin()<<" - "<<map.LonMax()<<"   "<<map.LatMin()<<" - "<<map.LatMax();
+		return o;
+	}
+
 protected:
 	static constexpr float NaN = -12345.;
 	static constexpr float trace_step = 20.;	// sample each 10 km,
-	static constexpr int npts_min = 5;			// or at least 5 sample points
+	static const int npts_min = 5;				// or at least 5 sample points
 
 private:
 	std::string fname;

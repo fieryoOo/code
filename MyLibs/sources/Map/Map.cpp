@@ -9,7 +9,8 @@
 template <typename T>
 class ppair {
 public:
-	ppair() {}
+	int pos = -1;	// complementary position info
+	//ppair() {}
 	ppair( const typename std::vector<T>::iterator p1, const typename std::vector<T>::iterator p2 )
 		: p1(p1), p2(p2) {}
 	ppair( const typename std::vector<T>::iterator p1, const size_t size )
@@ -24,6 +25,46 @@ private:
 };
 
 struct Map::Mimpl {
+
+	Mimpl() {}
+
+	Mimpl( const Mimpl& m2 )
+		: lonmin(m2.lonmin), lonmax(m2.lonmax), latmin(m2.latmin), latmax(m2.latmax)
+		, dis_lat1D(m2.dis_lat1D), dis_lon1D(m2.dis_lon1D), dataV(m2.dataV), dataavg(m2.dataavg)
+		, grd1_lon(m2.grd1_lon), grd1_lat(m2.grd1_lat), dataM1(m2.dataM1)
+		, grd2_lon(m2.grd2_lon), grd2_lat(m2.grd2_lat), dataM2(m2.dataM2), isReg(m2.isReg) {
+		ApplyHash();
+	}
+
+	Mimpl( Mimpl&& m2 )
+		: lonmin(m2.lonmin), lonmax(m2.lonmax), latmin(m2.latmin), latmax(m2.latmax)
+		, dis_lat1D(m2.dis_lat1D), dis_lon1D(std::move(m2.dis_lon1D)), dataV(std::move(m2.dataV)), dataavg(std::move(m2.dataavg))
+		, grd1_lon(m2.grd1_lon), grd1_lat(m2.grd1_lat), dataM1(std::move(m2.dataM1))
+		, grd2_lon(m2.grd2_lon), grd2_lat(m2.grd2_lat), dataM2(std::move(m2.dataM2)), isReg(m2.isReg) {
+		// this is likely not necessary when moving unless the compiler writer went nuts
+		ApplyHash();	// but just to be safe...
+	}
+
+	Mimpl& operator= ( const Mimpl& m2 ) {
+		lonmin=m2.lonmin; lonmax=m2.lonmax; latmin=m2.latmin; latmax=m2.latmax;
+		dis_lat1D=m2.dis_lat1D; dis_lon1D=m2.dis_lon1D; dataV=m2.dataV; dataavg=m2.dataavg;
+		grd1_lon=m2.grd1_lon; grd1_lat=m2.grd1_lat; dataM1=m2.dataM1;
+		grd2_lon=m2.grd2_lon; grd2_lat=m2.grd2_lat; dataM2=m2.dataM2; isReg=m2.isReg;
+		ApplyHash();
+		return *this;
+	}
+
+	Mimpl& operator= ( Mimpl&& m2 ) {
+		lonmin=m2.lonmin; lonmax=m2.lonmax; latmin=m2.latmin; latmax=m2.latmax;
+		dis_lat1D=m2.dis_lat1D; dis_lon1D=m2.dis_lon1D; dataV=std::move(m2.dataV); dataavg=std::move(m2.dataavg);
+		grd1_lon=m2.grd1_lon; grd1_lat=m2.grd1_lat; dataM1=std::move(m2.dataM1);
+		grd2_lon=m2.grd2_lon; grd2_lat=m2.grd2_lat; dataM2=std::move(m2.dataM2); isReg=m2.isReg;
+		// this is likely not necessary when moving unless the compiler writer went nuts
+		ApplyHash();	// but just to be safe...
+		return *this;
+	}
+
+
 	float lonmin = NaN, lonmax = NaN;
 	float latmin = NaN, latmax = NaN;
 
@@ -42,6 +83,7 @@ struct Map::Mimpl {
 	bool isReg = false;
 	float grd2_lon, grd2_lat;
 	Array2D< ppair< DataPoint<float> > > dataM2;
+
 
 	inline int ilon( float xloc ) const { float xgrd = isReg ? grd2_lon : grd1_lon; return (int)floor((xloc-lonmin) / xgrd + 0.5); }
 	inline int ilat( float yloc ) const { float ygrd = isReg ? grd2_lat : grd1_lat; return (int)floor((yloc-latmin) / ygrd + 0.5); }
@@ -64,8 +106,7 @@ struct Map::Mimpl {
 			float lon, lat, data;
 			std::stringstream ss(line);
 			if( ! ( ss >> lon >> lat >> data) ) {
-			//if( sscanf(line.c_str(), "%lf %lf %lf", &lon, &lat, &data) < 2 ) {
-				std::cerr<<"Warning(Map::Load): wrong format detected in file "<<fname<<std::endl;
+				//std::cerr<<"Warning(Map::Load): wrong format detected in file "<<fname<<" ("<<line<<") "<<std::endl;
 				continue;
 			}
 			if( data != data ) continue;
@@ -88,6 +129,7 @@ struct Map::Mimpl {
 		if( dataV.size() == 0 ) return;
 		HashM1();
 		isReg = HashM2();
+		ApplyHash();
 	}
 
 	/* matrix #1: store by blocks */
@@ -102,8 +144,7 @@ struct Map::Mimpl {
 		int size = 0; dataavg.resize(1, 0.);
 		Point<float> BL(lonmin, latmin);
 		Point<float> TR(lonmax, latmax);
-		for(size_t i=0; i<dataV.size(); i++) {
-			DataPoint<float>& dpcur = dataV[i];
+		for( const auto& dpcur : dataV ) {
 			if( ! dpcur.isWithin(BL, TR) ) continue;
 			int ilon = (int)floor((dpcur.Lon()-lonmin) / grd1_lon + 0.5);
 			int ilat = (int)floor((dpcur.Lat()-latmin) / grd1_lat + 0.5);
@@ -113,16 +154,22 @@ struct Map::Mimpl {
 		}
 		dataavg[0].data /= size;
 		/* now rearrange all DataPoints into dataV and store iterators in dataM */
-		dataV.clear(); dataV.reserve(size);
-		dataM1.resize(nlon, nlat);
+		dataV.clear(); dataV.reserve(size*2+1000);
+		dataM1.resize(nlon, nlat, ppair< DataPoint<float> >( dataavg.begin(), 0 ));
 		for( size_t i=0; i<dataM_hash.NumRows(); i++ ) {
 			for( size_t j=0; j<dataM_hash.NumCols(); j++ ) {
 				auto& dpV = dataM_hash(i, j);
+				/* undefined behavier?
 				auto p1 = dataV.end();
 				dataV.insert( dataV.end(), std::make_move_iterator(dpV.begin()), 
 													std::make_move_iterator(dpV.end()) );
 				auto p2 = dataV.end();
-				dataM1(i, j) = ppair< DataPoint<float> >(p1, p2);
+				*/
+				//size_t old_size = dataV.size(), inser_size = dpV.size();
+				dataM1(i, j).pos = dataV.size();
+				std::copy( std::make_move_iterator(dpV.begin()), 
+							  std::make_move_iterator(dpV.end()), std::back_inserter(dataV) );
+				//dataM1(i, j) = ppair< DataPoint<float> >(dataV.begin() + old_size, inser_size);
 			}
 		}
 		/* compute distance of 1 degree in lon/lat */
@@ -145,17 +192,37 @@ struct Map::Mimpl {
 		int nlat = (int)ceil( (latmax-latmin) / grd2_lat ) + 1;
 		dataM2.clear(); 
 		dataM2.resize(nlon, nlat, ppair< DataPoint<float> >( dataavg.begin(), 1 ) );
-		for( auto iter=dataV.begin(); iter<dataV.end(); iter++ ) {
-			const auto& dp = *iter;
+		//for( auto iter=dataV.begin(); iter<dataV.end(); iter++ ) {
+		for(int i=0; i<dataV.size(); i++) {
+			const auto& dp = dataV[i];
 			float ilon = (int)floor( (dp.lon-lonmin) / grd2_lon + 0.5 );
 			float ilat = (int)floor( (dp.lat-latmin) / grd2_lat + 0.5 );
-         dataM2(ilon, ilat) = ppair< DataPoint<float> >(iter, 1);
+         //dataM2(ilon, ilat) = ppair< DataPoint<float> >(dataV.begin()+i, 1);
+			dataM2(ilon, ilat).pos = i;
       }
-		if( (float)dataM2.Size() / dataV.size() < 0.9 ) {
+		if( (float)dataV.size() / dataM2.Size() < 0.9 ) {
 			dataM2.clear();
 			return false;
 		}
 		return true;
+	}
+
+	void ApplyHash() {
+		// apply hash on dataM1
+		int i;
+		for( i=0; i<dataM1.Size()-1; i++ ) {
+			auto& pp = dataM1[i];
+			if( pp.pos == -1 ) continue;
+			pp = ppair< DataPoint<float> >( dataV.begin()+pp.pos, dataV.begin()+dataM1[i+1].pos );
+		}
+		dataM1[i] = ppair< DataPoint<float> >( dataV.begin()+dataM1[i].pos, dataV.end() );
+
+		// apply hash on dataM2
+		if( ! isReg ) return;
+		for( auto& pp : dataM2 ) {
+			if( pp.pos == -1. ) continue;
+			pp = ppair< DataPoint<float> >( dataV.begin()+pp.pos, 1 );
+		}
 	}
 
    // compute map grids and boundaries
@@ -344,14 +411,23 @@ Map::Map( const std::string& inname, const Point<float>& srcin, const float grdl
 	SetSource( src );
 }
 
-Map::Map( const Map& mp_other ) : pimplM( new Mimpl(*(mp_other.pimplM)) ) {}
+Map::Map( const Map& mp_other ) 
+	: pimplM( new Mimpl(*(mp_other.pimplM)) )
+	, fname(mp_other.fname), src(mp_other.src) {
+	//pimplM->Hash(); // ApplyHash called inside Mimpl constructors
+}
 
-Map::Map( Map&& mp_other ) : pimplM( std::move(mp_other.pimplM) ) {}
+Map::Map( Map&& mp_other ) 
+	: pimplM( std::move(mp_other.pimplM) ) 
+	, fname(mp_other.fname), src(mp_other.src) { 
+	//pimplM->Hash(); // ApplyHash called inside Mimpl constructors
+}
 
 Map& Map::operator= ( const Map& mp_other ) {
 	pimplM.reset( new Mimpl(*(mp_other.pimplM)) );
 	fname = mp_other.fname;
 	src = mp_other.src;
+	//pimplM->Hash(); // ApplyHash called inside Mimpl constructors
 	return *this;
 }
 
@@ -359,6 +435,7 @@ Map& Map::operator= ( Map&& mp_other ) {
 	pimplM = std::move(mp_other.pimplM);
 	fname = std::move(mp_other.fname);
 	src = std::move(mp_other.src);
+	//pimplM->Hash(); // ApplyHash called inside Mimpl constructors
 	return *this;
 }
 
@@ -399,7 +476,6 @@ void Map::Load( const std::string& fnamein ) {
 /* ------------ set source location ------------ */
 void Map::SetSource( const Point<float>& srcin ) {
 	src = srcin;
-	auto& dataV = pimplM->dataV;
 	for( auto& dp : pimplM->dataV ) {
 		dp.dis = Path<float>( src, Point<float>(dp.lon, dp.lat) ).Dist();
 	}
@@ -407,11 +483,14 @@ void Map::SetSource( const Point<float>& srcin ) {
 
 /* --- clip the map around the source location (to speed up the average methods) --- */
 void Map::Clip( const float lonmin, const float lonmax, const float latmin, const float latmax ) {
+//std::cerr<<"Map::Clip 1:  "<<*(pimplM->dataM1(0,0).begin())<<" "<<*(pimplM->dataM2(0,0).begin())<<" "<<pimplM->dataM1.NumRows()<<" "<<pimplM->dataM1.NumCols()<<" "<<*this<<" "<<pimplM->dataV.size()<<" "<<pimplM->dataV.data()<<std::endl;
 	// reset bounds to within the given region
 	pimplM->CompMapBoundaries( lonmin, lonmax, latmin, latmax );
 	// and re-hash
 	pimplM->Hash();
 }
+
+size_t Map::size() const { return pimplM->dataV.size(); }
 
 /* ------------ compute number of points near the given location ------------ */
 float Map::NumberOfPoints(Point<float> rec, const float xhdis, const float yhdis, float& loneff, float& lateff) const {
@@ -470,7 +549,7 @@ float Map::NumberOfPoints(Point<float> rec, const float xhdis, const float yhdis
 /* ------------ compute average value on the point rec ------------ */
 float Map::PointAverage(Point<float> rec, float hdis, float& weit) {
 	/* references */
-	auto& dataM = pimplM->dataM1;
+	const auto& dataM = pimplM->dataM1;
 	float lonmin = pimplM->lonmin, latmin = pimplM->latmin;
 	float grdlon = pimplM->grd1_lon, grdlat = pimplM->grd1_lat;;
 
@@ -571,7 +650,7 @@ DataPoint<float> Map::PathAverage(Point<float> rec, float& perc, const float lam
 	}
 
 	// references
-	auto& dataM = pimplM->dataM1;
+	const auto& dataM = pimplM->dataM1;
 	float lonmin = pimplM->lonmin, latmin = pimplM->latmin;
 	float grd_lon = pimplM->grd1_lon, grd_lat = pimplM->grd1_lat;
 
@@ -658,7 +737,7 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float& perc, const floa
 	}
 
 	// references
-	auto& dataM = pimplM->dataM1;
+	const auto& dataM = pimplM->dataM1;
 	float lonmin = pimplM->lonmin, latmin = pimplM->latmin;
 	float grd_lon = pimplM->grd1_lon, grd_lat = pimplM->grd1_lat;
 
