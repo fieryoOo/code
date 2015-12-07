@@ -64,13 +64,20 @@ int main( int argc, char* argv[] ) {
 				// extract
 				SacRec sac;
 				float gapfrac;
+				std::cerr<<"Working on "<<netname<<" "<<staname<<" "<<chname<<std::endl;
 				if( seedrec.ExtractSac(staname, netname, chname, sps, rec_outname, resp_outname, gapfrac, sac) ) {
-					sac.Write( outname );
-					// remove resp
-					float perl = sps * 2.2, perh = 1000;
-					sac.RmRESP( resp_outname, perl, perh, sactype );
-					sac.ZoomToEvent( evname, -12345., -12345., 0., 5000. );
-					sac.Write( "ft_" + outname );
+					try {
+						sac.Write( outname );
+						// remove resp
+						float perl = sps * 2.2, perh = 1000;
+						sac.RmRESP( resp_outname, perl, perh, sactype );
+						sac.ZoomToEvent( evname, -12345., -12345., 0., 5000. );
+						sac.Write( "ft_" + outname );
+					} catch( const ErrorSR::Base& e ) {
+						std::cerr<<"Warning(main): RmRESP/Zoom failed on "<<netname<<" "
+									<<staname<<" "<<chname<<" ("<<e.what()<<") skipped"<<std::endl;
+						continue;
+					}
 				}
 			}
 	} catch( std::exception& e ) {

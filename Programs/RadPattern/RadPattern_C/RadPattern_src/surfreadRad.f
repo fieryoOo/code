@@ -19,7 +19,7 @@ C------amp -ampitude factor; ratio is ellipticity------
       character*2 symb
       real*4 depold, vaold, vdold, dfactor
       real*4 v(3,nt+10),dvdz(3,nt+10),ratio(nt+10)
-      real*4 t(nt+10),ur(nt+10),cr(nt+10),wvr(nt+10),ampr(nt+10),qR(nt+10)
+      real*4 t(nt),ur(nt+10),cr(nt+10),wvr(nt+10),ampr(nt+10),qR(nt+10)
       real*4        ul(nt+10),cl(nt+10),wvl(nt+10),ampl(nt+10),qL(nt+10)
       data pi2/6.28318/,tlim/10000.0/,eps/1.0/
 C-----------------------------------------------------------------
@@ -122,9 +122,8 @@ c            read(1,'(a)',end=9797)vzdor
             if(pos1.ge.eiglen) goto 9797
 c            read(1, '(7(E14.7,2X))') t(k),cr(k),ur(k),wvr(k),ampr(k),ratio(k),qR(k)
             call readlineR300(feig_buff, pos1, pos2, linetmp)
-c        write(*,*) "a new line with k=",k," : ",linetmp
             read(linetmp, '(7(E14.7,2X))') t(k),cr(k),ur(k),wvr(k),ampr(k),ratio(k),qR(k)
-C           PRint*,k,t(k),ampr(k)
+c      write(*,*) "surfreadRad: per=",t(k),"ampr=",ampr(k)
 c            read(1,'(a)') ,vzdor
             call readlineR80(feig_buff, pos1, pos2, vzdor)
 C----------Rayl. Horizontal component------S

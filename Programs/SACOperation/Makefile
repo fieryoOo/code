@@ -10,6 +10,8 @@ BIN9 = SAC_norm
 BIN10 = SAC_Correlation
 BIN11 = SAC_CrossCorr
 BIN12 = SAC_Integrate
+BIN13 = SAC_Amplitudes
+BIN14 = SAC_ampratio
 
 LIBS = -L${HOME}/usr/lib -lfftw3 -lSacRec
 
@@ -18,7 +20,7 @@ cflags = -lstdc++ -std=c++11 -O3
 #OBJS = SacRec.o
 OBJS = 
 
-BINALL = $(BIN1) $(BIN2) ${BIN3} $(BIN4) $(BIN5) $(BIN6) $(BIN7) $(BIN8) $(BIN9) $(BIN10) $(BIN11) $(BIN12)
+BINALL = $(BIN1) $(BIN2) ${BIN3} $(BIN4) $(BIN5) $(BIN6) $(BIN7) $(BIN8) $(BIN9) $(BIN10) $(BIN11) $(BIN12) $(BIN13) $(BIN14)
 all : $(BINALL)
 
 define makebin

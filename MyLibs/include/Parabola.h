@@ -76,7 +76,7 @@ public:
 		if(a==NaN || b==NaN || c==NaN) Solve();
 		if( PV.x==NaN || PV.y==NaN ) {
 			PV.x = - b / (2.*a);
-			PV.y = c - a*PV.x*PV.y;
+			PV.y = c - a*PV.x*PV.x;
 		}
 		return PV;
 	}

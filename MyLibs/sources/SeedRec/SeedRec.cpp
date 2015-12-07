@@ -210,19 +210,25 @@ bool SeedRec::ExtractSac( const std::string& staname, const std::string& netname
 
    /* read sacfile names from the filelst,
     * resample and merge one at a time */
-   sacout.Load(filelst.at(0).c_str());
-   sacout.Resample(sps);
-   fRemove(filelst.at(0).c_str());
-   bool merged = false;
-   for(int i=1; i<filelst.size(); i++) {
-      SacRec sacnew(filelst.at(i).c_str(), *report);
-      sacnew.Load();
-      sacnew.Resample(sps);
-      sacout.merge(sacnew);
-      fRemove(filelst.at(i).c_str());
-      merged = true;
-   }
-   //delete [] filelst;
+	bool merged = false;
+	try {
+		sacout.Load(filelst.at(0).c_str());
+		sacout.Resample(sps);
+		fRemove(filelst.at(0).c_str());
+		for(int i=1; i<filelst.size(); i++) {
+			SacRec sacnew(filelst.at(i).c_str(), *report);
+			sacnew.Load();
+			sacnew.Resample(sps);
+			sacout.merge(sacnew);
+			fRemove(filelst.at(i).c_str());
+			merged = true;
+		}
+	} catch( const ErrorSR::Base& e ) {
+		std::cerr<<"Warning(SeedRec::ExtractSac): extraction failed on "<<staname<<" "
+					<<netname<<" "<<chname<<" ("<<e.what()<<") skipped"<<std::endl;
+		return false;
+	}
+	//delete [] filelst;
 
    /* arrange the signal and check for percentage of poles if merged */
 	gapfrac = 0.;

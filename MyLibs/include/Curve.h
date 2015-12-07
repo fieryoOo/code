@@ -94,10 +94,17 @@ public:
 			const PointC& pc = T{};
 			if( !fname.empty() ) Load(fname); 
 		}
+		Curve( std::vector<T>&& dataVin ) 
+			: dataV(std::move(dataVin)) {
+			const PointC& pc = T{};
+		}
 		Curve( const float init ) {
 			const PointC& pc = T{};
 			//dataV.resize(size);
 		}
+		// range
+		typename std::vector<T>::const_iterator begin() const { return dataV.begin(); }
+		typename std::vector<T>::const_iterator end() const { return dataV.end(); }
 		// load curve from file
 		void Load( const std::string& fname ) {
 			// check infile

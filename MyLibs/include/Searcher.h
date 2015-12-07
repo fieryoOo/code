@@ -195,7 +195,7 @@ namespace Searcher {
 		#pragma omp parallel sections
 		{	// parallel S
 			#pragma omp section
-			SimulatedAnnealing<MI>( ms, dh, nsearch, 1., 2.0f, fout, -1 );	// do not save search info
+			SimulatedAnnealing<MI>( ms, dh, nsearch, 1., 2.0f, fout, 0, false );	// do not save search info
 			#pragma omp section
 			{	// section S
 			std::this_thread::sleep_for( std::chrono::seconds(1) );

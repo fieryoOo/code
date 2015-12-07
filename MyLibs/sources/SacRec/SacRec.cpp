@@ -41,7 +41,7 @@ struct SacRec::SRimpl {
    }
 
    /* ---------- FFT operations ---------- */
-   #define PI 3.14159265358979323846
+   //#define PI 3.14159265358979323846
    // forward FFT: out ==> seis
    void FFTW_F(fftw_plan plan, fftw_complex *out, float *seis, int n, const short outtype = 0) {
 		/* outtype: real(0)/imaginary(1)/amp(2)/phase(3) of the IFFT result */
@@ -117,13 +117,34 @@ struct SacRec::SRimpl {
       (*out)[0][0] /= 2.; (*out)[0][1] /= 2.;
       (*out)[nk-1][1] = 0.;
    }
-   // lowpass taper
-   void TaperL( double f3, double f4, double dom, int nk, fftw_complex *sf ) {
-      double f, ss;
-   
+   // lowpass taper (cosine)
+   void cosTaperR( double f3, double f4, double dom, int nk, fftw_complex *sf, int norderT ) {
       int i = (int)ceil(f3/dom);
-      for(f=i*dom; f<f4; i++, f+=dom) {
-         ss = ( 1. + cos(PI*(f3-f)/(f4-f3)) ) / 2.;
+		double fwidth = f4-f3, ftmp = M_PI / fwidth;
+      for(double f=i*dom; f<f4; i++, f+=dom) {
+         double s = ( 1. + cos(ftmp*(f3-f)) ) * 0.5, ss = s;
+         for(int io=1; io<norderT; io++) ss *= s;
+			sf[i][0] *= ss;
+			sf[i][1] *= ss;
+      }
+      for(;i<nk;i++) {
+         sf[i][0] = 0.;
+         sf[i][1] = 0.;
+      }
+
+      return;
+   }
+   // lowpass taper (butterworth)
+   void btwTaperR( double fc, int norder, double dom, int nk, fftw_complex *sf, int norderT ) {
+		// compute stopband freqs
+		const double toler = 1.0e-3;
+		double fl = fc * pow(1./((1-toler)*(1-toler)) - 1., 0.5/norder);
+		double fh = fc * pow(1./(toler*toler) - 1., 0.5/norder);
+		// apply taper
+		int index = 2 * norder, i = (int)ceil(fl/dom);
+      for(double f=i*dom; f<fh&&i<nk; i++, f+=dom) {
+			double s = 1. / sqrt(1. + pow(f/fc, index)), ss = s;
+         for(int io=1; io<norderT; io++) ss *= s;
          sf[i][0] *= ss;
          sf[i][1] *= ss;
       }
@@ -134,35 +155,66 @@ struct SacRec::SRimpl {
 
       return;
    }
-   // bandpass taper
-   void TaperB( double f1, double f2, double f3, double f4, double dom, int nk, fftw_complex *sf ) {
-      int i;
-      double f, ss;
-
-      for(i=0, f=0.; f<f1; i++, f+=dom) {
-         sf[i][0] = 0.;
-         sf[i][1] = 0.;
-      }
-      for(; f<f2; i++, f+=dom) {
-         ss = ( 1. - cos(PI*(f1-f)/(f2-f1)) ) / 2.;
+   // highpass taper (cosine)
+   void cosTaperL( double f1, double f2, double dom, int nk, fftw_complex *sf, int norderT ) {
+		int i; double f;
+		for( i=0, f=0.; f<f1; i++, f+=dom) {
+			sf[i][0] = 0.;
+			sf[i][1] = 0.;
+		}
+		double fwidth = f2-f1, ftmp = M_PI / fwidth;
+		for(; f<f2; i++, f+=dom) {
+			double s = (1. + cos(ftmp*(f2-f))) * 0.5, ss = s;
+         for(int io=1; io<norderT; io++) ss *= s;
+         sf[i][0] *= ss;
+         sf[i][1] *= ss;
+		}
+      return;
+	}
+   // highpass taper (butterworth)
+   void btwTaperL( double fc, int norder, double dom, int nk, fftw_complex *sf, int norderT ) {
+		// compute stopband freqs
+		const double toler = 1.0e-3;
+		double fl = fc / pow(1./(toler*toler) - 1., 0.5/norder);
+		double fh = fc / pow(1./((1-toler)*(1-toler)) - 1., 0.5/norder);
+		// apply taper
+		int i; double f;
+		for( i=0, f=0.; f<fl; i++, f+=dom) {
+			sf[i][0] = 0.;
+			sf[i][1] = 0.;
+		}
+		int index = 2 * norder;
+      for(; f<fh&&i<nk; i++, f+=dom) {
+			double s = 1. / sqrt(1. + pow(fc/f, index)), ss = s;
+         for(int io=1; io<norderT; io++) ss *= s;
          sf[i][0] *= ss;
          sf[i][1] *= ss;
       }
-      i = (int)ceil(f3/dom);
-      for(f=i*dom; f<f4; i++, f+=dom) {
-         ss = ( 1. + cos(PI*(f3-f)/(f4-f3)) ) / 2.;
+      return;
+	}
+   // bandpass taper (cosine)
+   void cosTaperB( double f1, double f2, double f3, double f4, double dom, int nk, fftw_complex *sf, int norderT ) {
+		cosTaperL( f1, f2, dom, nk, sf, norderT );
+		cosTaperR( f3, f4, dom, nk, sf, norderT );
+      return;
+   }
+   // bandpass taper (butterworth)
+   void btwTaperB( double fcL, double fcR, int norder, double dom, int nk, fftw_complex *sf, int norderT ) {
+		//btwTaperL( fcL, nL, dom, nk, sf );	// wrong
+		//btwTaperR( fcR, nR, dom, nk, sf );	// and wrong!
+		// apply taper
+		int i; double f;
+		int index = 2 * norder;
+		for( i=0, f=0.; i<nk; i++, f+=dom) {
+			double s = 1. / sqrt(1. + pow((f*f-fcR*fcL)/((fcR-fcL)*f), index)), ss = s;
+         for(int io=1; io<norderT; io++) ss *= s;
          sf[i][0] *= ss;
          sf[i][1] *= ss;
       }
-      for(;i<nk;i++) {
-         sf[i][0] = 0.;
-         sf[i][1] = 0.;
-      }
-
       return;
    }
    // gaussian taper
-   void TaperGaussian( double fcenter, double fhlen, double dom, int nk, fftw_complex *sf ) {
+   void gauTaper( double fcenter, double fhlen, double dom, int nk, fftw_complex *sf, int norderT ) {
       int i;
       float gauamp;
       double f, fstart, fend, fmax = (nk-1)*dom;
@@ -186,8 +238,10 @@ struct SacRec::SRimpl {
 		for(; f<fend-1.e-10; i++, f+=dom) {
 			gauamp = f - fcenter;
 			gauamp = exp( alpha * gauamp * gauamp );
-			sf[i][0] *= gauamp;
-			sf[i][1] *= gauamp;
+			float ss = gauamp;
+         for(int io=1; io<norderT; io++) ss *= gauamp;
+			sf[i][0] *= ss;
+			sf[i][1] *= ss;
       }
       // cut low frequencies
 		if( fend < fmax ) {
@@ -301,7 +355,7 @@ struct SacRec::SRimpl {
       int nk = ns/2+1;
       double dom = 1./dt/ns;
       fDiv(dom, nk, sf, freq, amp, pha, nf);
-      TaperB( f1, f2, f3, f4, dom, nk, sf );
+      cosTaperB( f1, f2, f3, f4, dom, nk, sf, 1 );
 
       //forward FFT: sf ==> s
       //fftw_plan plan2;
@@ -310,7 +364,7 @@ struct SacRec::SRimpl {
 
       //forming final result
       int k;
-      float ftmp = 2./ns;
+      float ftmp = 2./(ns*dt);
 		for(k=0; k<n; k++) {
 			//if( seis_in[k]==0 ) seis_out[k] = 0.;
 			//else 
@@ -819,6 +873,21 @@ void SacRec::PullUpTo( const SacRec& sac2 ) {
 		//sigsac[i] = std::max(sigsac[i], sigsac2[i]);
 }
 
+void SacRec::Reverse( SacRec& sac2 ) {
+   if( !sig )
+		throw ErrorSR::EmptySig(FuncName);
+
+	if( &sac2 == this )
+		throw ErrorSR::BadParam(FuncName, "reverse in place is not allowed!");
+
+	// initialize sac2
+   sac2.MutateAs(*this);
+
+	float *sigsac = sig.get(), *sigsac2 = sac2.sig.get();
+   for(int i=0; i<shd.npts; i++) 
+		sigsac2[shd.npts-i-1] = sigsac[i];
+}
+
 
 
 float SacRec::Dis() const {
@@ -905,27 +974,37 @@ void SacRec::MinMax (int& imin, int& imax) const {
 void SacRec::MinMax (int& imin, int& imax, float tbegin, float tend) const {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
+	// correct time window if necessary
+	if( tbegin==NaN || tbegin<shd.b ) tbegin = shd.b;
+	if( tend==NaN || tend>shd.e ) tend = shd.e;
+	// indexing range
+	const int il = Index(tbegin), ih = Index(tend)+1;
+   imin = imax = il;
+	// initialize min, max
 	float *sigsac = sig.get();
-   float min, max;
-	min = max = sigsac[0];
-   imin = imax = 0;
-	if( tbegin == NaN ) tbegin = shd.b;
-	if( tend == NaN ) tend = shd.e;
-   for ( int i = Index(tbegin); i < Index(tend)+1; i++ ) {
+	float min, max; min = max = sigsac[il];
+   for ( int i = il+1; i < ih; i++ ) {
        if ( min > sigsac[i] ) { min = sigsac[i]; imin = i; }
        else if ( max < sigsac[i] ) { max = sigsac[i]; imax = i; }
    }
 }
+
 void SacRec::MinMax (float tbegin, float tend, float& tmin, float& min, float& tmax, float& max) const {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
+	// correct time window if necessary
+	if( tbegin == NaN ) tbegin = shd.b;
+	if( tend == NaN ) tend = shd.e;
+	// indexing range
+	const int il = Index(tbegin), ih = Index(tend)+1;
+   int imin = il, imax = il;
 	float *sigsac = sig.get();
-   min = max = sigsac[0];
-   int imin = 0, imax = 0;
-   for ( int i = Index(tbegin); i < Index(tend)+1 ; i++ ) {
+	min = max = sigsac[il];
+   for ( int i = il+1; i < ih ; i++ ) {
        if ( min > sigsac[i] ) { min = sigsac[i]; imin = i; }
        else if ( max < sigsac[i] ) { max = sigsac[i]; imax = i; }
    }
+	// time results
    tmin = shd.b + imin*shd.delta;
    tmax = shd.b + imax*shd.delta;
 }
@@ -965,23 +1044,26 @@ float SacRec::RMSAvg ( float tbegin, float tend, int step ) const {
 
 
 /* compute accurate time of the peak (fit with a parabola) */
-float SacRec::Tpeak() const {
+void SacRec::Peak(float& tpeak, float& apeak, const float tbegin, const float tend) const {
 	// find isig closest to the peak
    int imin, imax;
-   MinMax(imin, imax);
+   MinMax(imin, imax, tbegin, tend );
    float* sigsac = sig.get();
 	if( fabs(sigsac[imin])>fabs(sigsac[imax]) ) imax = imin;
 	// fit a parabola to get the accurate peak time
 #ifndef PARABOLA_H
-	return Time(imax);
+	tpeak = Time(imax);
+	apeak = sigsac[imax];
 #else
    if( imax==0 || imax==shd.npts-1 ) {
-      return Time(imax);
+      tpeak = Time(imax);
+		apeak = sigsac[imax];
    } else {
       PointC p1(Time(imax-1), sigsac[imax-1]);
       PointC p2(Time(imax),   sigsac[imax]  );
       PointC p3(Time(imax+1), sigsac[imax+1]);
-      return Parabola( p1, p2, p3 ).Vertex().x;
+      auto v = Parabola( p1, p2, p3 ).Vertex();
+		tpeak = v.x; apeak = v.y;
    }
 #endif
 }
@@ -1169,17 +1251,17 @@ void SacRec::Differentiate( SacRec& sac_out ) const {
 
 /* ---------------------------------------- time - frequency ---------------------------------------- */
 /* convert to amplitude */
-void SacRec::ToAmPh( SacRec& sac_am, SacRec& sac_ph ) const {
+void SacRec::ToAmPh( SacRec& sac_am, SacRec& sac_ph, const int nfout ) const {
 	if( shd.npts > maxnpts4parallel ) {
 		#pragma omp critical(largesig)
 		{
-		ToAmPh_p(sac_am, sac_ph);
+		ToAmPh_p(sac_am, sac_ph, nfout);
 		}
 	} else {
-		ToAmPh_p(sac_am, sac_ph);
+		ToAmPh_p(sac_am, sac_ph, nfout);
 	}
 }
-void SacRec::ToAmPh_p( SacRec& sac_am, SacRec& sac_ph ) const {
+void SacRec::ToAmPh_p( SacRec& sac_am, SacRec& sac_ph, const int nfout ) const {
    if( ! sig ) 	// check signal
 		throw ErrorSR::EmptySig(FuncName);
    if( &sac_am != this ) {	// initialize sac_am if not filtering in place 
@@ -1196,13 +1278,14 @@ void SacRec::ToAmPh_p( SacRec& sac_am, SacRec& sac_ph ) const {
    pimpl->FFTW_B(FFTW_ESTIMATE, &(sig[0]), n, &s, &sf, &ns);
 
    //forming amplitude spectrum
-   int nk = ns/2 + 1;
+   int nk = std::max(nfout, ns/2 + 1);
    float *amp = new float[nk], *pha = new float[nk];
+	float delta = shd.delta;
 	if( amp==nullptr || pha==nullptr )
 		throw ErrorSR::MemError( FuncName, "new failed!");
    for(int i=0; i<nk; i++) {
       fftw_complex& cur = sf[i];
-      amp[i] = sqrt(cur[0]*cur[0] + cur[1]*cur[1]);
+      amp[i] = sqrt(cur[0]*cur[0] + cur[1]*cur[1]) * delta;
 		pha[i] = atan2(cur[1], cur[0]);
    }
    //fftw_free(s); 
@@ -1211,10 +1294,60 @@ void SacRec::ToAmPh_p( SacRec& sac_am, SacRec& sac_ph ) const {
 	sac_ph.sig.reset(pha);
 
    sac_am.shd.npts = nk;
-   sac_am.shd.delta = 1./(shd.delta*ns);
+   sac_am.shd.delta = 1./(delta*ns);
    sac_am.shd.b = 0.;
 	sac_am.shd.e = sac_am.shd.delta * nk;
 	sac_ph.shd = sac_am.shd;
+}
+
+/* convert to re & im */
+void SacRec::FFT( SacRec& sac_re, SacRec& sac_im, const int nfout ) const {
+	if( shd.npts > maxnpts4parallel ) {
+		#pragma omp critical(largesig)
+		{
+		FFT_p(sac_re, sac_im, nfout);
+		}
+	} else {
+		FFT_p(sac_re, sac_im, nfout);
+	}
+}
+void SacRec::FFT_p( SacRec& sac_re, SacRec& sac_im, const int nfout ) const {
+   if( ! sig ) 	// check signal
+		throw ErrorSR::EmptySig(FuncName);
+   if( &sac_re != this ) {	// initialize sac_re if not filtering in place 
+      //sac_re = *this;
+      sac_re.fname = fname; 
+      sac_re.shd = shd;
+      sac_re.pimpl.reset( new SRimpl(*(pimpl)) );
+   }
+
+   //fftw_plan planF = nullptr;
+   //backward FFT: s ==> sf
+   int ns, n=shd.npts;
+   fftw_complex *s, *sf;
+   pimpl->FFTW_B(FFTW_ESTIMATE, &(sig[0]), n, &s, &sf, &ns);
+
+   //forming spectrums
+   int nk = std::max(nfout, ns/2 + 1);
+   float *re = new float[nk], *im = new float[nk];
+	float delta = shd.delta;
+	if( re==nullptr || im==nullptr )
+		throw ErrorSR::MemError( FuncName, "new failed!");
+   for(int i=0; i<nk&&i<ns; i++) {
+      fftw_complex& cur = sf[i];
+      re[i] = cur[0] * delta;
+		im[i] = cur[1] * delta;
+   }
+   //fftw_free(s); 
+	fftw_free(sf);
+   sac_re.sig.reset(re);
+	sac_im.sig.reset(im);
+
+   sac_re.shd.npts = nk;
+   sac_re.shd.delta = 1./(delta*ns);
+   sac_re.shd.b = 0.;
+	sac_re.shd.e = sac_re.shd.delta * nk;
+	sac_im.shd = sac_re.shd;
 }
 
 void SacRec::FromAmPh( SacRec& sac_am, SacRec& sac_ph, const short outtype ) {
@@ -1278,23 +1411,30 @@ void SacRec::FromAmPh_p( SacRec& sac_am, SacRec& sac_ph, const short outtype ) {
 	fftw_free(in); fftw_free(out);
 	// normalize
 	if( outtype != 3 ) {
-		float *sacsig = sig.get(), ftmp = 2./ns;
+		float *sacsig = sig.get(), ftmp = 2./(shd.delta*ns);
 		for(int i=0; i<shd.npts; i++)	sacsig[i] *= ftmp;
 	}
 }
 
-/* 3 different types of filters */
-void SacRec::Filter ( double f1, double f2, double f3, double f4, SacRec& srout ) {
+/* method that performs different types of filters:
+ * type = 0: Lowpass cosine -f3~f4_
+ * type = 1: highpass cosine _f1~f2-
+ * type = 2: bandpass cosine _f1~f2-f3~f4_
+ * type = 3: lowpass butterworth -fc=f3~n=f4_
+ * type = 4: highpass butterworth _fc=f1~n=f2-
+ * type = 5: bandpass butterworth _fcL=f2~fcR=f3~n=f4_
+ * type = 6: gaussian _fc=f2~fhlen=f3_ */
+void SacRec::Filter ( double f1, double f2, double f3, double f4, const int type, SacRec& srout, bool zeroPhase ) {
 	if( shd.npts > maxnpts4parallel ) {
 		#pragma omp critical(largesig)
 		{
-		Filter_p(f1, f2, f3, f4, srout);
+		Filter_p(f1, f2, f3, f4, type, srout, zeroPhase);
 		}
 	} else {
-		Filter_p(f1, f2, f3, f4, srout);
+		Filter_p(f1, f2, f3, f4, type, srout, zeroPhase);
 	}
 }
-void SacRec::Filter_p ( double f1, double f2, double f3, double f4, SacRec& srout ) {
+void SacRec::Filter_p ( double f1, double f2, double f3, double f4, const int type, SacRec& srout, bool zeroPhase ) {
    if( ! sig )	// check signal
 		throw ErrorSR::EmptySig(FuncName);
    if( &srout != this ) {	// initialize srout if not filtering in place 
@@ -1305,8 +1445,10 @@ void SacRec::Filter_p ( double f1, double f2, double f3, double f4, SacRec& srou
       srout.pimpl.reset( new SRimpl(*(pimpl)) );
       */
    }
+
    double dt = shd.delta;
-   if(f4 > 0.5/dt) {
+	// correct f4 for cos filters
+   if(type<3 && f4>0.5/dt) {
       //std::cerr<<"Warning(SacRec::Filter): filter band out of range!"<<std::endl;;
       f4 = 0.49999/dt;
    }
@@ -1320,12 +1462,29 @@ void SacRec::Filter_p ( double f1, double f2, double f3, double f4, SacRec& srou
    pimpl->FFTW_B(FFTW_ESTIMATE, &(sig[0]), n, &s, &sf, &ns, &planF);
 
    //make tapering
-   int nk = ns/2+1;
+   int nk = ns/2+1, norder = zeroPhase ? 2 : 1;
    double dom = 1./(dt*ns);
-   if( (f1==-1. || f2==-1.) && (f3>0. && f4>0.) ) pimpl->TaperL( f3, f4, dom, nk, sf );
-   else if( f1>=0. && f2>0. && f3>0. && f4>0. ) pimpl->TaperB( f1, f2, f3, f4, dom, nk, sf );
-   else if( f1==-1. && f4==-1. ) pimpl->TaperGaussian( f2, f3, dom, nk, sf );
-   else throw ErrorSR::BadParam( FuncName, "Unknown filter type");
+	switch(type) {
+		case 0:	// Lowpass cosine
+			pimpl->cosTaperR( f3, f4, dom, nk, sf, norder ); break;
+		case 1:	// Highpass cosine
+			pimpl->cosTaperL( f1, f2, dom, nk, sf, norder ); break;
+		case 2:	// Bandpass cosine
+			pimpl->cosTaperB( f1, f2, f3, f4, dom, nk, sf, norder ); break;
+		case 3:	// Lowpass butterworth
+			pimpl->btwTaperR( f3, f4, dom, nk, sf, norder ); break;
+		case 4:	// Highpass butterworth
+			pimpl->btwTaperL( f1, f2, dom, nk, sf, norder ); break;
+		case 5:	// Bandpass butterworth
+			pimpl->btwTaperB( f2, f3, f4, dom, nk, sf, norder ); break;
+		case 6:	// Gaussian
+			pimpl->gauTaper( f2, f3, dom, nk, sf, norder ); break;
+		default:
+			throw ErrorSR::BadParam( FuncName, "Unknown filter type");
+	}
+   //if( (f1==-1. || f2==-1.) && (f3>0. && f4>0.) ) pimpl->cosTaperR( f3, f4, dom, nk, sf );
+   //else if( f1>=0. && f2>0. && f3>0. && f4>0. ) pimpl->cosTaperB( f1, f2, f3, f4, dom, nk, sf );
+   //else if( f1==-1. && f4==-1. ) pimpl->gauTaper( f2, f3, dom, nk, sf );
 
    //forward FFT: sf ==> s
    pimpl->FFTW_F(planF, s, &(srout.sig[0]), n);
@@ -1386,7 +1545,7 @@ void SacRec::cosTaperL( const float fl, const float fh ) {
 	float *sigsac = sig.get();
 	for( i=0; i<(int)ceil(fl/delta); i++ ) sigsac[i] = 0.;
 	float finit = i*delta, fwidth = fh-fl, dfh = fh-finit;
-	float ftmp = PI / fwidth;
+	float ftmp = M_PI / fwidth;
    for(; dfh>0; i++, dfh-=delta) {
 		float amplif = ( 1. + cos(ftmp*dfh) ) * 0.5;
 		sigsac[i] *= amplif;
@@ -1401,9 +1560,9 @@ void SacRec::cosTaperR( const float fl, const float fh ) {
 	const float& delta = shd.delta;
    int i = (int)ceil(fl/delta);
 	float finit = i*delta, fwidth = fh-fl, dfl = finit-fl;
-	float ftmp = PI / fwidth;
+	float ftmp = M_PI / fwidth;
 	float *sigsac = sig.get();
-   for(; dfl<fwidth; i++, dfl+=delta) {
+   for(; i<shd.npts&&dfl<fwidth; i++, dfl+=delta) {
 		float amplif = ( 1. + cos(ftmp*dfl) ) * 0.5;
 		sigsac[i] *= amplif;
    }
@@ -1795,7 +1954,7 @@ void SacRec::Resample( int sps, bool fitParabola ) {
    // anti-aliasing filter
    if(iinc!=1) {
       double f3 = sps/2.2, f4 = sps/2.01;
-		Filter(-1., 0., f3, f4);
+		LowpassCOSFilt(f3, f4);
    }
 
 	// calculate starting grid
@@ -1886,7 +2045,7 @@ void SacRec::RunAvg( float timehlen, float Eperl, float Eperh ) {
 		sac_eqk = *this;
 	} else {
 		float f2 = 1./Eperh, f1 = f2*0.6, f3 = 1./Eperl, f4 = f3*1.4;
-		Filter( f1, f2, f3, f4, sac_eqk );
+		BandpassCOSFilt( f1, f2, f3, f4, sac_eqk );
 	}
 
 	/* smooth to get earthquake strength */
