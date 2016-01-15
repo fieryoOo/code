@@ -48,7 +48,7 @@ int main( int argc, char* argv[] ) {
 		float per, grv, ftmp;
 		if( ! (ss >> ftmp >> ftmp >> per >> grv) ) continue;
 		PointC pc; 
-		pc.x = per; pc.y = grv; pc.sdensity = dis/grv;
+		pc.x = per; pc.y = grv; pc.z = dis/grv;
 		dispV.push_back(pc);
 	}
 	fin.close();
@@ -63,7 +63,7 @@ int main( int argc, char* argv[] ) {
 	float amp1 = 0., amp2 = 0., amp3 = 0.;
 	for( const auto disp : Tdisp ) {
 		//float per = disp.first, Tarr = disp.second;
-		float per = disp.x, U = disp.y, Tarr = disp.sdensity;
+		float per = disp.x, U = disp.y, Tarr = disp.z;
 		// empirical window length (not well tested)
 		const float hlen = hfactor * (20. + per*1.5) + dis*0.065;
 		const float hhlen = hlen * 1.5;

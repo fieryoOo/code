@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <limits>
 #include <algorithm>
 
 #ifndef FuncName
@@ -53,13 +54,54 @@ namespace ErrorCv {
 //class Parabola;
 class PointC {
 public:
-	PointC( float xin=NaN, float yin=NaN, float sdensin=1. ) 
-		: x(xin), y(yin), sdensity(sdensin) {}
+	PointC( float xin=NaN, float yin=NaN, float zin=1. ) 
+		: x(xin), y(yin), z(zin) {}
 
 	PointC( const std::string& input ) {
-		int nrd = sscanf(input.c_str(), "%f %f %f", &x, &y, &sdensity);
+		int nrd = sscanf(input.c_str(), "%f %f %f", &x, &y, &z);
 		if( nrd < 2 )
 			throw ErrorCv::BadInput( FuncName, "format error in string "+input );
+	}
+
+	// unary negation 
+	PointC operator-() const { return PointC( -x, -y, -z ); }
+
+	// addition 
+	PointC& operator+=( const PointC& p2 ) {
+		x += p2.x; y += p2.y; z += p2.z;
+		return *this; 
+	}
+	friend PointC operator+( const PointC& p1, const PointC& p2 ) {
+		PointC pres = p1;
+		pres += p2;
+		return pres;
+	}
+
+	// subtraction
+   PointC& operator-=( const PointC& p2 ) {
+		(*this) += -p2;
+      return *this;
+   }
+   friend PointC operator-( const PointC& p1, const PointC& p2 ) {
+		PointC pres = p1;
+      pres -= p2;
+      return pres;
+   }
+
+	// multiplication (*float)
+	PointC& operator*=( const float mul ) { 
+		x *= mul; y *= mul; z *= mul;
+		return *this; 
+	}
+	friend PointC operator*( const PointC& p1, float mul ) {
+		PointC pres = p1;
+		pres *= mul;
+		return pres;
+	}
+	friend PointC operator*( float mul, const PointC& p1 ) {
+		PointC pres = p1;
+		pres *= mul;
+		return pres;
 	}
 
 	friend bool operator< ( const PointC& p1, const PointC& p2 ) {
@@ -67,7 +109,7 @@ public:
 	}
 
 	friend std::ostream& operator<< ( std::ostream& o, const PointC& pt ) {
-		o << pt.x << " " << pt.y << " " << pt.sdensity;
+		o << pt.x << " " << pt.y << " " << pt.z;
 		return o;
 	}
 
@@ -80,7 +122,7 @@ public:
 	static constexpr float twopi = M_PI * 2.;
 
 //protected:
-	float x = NaN, y = NaN, sdensity = 1.;
+	float x = NaN, y = NaN, z = 1.;
 };
 #endif	// POINTC
 
@@ -215,6 +257,43 @@ public:
 			return (*itlow).y + ( x-(*itlow).x ) * deriv;
 		}
 
+		// return z value at a given x
+		float Z( const float x ) const {
+			const auto itupp = std::upper_bound( dataV.begin(), dataV.end(), T(x) );
+			// at the end
+			const float ferr = 1.0e-3;
+			if( itupp == dataV.end() ) {
+				if( fabs((*(itupp-1)).x - x) < ferr ) return (*(itupp-1)).y;
+				else return T::NaN;
+			}
+			// out of range
+			if( itupp<dataV.begin()+1 || itupp>=dataV.end() )
+				return T::NaN;
+			const auto itlow = itupp - 1;
+			if( itlow->x > x+ferr )	return T::NaN;
+			// between two points: interpolate
+			float vdiff = (*itupp).z - (*itlow).z, Tdiff = (*itupp).x - (*itlow).x;
+			float deriv = vdiff / Tdiff;
+			return (*itlow).z + ( x-(*itlow).x ) * deriv;
+		}
+
+		T GetPoint( const float x, bool allowOOB = false ) const {
+			const auto itupp = std::upper_bound( dataV.begin(), dataV.end(), T(x) );
+			// x out of range:
+			const float ferr = 1.0e-3;
+			if( itupp == dataV.end() ) {
+				if( allowOOB || fabs((*(itupp-1)).x - x)<ferr ) return (*(itupp-1));
+				else throw ErrorCv::BadParam( FuncName, "requested x out of range!" );
+			}
+			if( itupp<dataV.begin()+1 ) {
+				if( allowOOB || fabs((*(itupp)).x - x)<ferr ) return (*(itupp));
+				else throw ErrorCv::BadParam( FuncName, "requested x out of range!" );
+			}
+			// between two points: interpolate
+			const auto itlow = itupp - 1;
+			return ( *itlow + (*itupp-*itlow) * (x-itlow->x) * (1./(itupp->x-itlow->x)) );
+		}
+
 		// find all intersections of the curve with a given horizontal line
 		void FindValue(float val, std::vector<float>& xV) {
 			xV.clear();
@@ -249,12 +328,13 @@ public:
 
 			// sum squares of all points in range for the 1st point
 			curveout = *this;
-			float ssum = 0.;
+			// be careful with rounding error!!!
+			long double ssum = 0.;
 			auto iterb = dataV.begin();
 			auto itere = std::upper_bound( dataV.begin(), dataV.end(), xmin() + xhlen );
 			auto iter = iterb;
 			for( ; iter<itere; iter++ ) {
-				float val = iter->y;
+				long double val = iter->y;
 				ssum += val * val;
 			}
 
@@ -267,27 +347,100 @@ public:
 				auto iterenew = std::upper_bound( itere, dataV.end(), iter->x + xhlen );
 				// substract out points before iterbnew
 				for( iter=iterb; iter<iterbnew; iter++ ) {
-					float val = iter->y;
+					long double val = iter->y;
 					ssum -= val * val;
 				}
 				// sum in points before iterenew
 				for( iter=itere; iter<iterenew; iter++ ) {
-					float val = iter->y;
+					long double val = iter->y;
 					ssum += val * val;
 				}
-				iterout->y = sqrt( ssum / (iterenew - iterbnew - 1) );
+				iterout->y = std::sqrt( ssum / (iterenew - iterbnew - 1) );
 				iterb = iterbnew; itere = iterenew;
 			}
 
 		}
 
-		// compute derivative at a given x
+		// compute derivative/slope at a given x
 		float Deriv( const float x ) {
 			const auto itupp = std::upper_bound( dataV.begin(), dataV.end(), T(x) );
 			if( itupp<dataV.begin()+1 || itupp>=dataV.end() )
 				return T::NaN;
 			const auto itlow = itupp - 1;
 			return ( (*itupp).y - (*itlow).y ) / ( (*itupp).x - (*itlow).x );
+		}
+
+		// compute slope/derivative within a given segment
+		float Slope( const float x, const float hlen, float& yval, float& sigma ) {
+			const auto itlow = std::lower_bound( dataV.begin(), dataV.end(), T(x-hlen) );
+			const auto itupp = std::upper_bound( itlow, dataV.end(), T(x+hlen) );
+			const float minhlen = hlen*0.25;
+			if( itlow->x>x-minhlen || (itupp-1)->x<x+minhlen ) {
+				sigma = T::NaN; return T::NaN;
+			}
+			double a, b, sigma_a, sigma_b;
+			FitLine(itlow, itupp, a, sigma_a, b, sigma_b);
+			yval = a * x + b;	sigma = sigma_a; 
+			return a;
+		}
+
+		// compute the least-square line fit in a given range
+		void FitLine(typename std::vector<T>::iterator iterl, typename std::vector<T>::iterator iteru, 
+						 double &aout, double &sigma_a, double &bout, double &sigma_b ) {
+			const int ndat = iteru - iterl;
+			if( ndat < 2 ) {
+				aout = bout = sigma_a = sigma_b = T::NaN;
+				return;
+			}
+
+			int i;
+			double W=0, WX=0, WY=0, WX2=0, WY2=0, WXY=0;
+			for(auto iter=iterl;iter<iteru;iter++) {
+				double x = iter->x, y = iter->y;
+				double w = 1.;	// 1./( sigma[i] * sigma[i] );
+				W += w;
+				WX += w * x; WY += w * y;
+				WX2 += w * x * x; WY2 += w * y * y;
+				WXY += w * x * y; 
+			}
+
+			// determine a b assuming x to be independent
+			double w = 1./(W*WX2-WX*WX);
+			aout = (W*WXY-WX*WY) * w;
+			bout = (-WX*WXY+WX2*WY) * w;
+			/* // determine a b assuming 7 to be independent
+			double w = 1./(W*WXY-WX*WY);
+			aout=(W*WY2-WY*WY) * w;
+			bout=(WY*WXY-WY2*WX) * w; */
+
+			if( ndat == 2 ) {
+				sigma_a = sigma_b = std::numeric_limits<double>::max();
+				return;
+			}
+
+			// compute uncertainty in a and b
+			double S2 = 0., k; 
+			// define k according to ndat from t distribution
+			// assuming a 95% conf is equivalent to 2 sigma conf
+			if( ndat == 3 ) k = 12.706;
+			else if ( ndat == 4 ) k = 4.303;
+			else if ( ndat == 5 ) k = 3.182;
+			else if ( ndat == 6 ) k = 2.776;
+			else k = 1.960+13.8/pow((double)ndat, 1.6); // this could be made better
+			k *= 0.5; // now this is 1 sigma
+			// compute uncertainties
+			for(auto iter=iterl;iter<iteru;iter++) {
+				double dtmp = iter->y - aout*iter->x - bout;
+				S2 += dtmp * dtmp;
+			}
+			S2 /= ndat-2.;
+			// determine rms assuming x to be independent
+			sigma_a = std::sqrt(S2 * W * w);// * k;
+			sigma_b = std::sqrt(S2 * WX2 * w);// * k;
+			/* // determine rms assuming y to be independent
+			S2 /= a*a;
+			*sigmaaout = k * sqrt(S2 * W * w);
+			*sigmabout = k * sqrt(S2 * WY2 * w); */
 		}
 
 		// IO

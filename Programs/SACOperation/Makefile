@@ -12,6 +12,8 @@ BIN11 = SAC_CrossCorr
 BIN12 = SAC_Integrate
 BIN13 = SAC_Amplitudes
 BIN14 = SAC_ampratio
+BIN15 = SAC_PHSM
+BIN16 = SAC_taper
 
 LIBS = -L${HOME}/usr/lib -lfftw3 -lSacRec
 
@@ -20,15 +22,19 @@ cflags = -lstdc++ -std=c++11 -O3
 #OBJS = SacRec.o
 OBJS = 
 
-BINALL = $(BIN1) $(BIN2) ${BIN3} $(BIN4) $(BIN5) $(BIN6) $(BIN7) $(BIN8) $(BIN9) $(BIN10) $(BIN11) $(BIN12) $(BIN13) $(BIN14)
+BINALL1 = $(BIN1) $(BIN2) ${BIN3} $(BIN4) $(BIN5) $(BIN6) $(BIN7) $(BIN8) $(BIN9) $(BIN10) $(BIN11) $(BIN12) $(BIN13) $(BIN14) $(BIN16)
+BINALL = $(BINALL1) $(BIN15)
 all : $(BINALL)
+
+$(BIN15) : $(OBJS) $(BIN15).cpp
+	g++ $(LIBS) -lmultivariate-splines-1-2 $(cflags) -o $@ $^
 
 define makebin
 $(1) : $(OBJS) $(1).cpp
 	g++ $(LIBS) $(cflags) -o $$@ $$^
 endef
 
-$(foreach bin,$(BINALL),$(eval $(call makebin,$(bin))))
+$(foreach bin,$(BINALL1),$(eval $(call makebin,$(bin))))
 
 %.o : %.cpp
 	g++ $(cflags) -c $^

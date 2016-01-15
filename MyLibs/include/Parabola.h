@@ -20,14 +20,54 @@
 //class Parabola;
 class PointC {
 public:
-	PointC( long double xin=NaN, long double yin=NaN, long double sdensin=1. ) 
-		: x(xin), y(yin), sdensity(sdensin) {}
+	PointC( float xin=NaN, float yin=NaN, float zin=1. ) 
+		: x(xin), y(yin), z(zin) {}
 
 	PointC( const std::string& input ) {
-		int nrd = sscanf(input.c_str(), "%Lf %Lf %Lf", &x, &y, &sdensity);
+		int nrd = sscanf(input.c_str(), "%f %f %f", &x, &y, &z);
 		if( nrd < 2 )
-			throw std::runtime_error( std::string("Error(") + FuncName + "): Bad input (format error in string " + input + ")." );
-		//std::cerr<<"PointC: "<<input<<" "<<x<<" "<<y<<" "<<sdensity<<std::endl;
+			throw std::runtime_error( std::string(FuncName) + ": format error in string "+input );
+	}
+
+	// unary negation 
+	PointC operator-() const { return PointC( -x, -y, -z ); }
+
+	// addition 
+	PointC& operator+=( const PointC& p2 ) {
+		x += p2.x; y += p2.y; z += p2.z;
+		return *this; 
+	}
+	friend PointC operator+( const PointC& p1, const PointC& p2 ) {
+		PointC pres = p1;
+		pres += p2;
+		return pres;
+	}
+
+	// subtraction
+   PointC& operator-=( const PointC& p2 ) {
+		(*this) += -p2;
+      return *this;
+   }
+   friend PointC operator-( const PointC& p1, const PointC& p2 ) {
+		PointC pres = p1;
+      pres -= p2;
+      return pres;
+   }
+
+	// multiplication (*float)
+	PointC& operator*=( const float mul ) { 
+		x *= mul; y *= mul; z *= mul;
+		return *this; 
+	}
+	friend PointC operator*( const PointC& p1, float mul ) {
+		PointC pres = p1;
+		pres *= mul;
+		return pres;
+	}
+	friend PointC operator*( float mul, const PointC& p1 ) {
+		PointC pres = p1;
+		pres *= mul;
+		return pres;
 	}
 
 	friend bool operator< ( const PointC& p1, const PointC& p2 ) {
@@ -35,8 +75,7 @@ public:
 	}
 
 	friend std::ostream& operator<< ( std::ostream& o, const PointC& pt ) {
-		//o << std::setprecision(15);
-		o << pt.x << " " << pt.y << " " << pt.sdensity;
+		o << pt.x << " " << pt.y << " " << pt.z;
 		return o;
 	}
 
@@ -45,11 +84,11 @@ public:
 	//friend Parabola;
 	//friend Curve<PointC> operator-(const Curve<PointC>& c1, const Curve<PointC>& c2);
 
-	static constexpr long double NaN = -12345.;
-	static constexpr long double twopi = M_PI * 2.;
+	static constexpr float NaN = -12345.;
+	static constexpr float twopi = M_PI * 2.;
 
 //protected:
-	long double x = NaN, y = NaN, sdensity = 1.;
+	float x = NaN, y = NaN, z = 1.;
 };
 #endif	// POINTC
 
