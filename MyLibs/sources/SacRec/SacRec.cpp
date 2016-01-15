@@ -593,6 +593,7 @@ void SacRec::MutateAs ( const SacRec& recin ) {
    //fname = recin.fname; 
 	report = recin.report;
 	shd = recin.shd;
+	fname = recin.fname;
    sig.reset(new float[recin.shd.npts]);
 	if( ! sig )
 		throw ErrorSR::MemError( FuncName, "new failed!");
@@ -759,7 +760,7 @@ void SacRec::LoadTXT( const std::string& fname ) {
 	}
 }
 
-void SacRec::Dump( const std::string fname ) {
+void SacRec::Dump( const std::string fname ) const {
 	if( !sig || shd.npts<=0 )
 		throw ErrorSR::EmptySig(FuncName);
 	bool tofile = !fname.empty();
@@ -776,7 +777,7 @@ void SacRec::Dump( const std::string fname ) {
 void SacRec::PrintHD( const std::string field, std::ostream &o ) const {
 	shd.StreamTo(field, o); 
 }
-void SacRec::DumpHD( const std::string fname ) {
+void SacRec::DumpHD( const std::string fname ) const {
 	bool tofile = !fname.empty();
 	std::ofstream fout(fname);
 	if( tofile && !fout )
@@ -949,15 +950,6 @@ void SacRec::UpdateTime() {
 }
 
 
-/* indexing */
-inline static int nint( float in ) { return static_cast<int>(floor(in+0.5)); }
-inline size_t SacRec::Index( const float time ) const {
-	int index = nint((time-shd.b)/shd.delta);
-	if( index<0 || index>= shd.npts )
-		throw ErrorSR::BadParam(FuncName, "index out of range");
-	return index; 
-}
-
 /* search for min&max signal positions and amplitudes */
 /*
 void SacRec::MinMax (int& imin, int& imax) const {
@@ -1056,12 +1048,12 @@ void SacRec::Peak(float& tpeak, float& apeak, const float tbegin, const float te
 	apeak = sigsac[imax];
 #else
    if( imax==0 || imax==shd.npts-1 ) {
-      tpeak = Time(imax);
+      tpeak = X(imax);
 		apeak = sigsac[imax];
    } else {
-      PointC p1(Time(imax-1), sigsac[imax-1]);
-      PointC p2(Time(imax),   sigsac[imax]  );
-      PointC p3(Time(imax+1), sigsac[imax+1]);
+      PointC p1(X(imax-1), sigsac[imax-1]);
+      PointC p2(X(imax),   sigsac[imax]  );
+      PointC p3(X(imax+1), sigsac[imax+1]);
       auto v = Parabola( p1, p2, p3 ).Vertex();
 		tpeak = v.x; apeak = v.y;
    }
@@ -1077,9 +1069,9 @@ float SacRec::Sig( float time ) const {
 	if( itime == 0 ) itime += 1;
 	else if( itime == shd.npts-1 ) itime -= 1;
 	float* sigsac = sig.get();
-	PointC p1(Time(itime-1), sigsac[itime-1]);
-	PointC p2(Time(itime),   sigsac[itime]  );
-	PointC p3(Time(itime+1), sigsac[itime+1]);
+	PointC p1(X(itime-1), sigsac[itime-1]);
+	PointC p2(X(itime),   sigsac[itime]  );
+	PointC p3(X(itime+1), sigsac[itime+1]);
 	//std::cerr<<p1<<"\n"<<p2<<"\n"<<p3<<"\nresult: "<<time<<" "<<Parabola( p1, p2, p3 )(time)<<std::endl;
 	return Parabola( p1, p2, p3 )(time);
 #endif
@@ -1185,6 +1177,18 @@ bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& s
 	return true;
 }
 
+
+/* phase wrap and unwrap */
+void SacRec::Wrap() {
+	Transform( [](float& val){ val -= nint(val/twopi) *twopi;	} );
+}
+void SacRec::Unwrap() {
+	if( ! sig )
+		throw ErrorSR::EmptySig(FuncName);
+	float *sigph = sig.get();
+	for(int i=1; i<shd.npts; i++)
+		sigph[i] -= nint( (sigph[i]-sigph[i-1])/twopi ) * twopi;
+}
 
 /* performs integration in time domain using the trapezoidal rule */
 void SacRec::IntegrateT( SacRec& sac_out ) const {
@@ -1513,12 +1517,12 @@ void SacRec::gauTaper( const float fc, const float fh ) {
 	if( fend > fmax ) fend = fmax;
 	float *sigsac = sig.get();
 	// cut high frequecies
-	if( fstart > 0. ) {
-		for(i=0, f=0.; f<fstart; i++, f+=dom)
+	if( fstart > shd.b ) {
+		for(i=0, f=shd.b; f<fstart; i++, f+=dom)
 			sigsac[i] = 0.;
-		f = i * dom; // correct for round-off error
+		f = shd.b + i * dom; // correct for round-off error
 	}
-	else { f = 0.; i = 0; }
+	else { f = shd.b; i = 0; }
 	// apply taper
 	float alpha = -0.5/(fh*fh);
 	for(; f<fend-1.e-10; i++, f+=dom) {
@@ -1528,7 +1532,7 @@ void SacRec::gauTaper( const float fc, const float fh ) {
 	}
 	// cut low frequencies
 	if( fend < fmax ) {
-		f = i * dom; // again, correct for round-off
+		f = shd.b + i * dom; // again, correct for round-off
 		for(; i<shd.npts; i++) {
 			sigsac[i] = 0.;
 		}
@@ -1543,8 +1547,8 @@ void SacRec::cosTaperL( const float fl, const float fh ) {
 	const float& delta = shd.delta;
 	int i;
 	float *sigsac = sig.get();
-	for( i=0; i<(int)ceil(fl/delta); i++ ) sigsac[i] = 0.;
-	float finit = i*delta, fwidth = fh-fl, dfh = fh-finit;
+	for( i=0; i<(int)ceil((fl-shd.b)/delta); i++ ) sigsac[i] = 0.;
+	float finit = shd.b+i*delta, fwidth = fh-fl, dfh = fh-finit;
 	float ftmp = M_PI / fwidth;
    for(; dfh>0; i++, dfh-=delta) {
 		float amplif = ( 1. + cos(ftmp*dfh) ) * 0.5;
@@ -1558,8 +1562,8 @@ void SacRec::cosTaperR( const float fl, const float fh ) {
 		throw ErrorSR::EmptySig(FuncName);
 
 	const float& delta = shd.delta;
-   int i = (int)ceil(fl/delta);
-	float finit = i*delta, fwidth = fh-fl, dfl = finit-fl;
+   int i = (int)ceil((fl-shd.b)/delta);
+	float finit = shd.b+i*delta, fwidth = fh-fl, dfl = finit-fl;
 	float ftmp = M_PI / fwidth;
 	float *sigsac = sig.get();
    for(; i<shd.npts&&dfl<fwidth; i++, dfl+=delta) {
@@ -1612,7 +1616,10 @@ void SacRec::cut( float tb, float te, SacRec& sac_result ) {
    // reset sacT.sig
    sac_result.sig.reset(signew);
    // update shd
-   if( &(sac_result) != this ) sac_result.shd = shd;
+   if( &(sac_result) != this ) {
+		sac_result.shd = shd;
+		sac_result.fname = fname;
+	}
    sac_result.shd.b += nb * shd.delta;
 	sac_result.shd.e = sac_result.shd.b + (nptsnew-1) * shd.delta;
    sac_result.shd.npts = nptsnew;
@@ -2100,7 +2107,7 @@ float SacRec::Correlation( const SacRec& sac2, const float tb, const float te ) 
 	float cc = 0.;
 	size_t ib1 = Index(tb), ie1 = Index(te) + 1;
 	size_t ib2 = sac2.Index(tb), ie2 = sac2.Index(te) + 1;
-	if( Time(ib1) != sac2.Time(ib2) )
+	if( X(ib1) != sac2.X(ib2) )
 		throw ErrorSR::HeaderMismatch(FuncName, "sampling grid");
 
 	// compute correlation coef

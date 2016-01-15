@@ -151,9 +151,9 @@ public:
 	/* load a txt file */
 	void LoadTXT( const std::string& fname );
 	/* dump signal to stdout/txt */
-	void Dump( const std::string fname = "" );
+	void Dump( const std::string fname = "" ) const;
 	/* dump header to stdout/txt */
-	void DumpHD( const std::string fname = "" );
+	void DumpHD( const std::string fname = "" ) const;
 	/* print a single header field */
 	void PrintHD( const std::string field, std::ostream &o = std::cout ) const;
    /* change a single header filed */
@@ -188,8 +188,18 @@ public:
 	}
 
    /* ------------------------------ header/signal information ------------------------------ */
-	inline size_t Index( const float time ) const;
-	inline float Time( const size_t index ) const { return shd.b + index*shd.delta; }
+	inline size_t Index( const float time, const bool correctOFB = false ) const {
+		int index = nint((time-shd.b)/shd.delta);
+		if( index<0 || index> shd.npts )
+			if( correctOFB ) {
+				if( index<0 ) index = 0;
+				else index = shd.npts;
+			} else {
+				throw ErrorSR::BadParam(FuncName, "index out of range");
+			}
+		return index; 
+	}
+	inline float X( const size_t index ) const { return shd.b + index*shd.delta; }
    /* compute the absolute time in sec relative to 1900.01.00 */
    double AbsTime ();
    /* update/reformat header time if shd.nzmsec is modified and is out of the range [0,1000) */
@@ -219,20 +229,22 @@ public:
    /* ------------------------------ single-sac operations ------------------------------ */
 	template<class Functor>	void Transform(const Functor& func, size_t ib=0, int ie=NaN) {
 		if( !sig ) throw ErrorSR::EmptySig(FuncName);
-
 		if( ib < 0 ) ib = 0;
 		if( ie==NaN || ie>shd.npts ) ie = shd.npts;
 		float* sigsac = sig.get();
 		for(int i=ib; i<ie; i++)	func(sigsac[i]);
 	}
 
-	template<class Functor>	void Transform2(const Functor& func, size_t ib=0, int ie=NaN) {
+	template<class Functor>	void Foreach2(const Functor& func, size_t ib=0, int ie=NaN) const {
 		if( !sig ) throw ErrorSR::EmptySig(FuncName);
-
 		if( ib < 0 ) ib = 0;
 		if( ie==NaN || ie>shd.npts ) ie = shd.npts;
 		float* sigsac = sig.get();
-		for(int i=ib; i<ie; i++)	func(Time(i), sigsac[i]);
+		for(int i=ib; i<ie; i++)	func(X(i), sigsac[i]);
+	}
+
+	template<class Functor>	void Transform2(const Functor& func, size_t ib=0, int ie=NaN) {
+		Foreach2(func, ib, ie);
 	}
 
    void Mul( const float mul );
@@ -261,7 +273,14 @@ public:
 	void Differentiate() { Differentiate(*this); }
 	void Differentiate( SacRec& sac_out ) const;
 
+	/* phase wrap and unwrap */
+	void Wrap();
+	void Unwrap();
+
+	/* amplitude specturm operations */
 	void PullUpTo( const SacRec& sac2 );
+
+	/* FFT & IFFT */
    void ToAm() { ToAm(*this);	}
    void ToAm( SacRec& sac_am ) const {
 		SacRec sac_ph;
@@ -321,8 +340,7 @@ public:
    /* remove response and apply filter 
 		type: 0=displacement, 1=velocity, 2=acceleration */
    void RmRESP( const std::string& fresp, float perl, float perh, const int type = 1 ) {
-		std::string evrexe;
-		RmRESP( fresp, perl, perh, evrexe, type );
+		std::string evrexe; RmRESP( fresp, perl, perh, evrexe, type );
 	}
    void RmRESP( const std::string& fresp, float perl, float perh, const std::string& evrexe, const int type = 1 );
    /* resample (with anti-aliasing filter) the signal to given sps */
@@ -347,9 +365,7 @@ public:
    int arrange( const char *recname = nullptr );
 
 	/* ---------- compute the correlation coefficient with an input SacRec ---------- */
-	float Correlation( const SacRec& sac2 ) const {
-		return Correlation( sac2, shd.b, shd.e );
-	}
+	float Correlation( const SacRec& sac2 ) const {	return Correlation( sac2, shd.b, shd.e );	}
 	float Correlation( const SacRec& sac2, const float tb, const float te ) const;
 
 	/* Cross-Correlate with another sac record
@@ -384,6 +400,7 @@ public:
 
 protected:
 	int maxnpts4parallel = 1e6;
+	static constexpr float twopi = M_PI * 2.0;
 
 private:
    /* impl pointer */
@@ -391,6 +408,7 @@ private:
    std::unique_ptr<SRimpl> pimpl;
 	/* reporting stream */
 	std::ostream* report = &(std::cerr);
+	inline static int nint( float in ) { return static_cast<int>(floor(in+0.5)); }
 
 };
 

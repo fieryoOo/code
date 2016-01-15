@@ -59,6 +59,8 @@ struct SAC_HD {
 		if( dumpfield("gcarc") ) o << prefix << gcarc << suffix;
 		if( dumpfield("b") ) o << prefix << b << suffix;
 		if( dumpfield("e") ) o << prefix << e << suffix;
+		if( dumpfield("delta") ) o << prefix << delta << suffix;
+		if( dumpfield("npts") ) o << prefix << npts << suffix;
 		if( dumpfield("depmin") ) o << prefix << depmin << suffix;
 		if( dumpfield("depmax") ) o << prefix << depmax << suffix;
 
@@ -127,6 +129,8 @@ struct SAC_HD {
 			else if( field == "gcarc" ) succeed = sin >> shd.gcarc;
 			else if( field == "b" ) succeed = sin >> shd.b;
 			else if( field == "e" ) succeed = sin >> shd.e;
+			else if( field == "delta" ) succeed = sin >> shd.delta;
+			else if( field == "npts" ) succeed = sin >> shd.npts;
 
 			else if( field == "knetwk" ) succeed = sin >> shd.knetwk;
 			else if( field == "kstnm" ) succeed = sin >> shd.kstnm;
