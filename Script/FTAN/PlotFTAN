@@ -33,7 +33,7 @@ PlotSac() {
    xtic=50
    ymrk=10
    ytic=0.05
-   tmax=300
+   tmax=800
    ### filter to 5 - 50 sec ###
    $Filter $sacf -1 0.02 0.3 6 5 $sacf'_ft'
    amax=`saclst depmin depmax f $sacf'_ft' | awk '{if(-$2>$3){print -$2*1.1}else{print $3*1.1}}'`
@@ -51,9 +51,9 @@ PlotSac() {
 
 RunFTAN() {
    sacf=$1
-   param=$2
-   DispGrv="I_dont_believe_this_file_exists"
-   DispPhv=${dirM}"/code/Programs/head/OBS_phvel.dat"
+   DispGrv=$2
+   DispPhv=$3
+   param=$4
    echo $param" "$sacf" 0" > param_R.dat
    $FTANexe param_R.dat $DispPhv $DispGrv 0.008
    rm -f param_R.dat
@@ -67,21 +67,24 @@ PlotFTAN() {
    No=$4
    SCAx=4.0i
    SCAy=3.5i
-   ampf1=${sacf}_1_AMP 
-   disf=${sacf}_1_DISP.1
+	if [ $praw == 1 ]; then
+	   ampf=${sacf}_1_AMP 
+	   disf=${sacf}_1_DISP.0
+	else
+	   ampf=${sacf}_2_AMP 
+	   disf=${sacf}_2_DISP.1
+	fi
    dirpair=.
-   perl=3.
-   perh=30.
    REG=`echo $perl $perh | awk '{print "-R"log($1)"/"log($2)"/0.5/4.5"}'`
    REG_L=`echo $perl $perh | awk '{print "-R"log($1*0.8)"/"log($2*1.2)"/0.4/5.4"}'`
    rm -f ${dirpair}/${sacf}_amp_tmp ${dirpair}/${sacf}_amp.grd
    if [ ! -e ${dirpair}/${sacf}_amp_tmp ]; then
-      #Npts=`more $ampf1 | wc -l` 
-      #Nfre=`awk 'BEGIN{old=-1.; count=0}{if($1!=old){count++; old=$1}}END{print count}' $ampf1`
+      #Npts=`more $ampf | wc -l` 
+      #Nfre=`awk 'BEGIN{old=-1.; count=0}{if($1!=old){count++; old=$1}}END{print count}' $ampf`
       #Nvel=`echo $Npts $Nfre | awk '{print $1/$2}'`
       #step=`echo $Nfre $Nvel | awk '{step=int(0.04*$2/$1); if(step==0){step=1} print step}'`
-      #awk -v step=$step 'BEGIN{old=-1.}{if(Npt%step==0){print log($1),$2,$3}; Npt++; if($1!=old){Npt=0; old=$1}}' $ampf1 > ${dirpair}/${sacf}_amp_tmp
-      awk '{print log($1), $2, $3}' $ampf1 > ${dirpair}/${sacf}_amp_tmp
+      #awk -v step=$step 'BEGIN{old=-1.}{if(Npt%step==0){print log($1),$2,$3}; Npt++; if($1!=old){Npt=0; old=$1}}' $ampf > ${dirpair}/${sacf}_amp_tmp
+      awk '{print log($1), $2, $3}' $ampf > ${dirpair}/${sacf}_amp_tmp
    fi
    if [ ! -e ${dirpair}/${sacf}_amp.grd ]; then
       #nearneighbor ${dirpair}/${sacf}_amp_tmp -G${dirpair}/amp.grd -I0.01 $REG -S0.2 -N6/2
@@ -93,6 +96,9 @@ PlotFTAN() {
    fi
    #_fcpt=${dirpair}'/FTAN'${No}'.cpt'
    _fcpt=/projects/yeti4009/code/Script/FTAN/FTAN.cpt
+	if [ ! -e ${_fcpt} ]; then
+		_fcpt=~/code/Script/FTAN/FTAN.cpt
+	fi
    grdimage $REG -JX${SCAx}/${SCAy} ${dirpair}/${sacf}_amp.grd -C$_fcpt -O -K -X${Xoffset} -Y${Yoffset} >> $psout
    #grdcontour -R -J ${dirpair}/${sacf}_amp.grd -C10 -W.5p,black -O -K >> $psout
    REG=-R${perl}/${perh}/0.5/4.5
@@ -107,19 +113,33 @@ PlotFTAN() {
 
 ### main ###
 
-if [ $# != 1 ]; then
-	echo "Usage: "$0" [sacf]"
+if [ $# != 4 ] && [ $# != 6 ]; then
+	echo "Usage: "$0" [sacf] [vmin] [vmax] [plot raw FTAN? (0=no, 1=yes)] [disp_ref_grv] [disp_ref_phv]"
 	exit
 fi
 
 Initialize
+
+vmin=$2
+vmax=$3
+praw=$4
+if [ $# == 6 ]; then
+	frefG=$5
+	frefP=$6
+else
+   frefG="I_dont_believe_this_file_exists"
+   frefP=${dirM}"/code/Programs/head/OBS_phvel.dat"
+fi
 
 sacf=$1
 psout=${sacf}_FTAN.ps
 rm -f $psout
 pwd | psxy -Rg -JX1 -K -P > $psout
 
-RunFTAN ${sacf} '-1 0.5 4.5 3. 35. 30. 2.0 3. 0.99 10. 15. 1.5 3.0 0.6 3.'
+perl=1.
+perh=35.
+#param='-1 0.15 4.5 0.8 35. 30. 2.0 3. 0.99 8. 15. 1.5 3.0 0.6 3.'
+RunFTAN ${sacf} $frefG $frefP '-1 '$vmin' '$vmax' '$perl' '$perh' 30. 2.0 3. 0.99 8. 15. 1.5 3.0 0.6 3.'
 PlotFTAN ${sacf} 3. 5. 1
 PlotSac ${sacf} 0. 10.
 echo "-0.5 14.4 15 0.0 4 LT (a)" | pstext -R0/10/0/10 $SCA -V -O -K -N >> $psout

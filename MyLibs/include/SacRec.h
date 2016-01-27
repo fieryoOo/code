@@ -90,6 +90,8 @@ namespace ErrorSR {
 };
 
 
+//enum SACTYPE { TIME, AMP, PHA, DISP };
+
 class SacRec {
 public:
    std::string fname;			// input file name
@@ -243,6 +245,14 @@ public:
 		for(int i=ib; i<ie; i++)	func(X(i), sigsac[i]);
 	}
 
+	template<class Functor>	void Foreach3(const Functor& func, size_t ib=0, int ie=NaN) const {
+		if( !sig ) throw ErrorSR::EmptySig(FuncName);
+		if( ib < 0 ) ib = 0;
+		if( ie==NaN || ie>shd.npts ) ie = shd.npts;
+		float* sigsac = sig.get();
+		for(int i=ib; i<ie; i++)	func(i, X(i), sigsac[i]);
+	}
+
 	template<class Functor>	void Transform2(const Functor& func, size_t ib=0, int ie=NaN) {
 		Foreach2(func, ib, ie);
 	}
@@ -292,6 +302,7 @@ public:
 	void ToAmPh_p( SacRec& sac_am, SacRec& sac_ph, const int nfout = 0 ) const;	// always parallel
 	void FromAmPh( SacRec& sac_am, SacRec& sac_ph, const short outtype = 0 );		// in series when sig is large
 	void FromAmPh_p( SacRec& sac_am, SacRec& sac_ph, const short outtype = 0 );	//	always parallel
+
 	/* filters */
 	void LowpassCOSFilt( double f3, double f4 ) { LowpassCOSFilt(f3, f4, *this); }
 	void LowpassCOSFilt( double f3, double f4, SacRec& srout ) { Filter(-1., -1., f3, f4, 0, srout); }

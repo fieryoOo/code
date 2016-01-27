@@ -89,7 +89,7 @@ int get_snr(float fhlen, float *sei, int nsample, double dt, double dist, double
 
 
 /*--------------------------------------------------------------*/
-#define NMAX 16384
+#define NMAX 32768
 int pflag;
 int main (int argc, char *argv[])
 {

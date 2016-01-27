@@ -21,6 +21,7 @@
 //#include "SysTools.h"
 //extern MEMO memo;
 
+
 /* ---------------------------------------- Pimpl handle struct ---------------------------------------- */
 struct SacRec::SRimpl {
 
@@ -532,11 +533,14 @@ SacRec::SacRec( const size_t npts, std::ostream& reportin )
 
 /* copy constructor */
 SacRec::SacRec( const SacRec& recin )
- : fname(recin.fname), report(recin.report),
-	shd(recin.shd), sig(new float[recin.shd.npts]), pimpl( new SRimpl(*(recin.pimpl)) ) { 
-	if( ! sig )
-		throw ErrorSR::MemError( FuncName, "new failed!");
-   std::copy(recin.sig.get(), recin.sig.get()+recin.shd.npts, sig.get()); 
+	: fname(recin.fname), report(recin.report),
+	shd(recin.shd), pimpl( new SRimpl(*(recin.pimpl)) ) {
+	if( recin.sig && shd.npts>0 ) {
+		sig.reset(new float[shd.npts]);
+		if( ! sig )
+			throw ErrorSR::MemError( FuncName, "new failed!");
+		std::copy(recin.sig.get(), recin.sig.get()+recin.shd.npts, sig.get()); 
+	}
 }
 
 /* move constructor */
@@ -557,7 +561,7 @@ SacRec& SacRec::operator= ( const SacRec& recin ) {
    fname = recin.fname; report = recin.report;
 	shd = recin.shd;
    int npts=recin.shd.npts; 
-	if( npts > 0 ) {
+	if( recin.sig && npts>0 ) {
 		sig.reset(new float[npts]);
 		if( ! sig )
 			throw ErrorSR::MemError( FuncName, "new failed!");
