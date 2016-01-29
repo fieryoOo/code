@@ -105,39 +105,39 @@ PlotFTAN() {
    psbasemap $REG -JX${SCAx}l/${SCAy} -Ba3f3:"period (sec)":/a1.0f0.5:"group vel (km/s)"::."":WeSn -V -O -K >> $psout
    #awk '{print $3,$4}' $disf | psxy -R -J -Ba0.5f0.1:"group/phase vel (km/s)":/a3f3:."Dispersion":WSne -Sc.1 -Gred -A -O -K >> $psout
    #awk '{print $3,$5}' $disf | psxy -R -J -Sc.1 -Gblue -A -O -K >> $psout
-   awk '$3>4. && $3<34.5{print $3,$4}' $disf | psxy -R -J -Sc.15 -W6 -Gwhite -A -O -K >> $psout
-   awk '$3>4. && $3<34.5{print $3,$5}' $disf | psxy -R -J -Sc.15 -W6 -Gsteelblue -A -O -K >> $psout
-
+   awk '{print $3,$4}' $disf | psxy -R -J -Sc.15 -W6 -Gwhite -A -O -K >> $psout
+   awk '{print $3,$5}' $disf | psxy -R -J -Sc.15 -W6 -Gsteelblue -A -O -K >> $psout
+	\rm -f ${sacf}_1_AMP ${sacf}_1_DISP.1 ${sacf}_2_AMP ${sacf}_2_amp_snr ${sacf}_2_DISP.0 ${sacf}_amp.grd ${sacf}_amp_snr ${sacf}_amp_tmp ${sacf}_ft #${sacf}_cld
 }
 
 
 ### main ###
 
-if [ $# != 4 ] && [ $# != 6 ]; then
-	echo "Usage: "$0" [sacf] [vmin] [vmax] [plot raw FTAN? (0=no, 1=yes)] [disp_ref_grv] [disp_ref_phv]"
+if [ $# != 6 ] && [ $# != 8 ]; then
+	echo "Usage: "$0" [sacf] [vmin] [vmax] [permin] [permax] [plot raw FTAN? (0=no, 1=yes)] [disp_ref_grv] [disp_ref_phv]"
 	exit
 fi
 
 Initialize
 
+sacf=$1
 vmin=$2
 vmax=$3
-praw=$4
-if [ $# == 6 ]; then
-	frefG=$5
-	frefP=$6
+perl=$4
+perh=$5
+praw=$6
+if [ $# == 8 ]; then
+	frefG=$7
+	frefP=$8
 else
    frefG="I_dont_believe_this_file_exists"
    frefP=${dirM}"/code/Programs/head/OBS_phvel.dat"
 fi
 
-sacf=$1
 psout=${sacf}_FTAN.ps
 rm -f $psout
 pwd | psxy -Rg -JX1 -K -P > $psout
 
-perl=1.
-perh=35.
 #param='-1 0.15 4.5 0.8 35. 30. 2.0 3. 0.99 8. 15. 1.5 3.0 0.6 3.'
 RunFTAN ${sacf} $frefG $frefP '-1 '$vmin' '$vmax' '$perl' '$perh' 30. 2.0 3. 0.99 8. 15. 1.5 3.0 0.6 3.'
 PlotFTAN ${sacf} 3. 5. 1

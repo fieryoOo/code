@@ -147,6 +147,13 @@ public:
 		// range
 		typename std::vector<T>::const_iterator begin() const { return dataV.begin(); }
 		typename std::vector<T>::const_iterator end() const { return dataV.end(); }
+		typename std::vector<T>::iterator begin() { return dataV.begin(); }
+		typename std::vector<T>::iterator end() { return dataV.end(); }
+		typename std::vector<T>::const_iterator lower_bound(float x) const { return std::lower_bound(dataV.begin(), dataV.end(), T(x)); }
+		typename std::vector<T>::const_iterator upper_bound(float x) const { return std::upper_bound(dataV.begin(), dataV.end(), T(x)); }
+		typename std::vector<T>::iterator lower_bound(float x) { return std::lower_bound(dataV.begin(), dataV.end(), T(x)); }
+		typename std::vector<T>::iterator upper_bound(float x) { return std::upper_bound(dataV.begin(), dataV.end(), T(x)); }
+
 		// load curve from file
 		void Load( const std::string& fname ) {
 			// check infile
@@ -222,10 +229,6 @@ public:
 			iter = dataV.begin();
 		}
 
-		typename std::vector<T>::iterator begin() { return dataV.begin(); }
-		typename std::vector<T>::iterator end() { return dataV.end(); }
-		typename std::vector<T>::iterator lower_bound(float x) { return std::lower_bound(dataV.begin(), dataV.end(), T(x)); }
-		typename std::vector<T>::iterator upper_bound(float x) { return std::upper_bound(dataV.begin(), dataV.end(), T(x)); }
 		void rewind() { iter = dataV.begin(); }
 		bool get( T& Tout ) {
 			if( iter >= dataV.end() ) return false;
@@ -238,17 +241,19 @@ public:
 		float xmax() { return dataV.back().x; }
 
 		// return y value at a given x
-		float Val( const float x ) const {
+		float Val( const float x, bool allowOOB = false ) const {
 			const auto itupp = std::upper_bound( dataV.begin(), dataV.end(), T(x) );
-			// at the end
+			// greater than end
 			const float ferr = 1.0e-3;
-			if( itupp == dataV.end() ) {
-				if( fabs((*(itupp-1)).x - x) < ferr ) return (*(itupp-1)).y;
+			if( itupp >= dataV.end() ) {
+				if( allowOOB || fabs((*(itupp-1)).x - x)<ferr ) return (*(itupp-1)).y;
 				else return T::NaN;
 			}
-			// out of range
-			if( itupp<dataV.begin()+1 || itupp>=dataV.end() )
+			// smaller than beg
+			if( itupp<dataV.begin()+1 ) {
+				if( allowOOB || fabs((*(itupp)).x - x)<ferr ) return (*(itupp)).y;
 				return T::NaN;
+			}
 			const auto itlow = itupp - 1;
 			if( itlow->x > x+ferr )	return T::NaN;
 			// between two points: interpolate
@@ -419,9 +424,9 @@ public:
 			}
 
 			// compute uncertainty in a and b
-			double S2 = 0., k; 
 			// define k according to ndat from t distribution
 			// assuming a 95% conf is equivalent to 2 sigma conf
+			double k;
 			if( ndat == 3 ) k = 12.706;
 			else if ( ndat == 4 ) k = 4.303;
 			else if ( ndat == 5 ) k = 3.182;
@@ -429,18 +434,44 @@ public:
 			else k = 1.960+13.8/pow((double)ndat, 1.6); // this could be made better
 			k *= 0.5; // now this is 1 sigma
 			// compute uncertainties
+			double S2 = 0., x_avg = WX/W, varX = 0.; 
 			for(auto iter=iterl;iter<iteru;iter++) {
-				double dtmp = iter->y - aout*iter->x - bout;
-				S2 += dtmp * dtmp;
+				double dx = iter->x - x_avg;
+				double dy = iter->y - aout*iter->x - bout;
+				S2 += dy * dy; varX += dx * dx;
 			}
 			S2 /= ndat-2.;
 			// determine rms assuming x to be independent
-			sigma_a = std::sqrt(S2 * W * w);// * k;
-			sigma_b = std::sqrt(S2 * WX2 * w);// * k;
+			//sigma_a = std::sqrt(S2 / varX);
+			sigma_a = std::sqrt(S2 * W * w * W) * k;		// note!!! output is standard-dev
+			sigma_b = std::sqrt(S2 * WX2 * w * W) * k;	// due to the extra sqrt(*W) !
 			/* // determine rms assuming y to be independent
 			S2 /= a*a;
 			*sigmaaout = k * sqrt(S2 * W * w);
 			*sigmabout = k * sqrt(S2 * WY2 * w); */
+		}
+
+		// merge with another curve (y=current_curve, z=new_curve)
+		void Merge( const Curve<T> c2 ) {
+			// lambda function to insert points in the range [iterl, iteru] into dataV
+			auto InsertPoints = [&](typename std::vector<T>::const_iterator iterl, 
+											typename std::vector<T>::const_iterator iteru) {
+				for( auto iter=iterl; iter<iteru; iter++ ) {
+					T p; p.x = iter->x; p.z = iter->y;
+					p.y = Val(p.x, true);
+					dataV.push_back( p );
+				}
+			};
+			// insert points with x smaller than this.xmin
+			auto iter2 = std::lower_bound( c2.begin(), c2.end(), T(xmin()) );
+			InsertPoints( c2.begin(), iter2 );
+			// for exist points (in between this->begin() and this->end()), write c2.y into p.z
+			for( auto& p : dataV ) p.z = c2.Val(p.x, true);
+			// insert points with x greater than this.xmax
+			iter2 = std::upper_bound( iter2, c2.end(), T(xmax()) );
+			InsertPoints( iter2, c2.end() );
+			// sort
+			Sort();
 		}
 
 		// IO
@@ -451,6 +482,7 @@ public:
 			for( const auto& spP : dataV )
 				fout<<spP<<"\n";
 		}
+
 
 		// math operator bases
 		template<class Functor>

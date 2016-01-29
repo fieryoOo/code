@@ -271,21 +271,24 @@ struct SacRec::SRimpl {
 			float gdamp = exp( alpha * ndiff * ndiff );
 			*p = rand() * gdamp;
 			slope = ( *p - *(p-step) ) * oostep;
-			for(int i=1; i<step; i++) *(p+i) = *p + slope * i;
-		}
+			//for(int i=1; i<step; i++) *(p+i) = *p + slope * i;
+			for(int i=1; i<step; i++) *(p-step+i) = *(p-step) + slope * i;  // by lili
+      }
 		// generate tapered random numbers for the 2nd half
 		for(; p<pend; p+=step) { 
 			int ndiff = (pend-p);
 			float gdamp = exp( alpha * ndiff * ndiff );
 			*p = rand() * gdamp; 
 			slope = ( *p - *(p-step) ) * oostep;
-			for(int i=1; i<step; i++) *(p+i) = *p + slope * i;
+			//for(int i=1; i<step; i++) *(p+i) = *p + slope * i;
+         for(int i=1; i<step; i++) *(p-step+i) = *(p-step) + slope * i;	// by lili
 		}
 		// connect the last several points
 		*pend = rand();
 		p = p-step;
 		slope = ( *pend - *p ) / ( pend - p );
-      for(p=p+1; p<pend; p++) *p = *(p-1) + slope;
+      //for(p=p+1; p<pend; p++) *p = *(p-1) + slope;
+      for(int i=1; p+i<pend; i++) *(p+i) = *p + slope*i; // by lili
 		// shift generated radom numbers to mean1 - mean2
 		slope = (mean2 - mean1) / (pend - pbeg);
 		for(p=pbeg; p<pend; p++) {
@@ -1813,6 +1816,7 @@ void SacRec::ZoomToEvent( const SAC_HD& eshd, float evlon, float evlat, float tb
    sprintf( shd.kevnm, "%s", ename.c_str() );
 	if( evlon>=-180. && evlon<=360. ) shd.evlo = evlon;
    if( evlat>=-90. && evlat<=90. ) shd.evla = evlat;
+	pimpl->ComputeDisAzi( shd );
 }
 
 /* remove mean and trend */
