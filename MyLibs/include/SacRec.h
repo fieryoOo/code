@@ -3,6 +3,7 @@
 
 #include "mysac64.h"
 #include "MyOMP.h"
+#include "Parabola.h"
 //#include <cstddef>
 #include <iostream>
 #include <sstream>
@@ -154,6 +155,8 @@ public:
 	void LoadTXT( const std::string& fname );
 	/* dump signal to stdout/txt */
 	void Dump( const std::string fname = "" ) const;
+	/* dump signal to a vector of PointCs */
+	void Dump( std::vector<PointC>& dataV ) const;
 	/* dump header to stdout/txt */
 	void DumpHD( const std::string fname = "" ) const;
 	/* print a single header field */

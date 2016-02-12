@@ -26,7 +26,11 @@ latmin=`awk -v clat=$clat -v slat=$slat 'BEGIN{latmin=90.}{if(latmin>$2)latmin=$
 latmax=`awk -v clat=$clat -v slat=$slat 'BEGIN{latmax=-90.}{if(latmax<$2)latmax=$2}END{latmax+=(latmax-clat)*0.05; latm=clat+slat*2.; if(latm<latmax){print latm}else{print latmax}}' $fintmp`
 #REG=`echo $cloc $stds | awk '{print "-R"$1-$3*2."/"$1+$3*2."/"$2-$4*2."/"$2+$4*2.}'`
 REG=-R${lonmin}/${lonmax}/${latmin}/${latmax}
-echo "region = "$REG
+isGeo=false
+if [ `echo $lonmin $lonmax $latmin $latmax | awk '{if($1>=-180&&$1<=360&&$2>=-180&&$2<=360&&$3>=-90&&$3<=90&&$4>=-90&&$4<=90){print 1}else{print 0}}'` == 1 ]; then
+	isGeo=true
+fi
+echo "region = "$REG" isGeo = "$isGeo
 
 # compute surface
 res=0.1
@@ -64,24 +68,31 @@ gmtset HEADER_FONT_SIZE 15
 gmtset LABEL_FONT_SIZE 12
 gmtset ANNOT_FONT_SIZE 10
 # plot starts
-SCA=-JN$clon/6i
+if [ $isGeo == ture ]; then
+	SCA=-JN$clon/6i
+else
+	SCA=-JX18
+fi
 psout=${fin}.ps
-pwd | psxy -H $REG $SCA -X4. -Y8. -P  -V -K  > $psout
+pwd | psxy -H $REG $SCA -X1.5 -Y8. -P  -V -K  > $psout
 
 if [ $plot_type != 4 ]; then
 	sms=`echo $res | awk '{print $1/5.0}'`
 	fgrds=${fintmp}.grds
 	ftobedeleted[idel]=$fgrds; let idel++
 	grdsample $fgrd -Q -G$fgrds $REG -I$sms
-	grdimage $SCA $REG $fgrds -C$fcpt -Ba3f2/a3f2WeSn:."$fin": -O -K >> $psout
+	grdimage $SCA $REG $fgrds -C$fcpt -O -K >> $psout
 fi
 
-pscoast $SCA $REG -A100 -N1/3/0/0/0 -N2/3/0/0/0 -O -K -W3 >> $psout
-
-dirhead=/projects/yeti4009/code/Programs/head
-if [ ! -e $dirhead ]; then dirhead=/home/tianye/code/Programs/head; fi
-psxy ${dirhead}/wus_province_II.dat $SCA $REG -W5/255/0/0 -M"99999 99999"  -O -K >> $psout
-psxy ${dirhead}/platebound.gmt $SCA $REG -W5/255/0/0 -M"99999 99999"  -O -K >> $psout
+if [ $isGeo == ture ]; then
+	pscoast $SCA $REG -A100 -N1/3/0/0/0 -N2/3/0/0/0 -O -K -W3 >> $psout
+	dirhead=/projects/yeti4009/code/Programs/head
+	if [ ! -e $dirhead ]; then dirhead=/home/tianye/code/Programs/head; fi
+	psxy ${dirhead}/wus_province_II.dat $SCA $REG -W5/255/0/0 -M"99999 99999"  -O -K >> $psout
+	psxy ${dirhead}/platebound.gmt $SCA $REG -W5/255/0/0 -M"99999 99999"  -O -K >> $psout
+fi
+pwd | psxy -R -J -Ba3f1/a5f1WeSn:."$fin": -O -K >> $psout
+#pwd | psxy -R -J -Ba3f1/a3f1WeSn:."$fin": -O -K >> $psout
 psscale  -C$fcpt -D6.2/-1./12.4/0.5h -O -K >> $psout
 
 # stations
@@ -89,7 +100,8 @@ if [ ${plot_type} == 1 ]; then
 	psxy $fintmp $REG $SCA -Sc.35 -W3,white -O -K >> $psout
 	psxy $fintmp $REG $SCA -Sc.4 -W3,black -O -K >> $psout
 elif [ ${plot_type} -gt 1 ]; then
-	psxy $fintmp $REG $SCA -Sc.38 -C$fcpt -W3,black -O -K >> $psout
+	#psxy $fintmp $REG $SCA -Sc.38 -C$fcpt -W3,black -O -K >> $psout
+	psxy $fintmp $REG $SCA -Ss.14 -C$fcpt -O -K >> $psout
 fi
 
 # texts

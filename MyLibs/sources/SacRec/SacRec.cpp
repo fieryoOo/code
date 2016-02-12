@@ -1,6 +1,5 @@
 #include "SacRec.h"
 #include "DisAzi.h"
-#include "Parabola.h"
 //#include "MyLogger.h"
 //#include "SysTools.h"
 #include <fftw3.h>
@@ -778,6 +777,16 @@ void SacRec::Dump( const std::string fname ) const {
 	float b = shd.b, dt = shd.delta, *sigsac = sig.get();
 	for( int i=0; i<shd.npts; i++ )
 		sout<<b+i*dt<<" "<<sigsac[i]<<"\n";
+}
+
+/* dump signal to a vector of PointCs */
+void SacRec::Dump( std::vector<PointC>& dataV ) const {
+	if( !sig || shd.npts<=0 )
+		throw ErrorSR::EmptySig(FuncName);
+	float b = shd.b, dt = shd.delta, *sigsac = sig.get();
+	dataV.clear(); dataV.resize(shd.npts);
+	for( int i=0; i<shd.npts; i++ )
+		dataV[i] = PointC(b+i*dt, sigsac[i]);
 }
 
 /* ------------------------------- header operations ------------------------------- */
