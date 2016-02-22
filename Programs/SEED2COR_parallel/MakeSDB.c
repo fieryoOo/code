@@ -95,13 +95,12 @@ bool isInteger(const char* s) {
 }
 void FillStations() {
    FILE *fsta;
-   int ist;
    if((fsta=fopen(stalst,"r")) == NULL) {
       cerr<<"ERROR(FillStations): Cannot open file "<<stalst<<endl;
       exit(0);
    }
-   for (ist=0;;ist++) {
-      if( !fgets(buff,300,fsta) ) break;
+	int ist = 0;
+	while( fgets(buff,300,fsta) ) {
 		if( ist >= NSTATION ) {
 			cerr<<"Error(FillStations): #station exceeds the maximum. Increase NSTATION!"<<std::endl;
 			exit(-2);
@@ -110,13 +109,14 @@ void FillStations() {
 		sprintf(sdb->st[ist].net, "#");
       int ird = sscanf(buff,"%s %f %f %s %d", sdb->st[ist].name, &(sdb->st[ist].lon), &(sdb->st[ist].lat), sdb->st[ist].net,  &(sdb->st[ist].flag) );
 		if( ird < 3 ) {
-			cerr<<"Error(FillStations): format error(sta lon lat net[optional] flag[optional]) !"<<endl;
-			exit(-2);
+			if(ird > 0) cerr<<"Warn(FillStations): format error(sta lon lat net[optional] flag[optional]) !"<<endl;
+			continue; //exit(-2);
 		} else if( ird==4 && isInteger(sdb->st[ist].net) ) {
 			sdb->st[ist].flag = atoi(sdb->st[ist].net);
 			sprintf(sdb->st[ist].net, "#");
 		}
       //fprintf(stderr,"Station %s filled: %f %f %s %d\n", sdb->st[ist].name,  sdb->st[ist].lon, sdb->st[ist].lat, sdb->st[ist].net, sdb->st[ist].flag );
+		ist++;
    }
    fclose(fsta);
    sdb->nst = ist;
