@@ -1958,7 +1958,8 @@ void SacRec::ISWT( const std::vector<double>& datastV,
 /* ---------------------- t-f normalization with stockwell transform ---------------------- */
 // this is a 2-D one bit normalization in the f-t domain, stablized with the cutoff_factor:
 // cutoff_factor = 0 (cut any point>the_smallest) - 1 (cut any point>the_largest --not modified at all)
-void SacRec::STNorm( SacRec& sacout, const float thlen, float fl, float fu, float tsafe, const float t_seg ) const {
+void SacRec::STNorm( SacRec& sacout, const float thlen, float fl, float fu, 
+							float tsafe, const float t_seg, const short norm_method ) const {
 	if( !sig || shd.npts<=0 )
 		throw ErrorSR::EmptySig(FuncName);
 
@@ -1989,7 +1990,6 @@ void SacRec::STNorm( SacRec& sacout, const float thlen, float fl, float fu, floa
 	int nskip = (int)floor(tsafe/deltat);
 
 	// loop over segments
-	short norm_method = 1;
 	const float cutoff_refperc  = 0.6, cut_factor = 3.;
 	for(int iseg=0; iseg<nseg; iseg++) {
 		// stockwell transform
@@ -2078,6 +2078,8 @@ fout.close(); fout.clear();
 					}
 					real *= mul; imag *= mul;
 				}
+			} else {
+				throw ErrorSR::BadParam(FuncName, "unknown norm method");
 			}
 		}
 

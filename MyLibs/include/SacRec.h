@@ -414,12 +414,13 @@ public:
 	/* ---------------------- t-f normalization with stockwell transform ---------------------- */
 	// this is a 2-D one bit normalization in the f-t domain, stablized with the cutoff_factor:
 	// cutoff_factor = 0 (cut any point>the_smallest) - 1 (cut any point>the_largest --not modified at all)
-	void STNorm( const float thlen = 40., float fl = -1., float fu = -1., float tsafe = 200., const float t_seg = 1024. ) {
-		SacRec sacout; STNorm(sacout, thlen, fl, fu, tsafe, t_seg);
+	void STNorm( const float thlen = 40., float fl = -1., float fu = -1., 
+					 float tsafe = 200., const float t_seg = 1024., const short nmethod = 0 ) {
+		SacRec sacout; STNorm(sacout, thlen, fl, fu, tsafe, t_seg, nmethod);
 		*this = sacout;
 	}
 	void STNorm( SacRec& sacout, const float thlen = 40., float fl = -1., float fu = -1.,
-					 float tsafe = 200., const float t_seg = 1024. ) const;
+					 float tsafe = 200., const float t_seg = 1024., const short nmethod = 0 ) const;
 
 	/* ------------------------------- memory consumed ------------------------------- */
 	float MemConsumed() const;
