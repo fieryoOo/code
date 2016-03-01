@@ -1,6 +1,9 @@
+#include "mysac64.h"
+#include <iostream>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string>
 #include <fftw3.h>
 #include <math.h>
 #include <string.h>
@@ -11,6 +14,7 @@
 //extern pthread_mutex_t fftlock;
 
 void FFTW_B(int type, float *seis, int n, fftw_complex **in, fftw_complex **out, int *nso, fftw_plan *planF, int Fflag);
+void FFTW_F(fftw_plan plan, fftw_complex *out, int ns, float *seis, int n);
 
 void TaperB( double f1, double f2, double f3, double f4, double dom, int nk, fftw_complex *sf );
 
@@ -56,7 +60,7 @@ int Smooth1(double f1, double f4, double dom, int nk, fftw_complex *sf, int num)
 
 }
 
-int Whiten( double f1, double f2, double f3, double f4, double dt, int n, float hlen, float *seis_in, float *seissm, float **outam, float **outph, int *nkout, double *domout) {
+int Whiten( double f1, double f2, double f3, double f4, double dt, int n, float hlen, float *seis_in, float *seissm, float **outam, float **outph, int *nkout, double *domout, const char* sacname, SAC_HD& shd) {
    if(f4 > 0.5/dt) {
       fprintf(stdout, "*** Warning: whiten band upper end out of range! Corrected to spectrum end ***");
       f4 = 0.5/dt;
@@ -71,7 +75,8 @@ int Whiten( double f1, double f2, double f3, double f4, double dt, int n, float 
    fftw_complex *s, *sf;
 
    //backward FFT: s ==> sf
-   FFTW_B(FFTW_ESTIMATE, seis_in, n, &s, &sf, &ns, &planF, 0); // 0 tells FFTW_B to not create planF
+   //FFTW_B(FFTW_ESTIMATE, seis_in, n, &s, &sf, &ns, &planF, 0); // 0 tells FFTW_B to not create planF
+   FFTW_B(FFTW_ESTIMATE, seis_in, n, &s, &sf, &ns, &planF, 1); 
    int nk = ns/2+1;
    *nkout = nk;
    double dom = 1./dt/ns; *domout = dom;
@@ -100,6 +105,12 @@ int Whiten( double f1, double f2, double f3, double f4, double dt, int n, float 
       (*outam)[k] = sqrt( pow(sf[k][0], 2) + pow(sf[k][1], 2) );
       (*outph)[k] = atan2(sf[k][1], sf[k][0]);
    }
+
+	//debug: output whitened signal
+	FFTW_F(planF, sf, ns, seis_in, n);
+	std::string outname(sacname); outname += "_whitened";
+   write_sac(outname.c_str(), seis_in, &shd);
+
    fftw_free(s); fftw_free(sf);
 
    return 1;

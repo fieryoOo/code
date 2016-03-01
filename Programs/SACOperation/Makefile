@@ -18,7 +18,7 @@ BIN17 = SAC_merge
 BIN18 = SAC_cut
 BIN18 = SAC_event
 
-LIBS = -L${HOME}/usr/lib -lfftw3 -lSacRec
+LIBS = -L${HOME}/usr/lib -lfftw3 -lSacRec -fopenmp
 
 cflags = -lstdc++ -std=c++11 -O3
 

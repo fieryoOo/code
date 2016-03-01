@@ -64,8 +64,7 @@ int main( int argc, char* argv[] ) {
 
 			// estimate rms misfit at each point
 			Curve<PointC> curve_diff = curve_ph_sm - curve_ph;
-			Curve<PointC> curve_ph_rms;
-			curve_diff.BinRMS( fsmhlen, curve_ph_rms );
+			Curve<PointC> curve_ph_rms = curve_diff.BinRMS(fsmhlen);
 			//curve_ph_rms.Write("debug_rms");
 			curve_diff.clear();
 

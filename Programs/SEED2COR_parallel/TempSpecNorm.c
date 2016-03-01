@@ -2,7 +2,7 @@
 #include <vector>
 #include <algorithm>
 
-int Whiten( double f1, double f2, double f3, double f4, double dt, int n, float hlen, float *seis_in, float *seissm, float **outam, float **outph, int *nk, double *dom);
+int Whiten( double f1, double f2, double f3, double f4, double dt, int n, float hlen, float *seis_in, float *seissm, float **outam, float **outph, int *nk, double *dom, const char* sacname, SAC_HD& shd);
 
 void UpdateRec(char *name, int *rec_b, int *rec_e, int nrec, int ithread) {
    int rec_b1[1000], rec_e1[1000], nrec1;
@@ -262,7 +262,7 @@ int SpectralNorm(char *fname, float *sig, SAC_HD shd, int ithread) {
    //memset (seis_outph,0,nf*sizeof(float));
    //pthread_mutex_lock(&fftlock);
    //whiten_(&f1,&f2,&f3,&f4,&npow,&dt,&n,&frechlen,sig,sigw,seis_out,outam,outph,&ns,&dom,&flag_whiten);
-   flag_whiten = Whiten( f1, f2, f3, f4, dt, n, frechlen, sig, sigw, &outam, &outph, &nk, &dom);
+   flag_whiten = Whiten( f1, f2, f3, f4, dt, n, frechlen, sig, sigw, &outam, &outph, &nk, &dom, fname, shd);
    //pthread_mutex_unlock(&fftlock);
    if(flag_whiten==0) reports[ithread].tail += sprintf(reports[ithread].tail, "*** Warning: Skipped due to probamatic spectrum. ***");
    else {

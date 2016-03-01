@@ -8,23 +8,17 @@ fi
 # input
 fin=$1
 
-# correct longitudes
 idel=0
 fintmp=.${fin}.PlotMap.temp
 ftobedeleted[idel]=$fintmp; let idel++
-awk '{lon=$1; if(lon<0.){lon+=360.} print lon, $2, $3, $4}' $fin > $fintmp
+cp $fin $fintmp
 
-# decide region
-cloc=`awk 'BEGIN{lonsum=0; latsum=0}{lonsum+=$1; latsum+=$2;}END{print lonsum/NR, latsum/NR}' $fintmp`
-clon=`echo $cloc | awk '{print $1}'`; clat=`echo $cloc | awk '{print $2}'`
-stds=`awk -v clon=$clon -v clat=$clat 'BEGIN{lonstd=0; latstd=0}{lonstd+=($1-clon)**2; latstd+=($2-clat)**2}END{print (lonstd/(NR-1))**0.5, (latstd/(NR-1))**0.5}' $fintmp`
-slon=`echo $stds | awk '{print $1}'`; slat=`echo $stds | awk '{print $2}'`
-lonmin=`awk -v clon=$clon -v slon=$slon 'BEGIN{lonmin=360.}{if(lonmin>$1)lonmin=$1}END{lonmin+=(lonmin-clon)*0.05; lonm=clon-slon*2.; if(lonm>lonmin){print lonm}else{print lonmin}}' $fintmp`
-lonmax=`awk -v clon=$clon -v slon=$slon 'BEGIN{lonmax=-360.}{if(lonmax<$1)lonmax=$1}END{lonmax+=(lonmax-clon)*0.05; lonm=clon+slon*2.; if(lonm<lonmax){print lonm}else{print lonmax}}' $fintmp`
-awk -v clon=$clon -v slon=$slon 'BEGIN{lonmax=-360.}{if(lonmax<$1)lonmax=$1}END{print lonmax,clon; lonmax+=(lonmax-clon)*0.05; lonm=clon+slon*2.; print lonmax, lonm}' $fintmp
-latmin=`awk -v clat=$clat -v slat=$slat 'BEGIN{latmin=90.}{if(latmin>$2)latmin=$2}END{latmin+=(latmin-clat)*0.05; latm=clat-slat*2.; if(latm>latmin){print latm}else{print latmin}}' $fintmp`
-latmax=`awk -v clat=$clat -v slat=$slat 'BEGIN{latmax=-90.}{if(latmax<$2)latmax=$2}END{latmax+=(latmax-clat)*0.05; latm=clat+slat*2.; if(latm<latmax){print latm}else{print latmax}}' $fintmp`
-#REG=`echo $cloc $stds | awk '{print "-R"$1-$3*2."/"$1+$3*2."/"$2-$4*2."/"$2+$4*2.}'`
+###
+ranges=`minmax -C $fin`
+lonmin=`echo $ranges | awk '{print $1}'`
+lonmax=`echo $ranges | awk '{print $2}'`
+latmin=`echo $ranges | awk '{print $3}'`
+latmax=`echo $ranges | awk '{print $4}'`
 REG=-R${lonmin}/${lonmax}/${latmin}/${latmax}
 #REG=-R1./30./0.5/6.
 xmrk=`echo ${lonmin} ${lonmax} | awk '{printf "%.1f",($2-$1)/5.}'`
@@ -32,28 +26,16 @@ ymrk=`echo ${latmin} ${latmax} | awk '{printf "%.1f",($2-$1)/5.}'`
 xtic=`echo $xmrk | awk '{print $1/5.}'`
 ytic=`echo $ymrk | awk '{print $1/5.}'`
 isGeo=false
-if [ `echo $lonmin $lonmax $latmin $latmax | awk '{if($1>=-180&&$1<=360&&$2>=-180&&$2<=360&&$3>=-90&&$3<=90&&$4>=-90&&$4<=90){print 1}else{print 0}}'` == 1 ]; then
-	isGeo=true
-fi
 echo "region = "$REG" isGeo = "$isGeo
 
 # compute surface
 res=0.1
 ts=0.2
-bdis=30.
-
-fbmtmp1=${fintmp}.bm1
-ftobedeleted[idel]=$fbmtmp1; let idel++
-fbmtmp2=${fintmp}.bm2
-ftobedeleted[idel]=$fbmtmp2; let idel++
-
-blockmean $fintmp $REG -I$bdis'km' > $fbmtmp1
-blockmean $fbmtmp1 $REG -F -I$bdis'km' > $fbmtmp2
 
 fgrd=${fintmp}.grd
 ftobedeleted[idel]=$fgrd; let idel++
 
-surface $fbmtmp2 -T$ts -G$fgrd -I$res $REG
+surface ${fintmp} -T$ts -G$fgrd -I$res $REG
 
 # plotting type
 plot_type=0
