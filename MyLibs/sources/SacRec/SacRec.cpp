@@ -1,5 +1,6 @@
 #include "SacRec.h"
 #include "DisAzi.h"
+#include "Array2D.h"
 //#include "MyLogger.h"
 //#include "SysTools.h"
 #include <fftw3.h>
@@ -199,6 +200,11 @@ struct SacRec::SRimpl {
       return;
    }
    // bandpass taper (butterworth)
+	inline double btwB( double fcL, double fcR, int norder, double f ) {
+		int index = 2 * norder;
+		double s = 1. / sqrt(1. + pow((f*f-fcR*fcL)/((fcR-fcL)*f), index));
+		return s;
+	}
    void btwTaperB( double fcL, double fcR, int norder, double dom, int nk, fftw_complex *sf, int norderT ) {
 		//btwTaperL( fcL, nL, dom, nk, sf );	// wrong
 		//btwTaperR( fcR, nR, dom, nk, sf );	// and wrong!
@@ -206,8 +212,8 @@ struct SacRec::SRimpl {
 		int i; double f;
 		int index = 2 * norder;
 		for( i=0, f=0.; i<nk; i++, f+=dom) {
-			double s = 1. / sqrt(1. + pow((f*f-fcR*fcL)/((fcR-fcL)*f), index)), ss = s;
-         for(int io=1; io<norderT; io++) ss *= s;
+			double s = btwB(fcL, fcR, norder, f), ss = s;
+			for(int i=1; i<norderT; i++) ss *= s;
          sf[i][0] *= ss;
          sf[i][1] *= ss;
       }
@@ -251,6 +257,37 @@ struct SacRec::SRimpl {
 				sf[i][1] = 0.;
 			}
 		}
+	}
+
+	void Smooth(const float* sig, float* sigout, const int n, float half_l) {
+		/* copy and compute abs of the signal into sigw */
+		int i, j, wb, we;
+		float wsum;
+		//float sigw[n];
+		std::unique_ptr<float> sigw_p(new float[n]);
+		float *sigw = sigw_p.get(); 
+
+		for( i=0; i<n; i++ ) sigw[i] = fabs(sig[i]);
+
+		//
+		if(half_l*2>n-1) half_l = (n-1)/2;
+		for(i=0,wsum=0.;i<=half_l;i++) wsum += sigw[i];
+		wb = 0; we = i;
+		for(i=1;i<=half_l;i++,we++) {
+			sigout[i-1] = (double)wsum/we;
+			wsum += sigw[we];
+		}
+	   for(j=we;i<n-half_l;i++,wb++,we++) {
+			//if( i>80000/dt && i<82000/dt ) std::cerr<<(i-1)*dt<<" "<<sig[i-1]<<" "<<wsum<<" / "<<j<<std::endl;
+			sigout[i-1] = (double)wsum/j;
+	      wsum += ( sigw[we] - sigw[wb] );
+		}
+	   for(;i<n;i++,wb++) {
+			sigout[i-1] = (double)wsum/(we-wb);
+			wsum -= sigw[wb];
+	   }
+		if(wsum>1.e-15)
+			sigout[n-1] = (double)wsum/(we-wb);
 	}
 
 	float FillGap( float *pbeg, float *pend, float mean1, float mean2, float std, int hlen, int step ) {
@@ -398,6 +435,271 @@ struct SacRec::SRimpl {
 	#else
 	void ComputeDisAzi( SAC_HD& shd ) { throw ErrorSR::UndefMethod( FuncName, "DisAzi.h not included!" ); }
 	#endif
+
+	// stockwell transform
+	//char *Wisfile = NULL;
+	//char *Wistemplate = "%s/.fftwis";
+	//#define WISLEN 8
+	std::string Wisfile;
+
+	void set_wisfile(void) {
+		if (! Wisfile.empty()) return;
+		char *home;	home = getenv("HOME");
+		Wisfile = std::string(home) + "/.fftwis";
+		//Wisfile = (char *)malloc(strlen(home) + WISLEN + 1);
+		//sprintf(Wisfile, Wistemplate, home);
+	}
+
+	/* Convert frequencies in Hz into rows of the ST, given sampling rate and length. */
+
+	int st_freq(double f, int len, double srate)	{
+		return floor(f * len / srate + .5);
+	}
+
+	/* Stockwell transform of the real array data. The len argument is the
+		number of time points, and it need not be a power of two. The lo and hi
+		arguments specify the range of frequencies to return, in Hz. If they are
+		both zero, they default to lo = 0 and hi = len / 2. The result is
+		returned in the complex array result, which must be preallocated, with
+		n rows and len columns, where n is hi - lo + 1. For the default values of
+		lo and hi, n is len / 2 + 1. */
+	int planlen = 0;
+	double *g;
+	fftw_plan p1, p2;
+	fftw_complex *h, *H, *G;
+	void st(int len, int lo, int hi, float *data, double *result)	{
+		int i, k, n, l2;
+		double s, *p;
+		FILE *wisdom;
+
+		/* Check for frequency defaults. */
+
+		if (lo == 0 && hi == 0) {
+			hi = len / 2;
+		}
+
+		/* Keep the arrays and plans around from last time, since this
+			is a very common case. Reallocate them if they change. */
+
+		if (len != planlen && planlen > 0) {
+			#pragma omp critical(fftw)
+	      {
+			fftw_destroy_plan(p1);
+			fftw_destroy_plan(p2);
+			}
+			fftw_free(h);
+			fftw_free(H);
+			fftw_free(G);
+			free(g);
+			planlen = 0;
+		}
+
+		if (planlen == 0) {
+			planlen = len;
+			h = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * len);
+			H = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * len);
+			G = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * len);
+			g = (double *)malloc(sizeof(double) * len);
+
+			/* Get any accumulated wisdom. */
+
+			set_wisfile();
+			#pragma omp critical (fftw)
+			{
+			wisdom = fopen(Wisfile.c_str(), "r");
+			if (wisdom) {
+				fftw_import_wisdom_from_file(wisdom);
+				fclose(wisdom);
+			}
+
+			/* Set up the fftw plans. */
+			p1 = fftw_plan_dft_1d(len, h, H, FFTW_FORWARD, FFTW_MEASURE);
+			p2 = fftw_plan_dft_1d(len, G, h, FFTW_BACKWARD, FFTW_MEASURE);
+
+			/* Save the wisdom. */
+			wisdom = fopen(Wisfile.c_str(), "w");
+			if (wisdom) {
+				fftw_export_wisdom_to_file(wisdom);
+				fclose(wisdom);
+			}
+			}
+		}
+
+		/* Convert the input to complex. Also compute the mean. */
+
+		s = 0.;
+		memset(h, 0, sizeof(fftw_complex) * len);
+		for (i = 0; i < len; i++) {
+			h[i][0] = data[i];
+			s += data[i];
+		}
+		s /= len;
+
+		/* FFT. */
+
+		fftw_execute(p1); /* h -> H */
+
+		/* Hilbert transform. The upper half-circle gets multiplied by
+			two, and the lower half-circle gets set to zero.  The real axis
+			is left alone. */
+
+		l2 = (len + 1) / 2;
+		for (i = 1; i < l2; i++) {
+			H[i][0] *= 2.;
+			H[i][1] *= 2.;
+		}
+		l2 = len / 2 + 1;
+		for (i = l2; i < len; i++) {
+			H[i][0] = 0.;
+			H[i][1] = 0.;
+		}
+
+		/* Fill in rows of the result. */
+
+		p = result;
+
+		/* The row for lo == 0 contains the mean. */
+
+		n = lo;
+		if (n == 0) {
+			for (i = 0; i < len; i++) {
+				*p++ = s;
+				*p++ = 0.;
+			}
+			n++;
+		}
+
+		/* Subsequent rows contain the inverse FFT of the spectrum
+			multiplied with the FFT of scaled gaussians. */
+
+		while (n <= hi) {
+
+			/* Scale the FFT of the gaussian. Negative frequencies
+				wrap around. */
+
+			g[0] = gauss(n, 0);
+			l2 = len / 2 + 1;
+			for (i = 1; i < l2; i++) {
+				g[i] = g[len - i] = gauss(n, i);
+			}
+
+			for (i = 0; i < len; i++) {
+				s = g[i];
+				k = n + i;
+				if (k >= len) k -= len;
+				G[i][0] = H[k][0] * s;
+				G[i][1] = H[k][1] * s;
+			}
+
+			/* Inverse FFT the result to get the next row. */
+
+			fftw_execute(p2); /* G -> h */
+			for (i = 0; i < len; i++) {
+				*p++ = h[i][0] / len;
+				*p++ = h[i][1] / len;
+			}
+
+			/* Go to the next row. */
+
+			n++;
+		}
+	}
+
+	/* This is the Fourier Transform of a Gaussian. */
+
+	static double gauss(int n, int m)
+	{
+		return exp(-2. * M_PI * M_PI * m * m / (n * n));
+	}
+
+	/* Inverse Stockwell transform. */
+
+	void ist(int len, int lo, int hi, const double *data, float *result, 
+				const int nskipb = 0, const int nskipe = 0)	{
+		int i, n, l2;
+		FILE *wisdom;
+
+		/* Check for frequency defaults. */
+
+		if (lo == 0 && hi == 0) {
+			hi = len / 2;
+		}
+
+		/* Keep the arrays and plans around from last time, since this
+			is a very common case. Reallocate them if they change. */
+
+		if (len != planlen && planlen > 0) {
+			#pragma omp critical(fftw)
+	      {
+			fftw_destroy_plan(p2);
+			}
+			fftw_free(h);
+			fftw_free(H);
+			planlen = 0;
+		}
+
+		if (planlen == 0) {
+			planlen = len;
+			h = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * len);
+			H = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * len);
+
+			/* Get any accumulated wisdom. */
+
+			set_wisfile();
+			#pragma omp critical (fftw)
+			{
+			wisdom = fopen(Wisfile.c_str(), "r");
+			if (wisdom) {
+				fftw_import_wisdom_from_file(wisdom);
+				fclose(wisdom);
+			}
+
+			/* Set up the fftw plans. */
+			p2 = fftw_plan_dft_1d(len, H, h, FFTW_BACKWARD, FFTW_MEASURE);
+
+			/* Save the wisdom. */
+
+			wisdom = fopen(Wisfile.c_str(), "w");
+			if (wisdom) {
+				fftw_export_wisdom_to_file(wisdom);
+				fclose(wisdom);
+			}
+			}
+		}
+
+		/* Sum the complex array across time. */
+
+		memset(H, 0, sizeof(fftw_complex) * len);
+		const double *p = data;
+		for (n = lo; n <= hi; n++) {
+			for (i = 0; i < len; i++) {
+				H[n][0] += *p++;
+				H[n][1] += *p++;
+			}
+		}
+
+		/* Invert the Hilbert transform. */
+
+		l2 = (len + 1) / 2;
+		for (i = 1; i < l2; i++) {
+			H[i][0] /= 2.;
+			H[i][1] /= 2.;
+		}
+		l2 = len / 2 + 1;
+		for (i = l2; i < len; i++) {
+			H[i][0] = H[len - i][0];
+			H[i][1] = -H[len - i][1];
+		}
+
+		/* Inverse FFT. */
+
+		fftw_execute(p2); /* H -> h */
+		float *pres = result+nskipb;
+		for (i = nskipb; i < len-nskipe; i++) {
+			*pres++ = h[i][0] / len;
+		}
+	}
+
 };
 
 
@@ -600,7 +902,7 @@ void SacRec::MutateAs ( const SacRec& recin ) {
 	report = recin.report;
 	shd = recin.shd;
 	fname = recin.fname;
-   sig.reset(new float[recin.shd.npts]);
+   sig.reset(new float[recin.shd.npts]() );
 	if( ! sig )
 		throw ErrorSR::MemError( FuncName, "new failed!");
 }
@@ -621,6 +923,7 @@ void SacRec::LoadHD () {
    //if( SHDMap.empty() ) pimpl->CreateSHDMap();
    //pthread_mutex_lock(&fiolock);
 	size_t rdsize = sizeof(SAC_HD);
+	#pragma omp critical(sacIO)
    fsac.read( reinterpret_cast<char *>(&shd), rdsize );
 	if( fsac.gcount() != rdsize )
 		throw ErrorSR::BadFile( FuncName, "failed to retrieve sac header from " + fname );
@@ -639,7 +942,6 @@ void SacRec::Load () {
 	// read from fin
 	size_t rdsize = sizeof(SAC_HD);
 	#pragma omp critical(sacIO)
-	{
    fsac.read( reinterpret_cast<char *>(&shd), rdsize );
 	if( fsac.gcount() != rdsize )
 		throw ErrorSR::BadFile( FuncName, "failed to retrieve sac header from " + fname );
@@ -649,11 +951,11 @@ void SacRec::Load () {
 		throw ErrorSR::MemError( FuncName, "new failed!");
    float* sigsac = sig.get();
 	rdsize = sizeof(float) * shd.npts;
+	#pragma omp critical(sacIO)
    fsac.read( reinterpret_cast<char *>(sigsac), rdsize );
 	if( fsac.gcount() != rdsize )
 		throw ErrorSR::BadFile( FuncName, "failed to extract sac sig from " + fname );
    fsac.close();
-	} // critical
 
    /* calculate t0 */
    char koo[9];
@@ -1105,35 +1407,11 @@ void SacRec::Smooth( float timehlen, SacRec& sacout ) const {
 	if( ! sig )
 		throw ErrorSR::MemError( FuncName, "new failed!");
 
-	/* copy and compute abs of the signal into sigw */
-   int i, j, wb, we, n = shd.npts;
-   float wsum, dt = shd.delta;
-   int half_l = (int)floor(timehlen/dt+0.5);
-   float *sigsac = sig.get(), *sigout = sacout.sig.get();
-	//float sigw[n];
-	std::unique_ptr<float> sigw_p(new float[n]);
-   float *sigw = sigw_p.get(); 
-	for( i=0; i<n; i++ ) sigw[i] = fabs(sigsac[i]);
+	float *sigsac = sig.get();
+   float *sigout = sacout.sig.get();
+   int half_l = (int)floor(timehlen/shd.delta+0.5);
 
-	/* */
-   if(half_l*2>n-1) half_l = (n-1)/2;
-   for(i=0,wsum=0.;i<=half_l;i++) wsum += sigw[i];
-   wb = 0; we = i;
-   for(i=1;i<=half_l;i++,we++) {
-		sigout[i-1] = (double)wsum/we;
-      wsum += sigw[we];
-   }
-   for(j=we;i<n-half_l;i++,wb++,we++) {
-		//if( i>80000/dt && i<82000/dt ) std::cerr<<(i-1)*dt<<" "<<sig[i-1]<<" "<<wsum<<" / "<<j<<std::endl;
-		sigout[i-1] = (double)wsum/j;
-      wsum += ( sigw[we] - sigw[wb] );
-   }
-   for(;i<n;i++,wb++) {
-		sigout[i-1] = (double)wsum/(we-wb);
-      wsum -= sigw[wb];
-   }
-   if(wsum>1.e-15)
-		sigout[n-1] = (double)wsum/(we-wb);
+	pimpl->Smooth(sigsac, sigout, shd.npts, half_l);
 
 }
 
@@ -1271,17 +1549,17 @@ void SacRec::Differentiate( SacRec& sac_out ) const {
 
 /* ---------------------------------------- time - frequency ---------------------------------------- */
 /* convert to amplitude */
-void SacRec::ToAmPh( SacRec& sac_am, SacRec& sac_ph, const int nfout ) const {
+void SacRec::ToAmPh( SacRec& sac_am, SacRec& sac_ph, const float fl, const float fu, const int nfout ) const {
 	if( shd.npts > maxnpts4parallel ) {
 		#pragma omp critical(largesig)
 		{
-		ToAmPh_p(sac_am, sac_ph, nfout);
+		ToAmPh_p(sac_am, sac_ph, fl, fu, nfout);
 		}
 	} else {
-		ToAmPh_p(sac_am, sac_ph, nfout);
+		ToAmPh_p(sac_am, sac_ph, fl, fu, nfout);
 	}
 }
-void SacRec::ToAmPh_p( SacRec& sac_am, SacRec& sac_ph, const int nfout ) const {
+void SacRec::ToAmPh_p( SacRec& sac_am, SacRec& sac_ph, const float fl, const float fu, const int nfout ) const {
    if( ! sig ) 	// check signal
 		throw ErrorSR::EmptySig(FuncName);
    if( &sac_am != this ) {	// initialize sac_am if not filtering in place 
@@ -1301,20 +1579,30 @@ void SacRec::ToAmPh_p( SacRec& sac_am, SacRec& sac_ph, const int nfout ) const {
    int nk = std::max(nfout, ns/2 + 1);
    float *amp = new float[nk], *pha = new float[nk];
 	float delta = shd.delta;
+	float deltaf = 1./(delta*ns);
 	if( amp==nullptr || pha==nullptr )
 		throw ErrorSR::MemError( FuncName, "new failed!");
-   for(int i=0; i<nk; i++) {
-      fftw_complex& cur = sf[i];
-      amp[i] = sqrt(cur[0]*cur[0] + cur[1]*cur[1]) * delta;
-		pha[i] = atan2(cur[1], cur[0]);
-   }
+	if( fl>=0. && fu>0. && fu>fl ) {
+		for(int i=0; i<nk; i++) {
+			fftw_complex& cur = sf[i];
+			float Abtw = pimpl->btwB(fl, fu, 8, deltaf*i);
+			amp[i] = sqrt(cur[0]*cur[0] + cur[1]*cur[1]) * delta * Abtw;
+			pha[i] = atan2(cur[1], cur[0]);
+		}
+	} else {
+		for(int i=0; i<nk; i++) {
+			fftw_complex& cur = sf[i];
+			amp[i] = sqrt(cur[0]*cur[0] + cur[1]*cur[1]) * delta;
+			pha[i] = atan2(cur[1], cur[0]);
+		}
+	}
    //fftw_free(s); 
 	fftw_free(sf);
    sac_am.sig.reset(amp);
 	sac_ph.sig.reset(pha);
 
    sac_am.shd.npts = nk;
-   sac_am.shd.delta = 1./(delta*ns);
+   sac_am.shd.delta = deltaf;
    sac_am.shd.b = 0.;
 	sac_am.shd.e = sac_am.shd.delta * nk;
 	sac_ph.shd = sac_am.shd;
@@ -1555,30 +1843,338 @@ void SacRec::gauTaper( const float fc, const float fh ) {
 	}
 }
 
+/* Stockwell Transform and its inverse */
+std::vector<double> SacRec::SWT( int& ifl, int& ifu, int& itb, int& ite,
+											float fl, float fu, float tb, float te ) const {
+	if( !sig || shd.npts<=0 )
+		throw ErrorSR::EmptySig(FuncName);
+	// correct time&freq boundaries
+	const float deltat = shd.delta;
+	const float fmax = 0.5 / deltat;
+	if( fl < 0. ) fl = 0.;
+   if( fu<=fl || fu>fmax ) fu = fmax;
+	const float tmax = shd.b + deltat*(shd.npts-1);
+	if( tb<shd.b || tb==NaN ) tb = shd.b;
+	if( te<=tb || te>tmax || te==NaN ) te = tmax;
+	// indexes
+	itb = Index(tb); ite = Index(te);
+	int nt = ite - itb;
+	const float deltaf = 1 / (deltat*nt); 
+	// extend freq range for the btw taper
+	ifl = nint(fl / deltaf); ifu = nint(fu / deltaf);
+	const float toler = 0.01;
+/*
+	int btworder = 6;
+	for(; ifl>0; ifl--) {
+		float freq = ifl * deltaf;
+		if( pimpl->btwB(fl, fu, btworder, freq) < toler ) break;
+	}
+	for(; ifu<nint(fmax/deltaf); ifu++) {
+		float freq = ifu * deltaf;
+		if( pimpl->btwB(fl, fu, btworder, freq) < toler ) break;
+	}
+*/
+	// allocate output vector
+	int nf = ifu-ifl+1;
+	std::vector<double> datastV;
+	try {
+		datastV.resize(2*nt*nf);
+	} catch (const std::exception& e) {
+		throw ErrorSR::MemError( FuncName, "SWT vector alloc failed!");
+	}
+	// call st
+	pimpl->st(nt, ifl, ifu, &sig[itb], &datastV[0]);
+	// apply taper to datastV
+/*
+	auto Idatast = datastV.begin();
+	for(int ifreq=ifl; ifreq<=ifu; ifreq++) { // on freq
+		float freq = ifreq * deltaf;
+		float btw = pimpl->btwB(fl, fu, btworder, freq);
+		if( btw != btw ) btw = 0.;
+		for(int itime=0; itime<nt; itime++) { // on time
+			double &real = *(Idatast++);
+			double &imag = *(Idatast++);
+			real *= btw; imag *= btw;
+		}
+	}
+*/
+	return datastV;
+}
+
+// zero out any signal < 
+void SacRec::NoiseZeroOut( SacRec& sacout, const float tlen_min, 
+									const float nofactor, const float nomin, const float ttaper ) const {
+	if( &sacout == this )
+		throw ErrorSR::BadParam(FuncName, "ZeroOut in place is not allowed!");
+	// smooth the original signal
+	Smooth(tlen_min, sacout);
+	// and find the reference noise level
+	auto sbeg = &(sacout.sig[0]);
+	int inoiselevel = (int)(shd.npts*0.5);
+	std::nth_element(sbeg, sbeg+inoiselevel, sbeg+shd.npts);
+	float noiselevel = sacout.sig[inoiselevel];
+	// signal < noiselevel*nfactor or nomin is not allowed
+	float stdmin = std::max(nomin, noiselevel * nofactor);
+//std::cerr<<stdmin<<std::endl;
+	// identify invalid (near zero) segments as defined by stdmin
+	sacout = *this;
+	int len_min = nint(tlen_min/shd.delta), npsame = 1;
+	const float *sigsac = sig.get();
+	float *sigosac = sacout.sig.get();
+	float siglast = sigsac[0];
+	for(int i=1; i<sacout.shd.npts; i++) {
+		if( fabs(sigsac[i]-siglast) < stdmin ) {
+			npsame++;
+		} else {
+			if( npsame >= len_min ) {
+				float tsameb = sacout.X(i-npsame);
+				sacout.cosTaperR(tsameb-ttaper, tsameb, false);
+				float tsamee = sacout.X(i-1);
+				sacout.cosTaperL(tsamee, tsamee+ttaper, false);
+				for(int j=i-npsame; j<i; j++) sigosac[j] = 0.;
+			}
+			npsame = 1;
+		}
+		siglast = sigsac[i];
+	}
+}
+
+
+void SacRec::ISWT( const std::vector<double>& datastV, 
+						 const int ifl, const int ifu, const int itb, const int ite,
+						 const int nskipb, const int nskipe ) {
+	if( !sig || shd.npts<=0 )
+		throw ErrorSR::EmptySig(FuncName);
+	int len = ite - itb;
+	const float deltat = shd.delta, deltaf = 1 / (deltat*len);
+	// check if datastV matches the given parameters
+	int n = ifu-ifl+1;
+	if( datastV.size() != 2*len*n )
+		throw ErrorSR::BadParam(FuncName, "datastV size does not match the input parameters");
+	// call ist
+	pimpl->ist(len, ifl, ifu, &datastV[0], &sig[itb], nskipb, nskipe);
+}
+
+/* ---------------------- t-f normalization with stockwell transform ---------------------- */
+// this is a 2-D one bit normalization in the f-t domain, stablized with the cutoff_factor:
+// cutoff_factor = 0 (cut any point>the_smallest) - 1 (cut any point>the_largest --not modified at all)
+void SacRec::STNorm( SacRec& sacout, const float thlen, float fl, float fu, float tsafe, const float t_seg ) const {
+	if( !sig || shd.npts<=0 )
+		throw ErrorSR::EmptySig(FuncName);
+
+	if( &sacout == this )
+		throw ErrorSR::BadParam(FuncName, "STNorm in place is not allowed!");
+	sacout.MutateAs(*this);
+
+	if( tsafe < thlen )
+		std::cerr<<"Warning("<<FuncName<<"): tsafe smaller than thlen"<<std::endl;
+
+	// correct freq boundaries
+	const float deltat = shd.delta;
+	const float fmax = 0.5 / deltat;
+	if( fl < 0. ) fl = 0.;
+   if( fu<=fl || fu>fmax ) fu = fmax;
+
+	// zero out near-zero time windows to stablize the normalization
+	SacRec sac_0(*this);
+	//sac_0.Write("debug1.SAC");
+	NoiseZeroOut( sac_0 );
+
+	// divide the signal into small segments and perform stockwell transform 
+	// on each of them for better time/memory performance
+	float ttotal = (shd.npts-1) * deltat;
+	float timespan = ttotal - tsafe*2.;
+	int nseg = std::max(1, nint(timespan / t_seg));
+	float tseg = timespan / nseg;
+	int nskip = (int)floor(tsafe/deltat);
+
+	// loop over segments
+	short norm_method = 1;
+	const float cutoff_refperc  = 0.6, cut_factor = 3.;
+	for(int iseg=0; iseg<nseg; iseg++) {
+		// stockwell transform
+		// extend each ends by tsafe to prevent edge effect
+		// so that the extended segment becomes (safe _ data _ safe)
+		float tbsafe = shd.b + iseg*tseg;
+		float tb = tbsafe + tsafe;
+		float te = tb + tseg + shd.delta;
+		float tesafe = te + tsafe;
+		int ifl, ifu, itb, ite;
+		std::vector<double> datastV = sac_0.SWT( ifl, ifu, itb, ite, fl, fu, tbsafe, tesafe );
+		int nf = ifu-ifl+1, nt = ite-itb;
+		const float deltaf = 1 / (deltat*nt); 
+
+/*
+std::ofstream fout("debug1.txt");
+auto Idatast1 = datastV.begin();
+for(int ifreq=ifl; ifreq<ifu; ifreq++) { // on freq
+	float freq = ifreq * deltaf;
+	for(int itime=0; itime<nt; itime++) { // on time
+		float time = (itb+itime) * deltat + shd.b;
+		double &real = *(Idatast1++);
+		double &imag = *(Idatast1++);
+		double amp = sqrt(real*real+imag*imag);
+		fout<<freq<<" "<<time<<" "<<amp<<"\n";
+	}
+	fout<<"\n\n";
+}
+fout.close(); fout.clear();
+*/
+		// normalize at each freq
+		auto sigsac0 = sac_0.sig.get();
+		auto Idatast = datastV.begin();
+		for(int ifreq=ifl; ifreq<=ifu; ifreq++) { // on freq
+			float freq = ifreq * deltaf;
+			auto Ib = Idatast;
+			// compute/save amps of the current freq slice
+			std::vector<float> dataV_fslice(nt);
+			auto *dfslice = &dataV_fslice[0];
+			for(int itime=0; itime<nt; itime++) { // on time
+				double &real = *(Idatast++);
+				double &imag = *(Idatast++);
+				double amp = sqrt(real*real+imag*imag);
+				dfslice[itime] = amp;
+			}
+			// smooth the current time slide
+			int half_l = (int)floor(thlen/shd.delta+0.5);
+			std::vector<float> dataV_fslice_s(nt);
+			auto *dfslice_s = &dataV_fslice_s[0];
+			pimpl->Smooth(dfslice, dfslice_s, nt, half_l);
+			// and perform selected normalization
+			Idatast = Ib;
+			if( norm_method == 0 ) {
+				for(int itime=0; itime<nt; itime++, Idatast+=2) {
+					//if( dfslice[itime] == 0 ) continue;
+					double &real = *(Idatast);
+					double &imag = *(Idatast+1);
+					float mul = 1. / dfslice_s[itime];
+					if( sigsac0[itb+itime] == 0. ) mul = 1.0e-10;
+					real *= mul; imag *= mul;
+				}
+			} else if( norm_method == 1 ) {
+				//// find the nth smallest point where n=cutoff_factor*nt
+				// for each freq, find the cutoff_refval at the nth smallest point where n=cutoff_refperc*npts
+				// and press down anything > cutoff_refval * cut_factor
+				int ip_cut = floor(cutoff_refperc * nt);
+				if( ip_cut >= nt ) ip_cut = nt - 1;
+				std::vector<float> dataV_tmp(dataV_fslice);
+				std::nth_element(dataV_tmp.begin(), dataV_tmp.begin()+ip_cut, dataV_tmp.end());
+				float amp_ref = dataV_tmp[ip_cut];
+				float amp_refS = amp_ref * amp_ref;
+				//float crct = 1., f2end = (ifu-ifreq) * deltaf;
+				//if( f2end < 0.03 ) crct = pow(f2end/0.03, 100.);
+				// loop again, cut any points > amp_cut
+				for(int itime=0; itime<nt; itime++, Idatast+=2) {
+					double &real = *(Idatast);
+					double &imag = *(Idatast+1);
+					float mul;
+					if( sigsac0[itb+itime] == 0. ) {
+						mul = 1.0e-10;	// set zero if sig_o == 0
+					} else {
+						//float amp = dfslice[itime];
+						float amps = dfslice_s[itime];
+						//mul = amp_cut / amps;
+						mul = (12*amps*amps+amp_refS) / ((8*amps*amps+5*amp_refS)*amps);
+					}
+					real *= mul; imag *= mul;
+				}
+			}
+		}
+
+/*
+fout.open("debug2.txt");
+Idatast1 = datastV.begin();
+for(int ifreq=ifl; ifreq<ifu; ifreq++) { // on freq
+	float freq = ifreq * deltaf;
+	for(int itime=0; itime<nt; itime++) { // on time
+		float time = (itb+itime) * deltat + shd.b;
+		double &real = *(Idatast1++);
+		double &imag = *(Idatast1++);
+		double amp = sqrt(real*real+imag*imag);
+		fout<<freq<<" "<<time<<" "<<amp<<"\n";
+	}
+	fout<<"\n\n";
+}
+fout.close(); fout.clear();
+*/
+		// inverse transform
+		// only write from tb to te and discard anything outside
+		int nskipb = iseg==0 ? 0 : nskip;
+		int nskipe = iseg==nseg-1 ? 0 : nskip;
+//std::cerr<<tbsafe<<" "<<tb<<" "<<te<<" "<<tesafe<<"   "<<nskipb<<" "<<nskipe<<std::endl;
+		sacout.ISWT( datastV, ifl, ifu, itb, ite, nskipb, nskipe );
+		auto sigout = sacout.sig.get();
+		for(int i=itb; i<ite; i++) 
+			if( sigsac0[i] == 0. ) sigout[i] = 0.;
+	}
+
+	/*
+	// to reduce edge effects from SWT
+	// (1) taper at the two ends
+	float tend = shd.b + ttotal;
+	float ttaper = tsafe * 1.5;
+	sacout.cosTaperL( shd.b, shd.b+ttaper );
+	sacout.cosTaperR( tend-ttaper,   tend );
+	// (2) and around any zero segments
+	// smooth the original signal
+	float tlen_min = 30.;
+	SacRec sac_sm; Smooth(tlen_min, sac_sm);
+	// and find the reference noise level
+	auto sbeg = &(sac_sm.sig[0]);
+	int inoiselevel = (int)(shd.npts*0.5);
+	std::nth_element(sbeg, sbeg+inoiselevel, sbeg+shd.npts);
+	float noiselevel = sac_sm.sig[inoiselevel];
+	float stdmin = noiselevel * 0.1;
+	// identify invalid (near zero) segments as defined by stdmin
+	int len_min = nint(tlen_min/shd.delta), npsame = 1;
+	const float *sigsac = sig.get();
+	float *sigosac = sacout.sig.get();
+	float siglast = sigsac[0];
+	for(int i=1; i<sacout.shd.npts; i++) {
+		if( fabs(sigsac[i]-siglast) < stdmin ) {
+			npsame++;
+		} else {
+			if( npsame >= len_min ) {
+				float tsameb = sacout.X(i-npsame);
+				sacout.cosTaperR(tsameb-ttaper, tsameb, false);
+				float tsamee = sacout.X(i-1);
+				sacout.cosTaperL(tsamee, tsamee+ttaper, false);
+				for(int j=i-npsame; j<i; j++) sigosac[j] = 0.;
+//std::cerr<<tsameb<<" - "<<tsamee<<" taperred!"<<std::endl;
+			}
+			npsame = 1;
+		}
+		siglast = sigsac[i];
+	}
+	*/
+}
+
+
 /* cosine tapper */
-void SacRec::cosTaperL( const float fl, const float fh ) {
+void SacRec::cosTaperL( const float fl, const float fh, bool zeroout ) {
 	if( !sig || shd.npts<=0 )	// check signal
 		throw ErrorSR::EmptySig(FuncName);
 
 	const float& delta = shd.delta;
-	int i;
+	int i, il = (int)ceil((fl-shd.b)/delta);
 	float *sigsac = sig.get();
-	for( i=0; i<(int)ceil((fl-shd.b)/delta); i++ ) sigsac[i] = 0.;
+	if( zeroout ) for( i=0; i<il; i++ ) sigsac[i] = 0.;
+	else i = std::max(il, 0);
 	float finit = shd.b+i*delta, fwidth = fh-fl, dfh = fh-finit;
 	float ftmp = M_PI / fwidth;
-   for(; dfh>0; i++, dfh-=delta) {
+   for(; dfh>0&&i<shd.npts; i++, dfh-=delta) {
 		float amplif = ( 1. + cos(ftmp*dfh) ) * 0.5;
 		sigsac[i] *= amplif;
    }
 
    return;
 }
-void SacRec::cosTaperR( const float fl, const float fh ) {
+void SacRec::cosTaperR( const float fl, const float fh, bool zeroout ) {
    if( !sig || shd.npts<=0 )	// check signal
 		throw ErrorSR::EmptySig(FuncName);
 
 	const float& delta = shd.delta;
-   int i = (int)ceil((fl-shd.b)/delta);
+   int i = std::max(0, (int)ceil((fl-shd.b)/delta));
 	float finit = shd.b+i*delta, fwidth = fh-fl, dfl = finit-fl;
 	float ftmp = M_PI / fwidth;
 	float *sigsac = sig.get();
@@ -1586,7 +2182,7 @@ void SacRec::cosTaperR( const float fl, const float fh ) {
 		float amplif = ( 1. + cos(ftmp*dfl) ) * 0.5;
 		sigsac[i] *= amplif;
    }
-   for(;i<shd.npts;i++) sigsac[i] = 0.;
+   if( zeroout ) for(;i<shd.npts;i++) sigsac[i] = 0.;
 
    return;
 }

@@ -231,6 +231,9 @@ public:
 	void Peak(float& tpeak, float& apeak, const float tbegin, const float tend) const;
 	float Sig( float time ) const;	// compute accurate sig value at a given time (fit with a parabola)
 
+	void NoiseZeroOut( SacRec& sacout, const float tlen_min = 30., 
+							 const float nofactor = 0.1, const float nomin = 5., const float ttaper = 200. ) const;
+
    /* ------------------------------ single-sac operations ------------------------------ */
 	template<class Functor>	void Transform(const Functor& func, size_t ib=0, int ie=NaN) {
 		if( !sig ) throw ErrorSR::EmptySig(FuncName);
@@ -238,6 +241,10 @@ public:
 		if( ie==NaN || ie>shd.npts ) ie = shd.npts;
 		float* sigsac = sig.get();
 		for(int i=ib; i<ie; i++)	func(sigsac[i]);
+	}
+
+	template<class Functor>	void Transform2(const Functor& func, size_t ib=0, int ie=NaN) {
+		Foreach2(func, ib, ie);
 	}
 
 	template<class Functor>	void Foreach2(const Functor& func, size_t ib=0, int ie=NaN) const {
@@ -254,10 +261,6 @@ public:
 		if( ie==NaN || ie>shd.npts ) ie = shd.npts;
 		float* sigsac = sig.get();
 		for(int i=ib; i<ie; i++)	func(i, X(i), sigsac[i]);
-	}
-
-	template<class Functor>	void Transform2(const Functor& func, size_t ib=0, int ie=NaN) {
-		Foreach2(func, ib, ie);
 	}
 
    void Mul( const float mul );
@@ -301,10 +304,21 @@ public:
 	}
 	void FFT( SacRec& sac_re, SacRec& sac_im, const int nfout = 0 ) const;	// in series when sig is large
 	void FFT_p( SacRec& sac_re, SacRec& sac_im, const int nfout = 0 ) const;	// always parallel
-	void ToAmPh( SacRec& sac_am, SacRec& sac_ph, const int nfout = 0 ) const;	// in series when sig is large
-	void ToAmPh_p( SacRec& sac_am, SacRec& sac_ph, const int nfout = 0 ) const;	// always parallel
+	void ToAmPh( SacRec& sac_am, SacRec& sac_ph, const float fl=-1., const float fu=-1., const int nfout=0 ) const;	// in series when sig is large
+	void ToAmPh_p( SacRec& sac_am, SacRec& sac_ph, const float fl=-1., const float fu=-1., const int nfout=0 ) const;	// always parallel
 	void FromAmPh( SacRec& sac_am, SacRec& sac_ph, const short outtype = 0 );		// in series when sig is large
 	void FromAmPh_p( SacRec& sac_am, SacRec& sac_ph, const short outtype = 0 );	//	always parallel
+
+	/* Stockwell Transform and its inverse */
+	std::vector<double> SWT( float fl = -1., float fu = -1., float tb = NaN, float te = NaN ) const {
+		int ifl, ifu, itb, ite; 
+		SWT(ifl, ifu, itb, ite, fl, fu, tb, te);
+	}
+	std::vector<double> SWT( int& ifl, int& ifu, int& itb, int& ite,
+									 float fl = -1., float fu = -1., float tb = NaN, float te = NaN ) const;
+	void ISWT( const std::vector<double>& datastV, 
+				  const int ifl, const int ifu, const int itb, const int te,
+				  const int nskipb = 0, const int nskipe = 0 );
 
 	/* filters */
 	void LowpassCOSFilt( double f3, double f4 ) { LowpassCOSFilt(f3, f4, *this); }
@@ -346,8 +360,8 @@ public:
    void Filter ( double f1, double f2, double f3, double f4, const int type, SacRec& srout, bool zeroPhase = false );	// out-of-place (in series when sig is large)
    void Filter_p ( double f1, double f2, double f3, double f4, const int type, SacRec& srout, bool zeroPhase = false );	// always parallel
 	/* tapers */
-	void cosTaperL( const float fl, const float fh );
-	void cosTaperR( const float fl, const float fh );
+	void cosTaperL( const float fl, const float fh, bool zeroout=true );
+	void cosTaperR( const float fl, const float fh, bool zeroout=true );
 	void gauTaper( const float fc, const float fh );
    /* remove mean and trend */
    void RTrend();
@@ -396,6 +410,16 @@ public:
 	/* ------------------------------- temporal normalizations ------------------------------- */
 	void OneBit();
 	void RunAvg( float timehlen, float Eperl, float Eperh );
+
+	/* ---------------------- t-f normalization with stockwell transform ---------------------- */
+	// this is a 2-D one bit normalization in the f-t domain, stablized with the cutoff_factor:
+	// cutoff_factor = 0 (cut any point>the_smallest) - 1 (cut any point>the_largest --not modified at all)
+	void STNorm( const float thlen = 40., float fl = -1., float fu = -1., float tsafe = 200., const float t_seg = 1024. ) {
+		SacRec sacout; STNorm(sacout, thlen, fl, fu, tsafe, t_seg);
+		*this = sacout;
+	}
+	void STNorm( SacRec& sacout, const float thlen = 40., float fl = -1., float fu = -1.,
+					 float tsafe = 200., const float t_seg = 1024. ) const;
 
 	/* ------------------------------- memory consumed ------------------------------- */
 	float MemConsumed() const;
