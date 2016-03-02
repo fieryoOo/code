@@ -121,13 +121,14 @@ int EqkCut(float *sig, SAC_HD *shd, char *recname, int ithread) {
    std::vector<double> win_max_sorted( win_max, win_max+nos1k );
    std::sort( win_max_sorted.begin(), win_max_sorted.end() );
 
-   // and define max noise level as 2 times the smallest 10 average max
+   // and define max noise level as 3 x average_of_the_smallest_20_windows
    double noisemax = 0.;
    std::vector<double>::iterator iter, itermin;
-   for(itermin=win_max_sorted.begin(); itermin<win_max_sorted.end(); itermin++) if( *itermin > 1.e-20 ) break;
+	// discard any window with max<=1 (which, with an unit of nm, is pretty much 0)
+   for(itermin=win_max_sorted.begin(); itermin<win_max_sorted.end(); itermin++) if( *itermin > 1. ) break;
    if( itermin < win_max_sorted.end() ) {
-      for(iter=itermin; iter<win_max_sorted.end() && iter<itermin+30; iter++) noisemax += *iter; 
-      noisemax *= 2./(iter-itermin);
+      for(iter=itermin; iter<win_max_sorted.end() && iter<itermin+20; iter++) noisemax += *iter; 
+      noisemax *= 3./(iter-itermin);
    }
 
    /* compute noise average and noise std between windows */

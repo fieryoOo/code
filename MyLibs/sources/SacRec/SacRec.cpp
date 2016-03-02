@@ -425,6 +425,51 @@ struct SacRec::SRimpl {
       return jd + d;
    }
 
+	int read_rec(int rec_flag, const char *fname, int len, int *rec_b, int *rec_e, int *nrec) {
+		FILE *frec;
+		int irec;
+		if( rec_flag ) {
+			if((frec = fopen(fname,"r")) == NULL) return 0;
+			//pthread_mutex_lock(&fiolock);
+			#pragma omp critical(sacIO)
+			for(irec=0;;irec++)
+				if(fscanf(frec,"%d %d", &rec_b[irec], &rec_e[irec])!=2) break;
+			*nrec=irec;
+			fclose(frec);
+			//pthread_mutex_unlock(&fiolock);
+			if(irec==0) return 0;
+		}
+		else {
+			rec_b[0]=0; rec_e[0]=len-1;
+			*nrec=1;
+		}
+		return 1;
+	}
+	void UpdateRec(const std::string& name, int *rec_b, int *rec_e, int nrec) {
+		int rec_b1[1000], rec_e1[1000], nrec1;
+		FILE *frec;
+		int irec, irec1;
+		if( ! read_rec(1, name.c_str(), 0, rec_b1, rec_e1, &nrec1) ) {
+			std::cerr<<"*** Warning("<<FuncName<<"): cannot open record file "<<name<<" ***"<<std::endl;
+			frec = fopen(name.c_str(), "w");
+			for(irec=0; irec<nrec; irec++)
+				fprintf(frec, "%d %d\n", rec_b[irec], rec_e[irec]);
+			fclose(frec);
+		}
+		int recB, recE;
+		std::string name2 = name + "2";
+		frec = fopen(name2.c_str(), "w");
+		for(irec=0; irec<nrec; irec++)
+			for(irec1=0;irec1<nrec1;irec1++){
+				if(rec_b[irec]>=rec_e1[irec1]) continue;
+				if(rec_e[irec]<=rec_b1[irec1]) break;
+				recB = std::max(rec_b[irec],rec_b1[irec1]);
+				recE = std::min(rec_e[irec],rec_e1[irec1]);
+				fprintf(frec, "%d %d\n", recB, recE);
+			}
+		fclose(frec);
+	}
+
 	#ifdef DISAZI_H
 	void ComputeDisAzi( SAC_HD& shd ) {
 		try {
@@ -2697,6 +2742,133 @@ void SacRec::RunAvg( float timehlen, float Eperl, float Eperh ) {
 
 
 }
+
+// earthquake cutting
+
+bool SacRec::EqkCut( const float Eperl, const float Eperu, const std::string& recname ) {
+	// any point with val<=sigmin is assumed 0
+	float sigmin = 1.;
+	// evenly sample 1000 points. assume invalid if >60% are zeros
+	auto sigsac = sig.get();
+   int n = shd.npts, ninc = n/1000, npole=0;
+   for(int i=0;i<n;i+=ninc) if(fabs(sigsac[i])<sigmin) npole++;
+   if(npole>600) {
+      std::cerr<<"*** Warning("<<FuncName<<"): Signal time length not long enough. ***"<<std::endl;
+      return false;
+   }
+	// apply eqk filter for event detection
+   //float* sigw = new float[n];
+   //double f2 = 1./Eperh, f1 = f2*0.8, f3 = 1./Eperl, f4 = f3*1.2;
+	SacRec sacw;
+   if( Eperl == -1 ) sacw = *this;
+	else BandpassBTWFilt( 1./Eperu, 1./Eperl, 6, sacw );
+	float* sigw = sacw.sig.get();
+
+   // noise window npts (1000 sec length)
+   double dt = (double)(shd.delta);
+   int s1k=(int)floor(1000./dt+0.5); // npts of a 1000 sec window
+   int nos1k = (int)(n/s1k);
+
+   // for (each of) the ith 1000 sec window, search for maximum amplitude and store into win_max[i]
+   double win_max[nos1k];
+   memset (win_max,0,nos1k*sizeof(double));
+   for(int i=0;i<n;i++) sigw[i] = fabs(sigw[i]);
+   int ii, is;
+   for( ii=0,is=0; is<nos1k; is++ ){
+      for( ; ii<(is+1)*s1k; ii++ ) 
+         if(win_max[is]<sigw[ii]) win_max[is]=sigw[ii]; 
+   }
+   for( ;ii<n;ii++ )
+      if(win_max[is]<sigw[ii]) win_max[is]=sigw[ii];
+
+   // sort win_max
+   std::vector<double> win_max_sorted( win_max, win_max+nos1k );
+   std::sort( win_max_sorted.begin(), win_max_sorted.end() );
+
+   // and define max noise level as 3 x average_of_the_smallest_20_windows
+   double noisemax = 0.;
+   std::vector<double>::iterator iter, itermin;
+	// discard any window with max<=sigmin (which, with an unit of nm, is pretty much 0)
+   for(itermin=win_max_sorted.begin(); itermin<win_max_sorted.end(); itermin++) if( *itermin > sigmin ) break;
+   if( itermin < win_max_sorted.end() ) {
+      for(iter=itermin; iter<win_max_sorted.end() && iter<itermin+20; iter++) noisemax += *iter; 
+      noisemax *= 3./(iter-itermin);
+   }
+
+   // compute noise average and noise std between windows
+   double window_avg = 0.;
+   for(iter=itermin; iter<win_max_sorted.end() && *iter<noisemax; iter++) window_avg += *iter;
+   ii = iter-itermin;
+   window_avg /= ii;
+   double window_std=0., dtmp;
+   for(iter=itermin; iter<itermin+ii; iter++) {
+      dtmp = window_avg-*iter;
+      window_std += dtmp * dtmp;
+   }
+   window_std=sqrt(window_std/(ii-1));
+
+   // mark windows with a max amp > window_avg+2.0*window_std to be 'zero'
+   dtmp = window_avg+2.0*window_std;
+   short keep[nos1k];
+   for( int i =0; i<nos1k; i++) keep[i] = win_max[i] > dtmp ? 0 : 1;
+
+   // and zero out invalidated windows
+   for( int i=0; i < nos1k; i++)
+      if( keep[i] == 0 ) for( ii=i*s1k; ii<(i+1)*s1k; ii++) sig[ii] = 0.;
+
+   // locate contigious valid windows, with a length of at least 2500. sec, and apply a cosine taper
+   int rec_b[1000], rec_e[1000], rec_i=0;
+   int winlen_min = (int)ceil(2500./dt);
+   // locate all rec_begin and rec_end pairs, zero out the windows that are shorter than winlen_min
+   rec_b[0]=0;
+   for( int i=1; i<nos1k; i++){ 
+      if(keep[i]-keep[i-1] == 1) rec_b[rec_i]=i*s1k; // a new window begins
+      else if(keep[i]-keep[i-1] == -1) { // the current window ends
+         rec_e[rec_i]=i*s1k;
+			// invalidate the current window if it is shorter than winlen_min
+         if ((rec_e[rec_i]-rec_b[rec_i]) < winlen_min)
+            for(ii=rec_b[rec_i]; ii<rec_e[rec_i]; ii++) sig[ii] = 0.;
+         else rec_i++;
+      }
+   }
+   /* mark the last rec_end and check its window length */
+   if(keep[nos1k-1]==1) {
+      if( (n-rec_b[rec_i]) < winlen_min*0.6 )
+         for(ii=rec_b[rec_i]; ii<n; ii++) sig[ii]=0;
+      else { rec_e[rec_i] = n; rec_i++; }
+   }
+
+   // check if there's enough data (20%) left
+	ii = 0;
+   for(int i=0; i<rec_i; i++) ii += rec_e[i] - rec_b[i];
+   if( ii < 0.2*n ) {
+      std::cerr<<"*** Warning("<<FuncName<<"): Time length <20\% after removing earthquakes. Skipped. ***";
+      return false;
+   }
+
+   // taper 300 sec of data on each side of each window just to be safe 
+   float ttaper = 300.;
+   for(int i=0;i<rec_i;i++) {
+      if(rec_b[i]!=0){
+			float tb = X(rec_b[i]-1);
+			cosTaperL( tb, tb+ttaper, false );
+			rec_b[i] += 0.5*ttaper;
+      }
+      if(rec_e[i]!=n){
+			float te = X(rec_e[i]+1);
+			cosTaperR( te-ttaper, te, false );
+         rec_e[i] -= 0.5*ttaper;
+      }
+   }
+
+   // produce a new rec file named ft_name_rec2
+   if( ! recname.empty() ) pimpl->UpdateRec(recname, rec_b, rec_e, rec_i);
+   /* norm by running average if required */
+   //if( tnorm_flag == 4 ) RunAvgNorm( sig, shd, sigw );
+
+   return true;
+}
+
 
 /* ---------- compute the correlation coefficient with an input SacRec ---------- */
 float SacRec::Correlation( const SacRec& sac2, const float tb, const float te ) const {

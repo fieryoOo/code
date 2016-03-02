@@ -10,9 +10,11 @@ public:
 			throw ErrorSR::HeaderMismatch(FuncName, "npts");
 		if( sacr.shd.delta != sacs.shd.delta )
 			throw ErrorSR::HeaderMismatch(FuncName, "delta");
-
-		CalcTransferF();
 	}
+
+	void RemoveEQKs() {
+	}
+
 
 private:
 	SacRec sacr, sacs;
@@ -76,6 +78,7 @@ int main (int argc, char *argv[])
    }
 
 	SacPair sp(argv[1], argv[2]);
+	sp.RemoveEQKs();
 
 /*
    int i, j, ii;

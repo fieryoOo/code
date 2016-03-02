@@ -410,6 +410,7 @@ public:
 	/* ------------------------------- temporal normalizations ------------------------------- */
 	void OneBit();
 	void RunAvg( float timehlen, float Eperl, float Eperh );
+	bool EqkCut( float Eperl=10., float Eperu=40., const std::string& recname="" );
 
 	/* ---------------------- t-f normalization with stockwell transform ---------------------- */
 	// this is a 2-D one bit normalization in the f-t domain, stablized with the cutoff_factor:
