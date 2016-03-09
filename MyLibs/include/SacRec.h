@@ -231,22 +231,37 @@ public:
 	void Peak(float& tpeak, float& apeak, const float tbegin, const float tend) const;
 	float Sig( float time ) const;	// compute accurate sig value at a given time (fit with a parabola)
 
+	float PrecNoiseRatio() const;
+
+	void NoiseZeroOut( std::vector<int>& recb, std::vector<int>& rece, const float tlen_min = 30., 
+							 const float nofactor = 0.1, const float nomin = 5., const float ttaper = 200. ) {
+		SacRec sacout; 
+		NoiseZeroOut( sacout, recb, rece, tlen_min, nofactor, nomin, ttaper );
+		*this = std::move(sacout);
+	}
 	void NoiseZeroOut( SacRec& sacout, const float tlen_min = 30., 
+							 const float nofactor = 0.1, const float nomin = 5., const float ttaper = 200. ) const {
+		std::vector<int> recb, rece;
+		NoiseZeroOut( sacout, recb, rece, tlen_min, nofactor, nomin, ttaper );
+	}
+	void NoiseZeroOut( SacRec& sacout, std::vector<int>& recb, std::vector<int>& rece, const float tlen_min = 30., 
 							 const float nofactor = 0.1, const float nomin = 5., const float ttaper = 200. ) const;
 
    /* ------------------------------ single-sac operations ------------------------------ */
 	template<class Functor>	void Transform(const Functor& func, size_t ib=0, int ie=NaN) {
+		Foreach(func, ib, ie);
+	}
+	template<class Functor>	void Transform2(const Functor& func, size_t ib=0, int ie=NaN) {
+		Foreach2(func, ib, ie);
+	}
+
+	template<class Functor>	void Foreach(const Functor& func, size_t ib=0, int ie=NaN) {
 		if( !sig ) throw ErrorSR::EmptySig(FuncName);
 		if( ib < 0 ) ib = 0;
 		if( ie==NaN || ie>shd.npts ) ie = shd.npts;
 		float* sigsac = sig.get();
 		for(int i=ib; i<ie; i++)	func(sigsac[i]);
 	}
-
-	template<class Functor>	void Transform2(const Functor& func, size_t ib=0, int ie=NaN) {
-		Foreach2(func, ib, ie);
-	}
-
 	template<class Functor>	void Foreach2(const Functor& func, size_t ib=0, int ie=NaN) const {
 		if( !sig ) throw ErrorSR::EmptySig(FuncName);
 		if( ib < 0 ) ib = 0;
@@ -254,7 +269,6 @@ public:
 		float* sigsac = sig.get();
 		for(int i=ib; i<ie; i++)	func(X(i), sigsac[i]);
 	}
-
 	template<class Functor>	void Foreach3(const Functor& func, size_t ib=0, int ie=NaN) const {
 		if( !sig ) throw ErrorSR::EmptySig(FuncName);
 		if( ib < 0 ) ib = 0;
@@ -263,9 +277,11 @@ public:
 		for(int i=ib; i<ie; i++)	func(i, X(i), sigsac[i]);
 	}
 
+	void sqrt();
    void Mul( const float mul );
 	void Addf( const SacRec& sac2 );
 	void Subf( const SacRec& sac2 );
+	void Mulf( const SacRec& sac2 );
 	void Divf( const SacRec& sac2 );
 
 	void Reverse() { 
@@ -334,7 +350,7 @@ public:
 	void BandpassBTWFilt( double fcL, double fcR, int n, bool zeroPhase = false ) {
 		BandpassBTWFilt(fcL, fcR, n, *this, zeroPhase); 
 	}
-	void BandpassBTWFilt( double fcL, double fcR, int n, SacRec& srout, bool zeroPhase = false ) { 
+	void BandpassBTWFilt( double fcL, double fcR, int n, SacRec& srout, bool zeroPhase = false ) const { 
 		Filter(-1., fcL, fcR, n, 5, srout, zeroPhase); 
 		/*
 		if( zeroPhase ) {
@@ -357,8 +373,8 @@ public:
    void Filter ( double f1, double f2, double f3, double f4, const int type, bool zeroPhase = false ) {	// in-place (in series when sig is large)
 		Filter(f1, f2, f3, f4, type, *this, zeroPhase); 
 	}
-   void Filter ( double f1, double f2, double f3, double f4, const int type, SacRec& srout, bool zeroPhase = false );	// out-of-place (in series when sig is large)
-   void Filter_p ( double f1, double f2, double f3, double f4, const int type, SacRec& srout, bool zeroPhase = false );	// always parallel
+   void Filter ( double f1, double f2, double f3, double f4, const int type, SacRec& srout, bool zeroPhase = false ) const;	// out-of-place (in series when sig is large)
+   void Filter_p ( double f1, double f2, double f3, double f4, const int type, SacRec& srout, bool zeroPhase = false ) const;	// always parallel
 	/* tapers */
 	void cosTaperL( const float fl, const float fh, bool zeroout=true );
 	void cosTaperR( const float fl, const float fh, bool zeroout=true );
@@ -374,6 +390,7 @@ public:
    /* resample (with anti-aliasing filter) the signal to given sps */
    //void Resample( bool fitParabola = true ) { Resample( floor(1.0/shd.delta+0.5), fitParabola ); }
    void Resample( int sps = -1, bool fitParabola = true );
+   void Interpolate( int npts_ratio );
 	/* smoothing ( running average ) */
 	void Smooth( float timehlen, SacRec& sacout ) const;
 	void Hilbert() { Hilbert(*this); }
@@ -382,7 +399,7 @@ public:
 	void Envelope( SacRec& sacout );
 
    void cut( float tb, float te ) { cut(tb, te, *this); }
-   void cut( float tb, float te, SacRec& );
+   void cut( float tb, float te, SacRec& ) const;
    /* ------------------------------ inter-sac operations ------------------------------ */
    /* merge a second sacrec to the current */
    void Merge( SacRec sacrec2 ) {
@@ -410,7 +427,14 @@ public:
 	/* ------------------------------- temporal normalizations ------------------------------- */
 	void OneBit();
 	void RunAvg( float timehlen, float Eperl, float Eperh );
-	bool EqkCut( float Eperl=10., float Eperu=40., const std::string& recname="" );
+	bool EqkCut( float Eperl=10., float Eperu=40., bool apptaper=true, const std::string& recname="" ) {
+		SacRec sacout;
+		std::vector<int> rec_b, rec_e;
+		EqkCut( sacout, rec_b, rec_e, Eperl, Eperu, apptaper, recname );
+		*this = sacout;
+	}
+	bool EqkCut( SacRec& sacout, std::vector<int>& rec_b, std::vector<int>& rec_e, 
+					 float Eperl=10., float Eperu=40., bool apptaper=true, const std::string& recname="" ) const;
 
 	/* ---------------------- t-f normalization with stockwell transform ---------------------- */
 	// this is a 2-D one bit normalization in the f-t domain, stablized with the cutoff_factor:
@@ -428,6 +452,8 @@ public:
 	void AlwaysParallel() { maxnpts4parallel = std::numeric_limits<int>::max(); }
 	// to run the fftw, 16 times the original npts is required ( in&out complex double array with size doubled for specturm ). 20 is used to be safe
 	void SetMaxMemForParallel( float MemInMb ) { maxnpts4parallel = (MemInMb * 1024. * 1024. - 1000.) / (4. * 20.); }
+
+   friend void ReImToAmPh( SacRec& sac_re, SacRec& sac_im );
 
 	// define string output
    friend std::ostream& operator<< ( std::ostream& o, const SacRec& sac ) {
