@@ -226,6 +226,7 @@ bool SeedRec::ExtractSac( const std::string& staname, const std::string& netname
 	} catch( const ErrorSR::Base& e ) {
 		std::cerr<<"Warning(SeedRec::ExtractSac): extraction failed on "<<staname<<" "
 					<<netname<<" "<<chname<<" ("<<e.what()<<") skipped"<<std::endl;
+      dRemove(tdir.c_str());
 		return false;
 	}
 	//delete [] filelst;

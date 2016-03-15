@@ -455,6 +455,8 @@ public:
 
    friend void ReImToAmPh( SacRec& sac_re, SacRec& sac_im );
 
+   friend void SACRotate( SacRec& sac1, SacRec& sac2, const float deg );
+
 	// define string output
    friend std::ostream& operator<< ( std::ostream& o, const SacRec& sac ) {
 		o << sac.fname << "  " << sac.evname() << " " << sac.shd.evlo << " " << sac.shd.evla

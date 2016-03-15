@@ -1,11 +1,10 @@
 #include "SacRec.h"
 #include "StaSacs.h"
 #include <iostream>
-//#define DEBUG
 
 int main (int argc, char *argv[]) {
-   if( argc != 6) {
-      std::cout<<"Usage: "<<argv[0]<<" [SAC_Z] [SAC_H1] [SAC_H2] [sac_type (0=dis, 1=vel, 2=acc)] [SAC_Z_out]"<<std::endl;
+   if( argc != 7) {
+      std::cout<<"Usage: "<<argv[0]<<" [SAC_Z] [SAC_H1] [SAC_H2] [SAC_D] [sac_type (0=dis, 1=vel, 2=acc)] [SAC_Z_out]"<<std::endl;
       exit(-1);
    }
    
@@ -21,12 +20,12 @@ int main (int argc, char *argv[]) {
    }
 	*/
 
-	StaSacs ss(argv[1], argv[2], argv[3], "", atoi(argv[4]));
+	StaSacs ss(argv[1], argv[2], argv[3], argv[4], atoi(argv[5]));
 	float Eperl = 15., Eperu = 40.;	// problem: tilt noise is strong in this band too!!
 	//float Eperl = 10., Eperu = 12.;
-	ss.RemoveTilts(Eperl, Eperu, 2000.);
+	std::cout<<"direction & coh_t & coh_c = "<<ss.RemoveTiltCompliance(Eperl, Eperu, 2000.)<<std::endl;
 
-	ss.Write(argv[5]);
+	ss.Write(argv[6]);
 
    return 0;
 }

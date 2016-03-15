@@ -2005,18 +2005,20 @@ void SacRec::NoiseZeroOut( SacRec& sacout, std::vector<int>& recb, std::vector<i
 	float noiselevel = sacout.sig[inoiselevel];
 	// signal < noiselevel*nfactor or nomin is not allowed
 	float stdmin = std::max(nomin, noiselevel * nofactor);
-//std::cerr<<stdmin<<std::endl;
 	// identify invalid (near zero) segments as defined by stdmin
 	sacout = *this;
 	int len_min = nint(tlen_min/shd.delta), npsame = 1;
 	const float *sigsac = sig.get();
 	float *sigosac = sacout.sig.get();
-	float siglast = sigsac[0];
 	recb.clear(); rece.clear();
 	recb.push_back(0);
+	float sigmin = sigsac[0], sigmax = sigsac[0];
 	int npts = sacout.shd.npts, nrece = npts;
 	for(int i=1; i<npts; i++) {
-		if( fabs(sigsac[i]-siglast)>stdmin || i==npts-1 ) {
+		auto &sigcur = sigsac[i];
+		if( sigcur > sigmax ) sigmax = sigcur;
+		else if( sigcur < sigmin ) sigmin = sigcur;
+		if( sigmax-sigmin>stdmin || i==npts-1 ) {
 			if( npsame >= len_min ) {
 				int ib = i-npsame, ie = i==npts-1 ? npts : i;
 				float tsameb = sacout.X(ib);
@@ -2034,10 +2036,10 @@ void SacRec::NoiseZeroOut( SacRec& sacout, std::vector<int>& recb, std::vector<i
 				}
 			}
 			npsame = 1;
+			sigmin = sigmax = sigcur;
 		} else {
 			npsame++;
 		}
-		siglast = sigsac[i];
 	}
 	rece.push_back(nrece);
 	if( recb[0] == 0 ) sacout.cosTaperL(shd.b, shd.b+ttaper);
@@ -2858,7 +2860,6 @@ bool SacRec::EqkCut( SacRec& sacout, std::vector<int>& rec_b, std::vector<int>& 
 		sacw.cosTaperR( te-ttaper, te );
 	}
 	float* sigw = sacw.sig.get();
-	//sacw.Write("debug0.SAC");
 
    // noise window npts (1000 sec length)
    double dt = (double)(shd.delta);
@@ -2970,7 +2971,7 @@ bool SacRec::EqkCut( SacRec& sacout, std::vector<int>& rec_b, std::vector<int>& 
 	ii = 0;
    for(int i=0; i<rec_b.size(); i++) ii += rec_e[i] - rec_b[i];
    if( ii < 0.2*n ) {
-      std::cerr<<"*** Warning("<<FuncName<<"): Time length <20\% after removing earthquakes. Skipped. ***";
+      std::cerr<<"*** Warning("<<FuncName<<"): Time length <20\% after removing earthquakes ("<<fname<<") ***";
       return false;
    }
 
@@ -3175,3 +3176,23 @@ void ReImToAmPh( SacRec& sac_re, SacRec& sac_im ) {
 		re = am; im = ph;
 	}
 }
+
+void SACRotate( SacRec& sac1, SacRec& sac2, const float deg ) {
+	if( fabs(deg) < 1.e-5 ) return;
+	if( ! sac1.sig&&sac2.sig )
+		throw ErrorSR::EmptySig(FuncName);
+	const int npts = sac1.shd.npts;
+	if( npts != sac2.shd.npts )
+		throw ErrorSR::HeaderMismatch(FuncName, "npts: "+std::to_string(npts)+" - "+std::to_string(sac2.shd.npts) );
+
+	const float degrad = deg * M_PI / 180.;
+	const float cosdeg = cos(degrad), sindeg = sin(degrad);
+	auto sigsac1 = sac1.sig.get(), sigsac2 = sac2.sig.get();
+	for(int i=0; i<npts; i++) {
+		float sig1 = sigsac1[i], sig2 = sigsac2[i];
+		sigsac1[i] = sig1 * cosdeg + sig2 * sindeg;
+		sigsac2[i] = sig2 * cosdeg - sig1 * sindeg;
+	}
+}
+
+

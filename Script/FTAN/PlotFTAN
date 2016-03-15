@@ -54,7 +54,7 @@ RunFTAN() {
    DispGrv=$2
    DispPhv=$3
    param=$4
-   echo $param" "$sacf" 0" > param_R.dat
+   echo $param" "$sacf" 1" > param_R.dat
    $FTANexe param_R.dat $DispPhv $DispGrv 0.008
    rm -f param_R.dat
 }

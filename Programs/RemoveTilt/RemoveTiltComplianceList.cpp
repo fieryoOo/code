@@ -11,7 +11,7 @@
 int main (int argc, char *argv[]) {
    if( argc != 2) {
 		// sac_type: 0=dis, 1=vel, 2=acc
-      std::cout<<"Usage: "<<argv[0]<<" [sac-list (SAC_Z SAC_H1 SAC_H2 sac_type SAC_Z_out)]"<<std::endl;
+      std::cout<<"Usage: "<<argv[0]<<" [sac-list (SAC_Z SAC_H1 SAC_H2 SAC_D sac_type SAC_Z_out)]"<<std::endl;
       exit(-1);
    }
 
@@ -30,14 +30,23 @@ int main (int argc, char *argv[]) {
 	for(int i=0; i<flstV.size(); i++) {
 		const auto &line = flstV[i];
 		std::stringstream ss(line);
-		std::string sacnameZ, sacnameH1, sacnameH2, outname;
+		std::string sacnameZ, sacnameH1, sacnameH2, sacnameD, outname;
 		int sactype;
-		if( ! (ss >> sacnameZ >> sacnameH1 >> sacnameH2 >> sactype >> outname) ) {
+		if( ! (ss >> sacnameZ >> sacnameH1 >> sacnameH2 >> sacnameD >> sactype >> outname) ) {
 			std::cerr<<"Error(main): format error within input line: "<<line<<std::endl;
 			continue;
 		}
-		StaSacs stasac(sacnameZ, sacnameH1, sacnameH2, "", sactype);
-		stasac.RemoveTilts(Eperl, Eperu, 2000.);
+		StaSacs stasac(sacnameZ, sacnameH1, sacnameH2, sacnameD, sactype);
+		std::stringstream report(std::ios_base::app|std::ios_base::in|std::ios_base::out);
+		report<<"Producing sac file "<<outname<<"\n";
+		try {
+			auto res = stasac.RemoveTiltCompliance(Eperl, Eperu, 2000.);
+			report<<"direction & coh_t & coh_c = "<<res<<"\n";
+		} catch( const std::exception& e ) {
+			report<<"Warning(main): rmTiltCompliance failed ("<<e.what()<<") and no correction made.";
+		}
+		#pragma omp critical
+		std::cout<<report.str()<<std::endl;
 		stasac.Write(outname);
 	}
 
