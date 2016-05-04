@@ -39,8 +39,32 @@ struct SAC_HD {
 	char	kuser1[8], kuser2[8], kcmpnm[8];           
 	char	knetwk[8], kdatrd[8], kinst[8];            
 
+
+	/* ------------------------------- fix broken strings ------------------------------- */
+	const std::string ntname() const {
+		std::stringstream ss(knetwk);
+		std::string ntname; ss >> ntname;
+		return ntname;
+	}
+	const std::string evname() const {
+		std::stringstream ss(kevnm);
+		std::string evname; ss >> evname;
+		return evname;
+	}
+	const std::string stname() const {
+		std::stringstream ss(kstnm);
+		std::string stname; ss >> stname;
+		return stname;
+	}
+
+	const std::string chname() const {
+		std::stringstream ss(kcmpnm);
+		std::string chname; ss >> chname;
+		return chname;
+	}
+
 	/* ------------------------------- header streams ------------------------------- */
-	bool StreamTo( std::string field, std::ostream& o ) const {
+	bool StreamTo( std::string field, std::ostream& os ) const {
 		std::transform(field.begin(), field.end(), field.begin(), ::tolower);
 
 		std::string prefix, suffix;
@@ -53,58 +77,58 @@ struct SAC_HD {
 			return (dump || field==fdump);
 		};
 
-		if( dumpfield("dist") ) o << prefix << dist << suffix;
-		if( dumpfield("az") ) o << prefix << az << suffix;
-		if( dumpfield("baz") ) o << prefix << baz << suffix;
-		if( dumpfield("gcarc") ) o << prefix << gcarc << suffix;
-		if( dumpfield("b") ) o << prefix << b << suffix;
-		if( dumpfield("e") ) o << prefix << e << suffix;
-		if( dumpfield("delta") ) o << prefix << delta << suffix;
-		if( dumpfield("npts") ) o << prefix << npts << suffix;
-		if( dumpfield("depmin") ) o << prefix << depmin << suffix;
-		if( dumpfield("depmax") ) o << prefix << depmax << suffix;
+		if( dumpfield("dist") ) os << prefix << dist << suffix;
+		if( dumpfield("az") ) os << prefix << az << suffix;
+		if( dumpfield("baz") ) os << prefix << baz << suffix;
+		if( dumpfield("gcarc") ) os << prefix << gcarc << suffix;
+		if( dumpfield("b") ) os << prefix << b << suffix;
+		if( dumpfield("e") ) os << prefix << e << suffix;
+		if( dumpfield("delta") ) os << prefix << delta << suffix;
+		if( dumpfield("npts") ) os << prefix << npts << suffix;
+		if( dumpfield("depmin") ) os << prefix << depmin << suffix;
+		if( dumpfield("depmax") ) os << prefix << depmax << suffix;
 
-		if( dumpfield("knetwk") ) o << prefix << std::string(knetwk, 8) << suffix;
-		if( dumpfield("kstnm") ) o << prefix << std::string(kstnm, 8) << suffix;
-		if( dumpfield("stlo") ) o << prefix << stlo << suffix;
-		if( dumpfield("stla") ) o << prefix << stla << suffix;
-		if( dumpfield("stel") ) o << prefix << stel << suffix;
-		if( dumpfield("stdp") ) o << prefix << stdp << suffix;
+		if( dumpfield("knetwk") ) os << prefix << ntname() << suffix;
+		if( dumpfield("kstnm") ) os << prefix << stname() << suffix;
+		if( dumpfield("stlo") ) os << prefix << stlo << suffix;
+		if( dumpfield("stla") ) os << prefix << stla << suffix;
+		if( dumpfield("stel") ) os << prefix << stel << suffix;
+		if( dumpfield("stdp") ) os << prefix << stdp << suffix;
 
-		if( dumpfield("kevnm") ) o << prefix << std::string(kevnm, 16) << suffix;
-		if( dumpfield("evlo") ) o << prefix << evlo << suffix;
-		if( dumpfield("evla") ) o << prefix << evla << suffix;
-		if( dumpfield("evel") ) o << prefix << evel << suffix;
-		if( dumpfield("evdp") ) o << prefix << evdp << suffix;
+		if( dumpfield("kevnm") ) os << prefix << evname() << suffix;
+		if( dumpfield("evlo") ) os << prefix << evlo << suffix;
+		if( dumpfield("evla") ) os << prefix << evla << suffix;
+		if( dumpfield("evel") ) os << prefix << evel << suffix;
+		if( dumpfield("evdp") ) os << prefix << evdp << suffix;
 
-		if( dumpfield("nzyear") ) o << prefix << nzyear << suffix;
-		if( dumpfield("nzjday") ) o << prefix << nzjday << suffix;
-		if( dumpfield("nzhour") ) o << prefix << nzhour << suffix;
-		if( dumpfield("nzmin") ) o << prefix << nzmin << suffix;
-		if( dumpfield("nzsec") ) o << prefix << nzsec << suffix;
-		if( dumpfield("nzmsec") ) o << prefix << nzmsec << suffix;
+		if( dumpfield("nzyear") ) os << prefix << nzyear << suffix;
+		if( dumpfield("nzjday") ) os << prefix << nzjday << suffix;
+		if( dumpfield("nzhour") ) os << prefix << nzhour << suffix;
+		if( dumpfield("nzmin") ) os << prefix << nzmin << suffix;
+		if( dumpfield("nzsec") ) os << prefix << nzsec << suffix;
+		if( dumpfield("nzmsec") ) os << prefix << nzmsec << suffix;
 
-		if( dumpfield("kcmpnm") ) o << prefix << std::string(kcmpnm, 8) << suffix;
-		if( dumpfield("cmpaz") ) o << prefix << cmpaz << suffix;
-		if( dumpfield("cmpinc") ) o << prefix << cmpinc << suffix;
+		if( dumpfield("kcmpnm") ) os << prefix << chname() << suffix;
+		if( dumpfield("cmpaz") ) os << prefix << cmpaz << suffix;
+		if( dumpfield("cmpinc") ) os << prefix << cmpinc << suffix;
 
-		if( dumpfield("o") ) o << prefix << o << suffix;
-		if( dumpfield("ko") ) o << prefix << std::string(ko, 8) << suffix;
-		if( dumpfield("a") ) o << prefix << a << suffix;
-		if( dumpfield("ka") ) o << prefix << std::string(ka, 8) << suffix;
-		if( dumpfield("f") ) o << prefix << f << suffix;
-		if( dumpfield("kf") ) o << prefix << std::string(kf, 8) << suffix;
+		if( dumpfield("o") ) os << prefix << o << suffix;
+		if( dumpfield("ko") ) os << prefix << std::string(ko, 8) << suffix;
+		if( dumpfield("a") ) os << prefix << a << suffix;
+		if( dumpfield("ka") ) os << prefix << std::string(ka, 8) << suffix;
+		if( dumpfield("f") ) os << prefix << f << suffix;
+		if( dumpfield("kf") ) os << prefix << std::string(kf, 8) << suffix;
 
-		if( dumpfield("user0") ) o << prefix << user0 << suffix;
-		if( dumpfield("user1") ) o << prefix << user1 << suffix;
-		if( dumpfield("user2") ) o << prefix << user2 << suffix;
-		if( dumpfield("user3") ) o << prefix << user3 << suffix;
-		if( dumpfield("user4") ) o << prefix << user4 << suffix;
-		if( dumpfield("user5") ) o << prefix << user5 << suffix;
-		if( dumpfield("user6") ) o << prefix << user6 << suffix;
-		if( dumpfield("user7") ) o << prefix << user7 << suffix;
-		if( dumpfield("user8") ) o << prefix << user8 << suffix;
-		if( dumpfield("user9") ) o << prefix << user9 << suffix;
+		if( dumpfield("user0") ) os << prefix << user0 << suffix;
+		if( dumpfield("user1") ) os << prefix << user1 << suffix;
+		if( dumpfield("user2") ) os << prefix << user2 << suffix;
+		if( dumpfield("user3") ) os << prefix << user3 << suffix;
+		if( dumpfield("user4") ) os << prefix << user4 << suffix;
+		if( dumpfield("user5") ) os << prefix << user5 << suffix;
+		if( dumpfield("user6") ) os << prefix << user6 << suffix;
+		if( dumpfield("user7") ) os << prefix << user7 << suffix;
+		if( dumpfield("user8") ) os << prefix << user8 << suffix;
+		if( dumpfield("user9") ) os << prefix << user9 << suffix;
 
 		else return false;
 
@@ -121,60 +145,60 @@ struct SAC_HD {
 			std::istringstream sin(line);
 			std::string field; sin >> field;
 			std::transform(field.begin(), field.end(), field.begin(), ::tolower);
-			bool succeed = false;
+			//bool succeed = false;
 
-			if( field == "dist" ) succeed = sin >> shd.dist;
-			else if( field == "az" ) succeed = sin >> shd.az;
-			else if( field == "baz" ) succeed = sin >> shd.baz;
-			else if( field == "gcarc" ) succeed = sin >> shd.gcarc;
-			else if( field == "b" ) succeed = sin >> shd.b;
-			else if( field == "e" ) succeed = sin >> shd.e;
-			else if( field == "delta" ) succeed = sin >> shd.delta;
-			else if( field == "npts" ) succeed = sin >> shd.npts;
+			if( field == "dist" ) sin >> shd.dist;
+			else if( field == "az" ) sin >> shd.az;
+			else if( field == "baz" ) sin >> shd.baz;
+			else if( field == "gcarc" ) sin >> shd.gcarc;
+			else if( field == "b" ) sin >> shd.b;
+			else if( field == "e" ) sin >> shd.e;
+			else if( field == "delta" ) sin >> shd.delta;
+			else if( field == "npts" ) sin >> shd.npts;
 
-			else if( field == "knetwk" ) succeed = sin >> shd.knetwk;
-			else if( field == "kstnm" ) succeed = sin >> shd.kstnm;
-			else if( field == "stlo" ) succeed = sin >> shd.stlo;
-			else if( field == "stla" ) succeed = sin >> shd.stla;
-			else if( field == "stel" ) succeed = sin >> shd.stel;
-			else if( field == "stdp" ) succeed = sin >> shd.stdp;
+			else if( field == "knetwk" ) sin >> shd.knetwk;
+			else if( field == "kstnm" ) sin >> shd.kstnm;
+			else if( field == "stlo" ) sin >> shd.stlo;
+			else if( field == "stla" ) sin >> shd.stla;
+			else if( field == "stel" ) sin >> shd.stel;
+			else if( field == "stdp" ) sin >> shd.stdp;
 
-			else if( field == "kevnm" ) succeed = sin >> shd.kevnm;
-			else if( field == "evlo" ) succeed = sin >> shd.evlo;
-			else if( field == "evla" ) succeed = sin >> shd.evla;
-			else if( field == "evel" ) succeed = sin >> shd.evel;
-			else if( field == "evdp" ) succeed = sin >> shd.evdp;
+			else if( field == "kevnm" ) sin >> shd.kevnm;
+			else if( field == "evlo" ) sin >> shd.evlo;
+			else if( field == "evla" ) sin >> shd.evla;
+			else if( field == "evel" ) sin >> shd.evel;
+			else if( field == "evdp" ) sin >> shd.evdp;
 
-			else if( field == "nzyear" ) succeed = sin >> shd.nzyear;
-			else if( field == "nzjday" ) succeed = sin >> shd.nzjday;
-			else if( field == "nzhour" ) succeed = sin >> shd.nzhour;
-			else if( field == "nzmin" ) succeed = sin >> shd.nzmin;
-			else if( field == "nzsec" ) succeed = sin >> shd.nzsec;
-			else if( field == "nzmsec" ) succeed = sin >> shd.nzmsec;
+			else if( field == "nzyear" ) sin >> shd.nzyear;
+			else if( field == "nzjday" ) sin >> shd.nzjday;
+			else if( field == "nzhour" ) sin >> shd.nzhour;
+			else if( field == "nzmin" ) sin >> shd.nzmin;
+			else if( field == "nzsec" ) sin >> shd.nzsec;
+			else if( field == "nzmsec" ) sin >> shd.nzmsec;
 
-			else if( field == "kcmpnm" ) succeed = sin >> shd.kcmpnm;
-			else if( field == "cmpaz" ) succeed = sin >> shd.cmpaz;
-			else if( field == "cmpinc" ) succeed = sin >> shd.cmpinc;
+			else if( field == "kcmpnm" ) sin >> shd.kcmpnm;
+			else if( field == "cmpaz" ) sin >> shd.cmpaz;
+			else if( field == "cmpinc" ) sin >> shd.cmpinc;
 
-			else if( field == "o" ) succeed = sin >> shd.o;
-			else if( field == "ko" ) succeed = sin >> shd.ko;
-			else if( field == "a" ) succeed = sin >> shd.a;
-			else if( field == "ka" ) succeed = sin >> shd.ka;
-			else if( field == "f" ) succeed = sin >> shd.f;
-			else if( field == "kf" ) succeed = sin >> shd.kf;
+			else if( field == "o" ) sin >> shd.o;
+			else if( field == "ko" ) sin >> shd.ko;
+			else if( field == "a" ) sin >> shd.a;
+			else if( field == "ka" ) sin >> shd.ka;
+			else if( field == "f" ) sin >> shd.f;
+			else if( field == "kf" ) sin >> shd.kf;
 
-			else if( field == "user0" ) succeed = sin >> shd.user0;
-			else if( field == "user1" ) succeed = sin >> shd.user1;
-			else if( field == "user2" ) succeed = sin >> shd.user2;
-			else if( field == "user3" ) succeed = sin >> shd.user3;
-			else if( field == "user4" ) succeed = sin >> shd.user4;
-			else if( field == "user5" ) succeed = sin >> shd.user5;
-			else if( field == "user6" ) succeed = sin >> shd.user6;
-			else if( field == "user7" ) succeed = sin >> shd.user7;
-			else if( field == "user8" ) succeed = sin >> shd.user8;
-			else if( field == "user9" ) succeed = sin >> shd.user9;
+			else if( field == "user0" ) sin >> shd.user0;
+			else if( field == "user1" ) sin >> shd.user1;
+			else if( field == "user2" ) sin >> shd.user2;
+			else if( field == "user3" ) sin >> shd.user3;
+			else if( field == "user4" ) sin >> shd.user4;
+			else if( field == "user5" ) sin >> shd.user5;
+			else if( field == "user6" ) sin >> shd.user6;
+			else if( field == "user7" ) sin >> shd.user7;
+			else if( field == "user8" ) sin >> shd.user8;
+			else if( field == "user9" ) sin >> shd.user9;
 
-			if( ! succeed )
+			if( ! sin )
 				throw std::runtime_error(std::string("Error(") + __FUNCTION__ + "): Invalid header field or value (" + line + ")");
 		}
 		return i;

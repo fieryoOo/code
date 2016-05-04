@@ -87,17 +87,16 @@ struct SacRec::SRimpl {
       plan = fftw_plan_dft_1d (ns, *in, *out, FFTW_BACKWARD, type); //FFTW_ESTIMATE / FFTW_MEASURE
       if( planF ) *planF = fftw_plan_dft_1d (ns, *out, *in, FFTW_FORWARD, type);
 		}
-		/* comparing plan to null. Is it a defined behavior
+		/* comparing plan to null. Is it a defined behavior?
       if( plan==nullptr || (planF && *planF==nullptr) ) {
          fprintf(stderr,"Error(FFTW_B): fftw_plan creation failed!!\n");
          //pthread_mutex_unlock(&fftlock); exit(0);
-      }
-		*/
+      } */
       //pthread_mutex_unlock(&fftlock);
       //initialize input array and excute
       memset(*in, 0, ns*sizeof(fftw_complex));
       int k;
-      for(k=1; k<n; k++) (*in)[k][0] = seis[k];
+      for(k=0; k<n; k++) (*in)[k][0] = seis[k];
       fftw_execute(plan);
 		if( !planF ) fftw_free(*in);
       //cleanup
@@ -115,7 +114,7 @@ struct SacRec::SRimpl {
          (*out)[k][0] = 0.;
          (*out)[k][1] = 0.;
       }
-      (*out)[0][0] /= 2.; (*out)[0][1] /= 2.;
+      (*out)[0][0] *= 0.5; (*out)[0][1] *= 0.5;
       (*out)[nk-1][1] = 0.;
    }
    // lowpass taper (cosine)
@@ -259,35 +258,38 @@ struct SacRec::SRimpl {
 		}
 	}
 
-	void Smooth(const float* sig, float* sigout, const int n, float half_l) {
+	void Smooth(const float* sig, float* sigout, const int n, int half_l, bool abs = true) {
 		/* copy and compute abs of the signal into sigw */
 		int i, j, wb, we;
-		float wsum;
-		//float sigw[n];
-		std::unique_ptr<float> sigw_p(new float[n]);
-		float *sigw = sigw_p.get(); 
-
-		for( i=0; i<n; i++ ) sigw[i] = fabs(sig[i]);
+		long double wsum;
+		const float *sigw = sig;
+		if( abs ) {
+			std::unique_ptr<float> sigw_p(new float[n]);
+			float *sigwp = sigw_p.get(); 
+			for( i=0; i<n; i++ ) sigwp[i] = fabs(sig[i]);
+			sigw = sigwp;
+		}
 
 		//
 		if(half_l*2>n-1) half_l = (n-1)/2;
 		for(i=0,wsum=0.;i<=half_l;i++) wsum += sigw[i];
 		wb = 0; we = i;
 		for(i=1;i<=half_l;i++,we++) {
-			sigout[i-1] = (double)wsum/we;
+			sigout[i-1] = wsum/we;
 			wsum += sigw[we];
 		}
 	   for(j=we;i<n-half_l;i++,wb++,we++) {
 			//if( i>80000/dt && i<82000/dt ) std::cerr<<(i-1)*dt<<" "<<sig[i-1]<<" "<<wsum<<" / "<<j<<std::endl;
-			sigout[i-1] = (double)wsum/j;
+			sigout[i-1] = wsum/j;
 	      wsum += ( sigw[we] - sigw[wb] );
 		}
 	   for(;i<n;i++,wb++) {
-			sigout[i-1] = (double)wsum/(we-wb);
+			sigout[i-1] = wsum/(we-wb);
 			wsum -= sigw[wb];
 	   }
-		if(wsum>1.e-15)
-			sigout[n-1] = (double)wsum/(we-wb);
+		if(wsum>1.e-15) {
+			sigout[n-1] = wsum/(we-wb);
+		}
 	}
 
 	float FillGap( float *pbeg, float *pend, float mean1, float mean2, float std, int hlen, int step ) {
@@ -363,26 +365,26 @@ struct SacRec::SRimpl {
       int isig, itra = 1;
       double f, ampcur, phacur, realsig, imagsig;
       double sintmp, costmp;
-      for(isig=(int)ceil(freq[0]/dom); isig<nsig; isig++) {
-         f = isig*dom;
-         while(f > freq[itra]) {
-	    itra++;
-	    if(itra >= ntra) break;
-         }
-         //interpolate to get current amp and pha
-         sintmp = (f-freq[itra-1]) / (freq[itra]-freq[itra-1]);
-         ampcur = amp[itra-1] + (amp[itra]-amp[itra-1]) * sintmp;
-         phacur = pha[itra-1] + (pha[itra]-pha[itra-1]) * sintmp;
-         //divide sf by (ampcur, phacur)
-         realsig = sf[isig][0]; imagsig = sf[isig][1];
-         sintmp = sin(phacur); costmp = cos(phacur);
-         sf[isig][0] = (realsig*costmp - imagsig*sintmp) / ampcur;
-         sf[isig][1] = (imagsig*costmp + realsig*sintmp) / ampcur;
-      }
-   }
+		for(isig=(int)ceil(freq[0]/dom); isig<nsig; isig++) {
+			f = isig*dom;
+			while(f > freq[itra]) {
+				itra++;
+				if(itra >= ntra) break;
+			}
+			//interpolate to get current amp and pha
+			sintmp = (f-freq[itra-1]) / (freq[itra]-freq[itra-1]);
+			ampcur = amp[itra-1] + (amp[itra]-amp[itra-1]) * sintmp;
+			phacur = pha[itra-1] + (pha[itra]-pha[itra-1]) * sintmp;
+			//divide sf by (ampcur, phacur)
+			realsig = sf[isig][0]; imagsig = sf[isig][1];
+			sintmp = sin(phacur); costmp = cos(phacur);
+			sf[isig][0] = (realsig*costmp - imagsig*sintmp) / ampcur;
+			sf[isig][1] = (imagsig*costmp + realsig*sintmp) / ampcur;
+		}
+	}
 
-   void FDivide (double f1, double f2, double f3, double f4, double *freq, double *amp, double *pha, int nf, SAC_HD &shd, float *seis_in) {
-      double dt = shd.delta;
+	void FDivide (double f1, double f2, double f3, double f4, double *freq, double *amp, double *pha, int nf, SAC_HD &shd, float *seis_in) {
+		double dt = shd.delta;
       int n = shd.npts;
       if(f4 > 0.5/dt)
 			throw ErrorSR::BadParam( FuncName, "filter band out of range" );
@@ -404,7 +406,8 @@ struct SacRec::SRimpl {
 
       //forming final result
       int k;
-      float ftmp = 2./(ns*dt);
+      //float ftmp = 2./(ns*dt);
+      float ftmp = 2./ns;
 		for(k=0; k<n; k++) {
 			//if( seis_in[k]==0 ) seis_out[k] = 0.;
 			//else 
@@ -1117,7 +1120,7 @@ void SacRec::LoadTXT( const std::string& fname ) {
 	}
 }
 
-void SacRec::Dump( const std::string fname ) const {
+void SacRec::Dump( const std::string fname, float tb, float te ) const {
 	if( !sig || shd.npts<=0 )
 		throw ErrorSR::EmptySig(FuncName);
 	bool tofile = !fname.empty();
@@ -1125,19 +1128,23 @@ void SacRec::Dump( const std::string fname ) const {
 	if( tofile && !fout )
 		throw ErrorSR::BadFile( FuncName, "writing to " + fname );
 	std::ostream& sout = tofile ? fout : std::cout;
+	int ib = tb==NaN ? 0 : Index(tb);
+	int ie = te==NaN ? shd.npts : Index(te);
 	float b = shd.b, dt = shd.delta, *sigsac = sig.get();
-	for( int i=0; i<shd.npts; i++ )
+	for( int i=ib; i<ie; i++ )
 		sout<<b+i*dt<<" "<<sigsac[i]<<"\n";
 }
 
 /* dump signal to a vector of PointCs */
-void SacRec::Dump( std::vector<PointC>& dataV ) const {
+void SacRec::Dump( std::vector<PointC>& dataV, float tb, float te ) const {
 	if( !sig || shd.npts<=0 )
 		throw ErrorSR::EmptySig(FuncName);
 	float b = shd.b, dt = shd.delta, *sigsac = sig.get();
-	dataV.clear(); dataV.resize(shd.npts);
-	for( int i=0; i<shd.npts; i++ )
-		dataV[i] = PointC(b+i*dt, sigsac[i]);
+	int ib = tb==NaN ? 0 : Index(tb);
+	int ie = te==NaN ? shd.npts : Index(te);
+	dataV.clear(); dataV.reserve(ie-ib);
+	for( int i=ib; i<ie; i++ )
+		dataV.push_back( PointC(b+i*dt, sigsac[i]) );
 }
 
 /* ------------------------------- header operations ------------------------------- */
@@ -1191,20 +1198,30 @@ void SacRec::Mul( const float mul ) {
    for(int i=0; i<shd.npts; i++) sigsac[i] *= mul;
 }
 
+void SacRec::Add( const float val ) {
+   if( !sig ) throw ErrorSR::EmptySig(FuncName);
+	float *sigsac = sig.get();
+   for(int i=0; i<shd.npts; i++) 
+		sigsac[i] += val;
+}
+
 void SacRec::Addf( const SacRec& sac2 ) {
-   if( !sig || !sac2.sig )
+   if( ! sac2.sig )
 		throw ErrorSR::EmptySig(FuncName);
+	if( ! sig ) { *this = sac2; return; }
 	if( shd.npts != sac2.shd.npts )
 		throw ErrorSR::HeaderMismatch(FuncName, "npts: "+std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
 	//const auto& sig2 = sac2.sig;
 	float *sigsac = sig.get(), *sigsac2 = sac2.sig.get();
    for(int i=0; i<shd.npts; i++) 
 		sigsac[i] += sigsac2[i];
+	if(shd.user0!=NaN && sac2.shd.user0!=NaN) shd.user0 += sac2.shd.user0;
 }
 
 void SacRec::Subf( const SacRec& sac2 ) {
    if( !sig || !sac2.sig )
 		throw ErrorSR::EmptySig(FuncName);
+	if( ! sig ) { *this = sac2; this->Mul(-1.); return; }
 	if( shd.npts != sac2.shd.npts )
 		throw ErrorSR::HeaderMismatch(FuncName, "npts: "+std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
 	//const auto& sig2 = sac2.sig;
@@ -1469,7 +1486,7 @@ float SacRec::PrecNoiseRatio() const {
 }
 
 /* compute accurate sig value at a given time (fit with a parabola) */
-float SacRec::Sig( float time ) const {
+float SacRec::Sig( double time ) const {
 	int itime = Index(time);
 #ifndef PARABOLA_H
 	return sig.at(itime);
@@ -1477,32 +1494,43 @@ float SacRec::Sig( float time ) const {
 	if( itime == 0 ) itime += 1;
 	else if( itime == shd.npts-1 ) itime -= 1;
 	float* sigsac = sig.get();
-	PointC p1(X(itime-1), sigsac[itime-1]);
-	PointC p2(X(itime),   sigsac[itime]  );
-	PointC p3(X(itime+1), sigsac[itime+1]);
+	// to avoid rounding problem, shift to zero time
+	PointC p1(-shd.delta, sigsac[itime-1]);
+	PointC p2(0.,   sigsac[itime]  );
+	PointC p3(shd.delta, sigsac[itime+1]);
 	//std::cerr<<p1<<"\n"<<p2<<"\n"<<p3<<"\nresult: "<<time<<" "<<Parabola( p1, p2, p3 )(time)<<std::endl;
-	return Parabola( p1, p2, p3 )(time);
+	return Parabola( p1, p2, p3 )(time-X(itime));
 #endif
 }
 
-
 /* smoothing (running average) */
-void SacRec::Smooth( float timehlen, SacRec& sacout ) const {
+void SacRec::Smooth( float timehlen, SacRec& sacout, bool abs, float tb, float te ) const {
    if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
 
-	/* resize sacout.sig */
-	sacout.shd = shd;
-	sacout.sig.reset( new float[shd.npts] );
-	if( ! sig )
-		throw ErrorSR::MemError( FuncName, "new failed!");
+   int half_l = (int)floor(timehlen/shd.delta+0.5);
+	if( half_l < 1 ) {
+		sacout = *this; return;
+	}
+
+	if( tb!=NaN || te!=NaN ) { // copy sac into sacout if partialy smoothing{
+		sacout = *this;
+	} else {	// resize sacout.sig otherwise
+		sacout.shd = shd;
+		sacout.sig.reset( new float[shd.npts] );
+		if( ! sacout.sig )
+			throw ErrorSR::MemError( FuncName, "new failed!");
+	}
 
 	float *sigsac = sig.get();
    float *sigout = sacout.sig.get();
-   int half_l = (int)floor(timehlen/shd.delta+0.5);
 
-	pimpl->Smooth(sigsac, sigout, shd.npts, half_l);
-
+	int npts = te==NaN ? shd.npts : Index(te);
+	if( tb != NaN ) {
+		int nb = Index(tb); npts -= nb;
+		sigsac += nb; sigout += nb;
+	}
+	pimpl->Smooth(sigsac, sigout, npts, half_l, abs);
 }
 
 
@@ -1561,6 +1589,17 @@ bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& s
 	return true;
 }
 
+float SacRec::MeanPha() const {
+	if( ! sig )
+		throw ErrorSR::EmptySig(FuncName);
+	float *sigph = sig.get();
+	double x = 0., y = 0.;
+	for(int i=0; i<shd.npts; i++) {
+		x += cos(sigph[i]);
+		y += sin(sigph[i]);
+	}
+	return atan2(y, x);
+}
 
 /* phase wrap and unwrap */
 void SacRec::Wrap() {
@@ -1651,7 +1690,7 @@ void SacRec::ToAmPh( SacRec& sac_am, SacRec& sac_ph, const float fl, const float
 }
 void SacRec::ToAmPh_p( SacRec& sac_am, SacRec& sac_ph, const float fl, const float fu, const int nfout ) const {
    if( ! sig ) 	// check signal
-		throw ErrorSR::EmptySig(FuncName);
+		throw ErrorSR::EmptySig(FuncName, fname);
    if( &sac_am != this ) {	// initialize sac_am if not filtering in place 
       //sac_am = *this;
       sac_am.fname = fname; 
@@ -1694,7 +1733,7 @@ void SacRec::ToAmPh_p( SacRec& sac_am, SacRec& sac_ph, const float fl, const flo
    sac_am.shd.npts = nk;
    sac_am.shd.delta = deltaf;
    sac_am.shd.b = 0.;
-	sac_am.shd.e = sac_am.shd.delta * nk;
+	sac_am.shd.e = sac_am.shd.delta * (nk-1);
 	sac_ph.shd = sac_am.shd;
 }
 
@@ -2295,6 +2334,16 @@ void SacRec::cosTaperR( const float fl, const float fh, bool zeroout ) {
    return;
 }
 
+void SacRec::btwTaperB( double fcL, double fcR, int norder ) {
+   if( !sig || shd.npts<=0 )	// check signal
+		throw ErrorSR::EmptySig(FuncName);
+	auto sigsac = sig.get();
+	double f = 0.; const auto &delta = shd.delta;
+	for( int i=0; i<shd.npts; i++, f+=delta )
+		sigsac[i] *= pimpl->btwB(fcL, fcR, norder, f);
+   return;
+}
+
 void SacRec::Hilbert( SacRec& sacout ) {
    if( !sig || shd.npts<=0 )	// check signal
 		throw ErrorSR::EmptySig(FuncName);
@@ -2360,9 +2409,21 @@ void SacRec::merge( SacRec sacrec2 ) {
    double t2b = sacrec2.AbsTime() + sacrec2.shd.b;
    double t1e = t1b + (shd.npts-1)*shd.delta;
    double t2e = t2b + (shd2.npts-1)*shd2.delta;
+
+	// merge in place if sacrec2 is within sacrec1
+   double dt = (int)floor(shd.delta*1e8+0.5)/1e8;
+   int nb = (int)floor((t2b-t1b)/dt+0.5);
+	double tshift = (nb*dt-(t2b-t1b));// + (shd2.b-shd.b);
+   if( fabs(tshift) > 1.e-3 )
+		(*report) << "signal shifted by " << tshift << "secs" << std::endl;
+	if( t2b>=t1b && t2e<=t1e ) {
+		std::copy(&(sacrec2.sig[0]), &(sacrec2.sig[0])+shd2.npts, &(sig[nb]));
+		return;
+	}
+
+	// merge out of place otherwise
    double T1 = std::min(t1b, t2b), T2 = std::max(t1e, t2e);
 
-   double dt = (int)floor(shd.delta*1e8+0.5)/1e8, tshift;
    int N = (int)floor((T2-T1)/shd.delta+0.5)+1;
 
    /* pre-merging checks */
@@ -2380,21 +2441,12 @@ void SacRec::merge( SacRec sacrec2 ) {
    //std::copy(&(sig1[0]), &(sig1[0])+5, &(sig0[0]));
 
    /* compute merge locations */
-   int nb;
-   bool reversed;
+   bool reversed = false;
    if( t1b > t2b ) {
       reversed = true;
       nb = (int)floor((t1b-t2b)/dt+0.5);
 		tshift = (nb*dt-(t1b-t2b));// + (shd.b-shd2.b);
    }
-   else {
-      reversed = false;
-      nb = (int)floor((t2b-t1b)/dt+0.5);
-		tshift = (nb*dt-(t2b-t1b));// + (shd2.b-shd.b);
-   }
-   if( fabs(tshift) > 1.e-3 )
-		(*report) << "signal shifted by " << tshift << "secs" << std::endl;
-
 
    /* copy in the signals */
    if( reversed ) {
@@ -2509,7 +2561,13 @@ void SacRec::ZoomToEvent( const std::string etime, float evlon, float evlat, flo
 	ZoomToEvent( eshd, evlon, evlat, tb, tlen, ename );
 }
 
-void SacRec::ZoomToEvent( const SAC_HD& eshd, float evlon, float evlat, float tb, float tlen, const std::string ename ) {
+void SacRec::ZoomToEvent( const SAC_HD& eshd, float evlon, float evlat, float tb, float tlen, std::string ename ) {
+	if( evlon == NaN ) evlon = eshd.evlo;
+	if( evlat == NaN ) evlat = eshd.evla;
+	if( tb == NaN ) tb = eshd.b;
+	if( tlen == NaN ) tlen = (eshd.npts-1) * eshd.delta;
+	if( ename.empty() ) ename = std::to_string(eshd.nzyear) + "-" + std::to_string(eshd.nzjday) + "-" +
+										 std::to_string(eshd.nzhour) + "-" + std::to_string(eshd.nzmin) + "-" + std::to_string(eshd.nzsec);
    if( tlen <= 0. )
 		throw ErrorSR::BadParam( FuncName, "negative tlen = " + std::to_string(tlen) );
    
@@ -2537,23 +2595,29 @@ void SacRec::ZoomToEvent( const SAC_HD& eshd, float evlon, float evlat, float tb
 
 /* remove mean and trend */
 void SacRec::RTrend() {
-   // fit a*x+b
-   int i, npts = shd.npts;
-   float X = 0., Y = 0., X2 = 0., Y2 = 0., XY = 0.;
+   // fit a*x+b with at most ~10000 points
+   int npts = shd.npts;
+	int step = std::max(1, nint(npts/10000.));
+	// fit starts
 	float *sigsac = sig.get();
-   for(i=0;i<npts;i++) {
+   float X = 0., Y = 0., X2 = 0., Y2 = 0., XY = 0.;
+	int nptse = 0;
+   for(int i=0;i<npts;i+=step) {
       X += i;
       Y += sigsac[i];
       X2 += i*i;
       Y2 += sigsac[i]*sigsac[i];
       XY += i*sigsac[i];
+		nptse++;
    }
-   float a = (npts*XY-X*Y)/(npts*X2-X*X);
-   float b = (-X*XY+X2*Y)/(npts*X2-X*X);
+   float a = (nptse*XY-X*Y)/(nptse*X2-X*X);
+   float b = (-X*XY+X2*Y)/(nptse*X2-X*X);
+	if( a!=a || b!=b )
+		throw ErrorSR::FloatOverflow(FuncName, "fitting params");
    // correct sig and DEPMEN
    float mean = 0., max = sigsac[0], min = sigsac[0];
    float shift = b;
-   for(i=0;i<npts;i++,shift+=a) {
+   for(int i=0;i<npts;i++,shift+=a) {
       sigsac[i] -= shift;
       mean += sigsac[i];
       if ( min > sigsac[i] ) min = sigsac[i];
@@ -2612,6 +2676,7 @@ void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std
 		fph = fopen(nameph, "r");
 		if( fph ) openP = true;
 	}
+	//std::cerr<<fresp<<" "<<nameam<<" "<<nameph<<std::endl;
 	// proceed further only if all succed!
 	if( sizeA==1 && sizeP==1 && openA && openP ) {
 		// read in am and ph data
@@ -2668,6 +2733,7 @@ void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std
 		default:
 			throw ErrorSR::BadParam( FuncName, "unknown datatype (type="+std::to_string(type)+") for sac output." );
 	}
+//Write("debug2.SAC");
 }
 
 /* down sampling with anti-aliasing filter */
@@ -2694,7 +2760,7 @@ void SacRec::Resample( int sps, bool fitParabola ) {
 	if( iinc==1 && t0==0. ) return;	// nothing needs to be done
 
    // allocate space for the new sig pointer
-	int nptst = (int)floor( ( t0 + (shd.npts-1)*shd.delta - t0new ) * sps ) + 1;
+	int nptst = (int)floor( ( t0 + (shd.npts-1)*shd.delta - t0new ) * sps );
    //int nptst = nint((shd.npts-1)*shd.delta*sps)+10;
    std::unique_ptr<float[]> sig2(new float[nptst]);
 	if( ! sig2 )
@@ -2751,14 +2817,20 @@ void SacRec::Resample( int sps, bool fitParabola ) {
    shd.npts = j;
 }
 
-void SacRec::Interpolate( int npts_ratio ) {
+void SacRec::Interpolate( int npts_ratio, SacRec& sac2 ) const {
 	if( npts_ratio <= 1 ) return;
 	if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
 	
+	// prepare sac2
 	int npts2 = (shd.npts-1) * npts_ratio + 1;
-   std::unique_ptr<float[]> sig2(new float[npts2]);
-	auto sigsac = sig.get(), sig2sac = sig2.get();
+	sac2.shd = shd;
+	sac2.shd.npts = npts2; sac2.shd.delta /= npts_ratio;
+	sac2.sig.reset();
+	sac2.sig.reset( new float[npts2] );
+
+	// interpolate starts
+	auto sigsac = sig.get(), sig2sac = sac2.sig.get();
 	for(int i1=0; i1<shd.npts-1; i1++) {
 		float sig0 = sigsac[i1];
 		float siginc = (sigsac[i1+1] - sigsac[i1]) / npts_ratio;
@@ -2767,10 +2839,6 @@ void SacRec::Interpolate( int npts_ratio ) {
 		for(int i=1; i<npts_ratio; i++) 
 			sig2sac[i2+i] = sig0 + i*siginc;
 	}
-	
-   sig = std::move(sig2);
-	shd.npts = npts2;
-	shd.delta /= npts_ratio;
 }
 
 /* ---------------------------------------- temporal normalizations ---------------------------------------- */
@@ -2827,10 +2895,19 @@ void SacRec::RunAvg( float timehlen, float Eperl, float Eperh ) {
 
 }
 
+void SacRec::Whiten( float fl, float fu, float fhlen ) {
+	SacRec sac_am, sac_ph;
+	ToAmPh(sac_am, sac_ph);
+	sac_am.RunAvg(fhlen, -1, -1);
+	sac_am.btwTaperB(fl, fu);
+	FromAmPh(sac_am, sac_ph);
+}
+
 // earthquake cutting
 
 bool SacRec::EqkCut( SacRec& sacout, std::vector<int>& rec_b, std::vector<int>& rec_e, 
-							const float Eperl, const float Eperu, bool apptaper, const std::string& recname ) const {
+							const float Eperl, const float Eperu, const float maxnoise_factor, 
+							bool apptaper, const std::string& recname ) const {
 	// any point with val<=sigmin is assumed 0
 	float sigmin = 1.;
 	// time length of taper window to reduce FFT edge effects
@@ -2838,7 +2915,7 @@ bool SacRec::EqkCut( SacRec& sacout, std::vector<int>& rec_b, std::vector<int>& 
 	int nptaper = nint(ttaper / shd.delta);
 	// evenly sample 1000 points. assume invalid if >60% are zeros
 	auto sigsac = sig.get();
-   int n = shd.npts, ninc = n/1000, npole=0;
+   int n = shd.npts, ninc = n>1000?n/1000:1, npole=0;
    for(int i=0;i<n;i+=ninc) if(fabs(sigsac[i])<sigmin) npole++;
    if(npole>600) {
       std::cerr<<"*** Warning("<<FuncName<<"): Signal time length not long enough. ***"<<std::endl;
@@ -2861,12 +2938,12 @@ bool SacRec::EqkCut( SacRec& sacout, std::vector<int>& rec_b, std::vector<int>& 
 	}
 	float* sigw = sacw.sig.get();
 
-   // noise window npts (1000 sec length)
-   double dt = (double)(shd.delta);
-   int s1k=(int)floor(1000./dt+0.5); // npts of a 1000 sec window
+   // noise window npts (twindow sec length)
+   double dt = (double)(shd.delta), twindow = 1000.;
+   int s1k=(int)floor(twindow/dt+0.5); // npts of a twindow sec window
    int nos1k = (int)(n/s1k);
 
-   // for (each of) the ith 1000 sec window, search for maximum amplitude and store into win_max[i]
+   // for (each of) the ith twindow sec window, search for maximum amplitude and store into win_max[i]
    double win_max[nos1k];
    memset (win_max,0,nos1k*sizeof(double));
    for(int i=0;i<n;i++) sigw[i] = fabs(sigw[i]);
@@ -2912,8 +2989,8 @@ bool SacRec::EqkCut( SacRec& sacout, std::vector<int>& rec_b, std::vector<int>& 
    window_std=std::sqrt(window_std/(ii-1));
 	//std::cerr<<window_avg<<" "<<window_std<<std::endl;
 
-   // mark windows with a max amp > window_avg+2.5*window_std to be 'zero'
-   dtmp = window_avg+2.5*window_std;
+   // mark windows with a max amp > window_avg+maxnoise_factor*window_std to be 'zero'
+   dtmp = window_avg+maxnoise_factor*window_std;
    short keep[nos1k];
    for( int i =0; i<nos1k; i++) keep[i] = win_max[i] > dtmp ? 0 : 1;
 
@@ -2930,8 +3007,8 @@ bool SacRec::EqkCut( SacRec& sacout, std::vector<int>& rec_b, std::vector<int>& 
 	float ttaper_sig = apptaper ? ttaper : 0.;
 	sacout.NoiseZeroOut(rec_b, rec_e, 30., 0.1, sigmin, ttaper_sig);
 
-	// remove invalid windows with a length < 2500. sec
- 	int winlen_min = (int)ceil(2500./dt);
+	// remove invalid windows with a length < 2.5*twindow sec
+ 	int winlen_min = (int)ceil(2.5*twindow/dt);
 	sigosac = sacout.sig.get();	// re-point! NoiseZeroOut invalidated the old sigosac pointer
 	for(int irec=0; irec<rec_b.size(); irec++) {
 		if( rec_e[irec]-rec_b[irec] > winlen_min ) continue;
@@ -3039,10 +3116,6 @@ float SacRec::Correlation( const SacRec& sac2, const float tb, const float te ) 
 	return cc;
 }
 
-/* Cross-Correlate with another sac record
-	ctype=0: Cross-Correlate (default) 
-	ctype=1: deconvolve (sac.am/sac2.am)
-	ctype=2: deconvolve (sac2.am/sac.am) */
 /*
 void SacRec::CrossCorrelate( SacRec& sac2, SacRec& sacout, int ctype ) {
 	// check input
@@ -3063,7 +3136,11 @@ void SacRec::CrossCorrelate( SacRec& sac2, SacRec& sacout, int ctype ) {
 
 }
 */
-void SacRec::CrossCorrelate( SacRec& sac2, SacRec& sacout, int ctype ) {
+/* Cross-Correlate with another sac record
+	ctype=0: Cross-Correlate (default) 
+	ctype=1: deconvolve (sac.am/sac2.am)
+	ctype=2: deconvolve (sac2.am/sac.am) */
+void SacRec::CrossCorrelate( SacRec& sac2, SacRec& sacout, const std::string& outname, int ctype ) {
 	// check input
 	if( !sig || !sac2.sig )
 		throw ErrorSR::EmptySig(FuncName);
@@ -3134,19 +3211,33 @@ void SacRec::CrossCorrelate( SacRec& sac2, SacRec& sacout, int ctype ) {
 	// clear sacs & free memories 2
 	sac1_ph.clear(); sac2_ph.clear();
 
+	// whiten
+	//out_am.RunAvg(0.001, -1, -1);
+	//out_am.cosTaperL(0.01, 0.0125);
+	//out_am.cosTaperR(0.4, 0.5);
 	// convert back to time domain (with length ns)
 	SacRec sac_CC;
 	sac_CC.FromAmPh(out_am, out_ph);
 	// clear sacs & free memories 3
+	if(! outname.empty()) {
+		out_am.Write(outname+"_am");
+		out_ph.Wrap(); out_ph.Write(outname+"_ph");
+	}
 	out_am.clear(); out_ph.clear();
 
 	// form final result
 	int lag = shd.npts-1, ns = (npts-1) * 2;
-	sacout.shd = shd;
-	sacout.shd.npts = lag*2 + 1;
-	float Tshift = sac2.shd.b-shd.b, Tlag = lag * sacout.shd.delta;
-	sacout.shd.b = -Tlag + Tshift;
-	sacout.shd.e = Tlag + Tshift;
+	auto &shdout = sacout.shd;
+	shdout = shd;
+	shdout.npts = lag*2 + 1;
+	float Tshift = sac2.shd.b-shd.b, Tlag = lag * shdout.delta;
+	shdout.b = -Tlag + Tshift;
+	shdout.e = Tlag + Tshift;
+	shdout.user0 = 1;
+	strncpy(shdout.kevnm, shdout.kstnm, 8); strncpy(shdout.kstnm, sac2.shd.kstnm, 8);
+	shdout.evlo = shdout.stlo; shdout.stlo = sac2.shd.stlo;
+	shdout.evla = shdout.stla; shdout.stla = sac2.shd.stla;
+	pimpl->ComputeDisAzi( shdout );
 	sacout.sig.reset( new float[lag*2+1]() );
 	float *cor = sacout.sig.get(), *CCout = sac_CC.sig.get();
    for( int i = 1; i< (lag+1); i++) {
@@ -3161,6 +3252,21 @@ void SacRec::CrossCorrelate( SacRec& sac2, SacRec& sacout, int ctype ) {
 	
 }
 
+
+void AmPhToReIm( SacRec& sac_am, SacRec& sac_ph ) {
+	if( ! sac_am.sig&&sac_ph.sig )
+		throw ErrorSR::EmptySig(FuncName);
+	const int npts = sac_am.shd.npts;
+	if( npts != sac_ph.shd.npts )
+		throw ErrorSR::HeaderMismatch(FuncName, "npts: "+std::to_string(npts)+" - "+std::to_string(sac_ph.shd.npts) );
+	auto sigam = sac_am.sig.get(), sigph = sac_ph.sig.get();
+	for(int i=0; i<npts; i++) {
+		float &am = sigam[i], &ph = sigph[i];
+		float re = am * cos(ph);
+		float im = am * sin(ph);
+		am = re; ph = im;
+	}
+}
 
 void ReImToAmPh( SacRec& sac_re, SacRec& sac_im ) {
 	if( ! sac_re.sig&&sac_im.sig )
@@ -3195,4 +3301,33 @@ void SACRotate( SacRec& sac1, SacRec& sac2, const float deg ) {
 	}
 }
 
+
+void DumpSACs( const std::vector<SacRec>& sacV, const std::string& outname ) {
+	if( sacV.empty() ) return;
+	// get header info
+	auto &shd0 = sacV[0].shd;
+	auto npts = shd0.npts;
+	auto b = shd0.b, delta = shd0.delta;
+	// get pointers to each sac signal (to help performance)
+	float *sigsacA[sacV.size()]; int nvalid = 1;
+	sigsacA[0] = sacV[0].sig.get();
+	// and check header consistency at the same time
+	for(int i=1; i<sacV.size(); i++) {
+		if( ! sacV[i].sig ) continue;
+		sigsacA[nvalid++] = sacV[i].sig.get();
+		const auto &shdc = sacV[i].shd;
+		if( shdc.npts!=npts || shdc.delta!=delta || shdc.b!=b )
+			throw ErrorSR::HeaderMismatch(FuncName, sacV[i].fname+" npts||delta||b");
+	}
+	// open out file
+	std::ofstream fout(outname);
+	if( ! fout ) throw std::runtime_error("IO failed on file "+outname);
+	// output
+	for( int i=0; i<npts; i++ ) {
+		float x = b + delta * i;
+		fout<<x<<"\t";
+		for( int isac=0; isac<nvalid; isac++ ) fout<<sigsacA[isac][i]<<" ";
+		fout<<"\n";
+	}
+}
 

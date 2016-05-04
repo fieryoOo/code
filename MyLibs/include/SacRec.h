@@ -70,7 +70,12 @@ namespace ErrorSR {
          : Base(funcname, "Header mismatch ("+info+").") {}
    };
 
-	
+   class FloatOverflow : public Base {
+   public:
+      FloatOverflow(const std::string funcname, const std::string info = "")
+         : Base(funcname, "Floating-point overflow ("+info+").") {}
+   };
+
    class UndefMethod : public Base {
    public:
 		UndefMethod(const std::string funcname, const std::string info = "")
@@ -141,22 +146,24 @@ public:
 
    /* ------------------------------ sac file read/write ------------------------------ */
    /* load sac header from file 'fname' */
-   void LoadHD( const std::string& fnamein ) { fname = fnamein; LoadHD(); }
    void LoadHD();
+   void LoadHD( const std::string& fnamein ) { fname = fnamein; LoadHD(); }
    /* read sac header+signal from file 'fname', memory is allocated on heap */
-   void Load( const std::string& fnamein ) { fname = fnamein; Load(); }
    void Load();
+   void Load( const std::string& fnamein ) { fname = fnamein; Load(); }
 	/* clear sac and release memory */
 	void clear() { sig.reset(); shd = sac_null; fname.clear(); }
    /* write to file '*fname' */
    void WriteHD( const std::string& fname );
+   void WriteHD() { WriteHD(fname); }
    void Write( const std::string& fname );
+   void Write() { Write(fname); };
 	/* load a txt file */
 	void LoadTXT( const std::string& fname );
 	/* dump signal to stdout/txt */
-	void Dump( const std::string fname = "" ) const;
+	void Dump( const std::string fname = "", float tb = NaN, float te = NaN ) const;
 	/* dump signal to a vector of PointCs */
-	void Dump( std::vector<PointC>& dataV ) const;
+	void Dump( std::vector<PointC>& dataV, float tb = NaN, float te = NaN ) const;
 	/* dump header to stdout/txt */
 	void DumpHD( const std::string fname = "" ) const;
 	/* print a single header field */
@@ -171,26 +178,10 @@ public:
 	float Azi() const;
 	float Azi();
 
-	const std::string ntname() const {
-		std::stringstream ss(shd.knetwk);
-		std::string ntname; ss >> ntname;
-		return ntname;
-	}
-	const std::string evname() const {
-		std::stringstream ss(shd.kevnm);
-		std::string evname; ss >> evname;
-		return evname;
-	}
-	const std::string stname() const {
-		std::stringstream ss(shd.kstnm);
-		std::string stname; ss >> stname;
-		return stname;
-	}
-	const std::string chname() const {
-		std::stringstream ss(shd.kcmpnm);
-		std::string chname; ss >> chname;
-		return chname;
-	}
+	const std::string ntname() const { return shd.ntname(); }
+	const std::string evname() const { return shd.evname(); }
+	const std::string stname() const { return shd.stname(); }
+	const std::string chname() const { return shd.chname(); }
 
    /* ------------------------------ header/signal information ------------------------------ */
 	inline size_t Index( const float time, const bool correctOFB = false ) const {
@@ -204,7 +195,7 @@ public:
 			}
 		return index; 
 	}
-	inline float X( const size_t index ) const { return shd.b + index*shd.delta; }
+	inline double X( const size_t index ) const { return (double)shd.b + index*shd.delta; }
    /* compute the absolute time in sec relative to 1900.01.00 */
    double AbsTime ();
    /* update/reformat header time if shd.nzmsec is modified and is out of the range [0,1000) */
@@ -222,6 +213,7 @@ public:
 	bool MeanStd ( float& mean, float& std ) const { return MeanStd(shd.b, shd.e, mean, std); }
 	bool MeanStd ( float tbegin, float tend, float& mean, float& std ) const { return MeanStd(tbegin, tend, 1, mean, std); }
 	bool MeanStd ( float tbegin, float tend, int step, float& mean, float& std ) const;
+	float MeanPha() const;
 	// compute accurate time/amplitude of the peak (fit with a parabola)
 	float Tpeak() const { float t, a; Peak(t, a); return t; }
 	float Tpeak( const float tbegin, const float tend ) const { float t, a; Peak(t, a, tbegin, tend); return t; }
@@ -229,7 +221,7 @@ public:
 	float Apeak( const float tbegin, const float tend ) const { float t, a; Peak(t, a, tbegin, tend); return a; }
 	void Peak(float& tpeak, float& apeak) const { Peak(tpeak, apeak, shd.b, shd.e); }
 	void Peak(float& tpeak, float& apeak, const float tbegin, const float tend) const;
-	float Sig( float time ) const;	// compute accurate sig value at a given time (fit with a parabola)
+	float Sig( double time ) const;	// compute accurate sig value at a given time (fit with a parabola)
 
 	float PrecNoiseRatio() const;
 
@@ -254,6 +246,9 @@ public:
 	template<class Functor>	void Transform2(const Functor& func, size_t ib=0, int ie=NaN) {
 		Foreach2(func, ib, ie);
 	}
+	template<class Functor>	void Transform2i(const Functor& func, size_t ib=0, int ie=NaN) {
+		Foreach2i(func, ib, ie);
+	}
 
 	template<class Functor>	void Foreach(const Functor& func, size_t ib=0, int ie=NaN) {
 		if( !sig ) throw ErrorSR::EmptySig(FuncName);
@@ -269,6 +264,13 @@ public:
 		float* sigsac = sig.get();
 		for(int i=ib; i<ie; i++)	func(X(i), sigsac[i]);
 	}
+	template<class Functor>	void Foreach2i(const Functor& func, size_t ib=0, int ie=NaN) const {
+		if( !sig ) throw ErrorSR::EmptySig(FuncName);
+		if( ib < 0 ) ib = 0;
+		if( ie==NaN || ie>shd.npts ) ie = shd.npts;
+		float* sigsac = sig.get();
+		for(int i=ib; i<ie; i++)	func(i, sigsac[i]);
+	}
 	template<class Functor>	void Foreach3(const Functor& func, size_t ib=0, int ie=NaN) const {
 		if( !sig ) throw ErrorSR::EmptySig(FuncName);
 		if( ib < 0 ) ib = 0;
@@ -279,6 +281,8 @@ public:
 
 	void sqrt();
    void Mul( const float mul );
+	void Add( const float val );
+	void Sub( const float val ) { Add(-val); }
 	void Addf( const SacRec& sac2 );
 	void Subf( const SacRec& sac2 );
 	void Mulf( const SacRec& sac2 );
@@ -378,6 +382,7 @@ public:
 	/* tapers */
 	void cosTaperL( const float fl, const float fh, bool zeroout=true );
 	void cosTaperR( const float fl, const float fh, bool zeroout=true );
+	void btwTaperB( double fcL, double fcR, int norder = 6 );
 	void gauTaper( const float fc, const float fh );
    /* remove mean and trend */
    void RTrend();
@@ -390,9 +395,17 @@ public:
    /* resample (with anti-aliasing filter) the signal to given sps */
    //void Resample( bool fitParabola = true ) { Resample( floor(1.0/shd.delta+0.5), fitParabola ); }
    void Resample( int sps = -1, bool fitParabola = true );
-   void Interpolate( int npts_ratio );
+   void Interpolate( int npts_ratio ) {
+		SacRec sac2;
+		Interpolate(npts_ratio, sac2);
+		*this = std::move(sac2);
+	}
+   void Interpolate( int npts_ratio, SacRec& sac2 ) const;
 	/* smoothing ( running average ) */
-	void Smooth( float timehlen, SacRec& sacout ) const;
+	void Smooth( float timehlen, bool abs = true, float tb = NaN, float te = NaN ) { 
+		SacRec sac_sm; Smooth(timehlen, sac_sm, abs, tb, te); *this = std::move(sac_sm); 
+	}
+	void Smooth( float timehlen, SacRec& sacout, bool abs = true, float tb = NaN, float te = NaN ) const;
 	void Hilbert() { Hilbert(*this); }
 	void Hilbert( SacRec& sacout );
 	void Envelope() { Envelope(*this); }
@@ -417,24 +430,31 @@ public:
 		ctype=0: Cross-Correlate (default) 
 		ctype=1: deconvolve (sac.am/sac2.am)
 		ctype=2: deconvolve (sac2.am/sac.am) */
-	void CrossCorrelate( SacRec& sac2 ) { CrossCorrelate(sac2, *this); }
-	void CrossCorrelate( SacRec& sac2, SacRec& sacout, int ctype = 0 );
+	void CrossCorrelate( SacRec& sac2, const std::string& outname="" ) { CrossCorrelate(sac2, *this, outname); }
+	void CrossCorrelate( SacRec& sac2, SacRec& sacout, const std::string& outname="", int ctype = 0 );
 
 	/* ------------------------------- cut by event ---------------------------------- */
 	void ZoomToEvent( const std::string etime, float evlon, float evlat, float tb, float tlen, std::string ename = "" );
-	void ZoomToEvent( const SAC_HD& eshd, float evlon, float evlat, float tb, float tlen, std::string ename );
+	void ZoomToEvent( const SAC_HD& eshd, float evlon = NaN, float evlat = NaN, float tb = NaN, float tlen = NaN, std::string ename = "" );
 
 	/* ------------------------------- temporal normalizations ------------------------------- */
 	void OneBit();
 	void RunAvg( float timehlen, float Eperl, float Eperh );
-	bool EqkCut( float Eperl=10., float Eperu=40., bool apptaper=true, const std::string& recname="" ) {
+	void Whiten( float fl, float fu, float fhlen = 0.0002 );
+	// EqkCut works on a given seismic record, (attempt to) zero-out all time segments that's 
+	// affected by earthquakes or other large amplitude containminations.
+	// the percentage of removal is a function of maxnoise_factor
+	bool EqkCut( float Eperl=10., float Eperu=40., const float maxnoise_factor = 2.5,
+					 bool apptaper=true, const std::string& recname="" ) {
 		SacRec sacout;
 		std::vector<int> rec_b, rec_e;
-		EqkCut( sacout, rec_b, rec_e, Eperl, Eperu, apptaper, recname );
+		EqkCut( sacout, rec_b, rec_e, Eperl, Eperu, maxnoise_factor, apptaper, recname );
 		*this = sacout;
 	}
+   // mark windows with a max amp > window_avg+maxnoise_factor*window_std to be 'zero'
 	bool EqkCut( SacRec& sacout, std::vector<int>& rec_b, std::vector<int>& rec_e, 
-					 float Eperl=10., float Eperu=40., bool apptaper=true, const std::string& recname="" ) const;
+					 float Eperl=10., float Eperu=40., const float maxnoise_factor = 2.5, 
+					 bool apptaper=true, const std::string& recname="" ) const;
 
 	/* ---------------------- t-f normalization with stockwell transform ---------------------- */
 	// this is a 2-D one bit normalization in the f-t domain, stablized with the cutoff_factor:
@@ -453,9 +473,12 @@ public:
 	// to run the fftw, 16 times the original npts is required ( in&out complex double array with size doubled for specturm ). 20 is used to be safe
 	void SetMaxMemForParallel( float MemInMb ) { maxnpts4parallel = (MemInMb * 1024. * 1024. - 1000.) / (4. * 20.); }
 
+   friend void AmPhToReIm( SacRec& sac_am, SacRec& sac_ph );
    friend void ReImToAmPh( SacRec& sac_re, SacRec& sac_im );
 
    friend void SACRotate( SacRec& sac1, SacRec& sac2, const float deg );
+
+   friend void DumpSACs( const std::vector<SacRec>& sacV, const std::string& outname );
 
 	// define string output
    friend std::ostream& operator<< ( std::ostream& o, const SacRec& sac ) {
