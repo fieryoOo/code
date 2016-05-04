@@ -19,54 +19,71 @@ Initialize() {
 	Filter=`which SAC_filter`
    Pssac=`which pssac`
    SAC=${SACHOME}'/bin/sac '${HOME}'/usr/macros/sacinit.m'
+	exeSHD=`which SAC_printHD`
 }
 
+CutSac() {
+	local _sac=$1
+	local _sacp=${_sac}_pos
+	local _sacn=${_sac}_neg
+	$SAC <<- END
+		cut -3000 0
+		r $_sac
+		reverse
+		ch b 0
+		w $_sacn
+		cut 0 3000
+		r $_sac
+		w $_sacp
+		quit
+	END
+}
 PlotSac() {
-   sacf=$1
-   Xoffset=$2
-   Yoffset=$3
+   local sacf=$1
+   local Xoffset=$2
+   local Yoffset=$3
    pwd | psxy -R -J -O -K -X${Xoffset} -Y${Yoffset} >> $psout
    if [ ! -e $sacf ]; then echo $sacf" not found!" ; exit; fi
    #gmtset HEADER_OFFSET -1.2
    #gmtset LABEL_OFFSET -0.3
-   xmrk=300
-   xtic=50
-   ymrk=10
-   ytic=0.05
-   tmax=800
    ### filter to 5 - 50 sec ###
    $Filter $sacf -1 0.02 0.3 6 5 $sacf'_ft'
-   amax=`saclst depmin depmax f $sacf'_ft' | awk '{if(-$2>$3){print -$2*1.1}else{print $3*1.1}}'`
+   amax=`SAC_printHD ${sacf}_ft depmin depmax | awk '{if(-$1>$2){print -$1*1.1}else{print $2*1.1}}'`
+   #ymrk=$amax
+   #ytic=`echo $ymrk | awk '{print $1*0.5}'`
+   tmax=`SAC_printHD ${sacf}_ft dist | awk -v vmin=$vmin '{printf "%.0f",$1/vmin}'`
+   xmrk=`echo $tmax | awk '{printf "%.0f",$1*0.3}'`
+   xtic=`echo $xmrk | awk '{print $1*0.2}'`
    REG=-R0/${tmax}/-${amax}/${amax}
-   SCA=-JX4.0i/1.0i
+   SCA=-JX${SCAx}/${SCAyS}
    #gmtset LABEL_OFFSET -1.
    gmtset LABEL_OFFSET -0.5
    $Pssac $REG $SCA -Ba${xmrk}f${xtic}:"time (sec)":/:$label:wESn -O -K $sacf'_ft' >> $psout
    gmtset LABEL_OFFSET $los
    #gmtset LABEL_OFFSET $los
    ### label the sac info ###
-   t_info=`saclst kevnm kstnm dist user0 f $sacf | awk '{printf "%s - %s:   Dist=%.0f km   TLen=%d days",$2, $3, $4, $5}'`
+   t_info=`SAC_printHD $sacf kevnm kstnm dist user0 | awk '{printf "%s - %s:   Dist=%.0f km   TLen=%d days",$1, $2, $3, $4}'`
    echo 0.3 11.6 12 0 20 LT $t_info | pstext -R0/10/0/10 -Wwhite,O3/70/70/70 -J -O -K -N -P >> $psout
 }
 
 RunFTAN() {
-   sacf=$1
-   DispGrv=$2
-   DispPhv=$3
-   param=$4
-   echo $param" "$sacf" 1" > param_R.dat
+   local sacf=$1
+   local DispGrv=$2
+   local DispPhv=$3
+   local param=$4
+	isSym=`$exeSHD $sacf b | awk '{if($1==0){print 0}else{print 1}}'`
+   echo $param" "$sacf" "${isSym} > param_R.dat
+   echo $param" "$sacf" "${isSym}
+	ls param_R.dat
    $FTANexe param_R.dat $DispPhv $DispGrv 0.008
    rm -f param_R.dat
 }
 
 PlotFTAN() {
    ### plot FTAN diagram
-   sacf=$1
-   Xoffset=$2
-   Yoffset=$3
-   No=$4
-   SCAx=4.0i
-   SCAy=3.5i
+   local sacf=$1
+   local Xoffset=$2
+   local Yoffset=$3
 	if [ $praw == 1 ]; then
 	   ampf=${sacf}_1_AMP 
 	   disf=${sacf}_1_DISP.0
@@ -86,7 +103,7 @@ PlotFTAN() {
       #awk -v step=$step 'BEGIN{old=-1.}{if(Npt%step==0){print log($1),$2,$3}; Npt++; if($1!=old){Npt=0; old=$1}}' $ampf > ${dirpair}/${sacf}_amp_tmp
       awk '{print log($1), $2, $3}' $ampf > ${dirpair}/${sacf}_amp_tmp
    fi
-   if [ ! -e ${dirpair}/${sacf}_amp.grd ]; then
+   if [ 1 == 1 ] || [ ! -e ${dirpair}/${sacf}_amp.grd ]; then
       #nearneighbor ${dirpair}/${sacf}_amp_tmp -G${dirpair}/amp.grd -I0.01 $REG -S0.2 -N6/2
       #surface ${dirpair}/${sacf}_amp_tmp -G${dirpair}/amp.grd -I0.01 $REG_L -T0.2
       xyz2grd ${dirpair}/${sacf}_amp_tmp -G${dirpair}/amp.grd -I0.01 $REG
@@ -136,13 +153,42 @@ fi
 
 psout=${sacf}_FTAN.ps
 rm -f $psout
-pwd | psxy -Rg -JX1 -K -P > $psout
 
 #param='-1 0.15 4.5 0.8 35. 30. 2.0 3. 0.99 8. 15. 1.5 3.0 0.6 3.'
-RunFTAN ${sacf} $frefG $frefP '-1 '$vmin' '$vmax' '$perl' '$perh' 30. 2.0 3. 0.99 8. 15. 1.5 3.0 0.6 3.'
-PlotFTAN ${sacf} 3. 5. 1
-PlotSac ${sacf} 0. 10.
-echo "-0.5 14.4 15 0.0 4 LT (a)" | pstext -R0/10/0/10 $SCA -V -O -K -N >> $psout
+params='30. 2.0 3. 0.99 8. 15. 1.5 3.0 0.6 3.'
+if [ $($exeSHD $sacf b | awk '{if($1==0){print 0}else{print 1}}') == 0 ]; then
+	pwd | psxy -Rg -JX1 -K -P > $psout
+   SCAx=4.0i
+   SCAy=3.5i
+   SCAyS=1.0i
+	RunFTAN ${sacf} $frefG $frefP "-1 $vmin $vmax $perl $perh ${params}"
+	echo RunFTAN ${sacf} $frefG $frefP "-1 $vmin $vmax $perl $perh ${params}"
+	PlotFTAN ${sacf} 3. 5. 1
+	PlotSac ${sacf} 0. 10.
+	echo "-0.5 14.4 15 0.0 4 LT (a)" | pstext -R0/10/0/10 $SCA -V -O -K -N >> $psout
+else
+	pwd | psxy -Rg -JX1 -K > $psout
+   SCAx=3.0i
+   SCAy=2.8i
+   SCAyS=0.7i
+	# sym
+	RunFTAN ${sacf} $frefG $frefP "-1 $vmin $vmax $perl $perh ${params}"
+	PlotFTAN ${sacf} 2. 3.
+	PlotSac ${sacf} 0. 8.
+	echo "-0.5 14.4 12 0.0 4 LT (a)" | pstext -R0/10/0/10 $SCA -V -O -K -N >> $psout
+	# pos
+	CutSac ${sacf}
+	RunFTAN ${sacf}_pos $frefG $frefP "-1 $vmin $vmax $perl $perh ${params}"
+	PlotFTAN ${sacf}_pos 8. -8.
+	PlotSac ${sacf}_pos 0. 8.
+	echo "-0.5 14.4 12 0.0 4 LT (b)" | pstext -R0/10/0/10 $SCA -V -O -K -N >> $psout
+	# neg
+	RunFTAN ${sacf}_neg $frefG $frefP "-1 $vmin $vmax $perl $perh ${params}"
+	PlotFTAN ${sacf}_neg 8. -8.
+	PlotSac ${sacf}_neg 0. 8.
+	echo "-0.5 14.4 12 0.0 4 LT (c)" | pstext -R0/10/0/10 $SCA -V -O -K -N >> $psout
+fi
+	
 
 pwd | psxy -R -J -O >> $psout
 echo $psout

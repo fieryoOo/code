@@ -5,7 +5,7 @@ BIN = aftani_c_pgl_amp
 fflags = -O2 -Wall -ffixed-line-length-132
 #cflags = -O3 -Wall  -I"/home/tianye/code/Programs/head/"
 #cflags = -O3 -Wall  -I/usr/include -I/home/tianye/code/Programs/head/
-cflags = -O3 -Wall  -I/usr/include -I/projects/yeti4009/code/Programs/head/
+cflags = -O3 -Wall -std=c++0x -I/usr/include -I/projects/yeti4009/code/Programs/head/
 
 #LDLIBS = -L/home/yeti4009/usr/lib -lfftw3
 LDLIBS = -L/usr/lib64 -lfftw3
@@ -16,7 +16,7 @@ CFLAGS = $(DBG) $(cflags)
 
 FC = gfortran
 
-CC = gcc
+CC = g++
 
 DBG =
 
@@ -25,7 +25,7 @@ FOBJS = driver_c.o swapn.o aftanpg.o aftanipg.o ftfilt.o Filter.o fmax.o \
         phtovel.o whiten_phamp.o get_snr.o
 
 $(BIN) : $(FOBJS)
-	$(FC) $(FFLAGS) $(CFLAGS) $(FOBJS) -o $(BIN) $(LDLIBS) 
+	$(CC) -o $(BIN) $(FOBJS) -lgfortran $(CFLAGS) $(LDLIBS) $(FFLAGS)
 
 install : $(BIN)
 	install -s $(BIN) $(INST_DIR)

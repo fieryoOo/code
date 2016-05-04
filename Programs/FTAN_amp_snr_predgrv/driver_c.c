@@ -158,7 +158,7 @@ notice that amp_snrs are always measured based on
   while((n = fscanf(in,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %s %d",
              &piover4,&vmin,&vmax,&tmin,&tmax,&tresh,&ffact,&taperl,&snr,&fmatch, &tresh2,
 	     &ffact2,&taperl2,&snr2,&fmatch2,name,&flag)) != EOF) {
-//printf("1: %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %s %d\n", piover4,vmin,vmax,tmin,tmax,tresh,ffact,taperl,snr,fmatch, tresh2,          ffact2,taperl2,snr2,fmatch2,name,flag);
+printf("1: %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %s %d\n", piover4,vmin,vmax,tmin,tmax,tresh,ffact,taperl,snr,fmatch, tresh2,          ffact2,taperl2,snr2,fmatch2,name,flag);
 
       if(n == 0 || n != 17) break;
 
@@ -247,8 +247,9 @@ notice that amp_snrs are always measured based on
 	fclose(fas);
 
   if( pflag==0 || pflag==1 ) printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_1",delta);
+  printf("dt = %f, nfout1 = %d, nfout2 = %d\n", dt, nfout1, nfout2);
   if(nfout2 == 0) continue;   // break aftan sequence 
-  //printf("Tamp = %9.3lf, nrow = %d, ncol = %d\n",tamp,nrow,ncol);
+  printf("Tamp = %9.3lf, nrow = %d, ncol = %d\n",tamp,nrow,ncol);
 
 /* Read in the predicted group dispersion. (or make prediction based on the first iteration.) */
   static double pred[2][300];

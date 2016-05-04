@@ -553,6 +553,9 @@ float Map::PointAverage(Point<float> rec, float hdis, float& weit) {
 	float lonmin = pimplM->lonmin, latmin = pimplM->latmin;
 	float grdlon = pimplM->grd1_lon, grdlat = pimplM->grd1_lat;;
 
+	// correct lon
+	rec.correctLon();
+
 	// define computation area
 	float dismax = hdis * 2.5, dismax_s = dismax*dismax;
 	size_t idlmax = pimplM->dis_lon1D.size() - 1;
