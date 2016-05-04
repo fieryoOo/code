@@ -1,1 +1,0 @@
-/projects/yeti4009/code/MyLibs/include/Parabola.h
