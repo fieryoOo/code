@@ -1,0 +1,1182 @@
+mpicxx    -c -o RemoveCompliance.o RemoveCompliance.cpp
+In file included from SacRec.h:4:0,
+                 from RemoveCompliance.cpp:1:
+/projects/yeti4009/code/MyLibs/include/mysac64.h: In member function ‘bool SAC_HD::StreamTo(std::string, std::ostream&) const’:
+/projects/yeti4009/code/MyLibs/include/mysac64.h:47:8: error: ‘dumpfield’ does not name a type
+   auto dumpfield = [&](const std::string& fdump) -> bool {
+        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:56:23: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("dist") ) o << prefix << dist << suffix;
+                       ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:57:21: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("az") ) o << prefix << az << suffix;
+                     ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:58:22: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("baz") ) o << prefix << baz << suffix;
+                      ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:59:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("gcarc") ) o << prefix << gcarc << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:60:20: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("b") ) o << prefix << b << suffix;
+                    ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:61:20: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("e") ) o << prefix << e << suffix;
+                    ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:62:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("delta") ) o << prefix << delta << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:63:23: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("npts") ) o << prefix << npts << suffix;
+                       ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:64:25: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("depmin") ) o << prefix << depmin << suffix;
+                         ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:65:25: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("depmax") ) o << prefix << depmax << suffix;
+                         ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:67:25: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("knetwk") ) o << prefix << std::string(knetwk, 8) << suffix;
+                         ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:68:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("kstnm") ) o << prefix << std::string(kstnm, 8) << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:69:23: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("stlo") ) o << prefix << stlo << suffix;
+                       ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:70:23: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("stla") ) o << prefix << stla << suffix;
+                       ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:71:23: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("stel") ) o << prefix << stel << suffix;
+                       ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:72:23: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("stdp") ) o << prefix << stdp << suffix;
+                       ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:74:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("kevnm") ) o << prefix << std::string(kevnm, 16) << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:75:23: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("evlo") ) o << prefix << evlo << suffix;
+                       ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:76:23: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("evla") ) o << prefix << evla << suffix;
+                       ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:77:23: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("evel") ) o << prefix << evel << suffix;
+                       ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:78:23: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("evdp") ) o << prefix << evdp << suffix;
+                       ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:80:25: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("nzyear") ) o << prefix << nzyear << suffix;
+                         ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:81:25: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("nzjday") ) o << prefix << nzjday << suffix;
+                         ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:82:25: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("nzhour") ) o << prefix << nzhour << suffix;
+                         ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:83:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("nzmin") ) o << prefix << nzmin << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:84:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("nzsec") ) o << prefix << nzsec << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:85:25: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("nzmsec") ) o << prefix << nzmsec << suffix;
+                         ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:87:25: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("kcmpnm") ) o << prefix << std::string(kcmpnm, 8) << suffix;
+                         ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:88:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("cmpaz") ) o << prefix << cmpaz << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:89:25: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("cmpinc") ) o << prefix << cmpinc << suffix;
+                         ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:91:20: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("o") ) o << prefix << o << suffix;
+                    ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:92:21: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("ko") ) o << prefix << std::string(ko, 8) << suffix;
+                     ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:93:20: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("a") ) o << prefix << a << suffix;
+                    ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:94:21: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("ka") ) o << prefix << std::string(ka, 8) << suffix;
+                     ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:95:20: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("f") ) o << prefix << f << suffix;
+                    ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:96:21: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("kf") ) o << prefix << std::string(kf, 8) << suffix;
+                     ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:98:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("user0") ) o << prefix << user0 << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:99:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("user1") ) o << prefix << user1 << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:100:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("user2") ) o << prefix << user2 << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:101:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("user3") ) o << prefix << user3 << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:102:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("user4") ) o << prefix << user4 << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:103:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("user5") ) o << prefix << user5 << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:104:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("user6") ) o << prefix << user6 << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:105:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("user7") ) o << prefix << user7 << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:106:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("user8") ) o << prefix << user8 << suffix;
+                        ^
+/projects/yeti4009/code/MyLibs/include/mysac64.h:107:24: error: ‘dumpfield’ was not declared in this scope
+   if( dumpfield("user9") ) o << prefix << user9 << suffix;
+                        ^
+In file included from SacRec.h:6:0,
+                 from RemoveCompliance.cpp:1:
+Parabola.h: At global scope:
+Parabola.h:100:9: error: ‘constexpr’ does not name a type
+  static constexpr float NaN = -123456.;
+         ^
+Parabola.h:100:9: note: C++11 ‘constexpr’ only available with -std=c++11 or -std=gnu++11
+Parabola.h:101:9: error: ‘constexpr’ does not name a type
+  static constexpr float twopi = M_PI * 2.;
+         ^
+Parabola.h:101:9: note: C++11 ‘constexpr’ only available with -std=c++11 or -std=gnu++11
+Parabola.h:104:12: warning: non-static data member initializers only available with -std=c++11 or -std=gnu++11
+  float x = NaN, y = NaN, z = 1.;
+            ^
+Parabola.h:104:21: warning: non-static data member initializers only available with -std=c++11 or -std=gnu++11
+  float x = NaN, y = NaN, z = 1.;
+                     ^
+Parabola.h:104:30: warning: non-static data member initializers only available with -std=c++11 or -std=gnu++11
+  float x = NaN, y = NaN, z = 1.;
+                              ^
+Parabola.h:23:20: error: ‘NaN’ was not declared in this scope
+  PointC( float xin=NaN, float yin=NaN, float zin=1. ) 
+                    ^
+Parabola.h:23:35: error: ‘NaN’ was not declared in this scope
+  PointC( float xin=NaN, float yin=NaN, float zin=1. ) 
+                                   ^
+Parabola.h:104:12: error: ‘NaN’ was not declared in this scope
+  float x = NaN, y = NaN, z = 1.;
+            ^
+Parabola.h:104:21: error: ‘NaN’ was not declared in this scope
+  float x = NaN, y = NaN, z = 1.;
+                     ^
+Parabola.h: In member function ‘bool PointC::isValid() const’:
+Parabola.h:34:36: error: ‘NaN’ was not declared in this scope
+  bool isValid() const { return (x!=NaN && y!=NaN); }
+                                    ^
+Parabola.h: In member function ‘float PointC::abs() const’:
+Parabola.h:37:43: error: ‘sqrt’ was not declared in this scope
+  float abs() const { return sqrt(x*x + y*y); }
+                                           ^
+Parabola.h: In function ‘float PLDist(const PointC&, const PointC&, const PointC&)’:
+Parabola.h:87:42: error: ‘fabs’ was not declared in this scope
+   return fabs( pt1.x*pt2.y - pt2.x*pt1.y ) / pt2.abs();
+                                          ^
+Parabola.h: At global scope:
+Parabola.h:264:9: error: ‘constexpr’ does not name a type
+  static constexpr long double NaN = PointC::NaN;
+         ^
+Parabola.h:264:9: note: C++11 ‘constexpr’ only available with -std=c++11 or -std=gnu++11
+Parabola.h:269:24: warning: non-static data member initializers only available with -std=c++11 or -std=gnu++11
+  mutable long double a=NaN, b=NaN, c=NaN;
+                        ^
+Parabola.h:269:31: warning: non-static data member initializers only available with -std=c++11 or -std=gnu++11
+  mutable long double a=NaN, b=NaN, c=NaN;
+                               ^
+Parabola.h:269:38: warning: non-static data member initializers only available with -std=c++11 or -std=gnu++11
+  mutable long double a=NaN, b=NaN, c=NaN;
+                                      ^
+Parabola.h:269:24: error: ‘NaN’ was not declared in this scope
+  mutable long double a=NaN, b=NaN, c=NaN;
+                        ^
+Parabola.h:269:31: error: ‘NaN’ was not declared in this scope
+  mutable long double a=NaN, b=NaN, c=NaN;
+                               ^
+Parabola.h:269:38: error: ‘NaN’ was not declared in this scope
+  mutable long double a=NaN, b=NaN, c=NaN;
+                                      ^
+Parabola.h: In constructor ‘Parabola::Parabola()’:
+Parabola.h:112:13: error: call to ‘PointC::PointC(float, float, float)’ uses the default argument for parameter 1, which is not yet defined
+  Parabola() {}
+             ^
+Parabola.h:112:13: error: call to ‘PointC::PointC(float, float, float)’ uses the default argument for parameter 2, which is not yet defined
+Parabola.h:112:13: error: call to ‘PointC::PointC(float, float, float)’ uses the default argument for parameter 1, which is not yet defined
+Parabola.h:112:13: error: call to ‘PointC::PointC(float, float, float)’ uses the default argument for parameter 2, which is not yet defined
+Parabola.h:112:13: error: call to ‘PointC::PointC(float, float, float)’ uses the default argument for parameter 1, which is not yet defined
+Parabola.h:112:13: error: call to ‘PointC::PointC(float, float, float)’ uses the default argument for parameter 2, which is not yet defined
+Parabola.h:112:13: error: call to ‘PointC::PointC(float, float, float)’ uses the default argument for parameter 1, which is not yet defined
+Parabola.h:112:13: error: call to ‘PointC::PointC(float, float, float)’ uses the default argument for parameter 2, which is not yet defined
+Parabola.h: In constructor ‘Parabola::Parabola(const PointC&, const PointC&, const PointC&)’:
+Parabola.h:114:32: error: call to ‘PointC::PointC(float, float, float)’ uses the default argument for parameter 1, which is not yet defined
+   : P1(P1in), P2(P2in), P3(P3in) {}
+                                ^
+Parabola.h:114:32: error: call to ‘PointC::PointC(float, float, float)’ uses the default argument for parameter 2, which is not yet defined
+Parabola.h: In member function ‘PointC Parabola::Vertex() const’:
+Parabola.h:131:9: error: ‘NaN’ was not declared in this scope
+   if(a==NaN || b==NaN || c==NaN) Solve();
+         ^
+Parabola.h:132:13: error: ‘NaN’ was not declared in this scope
+   if( PV.x==NaN || PV.y==NaN ) {
+             ^
+Parabola.h: In member function ‘long double Parabola::A() const’:
+Parabola.h:140:9: error: ‘NaN’ was not declared in this scope
+   if(a==NaN) Solve(); 
+         ^
+Parabola.h: In member function ‘long double Parabola::B() const’:
+Parabola.h:144:9: error: ‘NaN’ was not declared in this scope
+   if(b==NaN) Solve(); 
+         ^
+Parabola.h: In member function ‘long double Parabola::C() const’:
+Parabola.h:148:9: error: ‘NaN’ was not declared in this scope
+   if(c==NaN) Solve(); 
+         ^
+Parabola.h: In member function ‘long double Parabola::Slope(long double) const’:
+Parabola.h:153:9: error: ‘NaN’ was not declared in this scope
+   if(a==NaN || b==NaN || c==NaN) Solve();
+         ^
+Parabola.h: In member function ‘long double Parabola::operator()(long double) const’:
+Parabola.h:161:9: error: ‘NaN’ was not declared in this scope
+   if(a==NaN || b==NaN || c==NaN) Solve();
+         ^
+Parabola.h: In member function ‘void Parabola::Fit(std::vector<PointC>::const_iterator, std::vector<PointC>::const_iterator, float&)’:
+Parabola.h:189:16: error: ISO C++ forbids declaration of ‘p’ with no type [-fpermissive]
+    const auto& p = *(iterl+i); //dataV[i];
+                ^
+Parabola.h:189:29: error: invalid initialization of reference of type ‘const int&’ from expression of type ‘const PointC’
+    const auto& p = *(iterl+i); //dataV[i];
+                             ^
+Parabola.h:190:16: error: request for member ‘x’ in ‘p’, which is of non-class type ‘const int’
+    float x = p.x, w = p.z;
+                ^
+Parabola.h:191:22: error: ‘w’ was not declared in this scope
+        A[0][i] = x*x*w;
+                      ^
+Parabola.h:210:17: error: ISO C++ forbids declaration of ‘p’ with no type [-fpermissive]
+     const auto& p = *(iterl+ii); //dataV[ii];
+                 ^
+Parabola.h:210:31: error: invalid initialization of reference of type ‘const int&’ from expression of type ‘const PointC’
+     const auto& p = *(iterl+ii); //dataV[ii];
+                               ^
+Parabola.h:211:17: error: request for member ‘y’ in ‘p’, which is of non-class type ‘const int’
+     float y = p.y, w = p.z;
+                 ^
+Parabola.h:212:29: error: ‘w’ was not declared in this scope
+     AC[i] += A[i][ii] * y * w;
+                             ^
+Parabola.h:236:16: error: ISO C++ forbids declaration of ‘p’ with no type [-fpermissive]
+    const auto& p = *(iterl+i); //dataV[i];
+                ^
+Parabola.h:236:29: error: invalid initialization of reference of type ‘const int&’ from expression of type ‘const PointC’
+    const auto& p = *(iterl+i); //dataV[i];
+                             ^
+Parabola.h:237:16: error: request for member ‘x’ in ‘p’, which is of non-class type ‘const int’
+    float x = p.x, y = p.y, w = p.z;
+                ^
+Parabola.h:238:17: error: ‘y’ was not declared in this scope
+    float diff = y - (a * x*x + b * x + c);
+                 ^
+Parabola.h:240:24: error: ‘w’ was not declared in this scope
+    rmsw += diff*diff * w;
+                        ^
+Parabola.h:247:11: error: ‘NaN’ was not declared in this scope
+    rmsw = NaN;
+           ^
+Parabola.h:249:29: error: ‘sqrt’ was not declared in this scope
+    rmsw = sqrt(rmsw*v1/denom);
+                             ^
+Parabola.h: In member function ‘double Parabola::det(double*, int*)’:
+Parabola.h:294:38: error: ‘pow’ was not declared in this scope
+    sum=sum+*(p+NMAX*i+j)*pow(-1,(i+j))*det(&d[0][0],n);
+                                      ^
+Parabola.h: In member function ‘int Parabola::Inverse(double**, int, double**)’:
+Parabola.h:332:26: error: ‘pow’ was not declared in this scope
+      c[j][i]=pow(-1,(i+j))*det(&b[0][0],&n);
+                          ^
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h: At global scope:
+SacRec.h:100:9: error: ‘unique_ptr’ in namespace ‘std’ does not name a template type
+    std::unique_ptr<float[]> sig; // pointer to the signal
+         ^
+SacRec.h:109:18: error: expected ‘,’ or ‘...’ before ‘&&’ token
+    SacRec( SacRec&& recin );   // move
+                  ^
+SacRec.h:109:27: error: invalid constructor; you probably meant ‘SacRec (const SacRec&)’
+    SacRec( SacRec&& recin );   // move
+                           ^
+SacRec.h:112:30: error: expected ‘,’ or ‘...’ before ‘&&’ token
+    SacRec &operator= ( SacRec&& recin ); // move
+                              ^
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:474:9: error: ‘constexpr’ does not name a type
+  static constexpr float NaN = -12345.;
+         ^
+SacRec.h:474:9: note: C++11 ‘constexpr’ only available with -std=c++11 or -std=gnu++11
+SacRec.h:477:25: warning: non-static data member initializers only available with -std=c++11 or -std=gnu++11
+  int maxnpts4parallel = 1e6;
+                         ^
+SacRec.h:478:9: error: ‘constexpr’ does not name a type
+  static constexpr float twopi = M_PI * 2.0;
+         ^
+SacRec.h:478:9: note: C++11 ‘constexpr’ only available with -std=c++11 or -std=gnu++11
+SacRec.h:483:9: error: ‘unique_ptr’ in namespace ‘std’ does not name a template type
+    std::unique_ptr<SRimpl> pimpl;
+         ^
+SacRec.h:485:36: warning: non-static data member initializers only available with -std=c++11 or -std=gnu++11
+  std::ostream* report = &(std::cerr);
+                                    ^
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:251:82: error: ‘NaN’ was not declared in this scope
+  template<class Functor> void Transform(const Functor& func, size_t ib=0, int ie=NaN) {
+                                                                                  ^
+SacRec.h:254:83: error: ‘NaN’ was not declared in this scope
+  template<class Functor> void Transform2(const Functor& func, size_t ib=0, int ie=NaN) {
+                                                                                   ^
+SacRec.h:258:80: error: ‘NaN’ was not declared in this scope
+  template<class Functor> void Foreach(const Functor& func, size_t ib=0, int ie=NaN) {
+                                                                                ^
+SacRec.h:265:81: error: ‘NaN’ was not declared in this scope
+  template<class Functor> void Foreach2(const Functor& func, size_t ib=0, int ie=NaN) const {
+                                                                                 ^
+SacRec.h:272:81: error: ‘NaN’ was not declared in this scope
+  template<class Functor> void Foreach3(const Functor& func, size_t ib=0, int ie=NaN) const {
+                                                                                 ^
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:329:70: error: ‘NaN’ was not declared in this scope
+  std::vector<double> SWT( float fl = -1., float fu = -1., float tb = NaN, float te = NaN ) const {
+                                                                      ^
+SacRec.h:329:86: error: ‘NaN’ was not declared in this scope
+  std::vector<double> SWT( float fl = -1., float fu = -1., float tb = NaN, float te = NaN ) const {
+                                                                                      ^
+SacRec.h:334:54: error: ‘NaN’ was not declared in this scope
+           float fl = -1., float fu = -1., float tb = NaN, float te = NaN ) const;
+                                                      ^
+SacRec.h:334:70: error: ‘NaN’ was not declared in this scope
+           float fl = -1., float fu = -1., float tb = NaN, float te = NaN ) const;
+                                                                      ^
+SacRec.h:415:39: error: ‘nullptr’ was not declared in this scope
+    int arrange( const char *recname = nullptr );
+                                       ^
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h: In member function ‘bool SacRec::isZero()’:
+SacRec.h:123:19: error: ‘sig’ was not declared in this scope
+   float* sigsac = sig.get();
+                   ^
+SacRec.h: In member function ‘void SacRec::ResizeSig(size_t)’:
+SacRec.h:137:3: error: ‘sig’ was not declared in this scope
+   sig.reset(new float[npts]);
+   ^
+SacRec.h: In member function ‘void SacRec::clear()’:
+SacRec.h:150:17: error: ‘sig’ was not declared in this scope
+  void clear() { sig.reset(); shd = sac_null; fname.clear(); }
+                 ^
+SacRec.h: In member function ‘void SacRec::NoiseZeroOut(std::vector<int>&, std::vector<int>&, float, float, float, float)’:
+SacRec.h:240:11: error: ‘move’ is not a member of ‘std’
+   *this = std::move(sacout);
+           ^
+SacRec.h: In member function ‘void SacRec::Foreach(const Functor&, size_t, int)’:
+SacRec.h:259:8: error: ‘sig’ was not declared in this scope
+   if( !sig ) throw ErrorSR::EmptySig(FuncName);
+        ^
+SacRec.h:261:11: error: ‘NaN’ was not declared in this scope
+   if( ie==NaN || ie>shd.npts ) ie = shd.npts;
+           ^
+SacRec.h:262:19: error: ‘sig’ was not declared in this scope
+   float* sigsac = sig.get();
+                   ^
+SacRec.h: In member function ‘void SacRec::Foreach2(const Functor&, size_t, int) const’:
+SacRec.h:266:8: error: ‘sig’ was not declared in this scope
+   if( !sig ) throw ErrorSR::EmptySig(FuncName);
+        ^
+SacRec.h:268:11: error: ‘NaN’ was not declared in this scope
+   if( ie==NaN || ie>shd.npts ) ie = shd.npts;
+           ^
+SacRec.h:269:19: error: ‘sig’ was not declared in this scope
+   float* sigsac = sig.get();
+                   ^
+SacRec.h: In member function ‘void SacRec::Foreach3(const Functor&, size_t, int) const’:
+SacRec.h:273:8: error: ‘sig’ was not declared in this scope
+   if( !sig ) throw ErrorSR::EmptySig(FuncName);
+        ^
+SacRec.h:275:11: error: ‘NaN’ was not declared in this scope
+   if( ie==NaN || ie>shd.npts ) ie = shd.npts;
+           ^
+SacRec.h:276:19: error: ‘sig’ was not declared in this scope
+   float* sigsac = sig.get();
+                   ^
+SacRec.h: In member function ‘void SacRec::Reverse()’:
+SacRec.h:290:11: error: ‘move’ is not a member of ‘std’
+   *this = std::move(sac2);
+           ^
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h: In member function ‘void SacRec::Interpolate(int)’:
+SacRec.h:396:11: error: ‘move’ is not a member of ‘std’
+   *this = std::move(sac2);
+           ^
+SacRec.h: In member function ‘void SacRec::Merge(SacRec)’:
+SacRec.h:412:15: error: call to ‘int SacRec::arrange(const char*)’ uses the default argument for parameter 1, which is not yet defined
+       arrange();
+               ^
+SacRec.h: In member function ‘bool SacRec::EqkCut(float, float, bool, const string&)’:
+SacRec.h:439:9: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+   *this = sacout;
+         ^
+SacRec.h:439:9: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h: In member function ‘void SacRec::STNorm(float, float, float, float, float, short int)’:
+SacRec.h:450:9: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+   *this = sacout;
+         ^
+SacRec.h:450:9: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h: At global scope:
+StaSacs.h:10:11: warning: non-static data member initializers only available with -std=c++11 or -std=gnu++11
+  float z2=NaN, z3=NaN;
+           ^
+StaSacs.h:10:19: warning: non-static data member initializers only available with -std=c++11 or -std=gnu++11
+  float z2=NaN, z3=NaN;
+                   ^
+StaSacs.h:10:11: error: ‘NaN’ was not declared in this scope
+  float z2=NaN, z3=NaN;
+           ^
+StaSacs.h:10:19: error: ‘NaN’ was not declared in this scope
+  float z2=NaN, z3=NaN;
+                   ^
+StaSacs.h:315:9: error: ‘constexpr’ does not name a type
+  static constexpr float cohmin = 0.5;
+         ^
+StaSacs.h:315:9: note: C++11 ‘constexpr’ only available with -std=c++11 or -std=gnu++11
+StaSacs.h:316:9: error: ‘constexpr’ does not name a type
+  static constexpr float fmax_tilt = 0.1;
+         ^
+StaSacs.h:316:9: note: C++11 ‘constexpr’ only available with -std=c++11 or -std=gnu++11
+StaSacs.h:317:9: error: ‘constexpr’ does not name a type
+  static constexpr float fb_avg = 0.01; // cohavg is computed between fb_avg and fe_avg Hz
+         ^
+StaSacs.h:317:9: note: C++11 ‘constexpr’ only available with -std=c++11 or -std=gnu++11
+StaSacs.h:318:9: error: ‘constexpr’ does not name a type
+  static constexpr float fe_avg = 0.05; 
+         ^
+StaSacs.h:318:9: note: C++11 ‘constexpr’ only available with -std=c++11 or -std=gnu++11
+StaSacs.h:329:17: warning: non-static data member initializers only available with -std=c++11 or -std=gnu++11
+  float _tseg = -1.;
+                 ^
+StaSacs.h: In constructor ‘StaSacs::StaSacs(const string&, const string&, const string&, const string&, int, float)’:
+StaSacs.h:27:8: error: ‘LoadSAC’ does not name a type
+   auto LoadSAC = [&]( SacRec& sac ) {
+        ^
+StaSacs.h:44:15: error: ‘LoadSAC’ was not declared in this scope
+   LoadSAC(sacZ);
+               ^
+StaSacs.h:56:13: error: ‘class SacRec’ has no member named ‘sig’
+   if( sacH1.sig && (sacZ.shd.npts!=sacH1.shd.npts || sacZ.shd.delta!=sacH1.shd.delta ) )
+             ^
+StaSacs.h:58:13: error: ‘class SacRec’ has no member named ‘sig’
+   if( sacH2.sig && (sacZ.shd.npts!=sacH2.shd.npts || sacZ.shd.delta!=sacH2.shd.delta ) )
+             ^
+StaSacs.h:60:12: error: ‘class SacRec’ has no member named ‘sig’
+   if( sacD.sig && (sacZ.shd.npts!=sacD.shd.npts || sacZ.shd.delta!=sacD.shd.delta ) )
+            ^
+StaSacs.h: In member function ‘float StaSacs::RemoveCompliance(const string&, bool, float, float, float)’:
+StaSacs.h:87:28: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+   if(output_coh) { sacV[0] = Coh_c; sacV[1] = Adm_c; sacV[2] = Pha_c; }
+                            ^
+StaSacs.h:87:28: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:87:45: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+   if(output_coh) { sacV[0] = Coh_c; sacV[1] = Adm_c; sacV[2] = Pha_c; }
+                                             ^
+StaSacs.h:87:45: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:87:62: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+   if(output_coh) { sacV[0] = Coh_c; sacV[1] = Adm_c; sacV[2] = Pha_c; }
+                                                              ^
+StaSacs.h:87:62: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:92:14: error: ‘move’ is not a member of ‘std’
+    sacV[3] = std::move(Adm_c); sacV[4] = std::move(Pha_c); 
+              ^
+StaSacs.h:92:42: error: ‘move’ is not a member of ‘std’
+    sacV[3] = std::move(Adm_c); sacV[4] = std::move(Pha_c); 
+                                          ^
+StaSacs.h: In member function ‘PointC StaSacs::RemoveTilt(const string&, bool, float, float, float)’:
+StaSacs.h:115:14: error: ‘cohmin’ was not declared in this scope
+   if( Pres.y>cohmin || output_coh ) { // re-calc transfer F in the tilt direction
+              ^
+StaSacs.h:117:99: error: ‘fmax_tilt’ was not declared in this scope
+    Pres.y = CalcTransferF(sacZ, sacZamV, sacZphV, sacH1, sacH1amV, sacH1phV, Coh_t, Adm_t, Pha_t, fmax_tilt, zeropha);
+                                                                                                   ^
+StaSacs.h:119:28: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+   if(output_coh) { sacV[0] = Coh_t; sacV[1] = Adm_t; sacV[2] = Pha_t; }
+                            ^
+StaSacs.h:119:28: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:119:45: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+   if(output_coh) { sacV[0] = Coh_t; sacV[1] = Adm_t; sacV[2] = Pha_t; }
+                                             ^
+StaSacs.h:119:45: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:119:62: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+   if(output_coh) { sacV[0] = Coh_t; sacV[1] = Adm_t; sacV[2] = Pha_t; }
+                                                              ^
+StaSacs.h:119:62: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:122:14: error: ‘cohmin’ was not declared in this scope
+   if( Pres.y>cohmin ) ApplyCorrection( sacZ, sacH1, Coh_t, Adm_t, Pha_t, fmax_tilt ); sacZamV.clear();
+              ^
+StaSacs.h:122:74: error: ‘fmax_tilt’ was not declared in this scope
+   if( Pres.y>cohmin ) ApplyCorrection( sacZ, sacH1, Coh_t, Adm_t, Pha_t, fmax_tilt ); sacZamV.clear();
+                                                                          ^
+StaSacs.h:126:14: error: ‘move’ is not a member of ‘std’
+    sacV[3] = std::move(Adm_t); sacV[4] = std::move(Pha_t);
+              ^
+StaSacs.h:126:42: error: ‘move’ is not a member of ‘std’
+    sacV[3] = std::move(Adm_t); sacV[4] = std::move(Pha_t);
+                                          ^
+StaSacs.h: In member function ‘PointC5 StaSacs::RemoveTiltCompliance(const string&, float, float, float)’:
+StaSacs.h:141:35: error: ‘class SacRec’ has no member named ‘sig’
+   if(output_coh) sacV.resize(sacD.sig?15:5);
+                                   ^
+StaSacs.h:150:99: error: ‘fmax_tilt’ was not declared in this scope
+    Pres.y = CalcTransferF(sacZ, sacZamV, sacZphV, sacH1, sacH1amV, sacH1phV, Coh_t, Adm_t, Pha_t, fmax_tilt);
+                                                                                                   ^
+StaSacs.h:152:28: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+   if(output_coh) { sacV[0] = Coh_t; sacV[1] = Adm_t; sacV[2] = Pha_t; }
+                            ^
+StaSacs.h:152:28: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:152:45: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+   if(output_coh) { sacV[0] = Coh_t; sacV[1] = Adm_t; sacV[2] = Pha_t; }
+                                             ^
+StaSacs.h:152:45: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:152:62: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+   if(output_coh) { sacV[0] = Coh_t; sacV[1] = Adm_t; sacV[2] = Pha_t; }
+                                                              ^
+StaSacs.h:152:62: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:153:9: error: ISO C++ forbids declaration of ‘coh_t’ with no type [-fpermissive]
+   auto &coh_t = Pres.y;
+         ^
+StaSacs.h:153:22: error: invalid initialization of reference of type ‘int&’ from expression of type ‘float’
+   auto &coh_t = Pres.y;
+                      ^
+StaSacs.h:158:12: error: ‘class SacRec’ has no member named ‘sig’
+   if( sacD.sig ) {
+            ^
+StaSacs.h:162:29: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+    if(output_coh) { sacV[5] = Coh_c; sacV[6] = Adm_c; sacV[7] = Pha_c; }
+                             ^
+StaSacs.h:162:29: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:162:46: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+    if(output_coh) { sacV[5] = Coh_c; sacV[6] = Adm_c; sacV[7] = Pha_c; }
+                                              ^
+StaSacs.h:162:46: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:162:63: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+    if(output_coh) { sacV[5] = Coh_c; sacV[6] = Adm_c; sacV[7] = Pha_c; }
+                                                               ^
+StaSacs.h:162:63: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:166:9: error: ISO C++ forbids declaration of ‘coh_c’ with no type [-fpermissive]
+   auto &coh_c = Pres.z;
+         ^
+StaSacs.h:166:22: error: invalid initialization of reference of type ‘int&’ from expression of type ‘float’
+   auto &coh_c = Pres.z;
+                      ^
+StaSacs.h:171:13: error: ‘cohmin’ was not declared in this scope
+   if( coh_t<cohmin && coh_c<cohmin ) {
+             ^
+StaSacs.h:175:15: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+    sacZinterm = sacZ;
+               ^
+StaSacs.h:175:15: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:176:31: error: ‘move’ is not a member of ‘std’
+    if(output_coh) { sacV[3] = std::move(Adm_t); sacV[4] = std::move(Pha_t); }
+                               ^
+StaSacs.h:176:59: error: ‘move’ is not a member of ‘std’
+    if(output_coh) { sacV[3] = std::move(Adm_t); sacV[4] = std::move(Pha_t); }
+                                                           ^
+StaSacs.h:177:13: error: ‘class SacRec’ has no member named ‘sig’
+    if( sacD.sig ) { // stop if sacD is empty
+             ^
+StaSacs.h:182:32: error: ‘move’ is not a member of ‘std’
+     if(output_coh) { sacV[8] = std::move(Adm_c); sacV[9] = std::move(Pha_c); }
+                                ^
+StaSacs.h:182:60: error: ‘move’ is not a member of ‘std’
+     if(output_coh) { sacV[8] = std::move(Adm_c); sacV[9] = std::move(Pha_c); }
+                                                            ^
+StaSacs.h:184:31: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+     if(output_coh) { sacV[10] = Coh_c; sacV[11] = Adm_c; sacV[12] = Pha_c; }
+                               ^
+StaSacs.h:184:31: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:184:49: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+     if(output_coh) { sacV[10] = Coh_c; sacV[11] = Adm_c; sacV[12] = Pha_c; }
+                                                 ^
+StaSacs.h:184:49: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:184:67: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+     if(output_coh) { sacV[10] = Coh_c; sacV[11] = Adm_c; sacV[12] = Pha_c; }
+                                                                   ^
+StaSacs.h:184:67: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:186:33: error: ‘move’ is not a member of ‘std’
+     if(output_coh) { sacV[13] = std::move(Adm_c); sacV[14] = std::move(Pha_c); }
+                                 ^
+StaSacs.h:186:62: error: ‘move’ is not a member of ‘std’
+     if(output_coh) { sacV[13] = std::move(Adm_c); sacV[14] = std::move(Pha_c); }
+                                                              ^
+StaSacs.h:191:15: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+    sacZinterm = sacZ;
+               ^
+StaSacs.h:191:15: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:192:31: error: ‘move’ is not a member of ‘std’
+    if(output_coh) { sacV[8] = std::move(Adm_c); sacV[9] = std::move(Pha_c); }
+                               ^
+StaSacs.h:192:59: error: ‘move’ is not a member of ‘std’
+    if(output_coh) { sacV[8] = std::move(Adm_c); sacV[9] = std::move(Pha_c); }
+                                                           ^
+StaSacs.h:197:31: error: ‘move’ is not a member of ‘std’
+    if(output_coh) { sacV[3] = std::move(Adm_t); sacV[4] = std::move(Pha_t); }
+                               ^
+StaSacs.h:197:59: error: ‘move’ is not a member of ‘std’
+    if(output_coh) { sacV[3] = std::move(Adm_t); sacV[4] = std::move(Pha_t); }
+                                                           ^
+StaSacs.h:202:30: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+    if(output_coh) { sacV[10] = Coh_t; sacV[11] = Adm_t; sacV[12] = Pha_t; }
+                              ^
+StaSacs.h:202:30: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:202:48: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+    if(output_coh) { sacV[10] = Coh_t; sacV[11] = Adm_t; sacV[12] = Pha_t; }
+                                                ^
+StaSacs.h:202:48: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:202:66: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+    if(output_coh) { sacV[10] = Coh_t; sacV[11] = Adm_t; sacV[12] = Pha_t; }
+                                                                  ^
+StaSacs.h:202:66: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:204:32: error: ‘move’ is not a member of ‘std’
+    if(output_coh) { sacV[13] = std::move(Adm_t); sacV[14] = std::move(Pha_t); }
+                                ^
+StaSacs.h:204:61: error: ‘move’ is not a member of ‘std’
+    if(output_coh) { sacV[13] = std::move(Adm_t); sacV[14] = std::move(Pha_t); }
+                                                             ^
+StaSacs.h: In constructor ‘std::vector<_Tp, _Alloc>::vector(std::vector<_Tp, _Alloc>::size_type, const value_type&, const allocator_type&) [with _Tp = PointC; _Alloc = std::allocator<PointC>; std::vector<_Tp, _Alloc>::size_type = long unsigned int; std::vector<_Tp, _Alloc>::value_type = PointC; std::vector<_Tp, _Alloc>::allocator_type = std::allocator<PointC>]’:
+StaSacs.h:217:37: error: call to ‘PointC::PointC(float, float, float)’ uses the default argument for parameter 1, which is not yet defined
+   std::vector<PointC> cohV(nrotate*2);
+                                     ^
+StaSacs.h:217:37: error: call to ‘PointC::PointC(float, float, float)’ uses the default argument for parameter 2, which is not yet defined
+StaSacs.h:217:37: note:   when instantiating default argument for call to std::vector<_Tp, _Alloc>::vector(std::vector<_Tp, _Alloc>::size_type, const value_type&, const allocator_type&) [with _Tp = PointC; _Alloc = std::allocator<PointC>; std::vector<_Tp, _Alloc>::size_type = long unsigned int; std::vector<_Tp, _Alloc>::value_type = PointC; std::vector<_Tp, _Alloc>::allocator_type = std::allocator<PointC>]
+StaSacs.h: In member function ‘PointC StaSacs::EstimateTiltDirection(bool, float) const’:
+StaSacs.h:220:10: error: ISO C++ forbids declaration of ‘p1’ with no type [-fpermissive]
+    auto &p1 = cohV[irotate], &p2 = cohV[irotate+nrotate];
+          ^
+StaSacs.h:220:27: error: invalid initialization of reference of type ‘int&’ from expression of type ‘PointC’
+    auto &p1 = cohV[irotate], &p2 = cohV[irotate+nrotate];
+                           ^
+StaSacs.h:220:31: error: ISO C++ forbids declaration of ‘p2’ with no type [-fpermissive]
+    auto &p1 = cohV[irotate], &p2 = cohV[irotate+nrotate];
+                               ^
+StaSacs.h:220:56: error: invalid initialization of reference of type ‘int&’ from expression of type ‘PointC’
+    auto &p1 = cohV[irotate], &p2 = cohV[irotate+nrotate];
+                                                        ^
+StaSacs.h:221:7: error: request for member ‘x’ in ‘p1’, which is of non-class type ‘int’
+    p1.x = irotate*ddeg; p2.x = p1.x + 90.;
+       ^
+StaSacs.h:221:28: error: request for member ‘x’ in ‘p2’, which is of non-class type ‘int’
+    p1.x = irotate*ddeg; p2.x = p1.x + 90.;
+                            ^
+StaSacs.h:221:35: error: request for member ‘x’ in ‘p1’, which is of non-class type ‘int’
+    p1.x = irotate*ddeg; p2.x = p1.x + 90.;
+                                   ^
+StaSacs.h:223:7: error: request for member ‘y’ in ‘p1’, which is of non-class type ‘int’
+    p1.y = CalcTransferF(sacZ, sacZamV, sacZphV, sacH1t, sacH1amV, sacH1phV, Coh, Adm, Pha, fmax_tilt, zeropha);
+       ^
+StaSacs.h:223:92: error: ‘fmax_tilt’ was not declared in this scope
+    p1.y = CalcTransferF(sacZ, sacZamV, sacZphV, sacH1t, sacH1amV, sacH1phV, Coh, Adm, Pha, fmax_tilt, zeropha);
+                                                                                            ^
+StaSacs.h:224:7: error: request for member ‘y’ in ‘p2’, which is of non-class type ‘int’
+    p2.y = CalcTransferF(sacZ, sacZamV, sacZphV, sacH2t, sacH2amV, sacH2phV, Coh, Adm, Pha, fmax_tilt, zeropha);
+       ^
+StaSacs.h:232:67: warning: lambda expressions only available with -std=c++11 or -std=gnu++11
+         [](const PointC& p1, const PointC& p2){ return p1.y>p2.y; } );
+                                                                   ^
+StaSacs.h:232:69: error: no matching function for call to ‘nth_element(std::vector<PointC>::iterator, __gnu_cxx::__normal_iterator<PointC*, std::vector<PointC> >, std::vector<PointC>::iterator, StaSacs::EstimateTiltDirection(bool, float) const::<lambda(const PointC&, const PointC&)>)’
+         [](const PointC& p1, const PointC& p2){ return p1.y>p2.y; } );
+                                                                     ^
+StaSacs.h:232:69: note: candidates are:
+In file included from /curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/algorithm:62:0,
+                 from /projects/yeti4009/code/MyLibs/include/mysac64.h:6,
+                 from SacRec.h:4,
+                 from RemoveCompliance.cpp:1:
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algo.h:4602:5: note: template<class _RAIter> void std::nth_element(_RAIter, _RAIter, _RAIter)
+     nth_element(_RandomAccessIterator __first, _RandomAccessIterator __nth,
+     ^
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algo.h:4602:5: note:   template argument deduction/substitution failed:
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:232:69: note:   candidate expects 3 arguments, 4 provided
+         [](const PointC& p1, const PointC& p2){ return p1.y>p2.y; } );
+                                                                     ^
+In file included from /curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/algorithm:62:0,
+                 from /projects/yeti4009/code/MyLibs/include/mysac64.h:6,
+                 from SacRec.h:4,
+                 from RemoveCompliance.cpp:1:
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algo.h:4640:5: note: template<class _RAIter, class _Compare> void std::nth_element(_RAIter, _RAIter, _RAIter, _Compare)
+     nth_element(_RandomAccessIterator __first, _RandomAccessIterator __nth,
+     ^
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algo.h:4640:5: note:   template argument deduction/substitution failed:
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h: In substitution of ‘template<class _RAIter, class _Compare> void std::nth_element(_RAIter, _RAIter, _RAIter, _Compare) [with _RAIter = __gnu_cxx::__normal_iterator<PointC*, std::vector<PointC> >; _Compare = StaSacs::EstimateTiltDirection(bool, float) const::<lambda(const PointC&, const PointC&)>]’:
+StaSacs.h:232:69:   required from here
+StaSacs.h:232:69: error: template argument for ‘template<class _RAIter, class _Compare> void std::nth_element(_RAIter, _RAIter, _RAIter, _Compare)’ uses local type ‘StaSacs::EstimateTiltDirection(bool, float) const::<lambda(const PointC&, const PointC&)>’
+         [](const PointC& p1, const PointC& p2){ return p1.y>p2.y; } );
+                                                                     ^
+StaSacs.h:232:69: error:   trying to instantiate ‘template<class _RAIter, class _Compare> void std::nth_element(_RAIter, _RAIter, _RAIter, _Compare)’
+StaSacs.h:235:67: warning: lambda expressions only available with -std=c++11 or -std=gnu++11
+         [](const PointC& p1, const PointC& p2){ return p1.y<p2.y; } ) );
+                                                                   ^
+StaSacs.h:235:69: error: no matching function for call to ‘max_element(std::vector<PointC>::iterator, __gnu_cxx::__normal_iterator<PointC*, std::vector<PointC> >, StaSacs::EstimateTiltDirection(bool, float) const::<lambda(const PointC&, const PointC&)>)’
+         [](const PointC& p1, const PointC& p2){ return p1.y<p2.y; } ) );
+                                                                     ^
+StaSacs.h:235:69: note: candidates are:
+In file included from /curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/algorithm:62:0,
+                 from /projects/yeti4009/code/MyLibs/include/mysac64.h:6,
+                 from SacRec.h:4,
+                 from RemoveCompliance.cpp:1:
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algo.h:5487:5: note: template<class _FIter> _FIter std::max_element(_FIter, _FIter)
+     max_element(_ForwardIterator __first, _ForwardIterator __last)
+     ^
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algo.h:5487:5: note:   template argument deduction/substitution failed:
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:235:69: note:   candidate expects 2 arguments, 3 provided
+         [](const PointC& p1, const PointC& p2){ return p1.y<p2.y; } ) );
+                                                                     ^
+In file included from /curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/algorithm:62:0,
+                 from /projects/yeti4009/code/MyLibs/include/mysac64.h:6,
+                 from SacRec.h:4,
+                 from RemoveCompliance.cpp:1:
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algo.h:5510:5: note: template<class _FIter, class _Compare> _FIter std::max_element(_FIter, _FIter, _Compare)
+     max_element(_ForwardIterator __first, _ForwardIterator __last,
+     ^
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algo.h:5510:5: note:   template argument deduction/substitution failed:
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h: In substitution of ‘template<class _FIter, class _Compare> _FIter std::max_element(_FIter, _FIter, _Compare) [with _FIter = __gnu_cxx::__normal_iterator<PointC*, std::vector<PointC> >; _Compare = StaSacs::EstimateTiltDirection(bool, float) const::<lambda(const PointC&, const PointC&)>]’:
+StaSacs.h:235:69:   required from here
+StaSacs.h:235:69: error: template argument for ‘template<class _FIter, class _Compare> _FIter std::max_element(_FIter, _FIter, _Compare)’ uses local type ‘StaSacs::EstimateTiltDirection(bool, float) const::<lambda(const PointC&, const PointC&)>’
+         [](const PointC& p1, const PointC& p2){ return p1.y<p2.y; } ) );
+                                                                     ^
+StaSacs.h:235:69: error:   trying to instantiate ‘template<class _FIter, class _Compare> _FIter std::max_element(_FIter, _FIter, _Compare)’
+StaSacs.h: In member function ‘void StaSacs::Write(const string&, const string&, std::string, const string&, std::string)’:
+StaSacs.h:293:8: error: ‘WriteSAC’ does not name a type
+   auto WriteSAC = [&]( SacRec& sac, const std::string& outname ) {
+        ^
+StaSacs.h:306:45: error: ‘WriteSAC’ was not declared in this scope
+   if( ! foutZ.empty() ) WriteSAC(sacZ, foutZ);
+                                             ^
+StaSacs.h:307:63: error: ‘WriteSAC’ was not declared in this scope
+   if( ! foutZinterm.empty() ) WriteSAC(sacZinterm, foutZinterm);
+                                                               ^
+StaSacs.h:308:48: error: ‘WriteSAC’ was not declared in this scope
+   if( ! foutH1.empty() ) WriteSAC(sacH1, foutH1);
+                                                ^
+StaSacs.h:309:48: error: ‘WriteSAC’ was not declared in this scope
+   if( ! foutH2.empty() ) WriteSAC(sacH2, foutH2);
+                                                ^
+StaSacs.h:310:45: error: ‘WriteSAC’ was not declared in this scope
+   if( ! foutD.empty() ) WriteSAC(sacD, foutD);
+                                             ^
+StaSacs.h: In member function ‘void StaSacs::Segmentize(const SacRec&, std::vector<SacRec>&, std::vector<SacRec>&) const’:
+StaSacs.h:337:13: error: ‘const class SacRec’ has no member named ‘sig’
+   if( ! sac.sig ) throw ErrorSR::EmptySig(FuncName, sac.fname);
+             ^
+StaSacs.h:350:22: error: ‘move’ is not a member of ‘std’
+     sacamV.push_back(std::move(sac_am)); 
+                      ^
+StaSacs.h:351:22: error: ‘move’ is not a member of ‘std’
+     sacphV.push_back(std::move(sac_ph));
+                      ^
+StaSacs.h: In member function ‘void StaSacs::FitIntoParabola(SacRec&, const SacRec&, float) const’:
+StaSacs.h:373:8: error: ‘sigwsac’ does not name a type
+   auto sigwsac = sacw.sig.get();
+        ^
+StaSacs.h:375:56: error: ‘sigwsac’ was not declared in this scope
+   for(i=0; i<sacw.Index(fmax, true); i++) dataV[i].z = sigwsac[i];
+                                                        ^
+StaSacs.h:381:8: error: ‘sig1sac’ does not name a type
+   auto sig1sac = sac1.sig.get();
+        ^
+StaSacs.h:384:5: warning: lambda expressions only available with -std=c++11 or -std=gnu++11
+     } );
+     ^
+StaSacs.h:384:7: error: no matching function for call to ‘SacRec::Transform2(StaSacs::FitIntoParabola(SacRec&, const SacRec&, float) const::<lambda(float, float&)>)’
+     } );
+       ^
+StaSacs.h:384:7: note: candidate is:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:254:31: note: template<class Functor> void SacRec::Transform2(const Functor&, size_t, int)
+  template<class Functor> void Transform2(const Functor& func, size_t ib=0, int ie=NaN) {
+                               ^
+SacRec.h:254:31: note:   template argument deduction/substitution failed:
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h: In substitution of ‘template<class Functor> void SacRec::Transform2(const Functor&, size_t, int) [with Functor = StaSacs::FitIntoParabola(SacRec&, const SacRec&, float) const::<lambda(float, float&)>]’:
+StaSacs.h:384:7:   required from here
+StaSacs.h:384:7: error: template argument for ‘template<class Functor> void SacRec::Transform2(const Functor&, size_t, int)’ uses local type ‘StaSacs::FitIntoParabola(SacRec&, const SacRec&, float) const::<lambda(float, float&)>’
+     } );
+       ^
+StaSacs.h:384:7: error:   trying to instantiate ‘template<class Functor> void SacRec::Transform2(const Functor&, size_t, int)’
+StaSacs.h: In member function ‘float StaSacs::CalcTransferF(const SacRec&, std::vector<SacRec>&, std::vector<SacRec>&, const SacRec&, std::vector<SacRec>&, std::vector<SacRec>&, SacRec&, SacRec&, SacRec&, float, bool) const’:
+StaSacs.h:397:13: error: ‘to_string’ is not a member of ‘std’
+             std::to_string(nseg)+") not enough for computing transfer function");
+             ^
+StaSacs.h:409:8: error: ‘sigre’ does not name a type
+   auto sigre = GrsR.sig.get(), sigim = GrsI.sig.get();
+        ^
+StaSacs.h:420:9: error: ‘sigam’ does not name a type
+    auto sigam = sacrs_am.sig.get(), sigph = sacrs_ph.sig.get();
+         ^
+StaSacs.h:422:18: error: ‘sigam’ was not declared in this scope
+     float &amp = sigam[i], &pha = sigph[i];
+                  ^
+StaSacs.h:423:5: error: ‘sigre’ was not declared in this scope
+     sigre[i] += amp * cos(pha);
+     ^
+StaSacs.h:423:27: error: ‘pha’ was not declared in this scope
+     sigre[i] += amp * cos(pha);
+                           ^
+StaSacs.h:424:5: error: ‘sigim’ was not declared in this scope
+     sigim[i] += amp * sin(pha);
+     ^
+StaSacs.h:430:9: error: ‘move’ is not a member of ‘std’
+   Pha = std::move(GrsI); Adm = GrsR; Adm.Divf( Gss );
+         ^
+StaSacs.h:430:30: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+   Pha = std::move(GrsI); Adm = GrsR; Adm.Divf( Gss );
+                              ^
+StaSacs.h:430:30: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:431:7: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+   Coh = Adm; Coh.Mulf( GrsR ); Coh.Divf( Grr ); Coh.sqrt();
+       ^
+StaSacs.h:431:7: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h:438:8: error: ‘sigpha’ does not name a type
+   auto sigpha = Pha.sig.get(), sigcoh = Cohs.sig.get();
+        ^
+StaSacs.h:442:8: error: ‘sigcoh’ was not declared in this scope
+    if( sigcoh[i]>cohmin ) phaV.push_back(sigpha[i]);
+        ^
+StaSacs.h:442:18: error: ‘cohmin’ was not declared in this scope
+    if( sigcoh[i]>cohmin ) phaV.push_back(sigpha[i]);
+                  ^
+StaSacs.h:442:42: error: ‘sigpha’ was not declared in this scope
+    if( sigcoh[i]>cohmin ) phaV.push_back(sigpha[i]);
+                                          ^
+StaSacs.h:456:63: warning: lambda expressions only available with -std=c++11 or -std=gnu++11
+    Pha.Transform( [&](float& val){if(val<phac-M_PI)val+=twopi;} );
+                                                               ^
+StaSacs.h:456:65: error: no matching function for call to ‘SacRec::Transform(StaSacs::CalcTransferF(const SacRec&, std::vector<SacRec>&, std::vector<SacRec>&, const SacRec&, std::vector<SacRec>&, std::vector<SacRec>&, SacRec&, SacRec&, SacRec&, float, bool) const::<lambda(float&)>)’
+    Pha.Transform( [&](float& val){if(val<phac-M_PI)val+=twopi;} );
+                                                                 ^
+StaSacs.h:456:65: note: candidate is:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:251:31: note: template<class Functor> void SacRec::Transform(const Functor&, size_t, int)
+  template<class Functor> void Transform(const Functor& func, size_t ib=0, int ie=NaN) {
+                               ^
+SacRec.h:251:31: note:   template argument deduction/substitution failed:
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h: In substitution of ‘template<class Functor> void SacRec::Transform(const Functor&, size_t, int) [with Functor = StaSacs::CalcTransferF(const SacRec&, std::vector<SacRec>&, std::vector<SacRec>&, const SacRec&, std::vector<SacRec>&, std::vector<SacRec>&, SacRec&, SacRec&, SacRec&, float, bool) const::<lambda(float&)>]’:
+StaSacs.h:456:65:   required from here
+StaSacs.h:456:65: error: template argument for ‘template<class Functor> void SacRec::Transform(const Functor&, size_t, int)’ uses local type ‘StaSacs::CalcTransferF(const SacRec&, std::vector<SacRec>&, std::vector<SacRec>&, const SacRec&, std::vector<SacRec>&, std::vector<SacRec>&, SacRec&, SacRec&, SacRec&, float, bool) const::<lambda(float&)>’
+    Pha.Transform( [&](float& val){if(val<phac-M_PI)val+=twopi;} );
+                                                                 ^
+StaSacs.h:456:65: error:   trying to instantiate ‘template<class Functor> void SacRec::Transform(const Functor&, size_t, int)’
+StaSacs.h:458:64: warning: lambda expressions only available with -std=c++11 or -std=gnu++11
+    Pha.Transform( [&](float& val){if(val>=phac+M_PI)val-=twopi;} );
+                                                                ^
+StaSacs.h:458:66: error: no matching function for call to ‘SacRec::Transform(StaSacs::CalcTransferF(const SacRec&, std::vector<SacRec>&, std::vector<SacRec>&, const SacRec&, std::vector<SacRec>&, std::vector<SacRec>&, SacRec&, SacRec&, SacRec&, float, bool) const::<lambda(float&)>)’
+    Pha.Transform( [&](float& val){if(val>=phac+M_PI)val-=twopi;} );
+                                                                  ^
+StaSacs.h:458:66: note: candidate is:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:251:31: note: template<class Functor> void SacRec::Transform(const Functor&, size_t, int)
+  template<class Functor> void Transform(const Functor& func, size_t ib=0, int ie=NaN) {
+                               ^
+SacRec.h:251:31: note:   template argument deduction/substitution failed:
+In file included from RemoveCompliance.cpp:2:0:
+StaSacs.h: In substitution of ‘template<class Functor> void SacRec::Transform(const Functor&, size_t, int) [with Functor = StaSacs::CalcTransferF(const SacRec&, std::vector<SacRec>&, std::vector<SacRec>&, const SacRec&, std::vector<SacRec>&, std::vector<SacRec>&, SacRec&, SacRec&, SacRec&, float, bool) const::<lambda(float&)>]’:
+StaSacs.h:458:66:   required from here
+StaSacs.h:458:66: error: template argument for ‘template<class Functor> void SacRec::Transform(const Functor&, size_t, int)’ uses local type ‘StaSacs::CalcTransferF(const SacRec&, std::vector<SacRec>&, std::vector<SacRec>&, const SacRec&, std::vector<SacRec>&, std::vector<SacRec>&, SacRec&, SacRec&, SacRec&, float, bool) const::<lambda(float&)>’
+    Pha.Transform( [&](float& val){if(val>=phac+M_PI)val-=twopi;} );
+                                                                  ^
+StaSacs.h:458:66: error:   trying to instantiate ‘template<class Functor> void SacRec::Transform(const Functor&, size_t, int)’
+StaSacs.h:478:25: error: ‘fb_avg’ was not declared in this scope
+   int i, ib = Pha.Index(fb_avg);
+                         ^
+StaSacs.h:479:34: error: ‘fe_avg’ was not declared in this scope
+   for(i=ib; i<Pha.Index(std::min(fe_avg,fmax)); i++) {
+                                  ^
+StaSacs.h:480:25: error: ‘sigpha’ was not declared in this scope
+    float phadiff = fabs(sigpha[i]-phac);
+                         ^
+StaSacs.h:482:14: error: ‘sigcoh’ was not declared in this scope
+    cohavg += sigcoh[i];
+              ^
+StaSacs.h:486:9: error: ‘move’ is not a member of ‘std’
+   Coh = std::move(Cohs);
+         ^
+StaSacs.h: In member function ‘void StaSacs::ApplyCorrection(SacRec&, const SacRec&, SacRec&, SacRec&, SacRec&, float)’:
+StaSacs.h:500:8: error: ‘sigpha’ does not name a type
+   auto sigpha = Pha.sig.get(), sigcoh = Coh.sig.get();
+        ^
+StaSacs.h:503:25: error: ‘sigpha’ was not declared in this scope
+    float phadiff = fabs(sigpha[i]-phac);
+                         ^
+StaSacs.h:504:25: error: ‘sigcoh’ was not declared in this scope
+    if( phadiff > pio4 ) sigcoh[i] = 0.;
+                         ^
+RemoveCompliance.cpp: In function ‘int main(int, char**)’:
+RemoveCompliance.cpp:14:7: error: ‘res’ does not name a type
+  auto res = ss.RemoveCompliance(std::string(argv[6])+"_noise_coherences", zeropha, Eperl, Eperu, 2000.);
+       ^
+RemoveCompliance.cpp:15:25: error: ‘res’ was not declared in this scope
+  std::cout<<"coh_c = "<<res<<std::endl;
+                         ^
+In file included from /curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/char_traits.h:39:0,
+                 from /curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/ios:40,
+                 from /curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/ostream:38,
+                 from /curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/iostream:39,
+                 from /projects/yeti4009/code/MyLibs/include/mysac64.h:3,
+                 from SacRec.h:4,
+                 from RemoveCompliance.cpp:1:
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algobase.h: In instantiation of ‘typename __gnu_cxx::__enable_if<(! std::__is_scalar<_Tp>::__value), void>::__type std::__fill_a(_ForwardIterator, _ForwardIterator, const _Tp&) [with _ForwardIterator = SacRec*; _Tp = SacRec; typename __gnu_cxx::__enable_if<(! std::__is_scalar<_Tp>::__value), void>::__type = void]’:
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algobase.h:740:14:   required from ‘void std::fill(_ForwardIterator, _ForwardIterator, const _Tp&) [with _ForwardIterator = SacRec*; _Tp = SacRec]’
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/vector.tcc:470:16:   required from ‘void std::vector<_Tp, _Alloc>::_M_fill_insert(std::vector<_Tp, _Alloc>::iterator, std::vector<_Tp, _Alloc>::size_type, const value_type&) [with _Tp = SacRec; _Alloc = std::allocator<SacRec>; std::vector<_Tp, _Alloc>::iterator = __gnu_cxx::__normal_iterator<SacRec*, std::vector<SacRec> >; typename std::_Vector_base<_Tp, _Alloc>::pointer = SacRec*; std::vector<_Tp, _Alloc>::size_type = long unsigned int; std::vector<_Tp, _Alloc>::value_type = SacRec]’
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_vector.h:1073:44:   required from ‘void std::vector<_Tp, _Alloc>::insert(std::vector<_Tp, _Alloc>::iterator, std::vector<_Tp, _Alloc>::size_type, const value_type&) [with _Tp = SacRec; _Alloc = std::allocator<SacRec>; std::vector<_Tp, _Alloc>::iterator = __gnu_cxx::__normal_iterator<SacRec*, std::vector<SacRec> >; typename std::_Vector_base<_Tp, _Alloc>::pointer = SacRec*; std::vector<_Tp, _Alloc>::size_type = long unsigned int; std::vector<_Tp, _Alloc>::value_type = SacRec]’
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_vector.h:716:42:   required from ‘void std::vector<_Tp, _Alloc>::resize(std::vector<_Tp, _Alloc>::size_type, std::vector<_Tp, _Alloc>::value_type) [with _Tp = SacRec; _Alloc = std::allocator<SacRec>; std::vector<_Tp, _Alloc>::size_type = long unsigned int; std::vector<_Tp, _Alloc>::value_type = SacRec]’
+StaSacs.h:79:31:   required from here
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algobase.h:693:11: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘const SacRec’)
+  *__first = __value;
+           ^
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algobase.h:693:11: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+In file included from /curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/char_traits.h:39:0,
+                 from /curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/ios:40,
+                 from /curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/ostream:38,
+                 from /curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/iostream:39,
+                 from /projects/yeti4009/code/MyLibs/include/mysac64.h:3,
+                 from SacRec.h:4,
+                 from RemoveCompliance.cpp:1:
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algobase.h: In instantiation of ‘static _BI2 std::__copy_move_backward<false, false, std::random_access_iterator_tag>::__copy_move_b(_BI1, _BI1, _BI2) [with _BI1 = SacRec*; _BI2 = SacRec*]’:
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algobase.h:598:18:   required from ‘_BI2 std::__copy_move_backward_a(_BI1, _BI1, _BI2) [with bool _IsMove = false; _BI1 = SacRec*; _BI2 = SacRec*]’
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algobase.h:607:33:   required from ‘_BI2 std::__copy_move_backward_a2(_BI1, _BI1, _BI2) [with bool _IsMove = false; _BI1 = SacRec*; _BI2 = SacRec*]’
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algobase.h:642:17:   required from ‘_BI2 std::copy_backward(_BI1, _BI1, _BI2) [with _BI1 = SacRec*; _BI2 = SacRec*]’
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/vector.tcc:467:5:   required from ‘void std::vector<_Tp, _Alloc>::_M_fill_insert(std::vector<_Tp, _Alloc>::iterator, std::vector<_Tp, _Alloc>::size_type, const value_type&) [with _Tp = SacRec; _Alloc = std::allocator<SacRec>; std::vector<_Tp, _Alloc>::iterator = __gnu_cxx::__normal_iterator<SacRec*, std::vector<SacRec> >; typename std::_Vector_base<_Tp, _Alloc>::pointer = SacRec*; std::vector<_Tp, _Alloc>::size_type = long unsigned int; std::vector<_Tp, _Alloc>::value_type = SacRec]’
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_vector.h:1073:44:   required from ‘void std::vector<_Tp, _Alloc>::insert(std::vector<_Tp, _Alloc>::iterator, std::vector<_Tp, _Alloc>::size_type, const value_type&) [with _Tp = SacRec; _Alloc = std::allocator<SacRec>; std::vector<_Tp, _Alloc>::iterator = __gnu_cxx::__normal_iterator<SacRec*, std::vector<SacRec> >; typename std::_Vector_base<_Tp, _Alloc>::pointer = SacRec*; std::vector<_Tp, _Alloc>::size_type = long unsigned int; std::vector<_Tp, _Alloc>::value_type = SacRec]’
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_vector.h:716:42:   required from ‘void std::vector<_Tp, _Alloc>::resize(std::vector<_Tp, _Alloc>::size_type, std::vector<_Tp, _Alloc>::value_type) [with _Tp = SacRec; _Alloc = std::allocator<SacRec>; std::vector<_Tp, _Alloc>::size_type = long unsigned int; std::vector<_Tp, _Alloc>::value_type = SacRec]’
+StaSacs.h:79:31:   required from here
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algobase.h:543:18: error: ambiguous overload for ‘operator=’ (operand types are ‘SacRec’ and ‘SacRec’)
+      *--__result = *--__last;
+                  ^
+/curc/tools/x_86_64/rh6/gcc/4.9.2/include/c++/4.9.2/bits/stl_algobase.h:543:18: note: candidates are:
+In file included from RemoveCompliance.cpp:1:0:
+SacRec.h:111:12: note: SacRec& SacRec::operator=(const SacRec&)
+    SacRec &operator= ( const SacRec& recin ); // assignment
+            ^
+SacRec.h:112:12: note: SacRec& SacRec::operator=(SacRec)
+    SacRec &operator= ( SacRec&& recin ); // move
+            ^
+make: *** [RemoveCompliance.o] Error 1
