@@ -4,6 +4,7 @@
 #include <string.h>
 #include <iostream>
 #include <pthread.h>
+#include <fstream>
 using namespace std;
 
 #define PI 3.14159265358979323846
@@ -39,7 +40,7 @@ void FFTW_B(int type, float *seis, int n, fftw_complex **in, fftw_complex **out,
    //initialize input array and excute
    memset(*in, 0, ns*sizeof(fftw_complex));
    int k;
-   for(k=1; k<n; k++) (*in)[k][0] = seis[k];
+   for(k=0; k<n; k++) (*in)[k][0] = seis[k];
    fftw_execute(plan);
    //cleanup
    pthread_mutex_lock(&fftlock);
@@ -163,24 +164,23 @@ void IFFT(int nlen, float *amp, float *pha, float *seis_out, int *nsig) {
 void fDiv(double dom, int nsig, fftw_complex *sf, double *freq, double *amp, double *pha, int ntra) {
    int isig, itra = 1;
    double f, ampcur, phacur, realsig, imagsig;
-   double sintmp, costmp;
-   for(isig=(int)ceil(freq[0]/dom); isig<nsig; isig++) {
-      f = isig*dom;
-      while(f > freq[itra]) {
-	 itra++;
-	 if(itra >= ntra) break;
-      }
-      //interpolate to get current amp and pha
-      sintmp = (f-freq[itra-1]) / (freq[itra]-freq[itra-1]);
-      ampcur = amp[itra-1] + (amp[itra]-amp[itra-1]) * sintmp;
-      phacur = pha[itra-1] + (pha[itra]-pha[itra-1]) * sintmp;
-      //divide sf by (ampcur, phacur)
-      realsig = sf[isig][0]; imagsig = sf[isig][1];
-      sintmp = sin(phacur); costmp = cos(phacur);
-      sf[isig][0] = (realsig*costmp - imagsig*sintmp) / ampcur;
-      sf[isig][1] = (imagsig*costmp + realsig*sintmp) / ampcur;
-   }
-
+	double sintmp, costmp;
+	for(isig=(int)ceil(freq[0]/dom); isig<nsig; isig++) {
+		f = isig*dom;
+		while(f > freq[itra]) {
+			itra++;
+			if(itra >= ntra) break;
+		}
+		//interpolate to get current amp and pha
+		sintmp = (f-freq[itra-1]) / (freq[itra]-freq[itra-1]);
+		ampcur = amp[itra-1] + (amp[itra]-amp[itra-1]) * sintmp;
+		phacur = pha[itra-1] + (pha[itra]-pha[itra-1]) * sintmp;
+		//divide sf by (ampcur, phacur)
+		realsig = sf[isig][0]; imagsig = sf[isig][1];
+		sintmp = sin(phacur); costmp = cos(phacur);
+		sf[isig][0] = (realsig*costmp - imagsig*sintmp) / ampcur;
+		sf[isig][1] = (imagsig*costmp + realsig*sintmp) / ampcur;
+	}
 }
 
 void FDivide (double f1, double f2, double f3, double f4, double dt, int n, float *seis_in, float *seis_out, double *freq, double *amp, double *pha, int nf) {

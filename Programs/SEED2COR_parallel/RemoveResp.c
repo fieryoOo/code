@@ -147,18 +147,21 @@ int TransferSac(int ne, int ns) {
 */
 
 void RTrend(float *sig, SAC_HD *shd) {
-   // fit a*x+b
+   // fit a*x+b with at most ~10000 points
    int i, npts = shd->npts;
+	int step = std::max(1, (int)floor(npts/10000.+0.5));
    float X = 0., Y = 0., X2 = 0., Y2 = 0., XY = 0.;
-   for(i=0;i<npts;i++) {
+	int nptse = 0;
+   for(i=0;i<npts;i+=step) {
       X += i;
       Y += sig[i];
       X2 += i*i;
       Y2 += sig[i]*sig[i];
       XY += i*sig[i];
+		nptse++;
    }
-   float a = (npts*XY-X*Y)/(npts*X2-X*X);
-   float b = (-X*XY+X2*Y)/(npts*X2-X*X);
+   float a = (nptse*XY-X*Y)/(nptse*X2-X*X);
+   float b = (-X*XY+X2*Y)/(nptse*X2-X*X);
    // correct sig and DEPMEN
    float mean = 0., max = sig[0], min = sig[0];
    float shift = b;
@@ -246,6 +249,7 @@ int TransferEvr(int ne, int ns, float **sig, SAC_HD *sd, int ithread) {
    }
    sscanf(list, "%s", nameph);
    free(list);
+	//std::cerr<<nameam<<" "<<nameph<<std::endl;
    if( (fph = fopen(nameph, "r")) == NULL ) {
       cerr<<"ERROR(TransferEvr): Cannot open file "<<nameph<<endl;
       pthread_mutex_unlock(&evrlock);
@@ -286,82 +290,82 @@ void * RmRESPEntrance( void * tid ) {
    SAC_HD shd;
   
    setvbuf(stdout, NULL, _IOLBF, 0);
-   for(;;) {
-      //get/update current event number
-      pthread_mutex_lock(&cevlock);
-      ne = currevn;
-      currevn++;
-      pthread_mutex_unlock(&cevlock);
-      if(ne>=NEVENTS) break;
-      if(strcmp(sdb->mo[imonth].seedf[ne],"0")==0) continue;
-      nst = 0;
-      reports[ithread].tail += sprintf(reports[ithread].tail, "### Response removed for event %s from thread %d: ", sdb->ev[ne].name, ithread);
-      //remove RESP for each station
-      for( ns = 0; ns < sdb->nst; ns++ ) {
-         if( fskip2==2 || fskip2==1 ) {
-            flag = CheckExistenceft(ne, ns);
-            if(fskip2==2) {
-	       if( !flag ) sdb->rec[ne][ns].n = 0;
-	       continue;
-	    }
-            else if(flag) continue;
-         }
-	 if(sdb->rec[ne][ns].n <= 0 ) continue;
-	 if( !CheckSPS(ne, ns, ithread) ) continue; //check sampling rate and resample if necessary
-	 if( !TransferEvr(ne, ns, &sig, &shd, ithread) ) continue; //sig allocated here
-	 if( !CutRec(ne, ns, sig, shd, ithread) ) continue; //sig freed here
-	 if( nst %20 == 0 ) reports[ithread].tail += sprintf(reports[ithread].tail, "\n   ");
-	 reports[ithread].tail += sprintf(reports[ithread].tail, "%s ", sdb->st[ns].name);
-	 nst++;
-      }
-      for(ns=0;ns<sdb->nst;ns++) {
-	 if( (sdb->rec[ne][ns].resp_fname)==NULL ) continue;
-	 if( fdel1 ) fRemove( sdb->rec[ne][ns].resp_fname );
-	 delete [] sdb->rec[ne][ns].resp_fname;
-      }
-      reports[ithread].tail += sprintf(reports[ithread].tail, "\n   %d stations processed. ###\n", nst);
-      cout<<reports[ithread].head;
-      reports[ithread].tail = reports[ithread].head;
-   }
-   fRemove("sac_bp_respcor"); fRemove("RESP_tmp");
+	for(;;) {
+		//get/update current event number
+		pthread_mutex_lock(&cevlock);
+		ne = currevn;
+		currevn++;
+		pthread_mutex_unlock(&cevlock);
+		if(ne>=NEVENTS) break;
+		if(strcmp(sdb->mo[imonth].seedf[ne],"0")==0) continue;
+		nst = 0;
+		reports[ithread].tail += sprintf(reports[ithread].tail, "### Response removed for event %s from thread %d: ", sdb->ev[ne].name, ithread);
+		//remove RESP for each station
+		for( ns = 0; ns < sdb->nst; ns++ ) {
+			if( fskip2==2 || fskip2==1 ) {
+				flag = CheckExistenceft(ne, ns);
+				if(fskip2==2) {
+					if( !flag ) sdb->rec[ne][ns].n = 0;
+					continue;
+				}
+				else if(flag) continue;
+			}
+			if(sdb->rec[ne][ns].n <= 0 ) continue;
+			if( !CheckSPS(ne, ns, ithread) ) continue; //check sampling rate and resample if necessary
+			if( !TransferEvr(ne, ns, &sig, &shd, ithread) ) continue; //sig allocated here
+			if( !CutRec(ne, ns, sig, shd, ithread) ) continue; //sig freed here
+			if( nst %20 == 0 ) reports[ithread].tail += sprintf(reports[ithread].tail, "\n   ");
+			reports[ithread].tail += sprintf(reports[ithread].tail, "%s ", sdb->st[ns].name);
+			nst++;
+		}
+		for(ns=0;ns<sdb->nst;ns++) {
+			if( (sdb->rec[ne][ns].resp_fname)==NULL ) continue;
+			if( fdel1 ) fRemove( sdb->rec[ne][ns].resp_fname );
+			delete [] sdb->rec[ne][ns].resp_fname;
+		}
+		reports[ithread].tail += sprintf(reports[ithread].tail, "\n   %d stations processed. ###\n", nst);
+		cout<<reports[ithread].head;
+		reports[ithread].tail = reports[ithread].head;
+	}
+	fRemove("sac_bp_respcor"); fRemove("RESP_tmp");
 
-   pthread_exit(NULL);
+	pthread_exit(NULL);
 }
 
 
 void RmRESP(){
-   int ithread;
-   //initialize report arrays
-   reports = (struct NOTE *) malloc ( NTHRDS * sizeof(struct NOTE));
-   for(ithread=0;ithread<NTHRDS;ithread++) {
-      //reports[ithread].head = (char *) malloc ( (sdb->nst+1) * 100 * sizeof(char) );
-      reports[ithread].head = new char[(sdb->nst+2) * 200];
-      reports[ithread].tail = reports[ithread].head;
-   }
-   
-   currevn = 0;
-   //Thread ids and lock
-   pthread_t tid[NTHRDS];
-   pthread_mutex_init(&evrlock, NULL);
+	int ithread;
+	//initialize report arrays
+	reports = (struct NOTE *) malloc ( NTHRDS * sizeof(struct NOTE));
+	for(ithread=0;ithread<NTHRDS;ithread++) {
+		//reports[ithread].head = (char *) malloc ( (sdb->nst+1) * 100 * sizeof(char) );
+		reports[ithread].head = new char[(sdb->nst+2) * 200];
+		reports[ithread].tail = reports[ithread].head;
+	}
 
-   //Create threads to produce event-station sac files
-   int rc, targs[NTHRDS];
-   for(ithread=0;ithread<NTHRDS;ithread++) {
-      targs[ithread] = ithread;
-      rc = pthread_create( &tid[ithread], &attr_j, RmRESPEntrance, (void *) (&(targs[ithread])) );
-      if(rc) {
-         cerr<<"ERROR(RmRESP): Thread creation failed!  ERR: "<<strerror(rc)<<endl;
-         exit(0);
-      }
-   }
-   //Wait for all threads to finish
-   for(ithread=0;ithread<NTHRDS;ithread++) pthread_join(tid[ithread], NULL);
+	currevn = 0;
+	//Thread ids and lock
+	pthread_t tid[NTHRDS];
+	pthread_mutex_init(&evrlock, NULL);
 
-   pthread_mutex_destroy(&evrlock);
+	//Create threads to produce event-station sac files
+	int rc, targs[NTHRDS];
+	for(ithread=0;ithread<NTHRDS;ithread++) {
+		targs[ithread] = ithread;
+		rc = pthread_create( &tid[ithread], &attr_j, RmRESPEntrance, (void *) (&(targs[ithread])) );
+		if(rc) {
+			cerr<<"ERROR(RmRESP): Thread creation failed!  ERR: "<<strerror(rc)<<endl;
+			exit(0);
+		}
+	}
+	//Wait for all threads to finish
+	for(ithread=0;ithread<NTHRDS;ithread++) pthread_join(tid[ithread], NULL);
 
-   //free report arrays
-   //for(ithread=0;ithread<NTHRDS;ithread++) free(reports[ithread].head);
-   for(ithread=0;ithread<NTHRDS;ithread++) delete [] reports[ithread].head;
-   free(reports);
+	pthread_mutex_destroy(&evrlock);
+
+	//free report arrays
+	//for(ithread=0;ithread<NTHRDS;ithread++) free(reports[ithread].head);
+	for(ithread=0;ithread<NTHRDS;ithread++) delete [] reports[ithread].head;
+	free(reports);
 
 }

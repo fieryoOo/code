@@ -884,6 +884,13 @@ struct StaFinder
         return a.name.compare(b.name)==0 && ( a.net.empty() || b.net.empty() || a.net.compare(b.net)==0 );
     }
 };
+bool isInt( const std::string& s ) {
+   if( s.empty() ) return false;
+   if( ! (isdigit(s[0]) || s[0]=='-') ) return false;
+   for(int i=1; i<s.size(); i++)
+      if(! isdigit(s[i])) return false;
+   return true;
+}
 void Stationlist::Load( const std::string& fname )
 {
     //list = new std::vector<StaInfo>;
@@ -895,66 +902,41 @@ void Stationlist::Load( const std::string& fname )
     }
     std::string buff;
     StaInfo SRtmp;
-    for(; std::getline(fsta, buff);)
-    {
-        char stmp[buff.length()];
-        char stmp2[buff.length()];
-        if ( sscanf(buff.c_str(), "%s %f %f %d %s", stmp, &(SRtmp.lon), &(SRtmp.lat), &(SRtmp.CCflag), stmp2 ) != 5 )
-        {
-            if( sscanf(buff.c_str(), "%s %f %f %d", stmp, &(SRtmp.lon), &(SRtmp.lat), &(SRtmp.CCflag)) != 4 )
-            {
-                if( sscanf(buff.c_str(), "%s %f %f %s", stmp, &(SRtmp.lon), &(SRtmp.lat), stmp2) == 4 )
-                {
-                    std::string tempnet=stmp2;
-                    std::string tempnet2;
-                    if ( *tempnet.begin()=='#' )
-                    {
-                        tempnet2.append(tempnet.begin()+1, tempnet.end());
-                        SRtmp.net=tempnet2;
-                    }
-                    else
-                        SRtmp.net=tempnet;
-                }
-                SRtmp.CCflag=1;
-                if( (sscanf(buff.c_str(),"%s %f %f", stmp, &(SRtmp.lon), &(SRtmp.lat))) != 3 )
-                {
-                    std::cerr<<"Warning(Stationlist::Load): format error in file "<<fname<<std::endl;
-                    continue;
-                }
-                std::cout<<"   For Station:"<<SRtmp.net<<" "<<stmp<<" no input CC flag, set to 1"<<std::endl;
-            }
-        }
-
-        SRtmp.name = stmp;
-        icurrent = find_if(list.begin(), list.end(), StaFinder(SRtmp) );
-        if( icurrent != list.end() )
-        {
-            if( *icurrent == SRtmp )
-            {
-                std::cerr<<"Warning(Stationlist::Load):"<< SRtmp.net<<" "<<SRtmp<<" already in the list. Will be ignored!"<<std::endl;
-                continue;
-            }
-            else
-            {
-                std::cerr<<"Error(Stationlist::Load): station name confliction detected: "<<(*icurrent).net <<" "<<*icurrent<<" - "<<SRtmp.net<<" "<<SRtmp<<std::endl;
-                exit(0);
-            }
-        }
-        list.push_back(SRtmp);
-        //std::cerr<<list.back().fname<<" "<<list.back().lon<<" "<<list.back().lat<<std::endl;
-    }
-    fsta.close();
-    std::cout<<"Stationlist::Load: "<<list.size()<<" stations loaded"<<std::endl;
-    icurrent = list.begin();
+	 for(; std::getline(fsta, buff);) {
+		 std::stringstream ss(buff);
+		 SRtmp.CCflag = 1;
+		 ss >> SRtmp.name >> SRtmp.lon >> SRtmp.lat >> SRtmp.net >> SRtmp.CCflag;
+		 if( isInt(SRtmp.net) ) { SRtmp.CCflag = atoi(SRtmp.net.c_str()); SRtmp.net.clear(); }
+		 icurrent = find_if(list.begin(), list.end(), StaFinder(SRtmp) );
+		 if( icurrent != list.end() )
+		 {
+			 if( *icurrent == SRtmp )
+			 {
+				 std::cerr<<"Warning(Stationlist::Load):"<< SRtmp.net<<" "<<SRtmp<<" already in the list. Will be ignored!"<<std::endl;
+				 continue;
+			 }
+			 else
+			 {
+				 std::cerr<<"Error(Stationlist::Load): station name confliction detected: "<<(*icurrent).net <<" "<<*icurrent<<" - "<<SRtmp.net<<" "<<SRtmp<<std::endl;
+				 exit(0);
+			 }
+		 }
+		 //std::cerr<<SRtmp.name<<" "<<SRtmp.lon<<" "<<SRtmp.lat<<" "<<SRtmp.net<<" "<<SRtmp.CCflag<<std::endl;
+		 list.push_back(SRtmp);
+		 //std::cerr<<list.back().name<<" "<<list.back().lon<<" "<<list.back().lat<<std::endl;
+	 }
+	 fsta.close();
+	 std::cout<<"Stationlist::Load: "<<list.size()<<" stations loaded"<<std::endl;
+	 icurrent = list.begin();
 }
 
 /* Move icurrent to the next match of the input StaInfo
 	icurrent=.end() if no such match is found */
 bool Stationlist::ReLocate( const std::string& staname )
 {
-    StaInfo srkey(staname.c_str(), 0., 0.);
-    icurrent = find_if(list.begin(), list.end(), StaFinder(srkey) );
-    if( icurrent>=list.end() || icurrent<list.begin() ) return false;
-    return true;
+	StaInfo srkey(staname.c_str(), 0., 0.);
+	icurrent = find_if(list.begin(), list.end(), StaFinder(srkey) );
+	if( icurrent>=list.end() || icurrent<list.begin() ) return false;
+	return true;
 }
 

@@ -77,7 +77,7 @@ struct DailyInfoData
     SeedInfo seed;
     StaInfo sta;
     std::string rdsexe, evrexe;
-    std::string chname, ntname;
+    std::string chname;
     std::string osac_outname, fsac_outname;
     std::string rec_outname, resp_outname;
     std::string monthdir; /// added
@@ -101,6 +101,7 @@ struct DailyInfo : public DailyInfoData
 
     std::string& seedname = seed.name;
     std::string& staname = sta.name;
+    std::string& ntname = sta.net;
     int& year = seed.year;
     int& month = seed.month;
     int& day = seed.day;
@@ -130,7 +131,7 @@ struct DailyInfo : public DailyInfoData
         osac_outname = mdir + "/" + ddir + "/" + outname;
         fsac_outname = mdir + "/" + ddir + "/ft_" + outname;
         rec_outname = fsac_outname + "_rec"; // 1.07 -->1.08
-        resp_outname = mdir + "/" + ddir + "/" + "RESP.TA." + staname + ".." + chname;
+        resp_outname = mdir + "/" + ddir + "/" + "RESP."+ntname+"." + staname + ".." + chname;
         monthdir=mdir;///added
     }
 

@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 						float gapfrac;
 						sac.SetMaxMemForParallel( MemTotal * dinfo.memomax * 0.8 / omp_get_num_threads() );
 						SeedRec seedcur( dinfo.seedname, dinfo.rdsexe, report );
-						if( seedcur.ExtractSac( dinfo.staname, "*", dinfo.chname, dinfo.sps, dinfo.rec_outname,
+						if( seedcur.ExtractSac( dinfo.staname, dinfo.ntname, dinfo.chname, dinfo.sps, dinfo.rec_outname,
 														dinfo.resp_outname, gapfrac, sac ) ) {
 							extract_flag=true;
 							sac.Write( dinfo.osac_outname );
@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
 					}
 					if (! extract_flag) {	/// !!! TODO!!! NEED to ensure we get the right resp file!
 						std::vector<std::string> resp_list;
-						if (List((dinfo.outdir).c_str(), ("RESP*."+dinfo.staname+".*."+dinfo.chname).c_str(), 2, resp_list)) {
+						if (List((dinfo.outdir).c_str(), ("RESP*."+dinfo.staname+"."+dinfo.ntname+"."+dinfo.chname).c_str(), 2, resp_list)) {
 							dinfo.resp_outname=resp_list[0];
 						} else {
 							if (FileExists(dinfo.fsac_outname))	{

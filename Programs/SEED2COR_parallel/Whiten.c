@@ -106,10 +106,10 @@ int Whiten( double f1, double f2, double f3, double f4, double dt, int n, float 
       (*outph)[k] = atan2(sf[k][1], sf[k][0]);
    }
 
-	//debug: output whitened signal
-	FFTW_F(planF, sf, ns, seis_in, n);
-	std::string outname(sacname); outname += "_whitened";
-   write_sac(outname.c_str(), seis_in, &shd);
+	//debug: output whitened signal (something's wrong!)
+	//FFTW_F(planF, sf, ns, seis_in, n);
+	//std::string outname(sacname); outname += "_whitened";
+   //write_sac(outname.c_str(), seis_in, &shd);
 
    fftw_free(s); fftw_free(sf);
 
