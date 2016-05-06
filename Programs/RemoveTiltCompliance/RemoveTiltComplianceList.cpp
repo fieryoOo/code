@@ -24,7 +24,7 @@ int main (int argc, char *argv[]) {
 		flstV.push_back(std::move(line));
 
 	// loop through the sac list
-	float Eperl = 15., Eperu = 40.;
+	float Eperl = 11., Eperu = 20.;
 	//for( auto line : flstV ) {
 	#pragma omp parallel for schedule(dynamic, 1)
 	for(int i=0; i<flstV.size(); i++) {
@@ -36,11 +36,11 @@ int main (int argc, char *argv[]) {
 			std::cerr<<"Error(main): format error within input line: "<<line<<std::endl;
 			continue;
 		}
-		StaSacs stasac(sacnameZ, sacnameH1, sacnameH2, sacnameD, sactype, waterdep);
+		StaSacs stasac(sacnameZ, sacnameH1, sacnameH2, sacnameD, sactype, waterdep, 0., Eperl, Eperu);
 		std::stringstream report(std::ios_base::app|std::ios_base::in|std::ios_base::out);
 		report<<"Producing sac file "<<outname<<"\n";
 		try {
-			auto res = stasac.RemoveTiltCompliance(outname+"_noise_coherences", Eperl, Eperu, 2000.);
+			auto res = stasac.RemoveTiltCompliance(outname+"_noise_coherences", 2000.);
 			report<<"direction & coh_t0 & coh_c0 & coh_h & coh_1 = "<<res<<"   fcutoff = "<<stasac.fcutoffCompliance()<<"\n";
 		} catch( const std::exception& e ) {
 			report<<"Warning(main): rmTiltCompliance failed ("<<e.what()<<") and no correction made.\n";

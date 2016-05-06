@@ -3,6 +3,8 @@
 
 #include "SacRec.h"
 #include <iostream>
+#include <map>
+#include <tuple>
 //#define DEBUG
 
 class PointC5 : public PointC {
@@ -21,7 +23,8 @@ public:
 	// orientation of horizontals are assumed to be azi_H1 (for H1) and azi_H1+90 (for H2)
 	StaSacs( const std::string& fnameZ, const std::string& fnameH1, 
 				const std::string& fnameH2="", const std::string& fnameD="",
-				const int sactypein = 0, const float water_depth_in = -1, const float azi_H1 = 0. );
+				const int sactypein = 0, const float water_depth_in = -1, const float azi_H1 = 0.,
+				const float Eperl = 10., const float Eperu = 40. );
 
 	// cut-off at freq = sqrt(g/(2 pi d)) where water_depth = ingragravity_wavelength
 	float fcutoffCompliance() const {
@@ -29,34 +32,35 @@ public:
 		return 1.2489 / sqrt(water_depth);
 	}
 
-	float RemoveCompliance( const std::string& outinfoname = "", bool zeropha = true, 
-									float Eperl=10., float Eperu=40., float tseg=2500. );
+	float RemoveCompliance( const std::string& outinfoname = "", float tseg=2000. );
 
-	PointC RemoveTilt( const std::string& outinfoname = "", bool zeropha = true,
-							 float Eperl=10., float Eperu=40., float tseg=2500. );
+	PointC RemoveTilt( const std::string& outinfoname = "", float tseg=2000. );
 
 	void test(float tseg, int nsm, float tb = NaN, float te = NaN);
-	PointC5 RemoveTiltCompliance( const std::string& outinfoname = "", float Eperl=10., float Eperu=40., float tseg=2500. );
+	PointC5 RemoveTiltCompliance( const std::string& outinfoname = "", float tseg=2000. );
 
 	std::vector<std::vector<float>> RayleighDirectionality(const float dazi, 
-			const std::vector<std::pair<float, float>>& freqRangeV) const;
+											  const std::vector<std::pair<float, float>>& freqRangeV, float tseg=2000.);
 
-	PointC EstimateTiltDirection( const bool zeropha, const float ddeg ) const;
+	PointC EstimateTiltDirection( const float ddeg ) const;
 
 	// compute transfer function for each window (twin) from segments (tseg) within that window
-	void ReshapeByZHPhaseDiff( float twin, float tseg, float Eperl=10., float Eperu=40. );
-
-	//std::vector<int> RemoveTilts( float Eperl=10., float Eperu=40., float tseg=2500. );
+	void ReshapeByZHPhaseDiff( float twin, float tseg );
 
 	void Write( const std::string& foutZ, const std::string& foutZinterm="",
-					const std::string foutH1="", const std::string& foutH2="", const std::string foutD="" );
+					const std::string foutH1="", const std::string& foutH2="", const std::string foutD="" ) const;
+
+	void clearV() const {
+		sacZamV.clear(); sacDamV.clear(); sacH1amV.clear(); sacH2amV.clear(); sacHtamV.clear(); 
+		sacZphV.clear(); sacDphV.clear(); sacH1phV.clear(); sacH2phV.clear(); sacHtphV.clear();
+	}
 
 	void clear() {
 		//sactype = 0; water_depth = -1.;
-		trec.clear();
-		sacZ.clear(); sacZinterm.clear(); sacH1.clear(); sacH2.clear(); sacD.clear();
-		sacZamV.clear(); sacH1amV.clear(); sacH2amV.clear(); sacDamV.clear();
-		sacZphV.clear(); sacH1phV.clear(); sacH2phV.clear(); sacDphV.clear();
+		trec.clear(); sacZ.clear(); 
+		sacD.clear(); sacH1.clear(); sacH2.clear(); 
+		sacHt.clear(); sacZinterm.clear();
+		clearV();
 	}
 
 protected:
@@ -67,49 +71,56 @@ protected:
 	static constexpr float cohmin = 0.5;
 	static constexpr float fmax_tilt = 0.105;
 	static constexpr float fb_avg = 0.01;	// cohavg is computed between fb_avg and fe_avg Hz
-	static constexpr float fe_avg = 0.05;	
+	static constexpr float fe_avg = 0.08;	
 	//static constexpr float cohmin = 0.2;
 	//static constexpr float fmax_tilt = 0.4;
 	//static constexpr float fb_avg = 0.2;	// cohavg is computed between fb_avg and fe_avg Hz
 	//static constexpr float fe_avg = 0.4;	
 
 private:
-	SacRec sacZ, sacH1, sacH2, sacD;
-	SacRec sacZinterm;	// stores intermediate Z after removing the stronger of compliance/tilt
 	const int sactype;
-	const float water_depth;
-	std::vector<std::pair<float, float>> trec; 
-	float _tseg = -1.;
-	mutable std::vector<SacRec> sacZamV, sacH1amV, sacH2amV, sacDamV;
-	mutable std::vector<SacRec> sacZphV, sacH1phV, sacH2phV, sacDphV;
+	const float water_depth, fmax_comp;
+	const float _Eperl, _Eperu;
+	SacRec sacZinterm;	// stores intermediate Z after removing the stronger of compliance/tilt
+	SacRec sacZ, sacH1, sacH2, sacD, sacHt;
+	mutable float _tseg = -1.;
+	mutable std::vector<std::pair<float, float>> trec; 
+	mutable std::vector<SacRec> sacZamV, sacH1amV, sacH2amV, sacDamV, sacHtamV;
+	mutable std::vector<SacRec> sacZphV, sacH1phV, sacH2phV, sacDphV, sacHtphV;
+	// use a map of pointers to make things cleaner
+	const std::map<char, std::tuple<SacRec*,std::vector<SacRec>*,std::vector<SacRec>*>> sacsM{
+		{'Z', std::make_tuple(&sacZ, &sacZamV, &sacZphV)},
+		{'D', std::make_tuple(&sacD, &sacDamV, &sacDphV)},
+		{'1', std::make_tuple(&sacH1, &sacH1amV, &sacH1phV)},
+		{'2', std::make_tuple(&sacH2, &sacH2amV, &sacH2phV)},
+		{'t', std::make_tuple(&sacHt, &sacHtamV, &sacHtphV)},
+	};
 
 	int nint( float val ) const { return (int)floor(val+0.5); }
 
+	// compute valid time segments (removing earthquakes)
+	SacRec DetectNoiseWindows( float Eperl, float Eperu, bool ataper = false ) const;
+
 	// segmentize a single channel
 	void Segmentize(const SacRec& sac, std::vector<SacRec>& sacamV, std::vector<SacRec>& sacphV) const;
-
-	// compute valid time segments (removing earthquakes)
-	void DetectNoiseWindows( float Eperl=10., float Eperu=40., bool docut = false ) {
-		SacRec sacZcut; std::vector<int> recb, rece;
-		sacZ.EqkCut(sacZcut, recb, rece, Eperl, Eperu, 2.5, docut);	// apply taper only when docut==true
-		if( docut ) sacZ = std::move(sacZcut);
-		for(int i=0; i<recb.size(); i++) {
-			float tb = sacZ.X(recb[i]), te = sacZ.X(rece[i]), tmid = 0.5*(tb+te);
-			trec.push_back({tb, te});
-			//if( docut ) sacZ.cosTaperL(tb, tmid, false); sacZ.cosTaperR(tmid, te, false);
-std::cerr<<"   rec window: "<<sacZ.X(recb[i])<<" "<<sacZ.X(rece[i])<<std::endl; 
-		}
-	}
+	std::pair<int, int> GetSegRange(float &tb, float &te, std::vector<SacRec>& sacV) const;
 
 	void FitIntoParabola( SacRec& sac1, const SacRec& sacsigma, const float fmax, const int nparab = 1 ) const;
 
 	void CalcTransferF( const SacRec& sac1, std::vector<SacRec>& sac1amV, std::vector<SacRec>& sac1phV,
-								const SacRec& sac2, std::vector<SacRec>& sac2amV, std::vector<SacRec>& sac2phV,
-								SacRec& Coh, SacRec& Adm, SacRec& Pha, const float tb=NaN, const float te=NaN ) const;
+							  const SacRec& sac2, std::vector<SacRec>& sac2amV, std::vector<SacRec>& sac2phV,
+							  SacRec& Coh, SacRec& Adm, SacRec& Pha, const float tb=NaN, const float te=NaN ) const;
+	void CalcTransferF( const char c1, const char c2, SacRec& Coh, SacRec& Adm, SacRec& Pha, 
+							  float tb=NaN, float te=NaN ) const;
 	void CalcTransferF2( const SacRec& sac1, const SacRec& sac2, SacRec& Coh, SacRec& Adm, SacRec& Pha ) const;
-	float CohAvg(SacRec& Coh, SacRec& Pha, float fb, float fe, float pha0) const;
+	float CohAvg(const SacRec& Coh, const SacRec& Pha, float fb, float fe, float pha0) const;
 
-	void ApplyCorrection( SacRec& sac1, const SacRec& sac2, SacRec& Coh, SacRec& Adm, SacRec& Pha, const float fmax );
+	float EstimateCoherence( const char c1, const char c2, const float fmax, 
+									 SacRec& Coh, SacRec& Adm, SacRec& Pha, bool autoflip = false );
+	PointC EstimateTilt( SacRec& Coh, SacRec& Adm, SacRec& Pha );
+
+	void ApplyCorrection( const char c, const SacRec& sac2, SacRec& Coh, SacRec& Adm, SacRec& Pha, 
+								 const float fmax, const float pha0 = 0. );
 
 };
 
@@ -118,9 +129,10 @@ std::cerr<<"   rec window: "<<sacZ.X(recb[i])<<" "<<sacZ.X(rece[i])<<std::endl;
 
 StaSacs::StaSacs( const std::string& fnameZ, const std::string& fnameH1, 
 						const std::string& fnameH2, const std::string& fnameD,
-						const int sactypein, const float water_depth_in, const float azi_H1 )
-						: sacZ(fnameZ), sacH1(fnameH1), sacH2(fnameH2), sacD(fnameD)
-						, sactype(sactypein), water_depth(water_depth_in) {
+						const int sactypein, const float water_depth_in, const float azi_H1,
+						const float Eperl, const float Eperu )
+						: sacZ(fnameZ), sacH1(fnameH1), sacH2(fnameH2), sacD(fnameD), sactype(sactypein)
+						, water_depth(water_depth_in), fmax_comp(fcutoffCompliance()), _Eperl(Eperl), _Eperu(Eperu) {
 	// lambda function to load sac and convert to displacement
 	auto LoadSAC = [&]( SacRec& sac ) {
 		sac.Load(); //sac.cut(60000., 85000.);
@@ -160,193 +172,168 @@ StaSacs::StaSacs( const std::string& fnameZ, const std::string& fnameH1,
 		throw ErrorSR::HeaderMismatch(FuncName, "D");
 }
 
-float StaSacs::RemoveCompliance( const std::string& outinfoname, bool zeropha, 
-											float Eperl, float Eperu, float tseg ) {
+float StaSacs::RemoveCompliance( const std::string& outinfoname, float tseg ) {
 	_tseg = tseg;
 	// search for earthquakes and save noise windows, sacZ not modified
-	DetectNoiseWindows(Eperl, Eperu);
+	DetectNoiseWindows(_Eperl, _Eperu);
 
-	// if output_coh is on, use a vector to store sacs to be written later
-	bool output_coh = !outinfoname.empty();
-	std::vector<SacRec> sacV; 
-	if(output_coh) sacV.resize(5);
-
-	// compute transfer F for compliance noise
+	// estimate compliance noise
 	SacRec Coh_c, Adm_c, Pha_c;
-	float fmax_comp = 0.;
-	// cut-off at freq = sqrt(g/(2 pi d)) where water_depth = ingragravity_wavelength
-	fmax_comp = fcutoffCompliance();
-	//float cohavg = CalcTransferF(sacZ, sacZamV, sacZphV, sacD, sacDamV, sacDphV, Coh_c, Adm_c, Pha_c, fmax_comp, zeropha);
-	CalcTransferF(sacZ, sacZamV, sacZphV, sacD, sacDamV, sacDphV, Coh_c, Adm_c, Pha_c);
-	float fe = fe_avg<fmax_comp?fe_avg:fmax_comp;
-	float cohavg = CohAvg( Coh_c, Pha_c, fb_avg, fe, 0. );
-	if(output_coh) { sacV[0] = Coh_c; sacV[1] = Adm_c; sacV[2] = Pha_c; }
+	float cohavg = EstimateCoherence( 'Z', 'D', fmax_comp, Coh_c, Adm_c, Pha_c, true );	// flip sacD when pha is close to PI
+
+	// output 1
+	std::vector<SacRec> sacV; // use a vector to store sacs to be written later
+	bool output_coh = !outinfoname.empty();
+	if( output_coh ) sacV = {Coh_c, Adm_c, Pha_c};
 
 	// compliance correction on Z (Z -= coh_c*D)
-	ApplyCorrection( sacZ, sacD, Coh_c, Adm_c, Pha_c, fmax_comp ); sacZamV.clear();
+	ApplyCorrection( 'Z', sacD, Coh_c, Adm_c, Pha_c, fmax_comp );
+
+	// output 2
 	if(output_coh) { 
-		sacV[3] = std::move(Adm_c); sacV[4] = std::move(Pha_c); 
+		sacV.push_back(std::move(Adm_c)); sacV.push_back(std::move(Pha_c));
 		DumpSACs( sacV, outinfoname );
 	}
 
 	return cohavg;
 }
 
-PointC StaSacs::RemoveTilt( const std::string& outinfoname, bool zeropha,
-									 float Eperl, float Eperu, float tseg ) {
+float StaSacs::EstimateCoherence( const char c1, const char c2, const float fmax, 
+											 SacRec& Coh, SacRec& Adm, SacRec& Pha, bool autoflip ) {
+	// compute transfer F for compliance noise
+	CalcTransferF(c1, c2, Coh, Adm, Pha);
+	// compute average coherence
+   float fe = fe_avg<fmax?fe_avg:fmax;
+   float coh1 = CohAvg( Coh, Pha, fb_avg, fe, 0. );
+	if( autoflip ) {
+		float coh2 = CohAvg( Coh, Pha, fb_avg, fe, M_PI );
+		if( coh2 > coh1 ) {
+			float adder = Pha.shd.user1<0 ? M_PI : -M_PI;
+			Pha.Transform( [&](float& val){val += adder;} ); 
+			coh1 = coh2; Pha.shd.user1 += adder; 
+			std::get<0>(sacsM.at(c2))->Mul(-1.);
+			std::get<1>(sacsM.at(c2))->clear();
+		}
+	}
+	return coh1;
+}
+
+PointC StaSacs::RemoveTilt( const std::string& outinfoname, float tseg ) {
 	_tseg = tseg;
 	// search for earthquakes and save noise windows, sacZ not modified
-	DetectNoiseWindows(Eperl, Eperu);
+	DetectNoiseWindows(_Eperl, _Eperu);
 
-	// if output_coh is on, use a vector to store sacs to be written later
-	bool output_coh = !outinfoname.empty();
-	std::vector<SacRec> sacV; 
-	if(output_coh) sacV.resize(5);
-
-	// compute transfer F for tilt noise
-	// estimate tilt direction (and the corresponding coherence)
-	// where Pres.x = direction_t, Pres.y = coh_t
-	PointC Pres = EstimateTiltDirection( zeropha, 1.0 );
+	// estimate tilt noise
 	SacRec Coh_t, Adm_t, Pha_t;
-	if( Pres.y>cohmin || output_coh ) {	// re-calc transfer F in the tilt direction
-		SACRotate(sacH1, sacH2, Pres.x); sacH1amV.clear(); sacH2amV.clear();
-		//Pres.y = CalcTransferF(sacZ, sacZamV, sacZphV, sacH1, sacH1amV, sacH1phV, Coh_t, Adm_t, Pha_t, fmax_tilt, zeropha);
-		CalcTransferF(sacZ, sacZamV, sacZphV, sacH1, sacH1amV, sacH1phV, Coh_t, Adm_t, Pha_t, fmax_tilt);
-		float fe = fe_avg<fmax_tilt?fe_avg:fmax_tilt;
-		Pres.y = CohAvg( Coh_t, Pha_t, fb_avg, fe, 0. );
-	}
-	if(output_coh) { sacV[0] = Coh_t; sacV[1] = Adm_t; sacV[2] = Pha_t; }
+	PointC Pres = EstimateTilt( Coh_t, Adm_t, Pha_t );
+
+	// output 1
+	std::vector<SacRec> sacV; // use a vector to store sacs to be written later
+	bool output_coh = !outinfoname.empty();
+	if( output_coh ) sacV = {Coh_t, Adm_t, Pha_t};
 
 	// tilt correction on Z (Z -= coh_t*H1)
-	if( Pres.y>cohmin ) ApplyCorrection( sacZ, sacH1, Coh_t, Adm_t, Pha_t, fmax_tilt ); sacZamV.clear();
+	if( Pres.y>cohmin ) ApplyCorrection( 'Z', sacHt, Coh_t, Adm_t, Pha_t, fmax_tilt );
 
-	// rotate H1 and H2 back to their initial azimuth
-	if( Pres.y>cohmin || output_coh ) { SACRotate(sacH1, sacH2, -Pres.x); sacH1amV.clear(); sacH2amV.clear(); }
-
-	// output Coh-Adm-Pha when requested
+	// output 2
 	if(output_coh) {
-		sacV[3] = std::move(Adm_t); sacV[4] = std::move(Pha_t);
+		sacV.push_back(std::move(Adm_t)); sacV.push_back(std::move(Pha_t));
 		DumpSACs( sacV, outinfoname );
 	}
 
 	return Pres;
 }
 
+PointC StaSacs::EstimateTilt( SacRec& Coh, SacRec& Adm, SacRec& Pha ) {
+	// estimate tilt direction (and the corresponding coherence)
+	// where Pres.x = direction_t, Pres.y = coh_t
+	PointC Pres = EstimateTiltDirection( 1.0 );
+	sacHt = SACProject(sacH1, sacH2, Pres.x); sacHtamV.clear();
+	// compute transfer F for tilt noise
+	Pres.y = EstimateCoherence( 'Z', 't', fmax_tilt, Coh, Adm, Pha );
+	return Pres;
+}
+
 void StaSacs::test(float tseg, int nsm, float tb, float te) {
 	_tseg = tseg;
 	// search for earthquakes and save noise windows, sacZ modified
-	DetectNoiseWindows(11., 20., true);
+	sacZ = DetectNoiseWindows(11., 20., true);
 //sacZ.Write("debugZ.SAC");
 //sacD.Mul(-1.);
-	if( tb!=NaN && te!=NaN ) { sacZ.cut(tb, te); sacD.cut(tb, te); }
 	std::vector<SacRec> sacV; sacV.resize(3);
 	SacRec Coh, Adm, Pha;
+	CalcTransferF('Z', 'D', Coh, Adm, Pha, tb, te);
+	sacV[0] = std::move(Coh); sacV[1] = std::move(Adm); sacV[2] = std::move(Pha);
+	DumpSACs( sacV, "testinfo1.txt" );
+	if( tb!=NaN && te!=NaN ) { sacZ.cut(tb, te); sacD.cut(tb, te); }
 	CalcTransferF2(sacZ, sacD, Coh, Adm, Pha);
 	sacV[0] = std::move(Coh); sacV[1] = std::move(Adm); sacV[2] = std::move(Pha);
 	DumpSACs( sacV, "testinfo2.txt" );
-	CalcTransferF(sacZ, sacZamV, sacZphV, sacD, sacDamV, sacDphV, Coh, Adm, Pha);
-	sacV[0] = std::move(Coh); sacV[1] = std::move(Adm); sacV[2] = std::move(Pha);
-	DumpSACs( sacV, "testinfo1.txt" );
 }
 
-PointC5 StaSacs::RemoveTiltCompliance( const std::string& outinfoname, float Eperl, float Eperu, float tseg ) {
+PointC5 StaSacs::RemoveTiltCompliance( const std::string& outinfoname, float tseg ) {
 	_tseg = tseg;
 	// search for earthquakes and save noise windows, sacZ not modified
-	DetectNoiseWindows(Eperl, Eperu);
+	DetectNoiseWindows(_Eperl, _Eperu);
 
-	// if output_coh is on, use a vector to store sacs to be written later
-	bool output_coh = !outinfoname.empty();
-	std::vector<SacRec> sacV; 
-	if(output_coh) sacV.resize(sacD.sig?15:5);
-
-	// f range for computing coh_avg
-	float fmax_comp = fcutoffCompliance();
-	float fe_tilt = fe_avg<fmax_tilt ? fe_avg : fmax_tilt;
-	float fe_comp = fe_avg<fmax_comp ? fe_avg : fmax_comp;
-
-	// compute transfer F for tilt noise
-	// estimate tilt direction (and the corresponding coherence)
-	// where Pres.x = direction_t, Pres.y = coh_t
-	PointC5 Pres = EstimateTiltDirection( true, 1.0 );
-	SACRotate(sacH1, sacH2, Pres.x); sacH1amV.clear(); sacH2amV.clear();
+	// estimate tilt noise
 	SacRec Coh_t, Adm_t, Pha_t;
-	//if( Pres.y>cohmin || output_coh ) {	// re-calc transfer F in the tilt direction
-	//Pres.y = CalcTransferF(sacZ, sacZamV, sacZphV, sacH1, sacH1amV, sacH1phV, Coh_t, Adm_t, Pha_t, fmax_tilt);
-	CalcTransferF(sacZ, sacZamV, sacZphV, sacH1, sacH1amV, sacH1phV, Coh_t, Adm_t, Pha_t);
-	Pres.y = CohAvg( Coh_t, Pha_t, fb_avg, fe_tilt, 0. );
-	//}
-	if(output_coh) { sacV[0] = Coh_t; sacV[1] = Adm_t; sacV[2] = Pha_t; }
-	auto &coh_t = Pres.y;
+	PointC5 Pres = EstimateTilt( Coh_t, Adm_t, Pha_t );
 
-	// compute transfer F for compliance noise
+	// estimate comp noise
 	SacRec Coh_c, Adm_c, Pha_c;
-	if( sacD.sig ) {
-		// cut-off at freq = sqrt(g/(2 pi d)) where water_depth = infragravity_wavelength
-		//Pres.z = CalcTransferF(sacZ, sacZamV, sacZphV, sacD, sacDamV, sacDphV, Coh_c, Adm_c, Pha_c, fmax_comp);
-		CalcTransferF(sacZ, sacZamV, sacZphV, sacD, sacDamV, sacDphV, Coh_c, Adm_c, Pha_c);
-		Pres.z = CohAvg( Coh_c, Pha_c, fb_avg, fe_comp, 0. );
-		if(output_coh) { sacV[5] = Coh_c; sacV[6] = Adm_c; sacV[7] = Pha_c; }
-	} else {
-		Pres.z = 0.;
-	}
-	auto &coh_c = Pres.z;
+	Pres.z = !sacD.sig ? 0. :
+				EstimateCoherence( 'Z', 'D', fmax_comp, Coh_c, Adm_c, Pha_c, true );
 
-	//std::cerr<<" Initial coh_t & coh_c = "<<coh_t<<" "<<coh_c<<std::endl;
+	// output 1
+	std::vector<SacRec> sacV; // use a vector to store sacs to be written later
+	bool output_coh = !outinfoname.empty();
+	if( output_coh ) {
+		sacV = {Coh_t, Adm_t, Pha_t};
+		sacV.resize(sacD.sig?15:5);
+		if( sacD.sig ) { sacV[5] = Coh_c; sacV[6] = Adm_c; sacV[7] = Pha_c; }
+	}
 
 	// and apply to the one with larger average coherence first
+	auto &coh_t = Pres.y, &coh_c = Pres.z;
 	if( coh_t<cohmin && coh_c<cohmin ) {
 		//output_coh = false;
 	} else if( coh_t > coh_c ) {
 		// tilt correction on Z (Z -= coh_t*H1)
-		ApplyCorrection( sacZ, sacH1, Coh_t, Adm_t, Pha_t, fmax_tilt ); sacZamV.clear();
+		ApplyCorrection( 'Z', sacHt, Coh_t, Adm_t, Pha_t, fmax_tilt );
 		sacZinterm = sacZ;
 		if(output_coh) { sacV[3] = std::move(Adm_t); sacV[4] = std::move(Pha_t); }
 		if( sacD.sig ) { // stop if sacD is empty
 			// tilt correction on D (D -= coh_t*H1)
-			//Pres.z2 = CalcTransferF(sacD, sacDamV, sacDphV, sacH1, sacH1amV, sacH1phV, Coh_t, Adm_t, Pha_t, fmax_tilt);
-			CalcTransferF(sacD, sacDamV, sacDphV, sacH1, sacH1amV, sacH1phV, Coh_t, Adm_t, Pha_t);
-			Pres.z2 = CohAvg( Coh_t, Pha_t, fb_avg, fe_tilt, 0. );
-			if(Pres.z2>cohmin) { ApplyCorrection( sacD, sacH1, Coh_t, Adm_t, Pha_t, fmax_tilt ); sacDamV.clear(); }
+			Pres.z2 = EstimateCoherence( 'D', 't', fmax_tilt, Coh_t, Adm_t, Pha_t, true );
+			if(Pres.z2>cohmin) ApplyCorrection( 'D', sacHt, Coh_t, Adm_t, Pha_t, fmax_tilt );
 			// compliance correction on Z (Z -= coh_c*D)
 			if(output_coh) { sacV[8] = std::move(Adm_c); sacV[9] = std::move(Pha_c); }
-			//Pres.z3 = CalcTransferF(sacZ, sacZamV, sacZphV, sacD, sacDamV, sacDphV, Coh_c, Adm_c, Pha_c, fmax_comp);
-			CalcTransferF(sacZ, sacZamV, sacZphV, sacD, sacDamV, sacDphV, Coh_c, Adm_c, Pha_c);
-			Pres.z3 = CohAvg( Coh_c, Pha_c, fb_avg, fe_comp, 0. );
+			Pres.z3 = EstimateCoherence( 'Z', 'D', fmax_comp, Coh_c, Adm_c, Pha_c, true );
 			if(output_coh) { sacV[10] = Coh_c; sacV[11] = Adm_c; sacV[12] = Pha_c; }
-			if(Pres.z3>cohmin) { ApplyCorrection( sacZ, sacD, Coh_c, Adm_c, Pha_c, fmax_comp ); sacZamV.clear(); }
+			if(Pres.z3>cohmin) ApplyCorrection( 'Z', sacD, Coh_c, Adm_c, Pha_c, fmax_comp );
 			if(output_coh) { sacV[13] = std::move(Adm_c); sacV[14] = std::move(Pha_c); }
 		}
 	} else {
 		// compliance correction on Z (Z -= coh_c*D)
-		ApplyCorrection( sacZ, sacD, Coh_c, Adm_c, Pha_c, fmax_comp ); sacZamV.clear();
+		ApplyCorrection( 'Z', sacD, Coh_c, Adm_c, Pha_c, fmax_comp );
 		sacZinterm = sacZ;
 		if(output_coh) { sacV[8] = std::move(Adm_c); sacV[9] = std::move(Pha_c); }
 		// compliance correction on H1 (H1 -= coh_c*D)
-		//float coh_cH1 = CalcTransferF(sacH1, sacH1amV, sacH1phV, sacD, sacDamV, sacDphV, Coh_c, Adm_c, Pha_c, fmax_comp);
-		CalcTransferF(sacH1, sacH1amV, sacH1phV, sacD, sacDamV, sacDphV, Coh_c, Adm_c, Pha_c);
-		float coh_cH1 = CohAvg( Coh_c, Pha_c, fb_avg, fe_comp, 0. );
-		if(coh_cH1>cohmin) { ApplyCorrection( sacH1, sacD, Coh_c, Adm_c, Pha_c, fmax_comp ); sacH1amV.clear(); }
+		float coh_cH1 = EstimateCoherence( '1', 'D', fmax_comp, Coh_c, Adm_c, Pha_c );
+		if(coh_cH1>cohmin) ApplyCorrection( '1', sacD, Coh_c, Adm_c, Pha_c, fmax_comp );
 		// compliance correction on H2 (H2 -= coh_c*D)
-		//float coh_cH2 = CalcTransferF(sacH2, sacH2amV, sacH2phV, sacD, sacDamV, sacDphV, Coh_c, Adm_c, Pha_c, fmax_comp);
-		CalcTransferF(sacH2, sacH2amV, sacH2phV, sacD, sacDamV, sacDphV, Coh_c, Adm_c, Pha_c);
-		float coh_cH2 = CohAvg( Coh_c, Pha_c, fb_avg, fe_comp, 0. );
-		if(coh_cH2>cohmin) { ApplyCorrection( sacH2, sacD, Coh_c, Adm_c, Pha_c, fmax_comp ); sacH2amV.clear(); }
+		float coh_cH2 = EstimateCoherence( '2', 'D', fmax_comp, Coh_c, Adm_c, Pha_c );
+		if(coh_cH2>cohmin) ApplyCorrection( '2', sacD, Coh_c, Adm_c, Pha_c, fmax_comp );
 		Pres.z2 = sqrt(coh_cH1*coh_cH1 + coh_cH2*coh_cH2);
-		// tilt correction on Z (Z -= coh_t*H1)
 		if(output_coh) { sacV[3] = std::move(Adm_t); sacV[4] = std::move(Pha_t); }
-		PointC Pres2 = EstimateTiltDirection( true, 1.0 );
-		SACRotate(sacH1, sacH2, Pres2.x); sacH1amV.clear(); sacH2amV.clear();
-		Pres.x += Pres2.x;	// this is the second rotation on H1&H2
-		//Pres.z3 = CalcTransferF(sacZ, sacZamV, sacZphV, sacH1, sacH1amV, sacH1phV, Coh_t, Adm_t, Pha_t, fmax_tilt);
-		CalcTransferF(sacZ, sacZamV, sacZphV, sacH1, sacH1amV, sacH1phV, Coh_t, Adm_t, Pha_t);
-		Pres.z3 = CohAvg( Coh_t, Pha_t, fb_avg, fe_tilt, 0. );
+		// tilt correction on Z (Z -= coh_t*H1)
+		PointC Pres2 = EstimateTilt( Coh_t, Adm_t, Pha_t ); 
+		Pres.x = Pres2.x; Pres.z3 = Pres2.y;	// update tilt orientation and coh
 		if(output_coh) { sacV[10] = Coh_t; sacV[11] = Adm_t; sacV[12] = Pha_t; }
-		if(Pres.z3>cohmin) { ApplyCorrection( sacZ, sacH1, Coh_t, Adm_t, Pha_t, fmax_tilt ); sacZamV.clear(); }
+		if(Pres.z3>cohmin) ApplyCorrection( 'Z', sacHt, Coh_t, Adm_t, Pha_t, fmax_tilt );
 		if(output_coh) { sacV[13] = std::move(Adm_t); sacV[14] = std::move(Pha_t); }
 	}
-
-	// rotate H1 and H2 back to their initial azimuth
-	SACRotate(sacH1, sacH2, -Pres.x); sacH1amV.clear(); sacH2amV.clear();
 
 	// output all three sets of Coh-Adm-Pha when requested
 	if(output_coh) DumpSACs( sacV, outinfoname );
@@ -355,108 +342,106 @@ PointC5 StaSacs::RemoveTiltCompliance( const std::string& outinfoname, float Epe
 }
 
 std::vector<std::vector<float>> StaSacs::RayleighDirectionality(const float dazi, 
-		const std::vector<std::pair<float, float>>& freqRangeV) const {
-	int nrotate = ceil(90./dazi); 
-	std::vector<std::vector<float>> resVV(nrotate*4, std::vector<float>(freqRangeV.size()+1));
+										  const std::vector<std::pair<float, float>>& freqRangeV, float tseg) {
+	_tseg = tseg;
+	DetectNoiseWindows(_Eperl, _Eperu);
+	float tb = sacZ.shd.b, te = sacZ.shd.e, twin = 1800.;
+
+	int nrotate = ceil(90./dazi), ncycle = nrotate*4, ntwin = (int)(te-tb-twin)/(0.5*twin) + 1;
+	std::vector<std::vector<float>> resVV(ncycle*ntwin, std::vector<float>(freqRangeV.size()+2));
 	SacRec sacH1t(sacH1), sacH2t(sacH2);
+//sacZ.Differentiate();
 	for(int irotate=0; ; irotate++) {
-		float azi = irotate * dazi;
-		auto &resV1 = resVV[irotate]; resV1[0] = azi;
-		auto &resV2 = resVV[irotate+nrotate]; resV2[0] = azi+90.;
-		auto &resV3 = resVV[irotate+2*nrotate]; resV3[0] = azi+180.;
-		auto &resV4 = resVV[irotate+3*nrotate]; resV4[0] = azi+270.;
+		float azi1 = irotate * dazi; auto I1 = resVV.begin() + irotate;
+		float azi2 = azi1 + 90.; auto I2 = I1 + nrotate;
+		float azi3 = azi2 + 90.; auto I3 = I2 + nrotate;
+		float azi4 = azi3 + 90.; auto I4 = I3 + nrotate;
 		SacRec Coh, Adm, Pha;
-		//lambda: compute average coh between fb and fe Hz
-		auto CohAvg = [&](float fb, float fe, float &coh_pos, float &coh_neg) {
-			coh_pos = coh_neg = 0.;	int npos = 0, nneg = 0;
-			auto sigcoh = Coh.sig.get(), sigpha = Pha.sig.get();
-			for(int i=Coh.Index(fb); i<Coh.Index(fe); i++) {
-				if( sigpha[i] >= 0 ) {
-					float weight = 1. - fabs(sigpha[i]/PIo2 - 1.);
-					coh_neg += sigcoh[i]*weight; nneg++;
-				} else {
-					float weight = 1. - fabs(-sigpha[i]/PIo2 - 1.);
-					coh_pos += sigcoh[i]*weight; npos++;
-				}
-			}
-			coh_pos = npos>0.1*nneg ? coh_pos/npos : 0.;
-			coh_neg = nneg>0.1*npos ? coh_neg/nneg : 0.;
-			//coh_pos /= npos+nneg;
-			//coh_neg /= npos+nneg;
-		};
 		auto computeCohs = [&](const SacRec& sac2, std::vector<SacRec>& sac2amV, std::vector<SacRec>& sac2phV,
-									  std::vector<float> &resVpos, std::vector<float> &resVneg) {
-			CalcTransferF(sacZ, sacZamV, sacZphV, sac2, sac2amV, sac2phV, Coh, Adm, Pha);
+									  float tb, float te, std::vector<float> &resVpos, std::vector<float> &resVneg) {
+			CalcTransferF(sacZ, sacZamV, sacZphV, sac2, sac2amV, sac2phV, Coh, Adm, Pha, tb, te);
 			int i=1; for( const auto& pair : freqRangeV ) {
-				CohAvg( pair.first, pair.second, resVpos[i], resVneg[i] ); i++;
+				//cohAvg( pair.first, pair.second, resVpos[i], resVneg[i] ); i++;
+				resVpos[i] = CohAvg( Coh, Pha, pair.first, pair.second, -PIo2 );
+				resVneg[i++] = CohAvg( Coh, Pha, pair.first, pair.second, PIo2 );
 			}
+			resVpos[i] = resVneg[i] = 0.5*(tb+te);
 		};
-		computeCohs(sacH1t, sacH1amV, sacH1phV, resV1, resV3); sacH1amV.clear();
-		computeCohs(sacH2t, sacH2amV, sacH2phV, resV2, resV4); sacH2amV.clear();
-		if(irotate>=nrotate-1) break;
+		for(float twinb=tb,twine=tb+twin; twine<=te; twinb+=0.5*twin, twine+=0.5*twin) {
+			try {
+				computeCohs(sacH1t, sacH1amV, sacH1phV, twinb, twine, *I1, *I3);
+				computeCohs(sacH2t, sacH2amV, sacH2phV, twinb, twine, *I2, *I4); 
+				(*I1)[0] = azi1; (*I2)[0] = azi2; (*I3)[0] = azi3; (*I4)[0] = azi4;
+				I1 += ncycle; I2 += ncycle; I3 += ncycle; I4 += ncycle;
+			} catch(ErrorSR::Base &e) {}
+		}
+		sacH1amV.clear();	sacH2amV.clear();
+		if(irotate>=nrotate-1) {
+			resVV.resize(I4-ncycle-resVV.begin()+1); break;
+		}
 		SACRotate(sacH1t, sacH2t, dazi); 
 	}
 	return resVV;
 }
 
-PointC StaSacs::EstimateTiltDirection( const bool zeropha, const float ddeg ) const {
+PointC StaSacs::EstimateTiltDirection( const float ddeg ) const {
 	// calc the average_coh - azimuth curve (by rotating the two horizontal channels)
 	//std::cerr<<"zeropha: "<<zeropha<<std::endl;
 	int nrotate = ceil(90./ddeg); 
-	std::vector<PointC> cohV(nrotate*2);
+	std::vector<PointC> cohV(nrotate*4);
 	SacRec sacH1t(sacH1), sacH2t(sacH2);
 	float fe_tilt = fe_avg<fmax_tilt ? fe_avg : fmax_tilt;
 	for(int irotate=0; ; irotate++) {
 		auto &p1 = cohV[irotate], &p2 = cohV[irotate+nrotate];
+		auto &p3 = cohV[irotate+nrotate*2], &p4 = cohV[irotate+nrotate*3];
 		p1.x = irotate*ddeg; p2.x = p1.x + 90.;
+		p3.x = p1.x + 180.; p4.x = p1.x + 270.;
 		SacRec Coh, Adm, Pha;
 		//p1.y = CalcTransferF(sacZ, sacZamV, sacZphV, sacH1t, sacH1amV, sacH1phV, Coh, Adm, Pha, fmax_tilt, zeropha);
 		//p2.y = CalcTransferF(sacZ, sacZamV, sacZphV, sacH2t, sacH2amV, sacH2phV, Coh, Adm, Pha, fmax_tilt, zeropha);
-		CalcTransferF(sacZ, sacZamV, sacZphV, sacH1t, sacH1amV, sacH1phV, Coh, Adm, Pha, fmax_tilt, zeropha);
+		CalcTransferF(sacZ, sacZamV, sacZphV, sacH1t, sacH1amV, sacH1phV, Coh, Adm, Pha);
 		p1.y = CohAvg( Coh, Pha, fb_avg, fe_tilt, 0. );
-		CalcTransferF(sacZ, sacZamV, sacZphV, sacH2t, sacH2amV, sacH2phV, Coh, Adm, Pha, fmax_tilt, zeropha);
+		p3.y = CohAvg( Coh, Pha, fb_avg, fe_tilt, M_PI );
+		CalcTransferF(sacZ, sacZamV, sacZphV, sacH2t, sacH2amV, sacH2phV, Coh, Adm, Pha);
 		p2.y = CohAvg( Coh, Pha, fb_avg, fe_tilt, 0. );
+		p4.y = CohAvg( Coh, Pha, fb_avg, fe_tilt, M_PI );
 		sacH1amV.clear(); sacH2amV.clear();
-		//std::cerr<<p1<<"\n"<<p2<<std::endl;
+		//std::cerr<<p1<<"\n"<<p2<<"\n"<<p3<<"\n"<<p4<<std::endl;
 		if(irotate>=nrotate-1) break;
 		SACRotate(sacH1t, sacH2t, ddeg); 
 	}
 	// find the 3 points near the peak
 	std::nth_element( cohV.begin(), cohV.begin()+2, cohV.end(), 
 			[](const PointC& p1, const PointC& p2){ return p1.y>p2.y; } );
-	// return if coh-avg-peak < cohmin
+	// find the maximum
 	PointC &pmax = *( std::max_element( cohV.begin(), cohV.begin()+3, 
 				[](const PointC& p1, const PointC& p2){ return p1.y<p2.y; } ) );
+	// return if coh-avg-peak < cohmin
 	//if( pmax.y < cohmin )	return pmax;
-	// assume a 180 deg periodicity
 	PointC &p1 = cohV[0], &p2 = cohV[1], &p3 = cohV[2];
-	p2.x -= 180. * nint((p2.x-p1.x)/180.);
-	p3.x -= 180. * nint((p3.x-p1.x)/180.);
+	// assume a 360 deg periodicity
+	p2.x -= 360. * nint((p2.x-p1.x)/360.);
+	p3.x -= 360. * nint((p3.x-p1.x)/360.);
 	// check if p1 p2 p3 are continguous
-	if( fabs(p2.x-p1.x) + fabs(p3.x-p1.x) + fabs(p3.x-p2.x) > ddeg*4.1 ) {
-		return pmax;
-		//std::stringstream ss;
-		//ss<<"non continguous peak points ("<<p1<<" - "<<p2<<" - "<<p3<<")";
-		//throw ErrorSR::BadParam(FuncName, ss.str());
-	}
-	// find the tilt direction (with peak coh)
+	if( fabs(p2.x-p1.x) + fabs(p3.x-p1.x) + fabs(p3.x-p2.x) > ddeg*4.1 ) return pmax;
+	// find tilt direction (with peak coh)
 	return Parabola(p1, p2, p3).Vertex();
 }
 
 // compute transfer function for each window (twin) from segments (tseg) within that window
-void StaSacs::ReshapeByZHPhaseDiff( float twin, float tseg, float Eperl, float Eperu ) {
+void StaSacs::ReshapeByZHPhaseDiff( float twin, float tseg ) {
 	if( twin < tseg ) throw ErrorSR::BadParam( FuncName, "twin has to be >= tseg" );
 	_tseg = tseg;
 	// zero-out earthquakes and save noise windows, sacZ not modified
-	DetectNoiseWindows(Eperl, Eperu);
+	DetectNoiseWindows(_Eperl, _Eperu);
 	// loop through segments
 	SacRec Coh1, Adm1, Pha1, Coh2, Adm2, Pha2;
 	float twinb_e, twine_e = sacZ.shd.b;
 	for( float twinb=sacZ.shd.b; twinb<sacZ.shd.e; twinb+=twin ) {
 		bool succ = true;
 		try {
-			CalcTransferF(sacZ, sacZamV, sacZphV, sacH1, sacH1amV, sacH1phV, Coh1, Adm1, Pha1, twinb, twinb+twin );
-			CalcTransferF(sacZ, sacZamV, sacZphV, sacH2, sacH2amV, sacH2phV, Coh2, Adm2, Pha2, twinb, twinb+twin );
+			CalcTransferF('Z', '1', Coh1, Adm1, Pha1, twinb, twinb+twin );
+			CalcTransferF('Z', '2', Coh2, Adm2, Pha2, twinb, twinb+twin );
 		} catch( ErrorSR::InsufData& e ) { succ = false; }
 		// zero out [twine_e_old, twinb_e)
 		sacZ.Transform( [&](float& val){val = 0.;}, sacZ.Index(twine_e), sacZ.Index(Coh1.shd.user2) );
@@ -502,28 +487,45 @@ void StaSacs::ReshapeByZHPhaseDiff( float twin, float tseg, float Eperl, float E
 }
 
 void StaSacs::Write( const std::string& foutZ, const std::string& foutZinterm,
-							const std::string foutH1, const std::string& foutH2, const std::string foutD ) {
+							const std::string foutH1, const std::string& foutH2, const std::string foutD ) const {
 	// lambda function to convert sac back to original type and write
-	auto WriteSAC = [&]( SacRec& sac, const std::string& outname ) {
+	SacRec sact;
+	auto WriteSAC = [&]( const SacRec& sac, const std::string& outname ) {
 		if( outname.empty() || !sac.sig ) return;
+		sact = sac;
 		switch(sactype) {
 			case 2:	// acc: differentiate twice
-				sac.Differentiate();
+				sact.Differentiate();
 			case 1:	// vel: differentiate once
-				sac.Differentiate();
+				sact.Differentiate();
 			case 0:	// dis: do nothing
 				break;
 			default:
 				throw ErrorSR::BadParam( FuncName, "unknown sactype("+std::to_string(sactype)+")." );
 		}
-		sac.Write(outname);
+		sact.Write(outname);
 	};
 	WriteSAC(sacZ, foutZ); WriteSAC(sacZinterm, foutZinterm);
-	WriteSAC(sacH1, foutH1); WriteSAC(sacH2, foutH2); WriteSAC(sacD, foutD);
+	WriteSAC(sacH1, foutH1); WriteSAC(sacH2, foutH2); 
+	if( ! foutD.empty() ) { sact = sacD; sact.Write(foutD); }
 }
 
 
 /* --------------------- Private Methods --------------------- */
+
+// compute valid time segments (removing earthquakes)
+SacRec StaSacs::DetectNoiseWindows( float Eperl, float Eperu, bool ataper ) const {
+	clearV();	// clear all old sac-seg vectors (which were based on the old rec windows)
+	SacRec sacZcut; std::vector<int> recb, rece;
+	sacZ.EqkCut(sacZcut, recb, rece, Eperl, Eperu, 2.5, ataper); // apply taper
+	for(int i=0; i<recb.size(); i++) {
+		float tb = sacZ.X(recb[i]), te = sacZ.X(rece[i]), tmid = 0.5*(tb+te);
+		trec.push_back({tb, te});
+		//if( docut ) sacZ.cosTaperL(tb, tmid, false); sacZ.cosTaperR(tmid, te, false);
+std::cerr<<"   rec window: "<<sacZ.X(recb[i])<<" "<<sacZ.X(rece[i])<<std::endl; 
+	}
+	return sacZcut;
+}
 
 // segmentize a single channel
 void StaSacs::Segmentize(const SacRec& sac, std::vector<SacRec>& sacamV, std::vector<SacRec>& sacphV) const {
@@ -532,7 +534,7 @@ void StaSacs::Segmentize(const SacRec& sac, std::vector<SacRec>& sacamV, std::ve
 	if( _tseg <= 0 ) throw ErrorSR::BadParam(FuncName, "Invalid/Uninitialized _tseg("+std::to_string(_tseg)+")");
 	// clear old segments
 	sacamV.clear(); sacphV.clear();
-	float ttaper = std::min(_tseg*0.25, 200.);
+	float ttaper = std::min(_tseg*0.4, 200.);
 	for(int i=0; i<trec.size(); i++) {
 		float twin_b = trec[i].first, twin_e = trec[i].second, tb;
 		//std::cout<<twin_b<<" "<<twin_e<<std::endl;
@@ -555,6 +557,28 @@ void StaSacs::Segmentize(const SacRec& sac, std::vector<SacRec>& sacamV, std::ve
 	//std::cerr<<sac.fname<<" "<<sacamV.size()<<" "<<sacphV.size()<<std::endl;
 }
 
+std::pair<int, int> StaSacs::GetSegRange(float &tb, float &te, std::vector<SacRec>& sacV) const {
+	if( sacV.empty() ) throw ErrorSR::EmptySig(FuncName, "empty sac-seg vector");
+	int nseg = sacV.size(), isegb = 0, isege = nseg;
+	if( tb!=NaN && te!=NaN ) {
+		isegb = -1;	float teeff;
+		for(int iseg=0; iseg<nseg; iseg++) {
+			const auto& shd = sacV[iseg].shd;
+			const float tmid = 0.5 * (shd.user2+shd.user3);
+			if( isegb<0 && tmid>=tb ) {
+				isegb = iseg; tb = shd.user2;
+			}
+			if( tmid >= te ) { isege = iseg; break; }
+			teeff = shd.user3;
+		}
+		if( isegb==-1 ) { tb = teeff; isegb=isege; }
+		te = teeff;
+	} else {
+		tb = sacV[0].shd.user2; te = sacV.back().shd.user3;
+	}
+	return std::make_pair(isegb, isege);
+}
+
 void StaSacs::FitIntoParabola( SacRec& sac1, const SacRec& sacsigma, const float fmax, const int nparab ) const {
 	// square sigma to get weights
 	SacRec sacw(sacsigma); sacw.Mulf(sacsigma);
@@ -568,18 +592,16 @@ void StaSacs::FitIntoParabola( SacRec& sac1, const SacRec& sacsigma, const float
 	// assign weight into dataV
 	// and set logscale to x axis
 	int isig = sacw.Index(fb); 
-	float wmin = cohmin * cohmin;
 	for( auto &p : dataV ) { 
 		p.x = std::log(p.x); 
 		p.z = sigwsac[isig++]; 
-		if( p.z < wmin ) p.z = 0.;
 	}
 	// divide [fb,fmax) into nparab segments such that each segment has nvalid/nparab valid points
 	// count valid points (with weight>0.3)
 	std::vector<int> validC(dataV.size());
-	validC[0] = dataV[0].z>wmin;
+	validC[0] = dataV[0].z>0.01;
 	for(int i=1; i<validC.size(); i++) 
-		validC[i] = validC[i-1] + (int)(dataV[i].z>wmin);
+		validC[i] = validC[i-1] + (int)(dataV[i].z>0.01);
 	// fit parabola(s)
 	float cstep = validC.back() / (float)nparab;
 	for(int i=0; i<nparab; i++) {
@@ -625,37 +647,31 @@ Adm.Write("debugAdm.SAC"); Coh.Write("debugCoh.SAC");
 	Coh.Smooth(0.002, false, fb); 
 }
 
+void StaSacs::CalcTransferF( const char c1, const char c2, SacRec& Coh, SacRec& Adm, SacRec& Pha, 
+									  const float tb, const float te ) const {
+	auto sacs1 = sacsM.at(c1); const SacRec& sac1 = *(std::get<0>(sacs1));
+	auto &sac1amV = *(std::get<1>(sacs1)), &sac1phV = *(std::get<2>(sacs1));
+	auto sacs2 = sacsM.at(c2); const SacRec& sac2 = *(std::get<0>(sacs2));
+	auto &sac2amV = *(std::get<1>(sacs2)), &sac2phV = *(std::get<2>(sacs2));
+	CalcTransferF( sac1, sac1amV, sac1phV, sac2, sac2amV, sac2phV, Coh, Adm, Pha, tb, te );
+}
 void StaSacs::CalcTransferF( const SacRec& sac1, std::vector<SacRec>& sac1amV, std::vector<SacRec>& sac1phV,
 										const SacRec& sac2, std::vector<SacRec>& sac2amV, std::vector<SacRec>& sac2phV,
-										SacRec& Coh, SacRec& Adm, SacRec& Pha, const float tb, const float te ) const {
+										SacRec& Coh, SacRec& Adm, SacRec& Pha, float tb, float te ) const {
 	Segmentize( sac1, sac1amV, sac1phV );
-	Segmentize( sac2, sac2amV, sac2phV );
+   Segmentize( sac2, sac2amV, sac2phV );
 	// check consistency of segment Numbers
 	int nseg = sac1amV.size();
 	if( nseg!=sac1phV.size() || nseg!=sac2amV.size() || nseg!=sac2phV.size() )
 		throw std::runtime_error(std::string("Error(")+FuncName+"): No. segments mismatch");
+
 	// only use segments with (shd.b+shd.e)/2 between [tb, te)
-	int isegb = 0, isege = nseg;
-	float tbeff = sac1.shd.b, teeff = sac1.shd.e;
-	if( tb!=NaN && te!=NaN ) {
-		isegb = -1;
-		for(int iseg=0; iseg<nseg; iseg++) {
-			const auto& shd = sac1amV[iseg].shd;
-			const float tmid = 0.5 * (shd.user2+shd.user3);
-			if( isegb<0 && tmid>=tb ) {
-				isegb = iseg; tbeff = shd.user2;
-			}
-			if( tmid >= te ) { isege = iseg; break; }
-			teeff = shd.user3;
-		}
-		if( isegb==-1 ) { tbeff = teeff; isegb=isege; }
-	}
+	int isegb, isege; std::tie(isegb, isege) = GetSegRange(tb, te, sac1amV);
 	// minimum No. segments requirement
 	if( isege-isegb < 5 ) {
-		Coh.shd.user2 = tbeff; Coh.shd.user3 = teeff;
+		Coh.shd.user2 = tb; Coh.shd.user3 = te;
 		throw ErrorSR::InsufData(FuncName, "No. segments = "+std::to_string(isege-isegb));
 	}
-	//nseg -= 1;	// last element is reserved for the original sac
 
 	// calculate autospectral density functions Gss, Grr and
 	// the one-sided cross-spectral density function Grs,
@@ -665,8 +681,7 @@ void StaSacs::CalcTransferF( const SacRec& sac1, std::vector<SacRec>& sac1amV, s
 	Gss.MutateAs(sac0); Grr.MutateAs(sac0); 
 	GrsR.MutateAs(sac0); GrsI.MutateAs(sac0);
 	for(int iseg=isegb; iseg<isege; iseg++) {
-const auto &shd = sac1amV[iseg].shd;
-std::cerr<<"   seg window: "<<shd.user2<<" "<<shd.user3<<std::endl;
+		//const auto &shd = sac1amV[iseg].shd; std::cerr<<"   seg window: "<<shd.user2<<" "<<shd.user3<<std::endl;
 		// compute Gss, Grr, Grs_am, Grs_ph for the current seg
 		SacRec sacrr_am(sac1amV[iseg]); sacrr_am.Mulf(sac1amV[iseg]);
 		SacRec sacss_am(sac2amV[iseg]); sacss_am.Mulf(sac2amV[iseg]);
@@ -674,15 +689,6 @@ std::cerr<<"   seg window: "<<shd.user2<<" "<<shd.user3<<std::endl;
 		SacRec sacrs_ph(sac2phV[iseg]); sacrs_ph.Subf(sac1phV[iseg]);
 		// Add Gss and Grr to the sum
 		Grr.Addf( sacrr_am ); Gss.Addf( sacss_am );
-		// project sacrs_am&sacrs_ph onto phase==0.
-		/*
-		float pha0 = 0.;
-		auto sigrsam = sacrs_am.sig.get(), sigrsph = sacrs_ph.sig.get();
-		for(int i=0; i<sacrs_am.shd.npts; i++) {
-			sigrsam[i] *= cos(sigrsph[i]-pha0);
-			sigrsph[i] = pha0;
-		}
-		*/
 		// convert am&ph to re&im
 		AmPhToReIm( sacrs_am, sacrs_ph );
 		// and add
@@ -693,11 +699,11 @@ std::cerr<<"   seg window: "<<shd.user2<<" "<<shd.user3<<std::endl;
 	// construct coherence, admittance, and phase from the spectral density functions
 	Pha = std::move(GrsI); Adm = GrsR; Adm.Divf( Gss );
 	Coh = Adm; Coh.Mulf( GrsR ); Coh.Divf( Grr ); Coh.sqrt();
-	Coh.shd.user2 = tbeff; Coh.shd.user3 = teeff;
+	Coh.shd.user2 = tb; Coh.shd.user3 = te;
 	// smooth Coh
-	Coh.Smooth(0.002, false, fb);
+	//Coh.Smooth(0.002, false, fb);
 	// re-centralize phase
-	float phac = Pha.MeanPha();
+	float phac = Pha.MeanPha(fb_avg, fe_avg);
 	Pha.shd.user1 = phac;
 	const float twopi = M_PI*2.;
 	Pha.Transform( [&](float& val){
@@ -706,7 +712,7 @@ std::cerr<<"   seg window: "<<shd.user2<<" "<<shd.user3<<std::endl;
 		} );
 }
 
-float StaSacs::CohAvg(SacRec& Coh, SacRec& Pha, float fb, float fe, float pha0) const {
+float StaSacs::CohAvg(const SacRec& Coh, const SacRec& Pha, float fb, float fe, float pha0) const {
 	int ib = Coh.Index(fb), ie = Coh.Index(fe);
 	if( ib >= ie ) throw ErrorSR::BadParam(FuncName, "fb >= fe");
 	float mean = 0.;
@@ -716,7 +722,12 @@ float StaSacs::CohAvg(SacRec& Coh, SacRec& Pha, float fb, float fe, float pha0) 
 	return mean / (ie-ib);
 }
 
-void StaSacs::ApplyCorrection( SacRec& sac1, const SacRec& sac2, SacRec& Coh, SacRec& Adm, SacRec& Pha, const float fmax ) {
+void StaSacs::ApplyCorrection( const char c, const SacRec& sac2, SacRec& Coh, SacRec& Adm, SacRec& Pha, 
+										 const float fmax, const float pha0 ) {
+	// get reference to sac1 and clean up seg vectors
+	auto sacs1 = sacsM.at(c); SacRec& sac1 = *(std::get<0>(sacs1));
+	auto &sac1amV = *(std::get<1>(sacs1)), &sac1phV = *(std::get<2>(sacs1));
+	sac1amV.clear(); sac1phV.clear(); // seg vectors for sac1 need to be updated
 	#ifdef DEBUG
 	auto chn1 = sac1.chname();
 	auto chn2 = sac2.chname();
@@ -724,25 +735,27 @@ void StaSacs::ApplyCorrection( SacRec& sac1, const SacRec& sac2, SacRec& Coh, Sa
 	Pha.Write("debug_Pha_"+chn1+chn2+".SAC");
 	Coh.Write("debug_Coh_"+chn1+chn2+".SAC");
 	#endif
-	// discard points with phase in the wrong quad
-	auto sigpha = Pha.sig.get(), sigcoh = Coh.sig.get();
-	const float phac = Pha.shd.user1, pio4 = M_PI*0.25;
-	for(int i=0; i<Pha.Index(fmax, true); i++) {
-		float phadiff = fabs(sigpha[i]-phac);
-		if( phadiff > pio4 ) sigcoh[i] = 0.;
-	}
+
+	// use/modify Coh as sigma for parabola fitting
+	const auto sigpha = Pha.sig.get(); 
+	Coh.Transform2i( [&](const int i, float& val){ 
+		val *= cos(sigpha[i]-pha0); 
+	}, Coh.Index(fb), Coh.Index(fmax) );
+	Coh.Smooth(0.002, false, fb);
+	Coh.Transform( [&](float& val){ if(val<cohmin) val = 0.; } );
+
 	// fit phase with a single parabola
 	FitIntoParabola( Pha, Coh, fmax, 1 );
 	// and admittance with two parabolas
 	FitIntoParabola( Adm, Coh, fmax, 2 );
-	//Adm.Smooth(0.01);
+	//Adm.Smooth(0.002, false, fb);
 	#ifdef DEBUG
 	Coh.Write("debug_CohP_"+chn1+chn2+".SAC");
 	Pha.Write("debug_PhaP_"+chn1+chn2+".SAC");
 	Adm.Write("debug_AdmP_"+chn1+chn2+".SAC");
 	#endif
-	// apply transfer function in between 0 and 0.1 Hz
-	//const SacRec &sac2_am = sac2amV.back(), &sac2_ph = sac2phV.back();
+
+	// apply transfer function in between fb and fmax Hz
 	SacRec sac2_am, sac2_ph; sac2.ToAmPh(sac2_am, sac2_ph);
 	// predicted spectrum
 	int npts_ratio = (int)floor(sac2_am.shd.npts/(float)Adm.shd.npts+0.5);
@@ -761,8 +774,6 @@ void StaSacs::ApplyCorrection( SacRec& sac1, const SacRec& sac2, SacRec& Coh, Sa
 	sacP.Write("debug_Pred_"+chn1+chn2+".SAC");
 	sac1.Write("debug_Crct_"+chn1+chn2+".SAC");
 	#endif
-	// clear seg vectors for sac1 (which has been corrected)
-	// sac1amV.clear(); sac1phV.clear();
 }
 
 #endif

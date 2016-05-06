@@ -213,7 +213,7 @@ public:
 	bool MeanStd ( float& mean, float& std ) const { return MeanStd(shd.b, shd.e, mean, std); }
 	bool MeanStd ( float tbegin, float tend, float& mean, float& std ) const { return MeanStd(tbegin, tend, 1, mean, std); }
 	bool MeanStd ( float tbegin, float tend, int step, float& mean, float& std ) const;
-	float MeanPha() const;
+	float MeanPha( const float fb = NaN, const float fe = NaN ) const;
 	// compute accurate time/amplitude of the peak (fit with a parabola)
 	float Tpeak() const { float t, a; Peak(t, a); return t; }
 	float Tpeak( const float tbegin, const float tend ) const { float t, a; Peak(t, a, tbegin, tend); return t; }
@@ -477,6 +477,7 @@ public:
    friend void ReImToAmPh( SacRec& sac_re, SacRec& sac_im );
 
    friend void SACRotate( SacRec& sac1, SacRec& sac2, const float deg );
+   friend SacRec SACProject( const SacRec& sac1, const SacRec& sac2, const float deg );
 
    friend void DumpSACs( const std::vector<SacRec>& sacV, const std::string& outname );
 

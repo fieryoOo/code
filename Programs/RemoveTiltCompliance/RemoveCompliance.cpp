@@ -9,9 +9,9 @@ int main (int argc, char *argv[]) {
    }
    
 	bool zeropha = atoi(argv[5])!=0;
-	StaSacs ss(argv[1], "", "", argv[2], atoi(argv[3]), atof(argv[4]));
-	float Eperl = 15., Eperu = 40.;	// problem: tilt noise is strong in this band too!!
-	auto res = ss.RemoveCompliance(std::string(argv[6])+"_noise_coherences", zeropha, Eperl, Eperu, 2000.);
+	float Eperl = 11., Eperu = 20.;	// tilt noise is strong in between 20 and 50 sec
+	StaSacs ss(argv[1], "", "", argv[2], atoi(argv[3]), atof(argv[4]), 0., Eperl, Eperu);
+	auto res = ss.RemoveCompliance(std::string(argv[6])+"_noise_coherences", 2000.);
 	std::cout<<"coh_c = "<<res<<std::endl;
 
 	ss.Write(argv[6]);

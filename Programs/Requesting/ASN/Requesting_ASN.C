@@ -10,13 +10,13 @@ main(int na, char *arg[])
 {
   if (na!=7 && na!=8)
     {
-      cout<<"usage: Requesting_ASN [sta_list (as 'M12A TA')] [month_list (as '2008 6')] [label] [email] [name] [channel list] [TEST(optional)]"<<endl;
+      cout<<"usage: Requesting_ASN [sta_list (as 'M12A TA')] [month_list (as '2008 6')] [label] [email] [name] [channel list] [day of the month(optional for test)]"<<endl;
       return 0;
     }
 
-	bool isTesting = false;
-	if( na == 8 && strcmp(arg[7], "TEST")==0 )
-		isTesting = true;
+	bool isTesting = na==8; int day0 = 1;
+	if( isTesting ) day0 = atoi(arg[7]);
+	//if( na == 8 && strcmp(arg[7], "TEST")==0 ) isTesting = true;
   FILE *f1,*f2,*fout;
   int i, nch, year, year2, month, month2, day, day2, month_dn, day_num[12];
   char month_name[12][4], intemp[100], station[6], net[3];
@@ -74,7 +74,7 @@ main(int na, char *arg[])
         cout<<"Wrong month info in the month.lst: "<<month+1<<"th month!"<<endl;
         continue;
        }
-     for(day=1;day<=month_dn;day++){
+     for(day=day0;day<=month_dn;day++){
         //if(day!=31) continue;
         if(!(fout=fopen("requesting_email","w"))){
            cout<<"Can't open month.lst file "<<arg[2]<<" to read."<<endl;

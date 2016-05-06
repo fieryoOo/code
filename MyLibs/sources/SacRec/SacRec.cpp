@@ -1589,12 +1589,14 @@ bool SacRec::MeanStd ( float tbegin, float tend, int step, float& mean, float& s
 	return true;
 }
 
-float SacRec::MeanPha() const {
+float SacRec::MeanPha(const float fb, const float fe) const {
 	if( ! sig )
 		throw ErrorSR::EmptySig(FuncName);
+	int ib = fb==NaN ? 0 : Index(fb);
+	int ie = fe==NaN ? shd.npts : Index(fe);
 	float *sigph = sig.get();
 	double x = 0., y = 0.;
-	for(int i=0; i<shd.npts; i++) {
+	for(int i=ib; i<ie; i++) {
 		x += cos(sigph[i]);
 		y += sin(sigph[i]);
 	}
@@ -3299,6 +3301,24 @@ void SACRotate( SacRec& sac1, SacRec& sac2, const float deg ) {
 		sigsac1[i] = sig1 * cosdeg + sig2 * sindeg;
 		sigsac2[i] = sig2 * cosdeg - sig1 * sindeg;
 	}
+}
+
+SacRec SACProject( const SacRec& sac1, const SacRec& sac2, const float deg ) {
+	if( fabs(deg) < 1.e-5 ) return sac1;
+	if( ! sac1.sig&&sac2.sig )
+		throw ErrorSR::EmptySig(FuncName);
+	const int npts = sac1.shd.npts;
+	if( npts != sac2.shd.npts )
+		throw ErrorSR::HeaderMismatch(FuncName, "npts: "+std::to_string(npts)+" - "+std::to_string(sac2.shd.npts) );
+
+	const float degrad = deg * M_PI / 180.;
+	const float cosdeg = cos(degrad), sindeg = sin(degrad);
+	SacRec sacout; sacout.MutateAs(sac1);
+	auto sigsac1 = sac1.sig.get(), sigsac2 = sac2.sig.get();
+	sacout.Transform2i( [&](const int i, float& val){
+		val = sigsac1[i] * cosdeg + sigsac2[i] * sindeg;
+	} );
+	return sacout;
 }
 
 
