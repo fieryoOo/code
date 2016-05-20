@@ -2,7 +2,6 @@
 #define STASACS_H
 
 #include "SacRec.h"
-#include "RDirect.h"
 #include <iostream>
 #include <map>
 #include <tuple>
@@ -41,8 +40,8 @@ public:
 	void test(float tseg, int nsm, float tb = NaN, float te = NaN);
 	PointC5 RemoveTiltCompliance( const std::string& outinfoname = "", float tseg=2000. );
 
-	RDirect RayleighDirectionality(const float dazi, const std::vector<std::pair<float, float>>& freqRangeV, 
-											 float tseg=2000., float twin=1800.);
+	std::vector<std::vector<float>> RayleighDirectionality(const float dazi, const std::vector<std::pair<float, float>>& freqRangeV, 
+																			 float tseg=2000., float twin=1800.);
 
 	PointC EstimateTiltDirection( const float ddeg ) const;
 
@@ -73,7 +72,7 @@ protected:
 	static constexpr float cohmin = 0.5;
 	static constexpr float fmax_tilt = 0.105;
 	static constexpr float fb_avg = 0.01;	// cohavg is computed between fb_avg and fe_avg Hz
-	static constexpr float fe_avg = 0.09;	
+	static constexpr float fe_avg = 0.06;	
 	//static constexpr float cohmin = 0.2;
 	//static constexpr float fmax_tilt = 0.4;
 	//static constexpr float fb_avg = 0.2;	// cohavg is computed between fb_avg and fe_avg Hz
@@ -107,7 +106,7 @@ private:
 	void Segmentize(const SacRec& sac, std::vector<SacRec>& sacamV, std::vector<SacRec>& sacphV) const;
 	std::pair<int, int> GetSegRange(float &tb, float &te, std::vector<SacRec>& sacV) const;
 
-	void FitIntoParabola( SacRec& sac1, const SacRec& sacsigma, const float fmin, const float fmax, const int nparab = 1 ) const;
+	void FitIntoParabola( SacRec& sac1, const SacRec& sacsigma, const float fmax, const int nparab = 1 ) const;
 
 	void CalcTransferF( const SacRec& sac1, std::vector<SacRec>& sac1amV, std::vector<SacRec>& sac1phV,
 							  const SacRec& sac2, std::vector<SacRec>& sac2amV, std::vector<SacRec>& sac2phV,
@@ -122,7 +121,7 @@ private:
 	PointC EstimateTilt( SacRec& Coh, SacRec& Adm, SacRec& Pha );
 
 	void ApplyCorrection( const char c, const SacRec& sac2, SacRec& Coh, SacRec& Adm, SacRec& Pha, 
-								 float fmax, const float pha0 = 0. );
+								 const float fmax, const float pha0 = 0. );
 
 };
 
@@ -205,14 +204,10 @@ float StaSacs::EstimateCoherence( const char c1, const char c2, const float fmax
 	// compute transfer F for compliance noise
 	CalcTransferF(c1, c2, Coh, Adm, Pha);
 	// compute average coherence
-   float fe = fe_avg<fmax?fe_avg:fmax, flen = 0.5 * (fe-fb_avg);
-   float coh1 = flen<0.02 ? CohAvg( Coh, Pha, fb_avg, fe, 0. ) 
-					 : std::max( CohAvg( Coh, Pha, fb_avg, fb_avg+flen, 0. ),
-									 CohAvg( Coh, Pha, fb_avg+flen, fe, 0. ) );
+   float fe = fe_avg<fmax?fe_avg:fmax;
+   float coh1 = CohAvg( Coh, Pha, fb_avg, fe, 0. );
 	if( autoflip ) {
-		float coh2 = flen<0.02 ? CohAvg( Coh, Pha, fb_avg, fe, M_PI ) 
-						 : std::max( CohAvg( Coh, Pha, fb_avg, fb_avg+flen, M_PI ),
-										 CohAvg( Coh, Pha, fb_avg+flen, fe, M_PI ) );
+		float coh2 = CohAvg( Coh, Pha, fb_avg, fe, M_PI );
 		if( coh2 > coh1 ) {
 			float adder = Pha.shd.user1<0 ? M_PI : -M_PI;
 			Pha.Transform( [&](float& val){val += adder;} ); 
@@ -347,59 +342,50 @@ PointC5 StaSacs::RemoveTiltCompliance( const std::string& outinfoname, float tse
 	return Pres;
 }
 
-RDirect StaSacs::RayleighDirectionality(const float dazi, const std::vector<std::pair<float, float>>& freqRangeV, 
-													 float tseg, float twin) {
+std::vector<std::vector<float>> StaSacs::RayleighDirectionality(const float dazi, const std::vector<std::pair<float, float>>& freqRangeV, 
+																					 float tseg, float twin) {
 	_tseg = tseg;
+	DetectNoiseWindows(_Eperl, _Eperu);
 	float tb = sacZ.shd.b, te = sacZ.shd.e; //, twin = 1800.;
-	//DetectNoiseWindows(_Eperl, _Eperu);
-	trec = { {tb, te} }; clearV();
 
-	//sacZ.RunAvg( 40., _Eperl, _Eperu ); //sacZ.OneBit();
-	std::vector<SacRec> sacV{sacZ, sacH1, sacH2};
-	//RunAvg(40., 15., 30., sacV);
-	RunAvg(40., 12., 20., sacV, true);
-	SacRec &sacZt(sacV[0]), &sacH1t(sacV[1]), &sacH2t(sacV[2]); 
+	//sacZ.RunAvg( 40., _Eperl, _Eperu ); 
+	sacZ.OneBit();
 	int nrotate = ceil(90./dazi), ncycle = nrotate*4, ntwin = (int)(te-tb-twin)/(0.5*twin) + 1;
-	RDirect rdirect( freqRangeV );
+	std::vector<std::vector<float>> resVV(ncycle*ntwin, std::vector<float>(freqRangeV.size()+2));
 	//SacRec sacH1t(sacH1), sacH2t(sacH2);
 	for(int irotate=0; irotate<nrotate; irotate++) {
-		float azi1 = irotate * dazi, azi2 = azi1 + 90.;
-		float azi3 = azi2 + 90., azi4 = azi3 + 90.;
-		//const SacRec &sacH1t(sacH1), &sacH2t(sacH2);
+		float azi1 = irotate * dazi; auto I1 = resVV.begin() + irotate;
+		float azi2 = azi1 + 90.; auto I2 = I1 + nrotate;
+		float azi3 = azi2 + 90.; auto I3 = I2 + nrotate;
+		float azi4 = azi3 + 90.; auto I4 = I3 + nrotate;
+		SacRec sacH1t(sacH1); sacH1t.OneBit(); //sacH1t.RunAvg( 40., _Eperl, _Eperu ); //
+		SacRec sacH2t(sacH2); sacH2t.OneBit(); //sacH2t.RunAvg( 40., _Eperl, _Eperu ); //
 		SacRec Coh, Adm, Pha;
 		auto computeCohs = [&](const SacRec& sac2, std::vector<SacRec>& sac2amV, std::vector<SacRec>& sac2phV,
-									  float tb, float te, float azipos, float azineg) {
-			CalcTransferF(sacZt, sacZamV, sacZphV, sac2, sac2amV, sac2phV, Coh, Adm, Pha, tb, te);
-/*
-if( tb==26300 && te==28100. && azipos==70. ) {
-	std::cerr<<"found!"<<std::endl;
-	SacRec Coht; Coh.Smooth(0.01, Coht);
-	Coht.Write("Coh_6500sec_120deg.SAC");
-	SacRec Admt; Adm.Smooth(0.01, Admt);
-	Admt.Write("Adm_6500sec_120deg.SAC");
-	SacRec Phat(Pha); Phat.Wrap();
-	Phat.Write("Pha_6500sec_120deg.SAC");
-}
-*/
-			auto& donut = rdirect[std::make_pair(tb, te)];
-			auto &resVpos = donut[azipos], &resVneg = donut[azineg];
-			for( const auto& pair : freqRangeV ) {
+									  float tb, float te, std::vector<float> &resVpos, std::vector<float> &resVneg) {
+			CalcTransferF(sacZ, sacZamV, sacZphV, sac2, sac2amV, sac2phV, Coh, Adm, Pha, tb, te);
+			int i=1; for( const auto& pair : freqRangeV ) {
 				//cohAvg( pair.first, pair.second, resVpos[i], resVneg[i] ); i++;
-				resVpos.push_back( CohAvg( Coh, Pha, pair.first, pair.second, -PIo2 ) );
-				resVneg.push_back( CohAvg( Coh, Pha, pair.first, pair.second, PIo2 ) );
+				resVpos[i] = CohAvg( Coh, Pha, pair.first, pair.second, -PIo2 );
+				resVneg[i++] = CohAvg( Coh, Pha, pair.first, pair.second, PIo2 );
 			}
+			resVpos[i] = resVneg[i] = 0.5*(tb+te);
 		};
 		for(float twinb=tb,twine=tb+twin; twine<=te; twinb+=0.5*twin, twine+=0.5*twin) {
 			try {
-				computeCohs(sacH1t, sacH1amV, sacH1phV, twinb, twine, azi1, azi3);
-				computeCohs(sacH2t, sacH2amV, sacH2phV, twinb, twine, azi2, azi4); 
+				computeCohs(sacH1t, sacH1amV, sacH1phV, twinb, twine, *I1, *I3);
+				computeCohs(sacH2t, sacH2amV, sacH2phV, twinb, twine, *I2, *I4); 
+				(*I1)[0] = azi1; (*I2)[0] = azi2; (*I3)[0] = azi3; (*I4)[0] = azi4;
+				I1 += ncycle; I2 += ncycle; I3 += ncycle; I4 += ncycle;
 			} catch(ErrorSR::Base &e) {}
 		}
 		sacH1amV.clear();	sacH2amV.clear();
-		SACRotate(sacH1t, sacH2t, dazi); 
+		if(irotate==nrotate-1) { 
+			resVV.resize(I4-ncycle-resVV.begin()+1); //break;
+		}
+		SACRotate(sacH1, sacH2, dazi); 
 	}
-	sacZamV.clear();
-	return rdirect;
+	return resVV;
 }
 
 PointC StaSacs::EstimateTiltDirection( const float ddeg ) const {
@@ -597,25 +583,25 @@ std::pair<int, int> StaSacs::GetSegRange(float &tb, float &te, std::vector<SacRe
 	return std::make_pair(isegb, isege);
 }
 
-void StaSacs::FitIntoParabola( SacRec& sac1, const SacRec& sacsigma, const float fmin, const float fmax, const int nparab ) const {
+void StaSacs::FitIntoParabola( SacRec& sac1, const SacRec& sacsigma, const float fmax, const int nparab ) const {
 	// square sigma to get weights
 	SacRec sacw(sacsigma); sacw.Mulf(sacsigma);
 	// dump data to vector of PointCs
 	std::vector<PointC> dataV;
-	sac1.Dump( dataV, fmin, fmax );
+	sac1.Dump( dataV, fb, fmax );
 	// check header
-	if( dataV.size() != sacw.Index(fmax) - sacw.Index(fmin) ) 
+	if( dataV.size() != sacw.Index(fmax) - sacw.Index(fb) ) 
 		throw std::runtime_error(std::string("Error(")+FuncName+"): npts mismatch");
 	auto sigwsac = sacw.sig.get();
 	// assign weight into dataV
 	// and set logscale to x axis
-	int isig = sacw.Index(fmin); 
+	int isig = sacw.Index(fb); 
 	for( auto &p : dataV ) { 
 		p.x = std::log(p.x); 
 		p.z = sigwsac[isig++]; 
 	}
-	// divide [fmin,fmax) into nparab segments such that each segment has nvalid/nparab valid points
-	// count valid points (with weight>0.)
+	// divide [fb,fmax) into nparab segments such that each segment has nvalid/nparab valid points
+	// count valid points (with weight>0.3)
 	std::vector<int> validC(dataV.size());
 	validC[0] = dataV[0].z>0.01;
 	for(int i=1; i<validC.size(); i++) 
@@ -627,7 +613,7 @@ void StaSacs::FitIntoParabola( SacRec& sac1, const SacRec& sacsigma, const float
 		auto Ie = dataV.begin() + ( std::upper_bound(validC.begin(), validC.end(), (int)(cstep*(i+1)+0.5)) - validC.begin() );
 		Parabola parab; float rmsw; parab.Fit(Ib, Ie, rmsw);
 		// write parabola to sac1
-		float f1 = i==0 ? fmin*0.9 : std::exp(Ib->x);
+		float f1 = i==0 ? fb*0.9 : std::exp(Ib->x);
 		float f2 = i==nparab-1 ? fmax*1.1 : std::exp(Ie->x);
 		sac1.Transform2( [&](const float x, float& y) {
 				y = parab[std::log(x)];
@@ -741,7 +727,7 @@ float StaSacs::CohAvg(const SacRec& Coh, const SacRec& Pha, float fb, float fe, 
 }
 
 void StaSacs::ApplyCorrection( const char c, const SacRec& sac2, SacRec& Coh, SacRec& Adm, SacRec& Pha, 
-										 float fmax, const float pha0 ) {
+										 const float fmax, const float pha0 ) {
 	// get reference to sac1 and clean up seg vectors
 	auto sacs1 = sacsM.at(c); SacRec& sac1 = *(std::get<0>(sacs1));
 	auto &sac1amV = *(std::get<1>(sacs1)), &sac1phV = *(std::get<2>(sacs1));
@@ -754,41 +740,26 @@ void StaSacs::ApplyCorrection( const char c, const SacRec& sac2, SacRec& Coh, Sa
 	Coh.Write("debug_Coh_"+chn1+chn2+".SAC");
 	#endif
 
-	// smooth/modify Coh as sigma for parabola fitting
+	// use/modify Coh as sigma for parabola fitting
 	const auto sigpha = Pha.sig.get(); 
 	Coh.Transform2i( [&](const int i, float& val){ 
 		val *= cos(sigpha[i]-pha0); 
 	}, Coh.Index(fb), Coh.Index(fmax) );
 	Coh.Smooth(0.002, false, fb);
-
-	// invalidate fpoints with coh<cohmin-0.2
-	// and shrink [fmin, fmax]
-	int ib = Coh.Index(fb), ie = Coh.Index(fmax), nvalid = 0;
-	Coh.Transform( [&](float& val){ 
-		if(val<cohmin-0.2) val = 0.; 
-		else nvalid++;
-	}, ib, ie );
-	float coreperc = 0.05;	
-	auto sigcoh = Coh.sig.get();
-	for(int ivalid=nvalid*coreperc; ib<ie&&ivalid!=0; ib++ ) ivalid -= sigcoh[ib]>0.;
-	float fmin = Coh.X(ib);
-	for(int ivalid=nvalid*coreperc; ie>ib&&ivalid!=0; ie-- ) ivalid -= sigcoh[ie]>0.;
-	fmax = Coh.X(ie);
-	float fex = (fmax-fmin)*1.2*coreperc/(1.-2*coreperc); 
-	fmin -= fex; fmax += fex;
+	Coh.Transform( [&](float& val){ if(val<cohmin) val = 0.; } );
 
 	// fit phase with a single parabola
-	FitIntoParabola( Pha, Coh, fmin, fmax, 1 );
+	FitIntoParabola( Pha, Coh, fmax, 1 );
 	// and admittance with two parabolas
-	FitIntoParabola( Adm, Coh, fmin, fmax, (fmax-fmin>0.04 ? 2 : 1) );
-	//Adm.Smooth(0.002, false, fmin);
+	FitIntoParabola( Adm, Coh, fmax, 2 );
+	//Adm.Smooth(0.002, false, fb);
 	#ifdef DEBUG
 	Coh.Write("debug_CohP_"+chn1+chn2+".SAC");
 	Pha.Write("debug_PhaP_"+chn1+chn2+".SAC");
 	Adm.Write("debug_AdmP_"+chn1+chn2+".SAC");
 	#endif
 
-	// apply transfer function in between fmin and fmax Hz
+	// apply transfer function in between fb and fmax Hz
 	SacRec sac2_am, sac2_ph; sac2.ToAmPh(sac2_am, sac2_ph);
 	// predicted spectrum
 	int npts_ratio = (int)floor(sac2_am.shd.npts/(float)Adm.shd.npts+0.5);
@@ -798,8 +769,8 @@ void StaSacs::ApplyCorrection( const char c, const SacRec& sac2, SacRec& Coh, Sa
 	SacRec sacP_ph(sac2_ph); sacP_ph.Subf(PhaInt); sacP_ph.Wrap(); //sacP_ph.Mul(-1.);
 	SacRec sacP_am(sac2_am); sacP_am.Mulf(AdmInt);
 	// Tukey window
-	sacP_am.cosTaperL(fmin*0.9, fmin);
-	sacP_am.cosTaperR(fmax, fmax*1.1);
+	sacP_am.cosTaperL(fb*0.9, fb*1.1);
+	sacP_am.cosTaperR(fmax*0.9, fmax*1.1);
 	SacRec sacP; sacP.shd = sac1.shd;
 	sacP.FromAmPh(sacP_am, sacP_ph);
 	sac1.Subf(sacP);
