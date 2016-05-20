@@ -1,0 +1,26 @@
+#! /bin/tcsh
+
+cd /Users/sbell/Cascadia/transferFns/data/events
+
+#set bs = BB130/HHZ
+#set day = 2012-12-17
+
+foreach day (`cat quietdaylistyear2.txt`)
+
+echo $day
+
+foreach bs (`cat bslist.txt`)
+
+echo $bs
+
+set station = `dirname $bs`
+set channel = `basename $bs`
+
+echo $station
+echo $channel
+
+FetchData -N 7D -C $channel -S $station -s ${day}T00:00:00 -e ${day}T23:59:59.999999 -o y2data/$station.$channel.$day.mseed -m y2data/$station.$channel.$day.metadata
+
+end
+
+end

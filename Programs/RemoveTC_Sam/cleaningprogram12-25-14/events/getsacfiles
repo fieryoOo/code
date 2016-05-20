@@ -1,0 +1,13 @@
+#! /bin/tcsh
+
+cd /Users/sbell/Cascadia/transferFns/data/events/y2data
+
+foreach f (*.mseed)
+
+set base = `basename $f .mseed`
+
+echo $base
+
+mseed2sac -m $base.metadata $base.mseed
+
+end

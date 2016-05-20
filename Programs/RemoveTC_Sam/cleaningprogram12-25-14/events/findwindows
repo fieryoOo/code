@@ -1,0 +1,28 @@
+#! /bin/tcsh
+
+#Modify path!
+cd /cleaningprogram10-28-14/events
+
+#set edate = 2013-02-28
+
+foreach edate (`cat daylist.txt`)
+
+echo $edate
+
+FetchEvent -s ${edate}T00:00:00 -e ${edate}T23:59:59.999999 --mag 5.1:10 -o elist.txt
+FetchEvent -s ${edate}T00:00:00 -e ${edate}T23:59:59.999999 --radius 47:-126:120 --mag 4.6:5.1 -o elist2.txt
+FetchEvent -s ${edate}T00:00:00 -e ${edate}T23:59:59.999999 --radius 47:-126:40 --mag 4.3:4.6 -o elist3.txt
+FetchEvent -s ${edate}T00:00:00 -e ${edate}T23:59:59.999999 --radius 47:-126:20 --mag 3.9:4.3 -o elist4.txt
+cat elist2.txt >> elist.txt
+cat elist3.txt >> elist.txt
+cat elist4.txt >> elist.txt
+
+./convertelist.py
+
+echo $edate > dateconvertinput.txt
+./dateconversion.py
+set numberdate = `cat dateconvertoutput.txt`
+
+mv estring.txt estring.$numberdate.txt
+
+end
