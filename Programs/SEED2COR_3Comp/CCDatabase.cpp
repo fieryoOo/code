@@ -271,17 +271,20 @@ CCPARAM::SetRet CCPARAM::Set( const std::string& input )
     else if( field == "chlst1" )
     {
         if( !std::getline(sin, chlst1_info, '#') ) return BadValue;
-        chlst1_info = chlst1_info.substr( chlst1_info.find_first_not_of(" \t") );
+		  int posS = chlst1_info.find_first_not_of(" \t");
+        chlst1_info = posS==std::string::npos?"":chlst1_info.substr( posS );
     }
     else if( field == "chlst2" )
     {
         if( !std::getline(sin, chlst2_info, '#') ) return BadValue;
-        chlst2_info = chlst2_info.substr( chlst2_info.find_first_not_of(" \t") );
+		  int posS = chlst2_info.find_first_not_of(" \t");
+        chlst2_info = posS==std::string::npos?"":chlst2_info.substr( posS );
     }
     else if( field == "chlst3" )
     {
         if( !std::getline(sin, chlst3_info, '#') ) return BadValue;
-        chlst3_info = chlst3_info.substr( chlst3_info.find_first_not_of(" \t") );
+		  int posS = chlst3_info.find_first_not_of(" \t");
+        chlst3_info = posS==std::string::npos?"":chlst3_info.substr( posS );
     }
     else if( field == "sps" )
     {
