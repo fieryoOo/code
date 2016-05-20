@@ -423,6 +423,7 @@ public:
    int arrange( const char *recname = nullptr );
 
 	/* ---------- compute the correlation coefficient with an input SacRec ---------- */
+	void CCFromAmPh(SacRec& sac_am, SacRec& sac_ph, const SAC_HD& shd1, const SAC_HD& shd2);
 	float Correlation( const SacRec& sac2 ) const {	return Correlation( sac2, shd.b, shd.e );	}
 	float Correlation( const SacRec& sac2, const float tb, const float te ) const;
 
@@ -430,8 +431,12 @@ public:
 		ctype=0: Cross-Correlate (default) 
 		ctype=1: deconvolve (sac.am/sac2.am)
 		ctype=2: deconvolve (sac2.am/sac.am) */
-	void CrossCorrelate( SacRec& sac2, const std::string& outname="" ) { CrossCorrelate(sac2, *this, outname); }
-	void CrossCorrelate( SacRec& sac2, SacRec& sacout, const std::string& outname="", int ctype = 0 );
+	//void CrossCorrelate( SacRec& sac2, const std::string& outname = "" ) { *this = CrossCorrelate(sac2, outname); }
+	SacRec CrossCorrelate( SacRec& sac2, const std::string& outname = "", int ctype = 0 );
+	friend SacRec CrossCorrelateSACs( const SacRec& sac1_am, const SacRec& sac1_ph, const SacRec& sac2_am, const SacRec& sac2_ph, 
+												 const SAC_HD& shd1, const SAC_HD& shd2, int ctype = 0 );
+	friend void CrossCorrelateSACs( const SacRec& sac1_am, const SacRec& sac1_ph, const SacRec& sac2_am, const SacRec& sac2_ph, 
+											  SacRec& saco_am, SacRec& saco_ph, int ctype = 0 );
 
 	/* ------------------------------- cut by event ---------------------------------- */
 	void ZoomToEvent( const std::string etime, float evlon, float evlat, float tb, float tlen, std::string ename = "" );
@@ -440,6 +445,7 @@ public:
 	/* ------------------------------- temporal normalizations ------------------------------- */
 	void OneBit();
 	void RunAvg( float timehlen, float Eperl, float Eperh );
+	friend void RunAvg( float timehlen, float Eperl, float Eperh, std::vector<SacRec>& sacV, bool normByFirst = false );
 	void Whiten( float fl, float fu, float fhlen = 0.0002 );
 	// EqkCut works on a given seismic record, (attempt to) zero-out all time segments that's 
 	// affected by earthquakes or other large amplitude containminations.

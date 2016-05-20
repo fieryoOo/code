@@ -2897,6 +2897,27 @@ void SacRec::RunAvg( float timehlen, float Eperl, float Eperh ) {
 
 }
 
+void RunAvg( float timehlen, float Eperl, float Eperh, std::vector<SacRec>& sacV, bool normByFirst ) {
+	SacRec sac_sigmax;
+	// denominator (maximum smoothed signal)
+	for( auto &sac : sacV ) {
+		SacRec sac_sm;
+		/* filter into the earthquake band */
+		if( Eperl != -1. ) {
+			SacRec sac_eqk;
+			float f2 = 1./Eperh, f1 = f2*0.6, f3 = 1./Eperl, f4 = f3*1.4;
+			sac.BandpassCOSFilt( f1, f2, f3, f4, sac_eqk );
+			sac_eqk.Smooth( timehlen, sac_sm );
+		} else {
+			sac.Smooth( timehlen, sac_sm );
+		}
+		sac_sigmax.PullUpTo( sac_sm );
+		if( normByFirst ) break;
+	}
+	// apply normalizer
+	for( auto &sac : sacV ) sac.Divf(sac_sigmax);
+}
+
 void SacRec::Whiten( float fl, float fu, float fhlen ) {
 	SacRec sac_am, sac_ph;
 	ToAmPh(sac_am, sac_ph);
@@ -3118,31 +3139,35 @@ float SacRec::Correlation( const SacRec& sac2, const float tb, const float te ) 
 	return cc;
 }
 
-/*
-void SacRec::CrossCorrelate( SacRec& sac2, SacRec& sacout, int ctype ) {
-	// check input
-	if( !sig || !sac2.sig )
-		throw ErrorSR::EmptySig(FuncName);
-	if( shd.npts != sac2.shd.npts )
-		throw ErrorSR::SizeMismatch(FuncName, std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
+void SacRec::CCFromAmPh(SacRec& sac_am, SacRec& sac_ph, const SAC_HD& shd1, const SAC_HD& shd2) {
+	SacRec sac_CC;
+	sac_CC.FromAmPh(sac_am, sac_ph);
+	// form final result
+	int lag = shd1.npts-1, ns = (sac_am.shd.npts-1) * 2;
+	shd = shd1;
+	shd.npts = lag*2 + 1;
+	float Tshift = shd2.b-shd1.b, Tlag = lag * shd.delta;
+	shd.b = -Tlag + Tshift;
+	shd.e = Tlag + Tshift;
+	shd.user0 = 1;
+	strncpy(shd.kevnm, shd1.kstnm, 8); strncpy(shd.kstnm, shd2.kstnm, 8);
+	shd.evlo = shd1.stlo; shd.stlo = shd2.stlo;
+	shd.evla = shd1.stla; shd.stla = shd2.stla;
+	pimpl->ComputeDisAzi( shd );
+	sig.reset( new float[lag*2+1]() );
+	float *cor = sig.get(), *CCout = sac_CC.sig.get();
+   for( int i = 1; i< (lag+1); i++) {
+      cor[lag+i] =  CCout[i];
+      cor[lag-i] =  CCout[ns-i];
+   }
+   cor[lag] = CCout[0];
 
-	// sig1 time -> freq
-	SacRec sac1_am, sac1_ph;
-	ToAmPh(sac1_am, sac1_ph);
-	
-	// sig2 time -> freq
-	SacRec sac2_am, sac2_ph;
-	sac2.ToAmPh(sac2_am, sac2_ph);
-
-	CrossCorrelate( sac1_am, sac1_ph, sac2_am, sac2_ph, sacout, ctype );
-
+	// normalize
+	//float *outsig = sacout.sig.get();
+   //for(int i=0; i<sacout.npts; i++) outsig[i] *= ;
 }
-*/
-/* Cross-Correlate with another sac record
-	ctype=0: Cross-Correlate (default) 
-	ctype=1: deconvolve (sac.am/sac2.am)
-	ctype=2: deconvolve (sac2.am/sac.am) */
-void SacRec::CrossCorrelate( SacRec& sac2, SacRec& sacout, const std::string& outname, int ctype ) {
+
+SacRec SacRec::CrossCorrelate( SacRec& sac2, const std::string& outname, int ctype ) {
 	// check input
 	if( !sig || !sac2.sig )
 		throw ErrorSR::EmptySig(FuncName);
@@ -3151,29 +3176,68 @@ void SacRec::CrossCorrelate( SacRec& sac2, SacRec& sacout, const std::string& ou
 	if( shd.npts != sac2.shd.npts )
 		throw ErrorSR::HeaderMismatch(FuncName, "npts: "+std::to_string(shd.npts)+" - "+std::to_string(sac2.shd.npts) );
 
-	// sig1 time -> freq
+	// FFT on sig1
 	SacRec sac1_am, sac1_ph;
 	ToAmPh(sac1_am, sac1_ph);
 	
-	// sig2 time -> freq
+	// FFT on sig2
 	SacRec sac2_am, sac2_ph;
 	sac2.ToAmPh(sac2_am, sac2_ph);
 
+	SacRec saco_am, saco_ph;
+	CrossCorrelateSACs( sac1_am, sac1_ph, sac2_am, sac2_ph, saco_am, saco_ph, ctype );
+
+	if(! outname.empty()) {
+		saco_am.Write(outname+"_am");
+		saco_ph.Wrap(); saco_ph.Write(outname+"_ph");
+	}
+
+	// whiten
+	//saco_am.RunAvg(0.001, -1, -1);
+	//saco_am.cosTaperL(0.01, 0.0125);
+	//saco_am.cosTaperR(0.4, 0.5);
+	// convert back to time domain (with length ns)
+	SacRec sacout; sacout.CCFromAmPh( saco_am, saco_ph, shd, sac2.shd );
+	return sacout;
+}
+
+SacRec CrossCorrelateSACs( const SacRec& sac1_am, const SacRec& sac1_ph, const SacRec& sac2_am, const SacRec& sac2_ph, 
+									const SAC_HD& shd1, const SAC_HD& shd2, int ctype ) {
+	SacRec saco_am, saco_ph;
+	CrossCorrelateSACs( sac1_am, sac1_ph, sac2_am, sac2_ph, saco_am, saco_ph, ctype );
+	SacRec sacout; sacout.CCFromAmPh( saco_am, saco_ph, shd1, shd2 );
+	return sacout;
+}
+
+/* Cross-Correlate with another sac record
+	ctype=0: Cross-Correlate (default) 
+	ctype=1: deconvolve (sac.am/sac2.am)
+	ctype=2: deconvolve (sac2.am/sac.am) */
+void CrossCorrelateSACs( const SacRec& sac1_am, const SacRec& sac1_ph, const SacRec& sac2_am, const SacRec& sac2_ph, 
+							SacRec& saco_am, SacRec& saco_ph, int ctype ) {
+	// check input
+	auto &shd = sac1_am.shd;
+	if( ! (sac1_am.sig&&sac1_ph.sig && sac2_am.sig&&sac2_ph.sig) )
+		throw ErrorSR::EmptySig(FuncName);
+	if( shd.delta != sac2_am.shd.delta )
+		throw ErrorSR::HeaderMismatch(FuncName, "dt");
+	if( shd.npts != sac2_am.shd.npts )
+		throw ErrorSR::HeaderMismatch(FuncName, "npts: "+std::to_string(shd.npts)+" - "+std::to_string(sac2_am.shd.npts) );
+
 	// initialize amp and phase out
-	int npts = sac1_am.shd.npts;
-	SacRec out_am;
-	if( ctype == 2 ) out_am = sac2_am;
-	else out_am = sac1_am;
+	int npts = shd.npts;
+	if( ctype == 2 ) saco_am = sac2_am;
+	else saco_am = sac1_am;
 	/*
-	out_am.sig.reset( new float[ns]() );
-	if( ! out_am.sig )
-		throw ErrorSR::MemError( FuncName, "new failed for out_am!");
-	out_am.shd = sac1_am.shd;
-	out_am.shd.npts = ns;
+	saco_am.sig.reset( new float[ns]() );
+	if( ! saco_am.sig )
+		throw ErrorSR::MemError( FuncName, "new failed for saco_am!");
+	saco_am.shd = sac1_am.shd;
+	saco_am.shd.npts = ns;
 	*/
 
 	// correlate in freq domain
-	float *amout = out_am.sig.get();
+	float *amout = saco_am.sig.get();
 	float *am1 = sac1_am.sig.get(), *am2 = sac2_am.sig.get();
 	float ampmin = 0.;
 	switch( ctype ) {
@@ -3195,63 +3259,25 @@ void SacRec::CrossCorrelate( SacRec& sac2, SacRec& sacout, const std::string& ou
 	}
 
 	// clear sacs & free memories 1
-	sac1_am.clear(); sac2_am.clear();
+	//sac1_am.clear(); sac2_am.clear();
 
 	// compute phase out
-	SacRec out_ph( sac2_ph );
+	saco_ph = sac2_ph;
 	/*
-	out_ph.sig.reset( new float[ns]() );
-	if( ! out_ph.sig )
-		throw ErrorSR::MemError( FuncName, "new failed for out_ph!");
-	out_ph.shd = sac1_ph.shd;
-	out_ph.shd.npts = ns;
+	saco_ph.sig.reset( new float[ns]() );
+	if( ! saco_ph.sig )
+		throw ErrorSR::MemError( FuncName, "new failed for saco_ph!");
+	saco_ph.shd = sac1_ph.shd;
+	saco_ph.shd.npts = ns;
 	*/
-	float *phout = out_ph.sig.get();
+	float *phout = saco_ph.sig.get();
 	float *ph1 = sac1_ph.sig.get(), *ph2 = sac2_ph.sig.get();
    for(int i=0; i<npts; i++) phout[i] -= ph1[i];
+	saco_ph.Wrap();
 
 	// clear sacs & free memories 2
-	sac1_ph.clear(); sac2_ph.clear();
+	//sac1_ph.clear(); sac2_ph.clear();
 
-	// whiten
-	//out_am.RunAvg(0.001, -1, -1);
-	//out_am.cosTaperL(0.01, 0.0125);
-	//out_am.cosTaperR(0.4, 0.5);
-	// convert back to time domain (with length ns)
-	SacRec sac_CC;
-	sac_CC.FromAmPh(out_am, out_ph);
-	// clear sacs & free memories 3
-	if(! outname.empty()) {
-		out_am.Write(outname+"_am");
-		out_ph.Wrap(); out_ph.Write(outname+"_ph");
-	}
-	out_am.clear(); out_ph.clear();
-
-	// form final result
-	int lag = shd.npts-1, ns = (npts-1) * 2;
-	auto &shdout = sacout.shd;
-	shdout = shd;
-	shdout.npts = lag*2 + 1;
-	float Tshift = sac2.shd.b-shd.b, Tlag = lag * shdout.delta;
-	shdout.b = -Tlag + Tshift;
-	shdout.e = Tlag + Tshift;
-	shdout.user0 = 1;
-	strncpy(shdout.kevnm, shdout.kstnm, 8); strncpy(shdout.kstnm, sac2.shd.kstnm, 8);
-	shdout.evlo = shdout.stlo; shdout.stlo = sac2.shd.stlo;
-	shdout.evla = shdout.stla; shdout.stla = sac2.shd.stla;
-	pimpl->ComputeDisAzi( shdout );
-	sacout.sig.reset( new float[lag*2+1]() );
-	float *cor = sacout.sig.get(), *CCout = sac_CC.sig.get();
-   for( int i = 1; i< (lag+1); i++) {
-      cor[lag+i] =  CCout[i];
-      cor[lag-i] =  CCout[ns-i];
-   }
-   cor[lag] = CCout[0];
-
-	// normalize
-	//float *outsig = sacout.sig.get();
-   //for(int i=0; i<sacout.npts; i++) outsig[i] *= ;
-	
 }
 
 
