@@ -64,7 +64,7 @@ int Resampling(char *sacname, float **sig2, SAC_HD *sd, int ithread) {
    long double fra1, fra2;
    nb = ceil((shd.nzmsec*0.001+shd.b)*sps);
    i = (int)floor((nb*dt-shd.nzmsec*0.001-shd.b)/shd.delta);
-   if(fabs(iinc*shd.delta-dt)<1.e-7) { //sps is a factor of 1/delta
+   if(fabs(iinc*shd.delta-dt)<1.e-5) { //sps is a factor of 1/delta
       fra2 = (nb*dt-i*shd.delta-shd.nzmsec*0.001-shd.b)/shd.delta;
       fra1 = 1.-fra2;
       if(fra2==0)

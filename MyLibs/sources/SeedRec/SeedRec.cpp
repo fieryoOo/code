@@ -99,8 +99,10 @@ public:
       //extract SAC&RESP and mv into thread working directory
       sprintf(str,"sh %s >& /dev/null", fname);
       std::vector<std::string> list_result;
+		bool sacFound = false;
 		#pragma omp critical(external)
       {
+
       system(str);
 
       /*---------- mv response file -----------*/   
@@ -112,15 +114,16 @@ public:
          Move(list_result.at(0).c_str(), fresp.c_str());
 			/*--------------and remove the rest----------------*/
          for(int i=1; i<list_result.size(); i++) fRemove(list_result.at(i).c_str());
-
       }
-      } // critical section
    
       /*---------mv sac files and produce saclst---------*/
 		//yyyy.ddd.hh.mm.ss.ffff.NN.SSSSS.LL.CCC.Q.SAC (rdseed naming convention; modify acordingly if the convention ever changes)
       sprintf(str, "*.*.*.*.*.*.*.%s.*.%s.*.SAC", staname.c_str(), chname.c_str());
       //if( list_result.size() == 0 ) return false;
-      return wMove(".", str, tdir.c_str(), filelist);
+      sacFound = wMove(".", str, tdir.c_str(), filelist);
+
+      } // critical section
+		return sacFound;
    }
 
    int Jday ( int y, int m, int d ) {
@@ -212,16 +215,14 @@ bool SeedRec::ExtractSac( const std::string& staname, const std::string& netname
     * resample and merge one at a time */
 	bool merged = false;
 	try {
-		sacout.Load(filelst.at(0).c_str());
-		sacout.Resample(sps);
-		fRemove(filelst.at(0).c_str());
-		for(int i=1; i<filelst.size(); i++) {
-			SacRec sacnew(filelst.at(i).c_str(), *report);
+		sacout.clear();
+		for(int i=0; i<filelst.size(); i++) {
+			SacRec sacnew(filelst.at(i), *report);
 			sacnew.Load();
-			sacnew.Resample(sps);
-			sacout.merge(sacnew);
+			try {	sacnew.Resample(sps);	// skip sacs that are too short to be resampled
+			} catch( const std::runtime_error &e ) { continue; }
+			merged = merged || sacout.merge(sacnew);
 			fRemove(filelst.at(i).c_str());
-			merged = true;
 		}
 	} catch( const ErrorSR::Base& e ) {
 		std::cerr<<"Warning(SeedRec::ExtractSac): extraction failed on "<<staname<<" "
@@ -248,7 +249,7 @@ bool SeedRec::ExtractSac( const std::string& staname, const std::string& netname
 
    //reports << " done. "<<std::endl;
    dRemove(tdir.c_str());
-   return true;
+   return sacout.sig?true:false;
 
 }
 

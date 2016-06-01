@@ -28,25 +28,8 @@ double vincenty_earth_dist( const double lat1, const double lon1,
                             double *back_azimuth);
 bool CalcRecCor( std::string & fname1, std::string fname2, float *cor_rec, int lagn, int mintlen, float tlen, float fs);
 
-bool FileExists(const char* filename)
-{
-    struct stat info;
-    int ret = -1;
-
-    //get the file attributes
-    ret = stat(filename, &info);
-    if(ret == 0)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-bool FileExists(const std::string& filename)
-{
-    return FileExists(filename.c_str());
+bool FileExists(const std::string& filename) {
+   struct stat info;	return stat(filename.c_str(), &info)==0;
 }
 void Rotation_daily(std::deque < SacRec > & SACV, std::vector < std::string > Rout)
 {

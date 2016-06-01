@@ -297,8 +297,6 @@ bool List(const char *dir, const char *pattern, int type, std::vector<std::strin
 
    if (errno != 0) perror("fts_read");
    if (fts_close(tree) < 0) perror("fts_close");
-   if( filelist.size() == 0 ) return false;
-   return true;
-   //return sblk;
+	return filelist.size()!=0;
 }
 

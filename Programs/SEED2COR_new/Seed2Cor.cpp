@@ -36,7 +36,8 @@ void TNormAll( std::deque<SacRec>& sacV, const std::vector<DailyInfo>& dinfoV, b
 					if( dinfo.Eperl != -1. ) {
 						SacRec sac_eqk;
 						float f2 = 1./dinfo.Eperh, f1 = f2*0.6, f3 = 1./dinfo.Eperl, f4 = f3*1.4;
-						sac.Filter( f1, f2, f3, f4, sac_eqk );
+						//sac.Filter( f1, f2, f3, f4, sac_eqk );
+						sac.BandpassCOSFilt( f1, f2, f3, f4, sac_eqk );
 						sac_eqk.Smooth( dinfo.timehlen, sac_sm );
 					} else {
 						sac.Smooth( dinfo.timehlen, sac_sm );
@@ -111,7 +112,7 @@ int main(int argc, char *argv[]) {
 	try {
 		/* Initialize the CC Database with the input parameter file */
 		CCDatabase cdb( argv[1] );
-		//const CCPARAM& cdbParams = cdb.GetParams();
+		const CCPARAM& cdbP = cdb.GetParams();
 
 		/* check total memory available */
 		float MemTotal = memo.MemTotal();
@@ -152,13 +153,14 @@ int main(int argc, char *argv[]) {
 					SacRec sac( report );
 					sac.SetMaxMemForParallel( MemTotal * dinfo.memomax * 0.8 / omp_get_num_threads() );
 					SeedRec seedcur( dinfo.seedname, dinfo.rdsexe, report );
-					if( ! seedcur.ExtractSac( dinfo.staname, dinfo.chname, dinfo.sps, dinfo.rec_outname,
-								dinfo.resp_outname, gapfrac, sac ) ) {
+					if( ! seedcur.ExtractSac( dinfo.staname, dinfo.ntname, dinfo.chname, dinfo.sps, dinfo.rec_outname,
+													  dinfo.resp_outname, gapfrac, sac ) ) {
 						sacV.push_back( std::move(sac) );
 						//sacV.push_back( SacRec() );
 						continue;
 					}
 					sac.Write( dinfo.osac_outname );
+					if( std::min(sac.shd.e, dinfo.tlen+dinfo.t1-sac.shd.b) - std::max(sac.shd.b, dinfo.t1) < cdbP.mintlen ) continue;
 
 					/* remove response and cut */
 					sac.RmRESP( dinfo.resp_outname, dinfo.perl*0.8, dinfo.perh*1.3, dinfo.evrexe );

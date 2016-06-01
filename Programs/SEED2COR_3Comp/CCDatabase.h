@@ -55,7 +55,7 @@ struct CCPARAM
     int fprcs = NaN;						//turn on/off (1/0) precursor signal checking
     float memomax = NaN;					//maximum memory fraction to be used. (set according to number of threads)
     int lagtime = NaN;					//cross-correlation signal half length in sec
-    int mintlen = NaN;					//allowed minimum time length for cross-correlation (takes effect only when ftlen = 1)
+    int mintlen = NaN;					//allowed minimum time length for cross-correlation
     int fdelosac = 0;					//delete original sac files after removing response when set to 1
     int fdelamph = 0;					//delete am&ph files after cross-correlation when set to 1
     int fskipesac = 0;					//skip ExtractSac() when set to 2, skip upon existence of target file when set to 1

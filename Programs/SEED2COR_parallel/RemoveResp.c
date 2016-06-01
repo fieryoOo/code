@@ -215,7 +215,9 @@ int TransferEvr(int ne, int ns, float **sig, SAC_HD *sd, int ithread) {
    sscanf(sd->kcmpnm, "%s", ch);
 	//std::cerr<<"channel from sacheader: "<<ch<<std::endl;
    sscanf(sd->knetwk, "%s", net);
-   sprintf(buff, "%s %s %s %4d %3d %f %f %d -f %s -v >& /dev/null", evrexe, sta, ch, sd->nzyear, sd->nzjday, f1, f4, nf, sdb->rec[ne][ns].resp_fname);
+	int hourmid = (int)ceil( (3600.*sd->nzhour + 60.*sd->nzmin + sd->nzsec + 0.001*sd->nzmsec + sd->b) / 3600. ); 
+   sprintf(buff, "%s %s %s %4d %3d %f %f %d -t %d -f %s -v >& /dev/null", evrexe, sta, ch, sd->nzyear, sd->nzjday, f1, f4, nf, hourmid, sdb->rec[ne][ns].resp_fname);
+   //sprintf(buff, "%s %s %s %4d %3d %f %f %d -f %s -v >& /dev/null", evrexe, sta, ch, sd->nzyear, sd->nzjday, f1, f4, nf, sdb->rec[ne][ns].resp_fname);
    pthread_mutex_lock(&evrlock); //lock
    system(buff);
    char nameam[50], nameph[50];
