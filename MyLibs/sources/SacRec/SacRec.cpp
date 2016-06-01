@@ -2047,7 +2047,7 @@ void SacRec::NoiseZeroOut( SacRec& sacout, std::vector<int>& recb, std::vector<i
 	int inoiselevel = (int)(shd.npts*0.5);
 	std::nth_element(sbeg, sbeg+inoiselevel, sbeg+shd.npts);
 	float noiselevel = sacout.sig[inoiselevel];
-	// signal < noiselevel*nfactor or nomin is not allowed
+	// signal < (noiselevel*nfactor or nomin) is not allowed
 	float stdmin = std::max(nomin, noiselevel * nofactor);
 	// identify invalid (near zero) segments as defined by stdmin
 	sacout = *this;
@@ -3045,12 +3045,13 @@ bool SacRec::EqkCut( SacRec& sacout, std::vector<int>& rec_b, std::vector<int>& 
 	// remove invalid windows with a length < 2.5*twindow sec
  	int winlen_min = (int)ceil(2.5*twindow/dt);
 	sigosac = sacout.sig.get();	// re-point! NoiseZeroOut invalidated the old sigosac pointer
-	for(int irec=0; irec<rec_b.size(); irec++) {
-		if( rec_e[irec]-rec_b[irec] > winlen_min ) continue;
+	for(int irec=0; irec<rec_b.size(); ) {
+		if( rec_e[irec]-rec_b[irec] > winlen_min ) {	irec++; continue;	}
 		for(int i=rec_b[irec]; i<rec_e[irec]; i++) sigosac[i] = 0.;
 		rec_b.erase(rec_b.begin()+irec);
 		rec_e.erase(rec_e.begin()+irec);
 	}
+	//for(int irec=0; irec<rec_b.size(); irec++) std::cerr<<"   "<<X(rec_b[irec])<<" "<<X(rec_e[irec])<<std::endl;
 
 	/*
    // locate all rec_begin and rec_end pairs, zero out the windows that are shorter than winlen_min

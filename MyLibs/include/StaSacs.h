@@ -153,6 +153,7 @@ StaSacs::StaSacs( const std::string& fnameZ, const std::string& fnameH1,
 		sac.Write("debug_"+chn+".SAC"); 
 		#endif
 	};
+	// load sacs
 	LoadSAC(sacZ);
 	try {	// load horizontal channels
 		LoadSAC(sacH1); LoadSAC(sacH2); SACRotate(sacH1, sacH2, -azi_H1);
@@ -166,12 +167,22 @@ StaSacs::StaSacs( const std::string& fnameZ, const std::string& fnameH1,
 	} catch( ErrorSR::Base& e ) {
 		std::cerr<<"Warning(StaSacs): empty/non-accessable sacD ("<<e.what()<<")"<<std::endl;
 	}
-	if( sacH1.sig && (sacZ.shd.npts!=sacH1.shd.npts || sacZ.shd.delta!=sacH1.shd.delta ) )
-		throw ErrorSR::HeaderMismatch(FuncName, sacH1.fname);
-	if( sacH2.sig && (sacZ.shd.npts!=sacH2.shd.npts || sacZ.shd.delta!=sacH2.shd.delta ) )
-		throw ErrorSR::HeaderMismatch(FuncName, sacH2.fname);
-	if( sacD.sig && (sacZ.shd.npts!=sacD.shd.npts || sacZ.shd.delta!=sacD.shd.delta ) )
-		throw ErrorSR::HeaderMismatch(FuncName, sacD.fname);
+	// check & synchronize sac headers
+	auto SynchronizeHeaders = [&](SacRec &sac1, SacRec &sac2) {
+		if( ! sac2.sig ) return;
+		if( sac1.shd.npts!=sac2.shd.npts || sac1.shd.delta!=sac2.shd.delta )
+			throw ErrorSR::HeaderMismatch(FuncName, sac1.fname+" - "+sac2.fname+" 1");
+		if( sac1.shd.b != sac2.shd.b ) {
+			if( fabs(sac1.shd.b-sac2.shd.b) < std::min(1.e-3,0.05*sac1.shd.delta) ) {
+				sac2.shd.b = sac1.shd.b;
+			} else {
+				throw ErrorSR::HeaderMismatch(FuncName, sac1.fname+" - "+sac2.fname+" 2");
+			}
+		}
+	};
+	SynchronizeHeaders(sacZ, sacH1);
+	SynchronizeHeaders(sacZ, sacH2);
+	SynchronizeHeaders(sacZ, sacD);
 }
 
 float StaSacs::RemoveCompliance( const std::string& outinfoname, float tseg ) {
@@ -558,7 +569,8 @@ void StaSacs::Segmentize(const SacRec& sac, std::vector<SacRec>& sacamV, std::ve
 		//std::cout<<twin_b<<" "<<twin_e<<std::endl;
 		for(tb=twin_b; tb<=twin_e-_tseg; tb+=_tseg) {
 			float te = tb+_tseg;
-			if( tb<sac.shd.b || te>sac.shd.e ) continue;
+			//if( tb<sac.shd.b || te>sac.shd.e ) continue;
+			if( tb<sac.shd.b-1.0e-5 || te>sac.shd.e+1.0e-5 ) continue;
 			SacRec sac_tmp, sac_am, sac_ph;
 			// cut and FFT
 			sac.cut(tb,te, sac_tmp);
@@ -681,7 +693,8 @@ void StaSacs::CalcTransferF( const SacRec& sac1, std::vector<SacRec>& sac1amV, s
 	// check consistency of segment Numbers
 	int nseg = sac1amV.size();
 	if( nseg!=sac1phV.size() || nseg!=sac2amV.size() || nseg!=sac2phV.size() ) {
-		std::string info = std::to_string(nseg)+" "+std::to_string(sac1phV.size())+" "+std::to_string(sac2amV.size())+" "+std::to_string(sac2phV.size());
+		std::string info = sac1.fname+" "+std::to_string(nseg)+" "+std::to_string(sac1phV.size())+"  "+
+								 sac2.fname+" "+std::to_string(sac2amV.size())+" "+std::to_string(sac2phV.size());
 		throw std::runtime_error(std::string("Error(")+FuncName+"): No. segments mismatch ("+info+")");
 	}
 
