@@ -18,15 +18,15 @@
 #endif
 /*
 // a workaround for nullptr when compiled by old gcc compiler
-const class {				// this is a const object...
+const class {										// this is a const object...
 public:
-   template<class T>			// convertible to any type
-   operator T*() const { return 0 }	// of null non-member pointer...
-   template<class C, class T>		// or any type of null
-   operator T C::*() const { return 0; }// member pointer...
+   template<class T>								// convertible to any type
+   operator T*() const { return 0 }			// of null non-member pointer...
+   template<class C, class T>					// or any type of null
+   operator T C::*() const { return 0; }	// member pointer...
 private:
-  void operator&() const;		// whose address can't be taken
-} nullptr = {};				// and whose name is nullptr
+  void operator&() const;						// whose address can't be taken
+} nullptr = {};									// and whose name is nullptr
 */
 
 
@@ -197,7 +197,8 @@ public:
 	}
 	inline double X( const size_t index ) const { return (double)shd.b + index*shd.delta; }
    /* compute the absolute time in sec relative to 1900.01.00 */
-   double AbsTime ();
+	double DayTime() const;
+   double AbsTime() const;
    /* update/reformat header time if shd.nzmsec is modified and is out of the range [0,1000) */
    void UpdateTime();
    /* search for min&max signal positions and amplitudes */
@@ -419,7 +420,7 @@ public:
       merge( sacrec2 );
       arrange();
    }
-   void merge( SacRec sacrec2 );
+   bool merge( SacRec sacrec2 );
    int arrange( const char *recname = nullptr );
 
 	/* ---------- compute the correlation coefficient with an input SacRec ---------- */

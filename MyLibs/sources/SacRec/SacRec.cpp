@@ -292,7 +292,7 @@ struct SacRec::SRimpl {
 		}
 	}
 
-	float FillGap( float *pbeg, float *pend, float mean1, float mean2, float std, int hlen, int step ) {
+	void FillGap( float *pbeg, float *pend, float mean1, float mean2, float std, int hlen, int step ) {
 		// defube random number generator
 		unsigned timeseed = std::chrono::system_clock::now().time_since_epoch().count();
 		std::default_random_engine generator (timeseed);
@@ -322,11 +322,10 @@ struct SacRec::SRimpl {
          for(int i=1; i<step; i++) *(p-step+i) = *(p-step) + slope * i;	// by lili
 		}
 		// connect the last several points
-		*pend = rand();
-		p = p-step;
-		slope = ( *pend - *p ) / ( pend - p );
-      //for(p=p+1; p<pend; p++) *p = *(p-1) + slope;
-      for(int i=1; p+i<pend; i++) *(p+i) = *p + slope*i; // by lili
+		p -= step; if( p == pend-1 ) return;
+		auto plast = pend-1; *plast = rand();
+		slope = ( *plast - *p ) / ( plast - p );
+      for(p=p+1; p<plast; p++) *p = *(p-1) + slope;
 		// shift generated radom numbers to mean1 - mean2
 		slope = (mean2 - mean1) / (pend - pbeg);
 		for(p=pbeg; p<pend; p++) {
@@ -1312,7 +1311,11 @@ float SacRec::Azi() {
 	return shd.az;
 }
 
-double SacRec::AbsTime () {
+double SacRec::DayTime() const {
+	return 3600.*shd.nzhour + 60.*shd.nzmin + shd.nzsec + 0.001*shd.nzmsec;
+}
+
+double SacRec::AbsTime() const {
    //if( ! sig ) return -1.;
    //if( shd == sac_null ) return -1.; // operator== not defined yet
    if( shd.npts <= 0 ) return -1.;
@@ -1324,7 +1327,7 @@ double SacRec::AbsTime () {
       if ( (i%400==0) || (i%100!=0&&i%4==0) ) nyday += 366;
       else nyday += 365;
    }
-   return 24.*3600.*(nyday+shd.nzjday) + 3600.*shd.nzhour + 60.*shd.nzmin + shd.nzsec + 0.001*shd.nzmsec;
+   return 24.*3600.*(nyday+shd.nzjday) + DayTime();
 }
 
 
@@ -2400,10 +2403,15 @@ void SacRec::cut( float tb, float te, SacRec& sac_result ) const {
 }
 
 
-void SacRec::merge( SacRec sacrec2 ) {
+bool SacRec::merge( SacRec sacrec2 ) {
    // make sure that both signals are loaded
-   if( !sig || !sacrec2.sig )
-		throw ErrorSR::EmptySig(FuncName, "for either sr1 or sr2");
+   if( !sig && !sacrec2.sig )
+		throw ErrorSR::EmptySig(FuncName, "both sacs are empty");
+
+	if( !sig || !sacrec2.sig ) {
+		if( ! sig ) *this = sacrec2;
+		return false;
+	}
    
    SAC_HD& shd2 = sacrec2.shd;
    // starting and ending time
@@ -2420,7 +2428,7 @@ void SacRec::merge( SacRec sacrec2 ) {
 		(*report) << "signal shifted by " << tshift << "secs" << std::endl;
 	if( t2b>=t1b && t2e<=t1e ) {
 		std::copy(&(sacrec2.sig[0]), &(sacrec2.sig[0])+shd2.npts, &(sig[nb]));
-		return;
+		return true;
 	}
 
 	// merge out of place otherwise
@@ -2465,11 +2473,13 @@ void SacRec::merge( SacRec sacrec2 ) {
    if( reversed ) shd = shd2;
    shd.npts = N;
 	shd.e = shd.b + (N-1)*shd.delta;
+
+	return true;
 }
 
 int SacRec::arrange(const char* recname) {
    // count holes
-   float maxfloat = std::numeric_limits<float>::max();
+   float maxfloat = std::numeric_limits<float>::max()*0.99;
    int Nholes=0;
 	float *sigsac = sig.get();
    for(int i=0;i<shd.npts;i++)
@@ -2649,7 +2659,8 @@ void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std
    sscanf(shd.kstnm, "%s", sta);
    sscanf(shd.kcmpnm, "%s", ch);
    sscanf(shd.knetwk, "%s", net);
-   sprintf(buff, "%s %s %s %4d %3d %f %f %d -f %s -v >& /dev/null", evrexe.c_str(), sta, ch, shd.nzyear, shd.nzjday, f1, f4, nf, fresp.c_str());
+	int hourmid = (int)ceil( (DayTime() + shd.b) / 3600. ); 
+   sprintf(buff, "%s %s %s %4d %3d %f %f %d -t %d -f %s -v >& /dev/null", evrexe.c_str(), sta, ch, shd.nzyear, shd.nzjday, f1, f4, nf, hourmid, fresp.c_str());
 	// define all variables to be used in the critical section
    char nameam[50], nameph[50];
    sprintf(nameam, "AMP.%s.%s.*.%s", net, sta, ch);
@@ -2705,11 +2716,11 @@ void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std
 	}
 	// throw exceptions if failed
 	if( sizeA != 1 )
-		throw ErrorSR::ExternalError( FuncName, std::to_string(sizeA) + " AMP file(s) found");
+		throw ErrorSR::ExternalError( FuncName, std::to_string(sizeA) + " AMP file(s) found from " + fresp);
 	if( ! openA )
 		throw ErrorSR::BadFile( FuncName, "reading from " + std::string(nameam) );
 	if( sizeP != 1 )
-		throw ErrorSR::ExternalError( FuncName, std::to_string(sizeP) + " PHASE file(s) found");
+		throw ErrorSR::ExternalError( FuncName, std::to_string(sizeP) + " PHASE file(s) found from " + fresp);
 	if( ! openP )
 		throw ErrorSR::BadFile( FuncName, "reading from " + std::string(nameph) );
    // remove trend ( and mean )
@@ -2762,7 +2773,8 @@ void SacRec::Resample( int sps, bool fitParabola ) {
 	if( iinc==1 && t0==0. ) return;	// nothing needs to be done
 
    // allocate space for the new sig pointer
-	int nptst = (int)floor( ( t0 + (shd.npts-1)*shd.delta - t0new ) * sps );
+	int nptst = (int)floor( ( t0 + (shd.npts-1)*shd.delta - t0new ) * sps ) + 1;
+	if( nptst < 1 ) throw ErrorSR::InsufData(FuncName, "npts<=0 after resampling");
    //int nptst = nint((shd.npts-1)*shd.delta*sps)+10;
    std::unique_ptr<float[]> sig2(new float[nptst]);
 	if( ! sig2 )
