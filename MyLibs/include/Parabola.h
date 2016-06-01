@@ -114,8 +114,10 @@ public:
 		: P1(P1in), P2(P2in), P3(P3in) {}
 
 	void Solve() const {
-		if( ! (P1.isValid() && P2.isValid() && P3.isValid()) )
-			throw std::runtime_error( std::string(FuncName) + ": unfilled point(s)!" );
+		if( ! (P1.isValid() && P2.isValid() && P3.isValid()) ) {
+			std::stringstream ss; ss<<FuncName<<": unfilled point(s). "<<P1<<"   "<<P2<<"   "<<P3;
+			throw std::runtime_error( ss.str() );
+		}
 		long double x1 = P1.x, y1 = P1.y;
 		long double x2 = P2.x, y2 = P2.y;
 		long double x3 = P3.x, y3 = P3.y;

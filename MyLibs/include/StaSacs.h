@@ -167,11 +167,11 @@ StaSacs::StaSacs( const std::string& fnameZ, const std::string& fnameH1,
 		std::cerr<<"Warning(StaSacs): empty/non-accessable sacD ("<<e.what()<<")"<<std::endl;
 	}
 	if( sacH1.sig && (sacZ.shd.npts!=sacH1.shd.npts || sacZ.shd.delta!=sacH1.shd.delta ) )
-		throw ErrorSR::HeaderMismatch(FuncName, "H1");
+		throw ErrorSR::HeaderMismatch(FuncName, sacH1.fname);
 	if( sacH2.sig && (sacZ.shd.npts!=sacH2.shd.npts || sacZ.shd.delta!=sacH2.shd.delta ) )
-		throw ErrorSR::HeaderMismatch(FuncName, "H2");
+		throw ErrorSR::HeaderMismatch(FuncName, sacH2.fname);
 	if( sacD.sig && (sacZ.shd.npts!=sacD.shd.npts || sacZ.shd.delta!=sacD.shd.delta ) )
-		throw ErrorSR::HeaderMismatch(FuncName, "D");
+		throw ErrorSR::HeaderMismatch(FuncName, sacD.fname);
 }
 
 float StaSacs::RemoveCompliance( const std::string& outinfoname, float tseg ) {
@@ -680,8 +680,10 @@ void StaSacs::CalcTransferF( const SacRec& sac1, std::vector<SacRec>& sac1amV, s
    Segmentize( sac2, sac2amV, sac2phV );
 	// check consistency of segment Numbers
 	int nseg = sac1amV.size();
-	if( nseg!=sac1phV.size() || nseg!=sac2amV.size() || nseg!=sac2phV.size() )
-		throw std::runtime_error(std::string("Error(")+FuncName+"): No. segments mismatch");
+	if( nseg!=sac1phV.size() || nseg!=sac2amV.size() || nseg!=sac2phV.size() ) {
+		std::string info = std::to_string(nseg)+" "+std::to_string(sac1phV.size())+" "+std::to_string(sac2amV.size())+" "+std::to_string(sac2phV.size());
+		throw std::runtime_error(std::string("Error(")+FuncName+"): No. segments mismatch ("+info+")");
+	}
 
 	// only use segments with (shd.b+shd.e)/2 between [tb, te)
 	int isegb, isege; std::tie(isegb, isege) = GetSegRange(tb, te, sac1amV);
