@@ -65,8 +65,8 @@ int main(int argc, char *argv[]) {
 		SacRec sacCCseg2 = CrossCorrelateSACs( sac1_am, sac1_ph, sac2_am, sac2_ph, sac1S.shd, sac2S.shd );
 		sacCC2.Addf(sacCCseg2);
 		// CC without weightings
-		SacRec sacCC1seg = sac1S.CrossCorrelate(sac2S);
-		sacCC1.Addf(sacCC1seg);
+		SacRec sacCCseg1 = sac1S.CrossCorrelate(sac2S);
+		sacCC1.Addf(sacCCseg1);
 	}
 	sacCC1.Write("debug_CC1.SAC");
 	sacCC2.Write("debug_CC2.SAC");
