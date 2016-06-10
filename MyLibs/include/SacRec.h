@@ -197,8 +197,9 @@ public:
 	}
 	inline double X( const size_t index ) const { return (double)shd.b + index*shd.delta; }
    /* compute the absolute time in sec relative to 1900.01.00 */
+	int AbsDay(int year0 = 1900) const;
+   double AbsTime(int year0 = 1900) const;
 	double DayTime() const;
-   double AbsTime() const;
    /* update/reformat header time if shd.nzmsec is modified and is out of the range [0,1000) */
    void UpdateTime();
    /* search for min&max signal positions and amplitudes */

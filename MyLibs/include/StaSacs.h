@@ -171,12 +171,12 @@ StaSacs::StaSacs( const std::string& fnameZ, const std::string& fnameH1,
 	auto SynchronizeHeaders = [&](SacRec &sac1, SacRec &sac2) {
 		if( ! sac2.sig ) return;
 		if( sac1.shd.npts!=sac2.shd.npts || sac1.shd.delta!=sac2.shd.delta )
-			throw ErrorSR::HeaderMismatch(FuncName, sac1.fname+" - "+sac2.fname+" 1");
+			throw ErrorSR::HeaderMismatch(FuncName, sac1.fname+" - "+sac2.fname+" 1 in cstr");
 		if( sac1.shd.b != sac2.shd.b ) {
-			if( fabs(sac1.shd.b-sac2.shd.b) < std::min(1.e-3,0.05*sac1.shd.delta) ) {
+			if( fabs(sac1.shd.b-sac2.shd.b) < std::min(0.005,0.05*sac1.shd.delta) ) {
 				sac2.shd.b = sac1.shd.b;
 			} else {
-				throw ErrorSR::HeaderMismatch(FuncName, sac1.fname+" - "+sac2.fname+" 2");
+				throw ErrorSR::HeaderMismatch(FuncName, sac1.fname+" - "+sac2.fname+" 2 in cstr");
 			}
 		}
 	};
@@ -289,6 +289,9 @@ void StaSacs::test(float tseg, int nsm, float tb, float te) {
 }
 
 PointC5 StaSacs::RemoveTiltCompliance( const std::string& outinfoname, float tseg ) {
+	if( ! sacZ.sig  ) throw ErrorSR::EmptySig(FuncName, sacZ.fname);
+	if( ! sacH1.sig ) throw ErrorSR::EmptySig(FuncName, sacH1.fname);
+	if( ! sacH2.sig ) throw ErrorSR::EmptySig(FuncName, sacH2.fname);
 	_tseg = tseg;
 	// search for earthquakes and save noise windows, sacZ not modified
 	DetectNoiseWindows(_Eperl, _Eperu);
@@ -566,7 +569,7 @@ void StaSacs::Segmentize(const SacRec& sac, std::vector<SacRec>& sacamV, std::ve
 	float ttaper = std::min(_tseg*0.4, 200.);
 	for(int i=0; i<trec.size(); i++) {
 		float twin_b = trec[i].first, twin_e = trec[i].second, tb;
-		//std::cout<<twin_b<<" "<<twin_e<<std::endl;
+		//std::cout<<i<<"   "<<twin_b<<" "<<twin_e<<" "<<_tseg<<"   "<<sac.shd.b<<" "<<sac.shd.e<<std::endl;
 		for(tb=twin_b; tb<=twin_e-_tseg; tb+=_tseg) {
 			float te = tb+_tseg;
 			//if( tb<sac.shd.b || te>sac.shd.e ) continue;

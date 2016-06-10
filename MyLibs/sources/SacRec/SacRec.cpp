@@ -964,7 +964,26 @@ float SacRec::MemConsumed() const {
 /* ---------------------------------------- sac IO ---------------------------------------- */
 /* load sac header from file 'fname' */
 void SacRec::LoadHD () {
-   std::ifstream fsac(fname.c_str());
+   std::ifstream fsac(fname);
+   if( ! fsac )
+		throw ErrorSR::BadFile( FuncName, "reading from " + fname );
+   //if( SHDMap.empty() ) pimpl->CreateSHDMap();
+   //pthread_mutex_lock(&fiolock);
+	size_t rdsize = sizeof(SAC_HD);
+	#pragma omp critical(sacIO)
+   fsac.read( reinterpret_cast<char *>(&shd), rdsize );
+	if( fsac.gcount() != rdsize )
+		throw ErrorSR::BadFile( FuncName, "failed to retrieve sac header from "+fname+
+													 "("+std::to_string(fsac.gcount())+std::to_string(rdsize)+")" );
+   fsac.close();
+   //pthread_mutex_unlock(&fiolock);
+	// make sure shd.e is filled
+	if( shd.npts > 0 ) shd.e = shd.b + shd.delta * (shd.npts-1);
+}
+
+/* load sac header+signal from file 'fname', memory is allocated on heap */
+void SacRec::Load () {
+   std::ifstream fsac(fname);
    if( ! fsac )
 		throw ErrorSR::BadFile( FuncName, "reading from " + fname );
    //if( SHDMap.empty() ) pimpl->CreateSHDMap();
@@ -974,29 +993,12 @@ void SacRec::LoadHD () {
    fsac.read( reinterpret_cast<char *>(&shd), rdsize );
 	if( fsac.gcount() != rdsize )
 		throw ErrorSR::BadFile( FuncName, "failed to retrieve sac header from " + fname );
-   fsac.close();
    //pthread_mutex_unlock(&fiolock);
 	// make sure shd.e is filled
-	if( shd.npts > 0 ) shd.e = shd.b + shd.delta * shd.npts;
-}
-
-/* load sac header+signal from file 'fname', memory is allocated on heap */
-void SacRec::Load () {
-   //if( SHDMap.empty() ) pimpl->CreateSHDMap();
-   //sig = std::make_shared<float>( new float[shd.npts*sizeof(float)] );
-	// check input file
-   std::ifstream fsac(fname.c_str());
-   if( ! fsac )
-		throw ErrorSR::BadFile( FuncName, "reading from " + fname );
-	// read from fin
-	size_t rdsize = sizeof(SAC_HD);
-	#pragma omp critical(sacIO)
-   fsac.read( reinterpret_cast<char *>(&shd), rdsize );
-	if( fsac.gcount() != rdsize )
-		throw ErrorSR::BadFile( FuncName, "failed to retrieve sac header from " + fname );
-	// make sure shd.e is filled
-	if( shd.npts > 0 ) shd.e = shd.b + shd.delta * shd.npts;
+	if( shd.npts > 0 ) shd.e = shd.b + shd.delta * (shd.npts-1);
 	// allocate memory for sac signal
+	if( shd.npts <= 0 )
+		throw ErrorSR::BadParam( FuncName, "negative npts("+std::to_string(shd.npts)+") in header");
    sig.reset(new float[shd.npts]);
 	if( ! sig )
 		throw ErrorSR::MemError( FuncName, "new failed!");
@@ -1315,19 +1317,25 @@ double SacRec::DayTime() const {
 	return 3600.*shd.nzhour + 60.*shd.nzmin + shd.nzsec + 0.001*shd.nzmsec;
 }
 
-double SacRec::AbsTime() const {
+int SacRec::AbsDay(int year0) const {
+	if( year0 > shd.nzyear )
+		throw ErrorSR::BadParam(FuncName, "year0("+std::to_string(year0)+") > shd.nzyear("+std::to_string(shd.nzyear)+")");
+   int nyday = 0;
+   for( int i=year0+1; i<shd.nzyear; i++ ) {
+      if ( (i%400==0) || (i%100!=0&&i%4==0) ) nyday += 366;
+      else nyday += 365;
+   }
+	return nyday + shd.nzjday;
+}
+
+double SacRec::AbsTime(int year0) const {
    //if( ! sig ) return -1.;
    //if( shd == sac_null ) return -1.; // operator== not defined yet
    if( shd.npts <= 0 ) return -1.;
    if( shd.nzjday == NaN || shd.nzyear == NaN || shd.nzhour == NaN ||
        shd.nzmin == NaN || shd.nzsec == NaN || shd.nzmsec == NaN ) return -1;
-   //computes time in s relative to 1900
-   int nyday = 0;
-   for( int i=1901; i<shd.nzyear; i++ ) {
-      if ( (i%400==0) || (i%100!=0&&i%4==0) ) nyday += 366;
-      else nyday += 365;
-   }
-   return 24.*3600.*(nyday+shd.nzjday) + DayTime();
+   //computes time in s relative to year0 (defaulted to 1900)
+   return 24.*3600.*AbsDay() + DayTime();
 }
 
 
@@ -1516,6 +1524,7 @@ void SacRec::Smooth( float timehlen, SacRec& sacout, bool abs, float tb, float t
 		sacout = *this; return;
 	}
 
+	//std::cerr<<"SacRec::Smooth: new npts = "<<shd.npts<<std::endl;
 	if( tb!=NaN || te!=NaN ) { // copy sac into sacout if partialy smoothing{
 		sacout = *this;
 	} else {	// resize sacout.sig otherwise
@@ -1533,6 +1542,7 @@ void SacRec::Smooth( float timehlen, SacRec& sacout, bool abs, float tb, float t
 		int nb = Index(tb); npts -= nb;
 		sigsac += nb; sigout += nb;
 	}
+	//std::cerr<<"SacRec::Smooth: before call "<<tb<<" "<<npts<<" "<<half_l<<std::endl;
 	pimpl->Smooth(sigsac, sigout, npts, half_l, abs);
 }
 
@@ -1788,7 +1798,7 @@ void SacRec::FFT_p( SacRec& sac_re, SacRec& sac_im, const int nfout ) const {
    sac_re.shd.npts = nk;
    sac_re.shd.delta = 1./(delta*ns);
    sac_re.shd.b = 0.;
-	sac_re.shd.e = sac_re.shd.delta * nk;
+	sac_re.shd.e = sac_re.shd.delta * (nk-1);
 	sac_im.shd = sac_re.shd;
 }
 
