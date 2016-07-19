@@ -46,7 +46,7 @@ public:
       for(double x=xmin; x<xmax; x+=step) {
          loc(0) = x;
 			//std::cerr<<"Evaluate at "<<x<<std::endl;
-			curveout.push_back( x, (double)pspline.eval(loc) );
+			curveout.push_back( PointC(x, (double)pspline.eval(loc)) );
       }
 
 	}

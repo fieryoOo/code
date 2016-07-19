@@ -123,7 +123,7 @@ c            read(1,'(a)',end=9797)vzdor
 c            read(1, '(7(E14.7,2X))') t(k),cr(k),ur(k),wvr(k),ampr(k),ratio(k),qR(k)
             call readlineR300(feig_buff, pos1, pos2, linetmp)
             read(linetmp, '(7(E14.7,2X))') t(k),cr(k),ur(k),wvr(k),ampr(k),ratio(k),qR(k)
-c      write(*,*) "surfreadRad: per=",t(k),"ampr=",ampr(k)
+c      write(*,*) "debug surfreadRad: per=",t(k),"ampr=",ampr(k),"k=",k,"nt=",nt
 c            read(1,'(a)') ,vzdor
             call readlineR80(feig_buff, pos1, pos2, vzdor)
 C----------Rayl. Horizontal component------S
@@ -158,6 +158,7 @@ C----------Rayl. Vertical   component------S
 c               read(1,*),dep,va,vd
                call readlineR300(feig_buff, pos1, pos2, linetmp)
                read(linetmp,*),dep,va,vd
+c         write(*,*) "debug asda: ", dep, va, vd
                if(depold.le.depth.and.depth.lt.dep) then
 c               if(abs(dep-depth).lt.eps) then
                   dfactor=(depth-depold)/(dep-depold)
@@ -185,18 +186,21 @@ c9797     close(1)
       integer*4 pos1, pos2
       character*20000000 fbuff
       character*80 linetmp
-      pos2 = pos1+80
+c      pos2 = pos1+80
+      pos2 = pos1 + INDEX(fbuff(pos1:),NEW_LINE('a'))
       read(fbuff(pos1:pos2),'(a)') linetmp
-      pos2 = INDEX(fbuff(pos1:),NEW_LINE('a'))
-      pos1 = pos1+pos2
+c      pos1 = pos1+pos2
+      pos1 = pos2
       end
 
       subroutine readlineR300( fbuff, pos1, pos2, linetmp )
       integer*4 pos1, pos2
       character*20000000 fbuff
       character*300 linetmp
-      pos2 = pos1+300
+c      pos2 = pos1+300
+      pos2 = pos1 + INDEX(fbuff(pos1:),NEW_LINE('a'))
       read(fbuff(pos1:pos2),'(a)') linetmp
-      pos2 = INDEX(fbuff(pos1:),NEW_LINE('a'))
-      pos1 = pos1+pos2
+c      pos1 = pos1+pos2
+      pos1 = pos2
       end
+

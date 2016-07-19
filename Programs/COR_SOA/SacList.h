@@ -95,7 +95,7 @@ class SacPool {
 public:
 	// waittime: time to wait after all sac for a single sacS are Consumed and before output/clearup
 	SacPool(const float waittime = 10.) 
-		: t(&SacPool::SACManager, this), tcheck1(waittime*2000), tcheck2(waittime*100) {}
+		: t(&SacPool::SACManager, this), tcheck1(waittime*1500), tcheck2(waittime*100) {}
 
 	~SacPool() { t.join(); }
 

@@ -11,10 +11,15 @@ class ppair {
 public:
 	int pos = -1;	// complementary position info
 	//ppair() {}
-	ppair( const typename std::vector<T>::iterator p1, const typename std::vector<T>::iterator p2 )
-		: p1(p1), p2(p2) {}
-	ppair( const typename std::vector<T>::iterator p1, const size_t size )
-		: p1(p1), p2(p1+size) {}
+	ppair( const typename std::vector<T>::iterator p1, const typename std::vector<T>::iterator p2, int pos = -1 )
+		: p1(p1), p2(p2), pos(pos) {}
+	ppair( const typename std::vector<T>::iterator p1, const size_t size, int pos = -1 )
+		: p1(p1), p2(p1+size), pos(pos) {}
+
+	void assign( const typename std::vector<T>::iterator p1in, const typename std::vector<T>::iterator p2in ) {
+		p1 = p1in; p2 = p2in;
+	}
+
 	size_t size() const { return p2-p1; }
 	inline const typename std::vector<T>::iterator& begin() const { return p1; }
 	inline		 typename std::vector<T>::iterator& begin() { return p1; }
@@ -101,7 +106,7 @@ struct Map::Mimpl {
 		//sscanf(line.c_str(), "%f %f %f", &lon, &lat, &data);
 		//fin.seekg(0); // rewind
 		/* load in all data */
-		dataV.clear(); dataavg.resize(1, 0.);
+		dataV.clear(); dataavg.assign(1, 0.);
 		for(std::string line; std::getline(fin, line); ) {
 			float lon, lat, data;
 			std::stringstream ss(line);
@@ -140,8 +145,8 @@ struct Map::Mimpl {
 		int nlon = (int)ceil( (lonmax-lonmin) / grd1_lon ) + 1;
 		int nlat = (int)ceil( (latmax-latmin) / grd1_lat ) + 1;
 		Array2D< std::vector< DataPoint<float> > > dataM_hash;
-		dataM_hash.clear(); dataM_hash.resize(nlon, nlat);
-		int size = 0; dataavg.resize(1, 0.);
+		dataM_hash.assign(nlon, nlat);
+		int size = 0; dataavg.assign(1, 0.);
 		Point<float> BL(lonmin, latmin);
 		Point<float> TR(lonmax, latmax);
 		for( const auto& dpcur : dataV ) {
@@ -155,7 +160,7 @@ struct Map::Mimpl {
 		dataavg[0].data /= size;
 		/* now rearrange all DataPoints into dataV and store iterators in dataM */
 		dataV.clear(); dataV.reserve(size*2+1000);
-		dataM1.resize(nlon, nlat, ppair< DataPoint<float> >( dataavg.begin(), 0 ));
+		dataM1.assign(nlon, nlat, ppair< DataPoint<float> >( dataavg.begin(), 0 ));
 		for( size_t i=0; i<dataM_hash.NumRows(); i++ ) {
 			for( size_t j=0; j<dataM_hash.NumCols(); j++ ) {
 				auto& dpV = dataM_hash(i, j);
@@ -190,8 +195,7 @@ struct Map::Mimpl {
 		if( ! CompMapGrids() ) return false;
 		int nlon = (int)ceil( (lonmax-lonmin) / grd2_lon ) + 1;
 		int nlat = (int)ceil( (latmax-latmin) / grd2_lat ) + 1;
-		dataM2.clear(); 
-		dataM2.resize(nlon, nlat, ppair< DataPoint<float> >( dataavg.begin(), 1 ) );
+		dataM2.assign(nlon, nlat, ppair< DataPoint<float> >( dataavg.begin(), 1 ) );
 		//for( auto iter=dataV.begin(); iter<dataV.end(); iter++ ) {
 		for(int i=0; i<dataV.size(); i++) {
 			const auto& dp = dataV[i];
@@ -208,20 +212,24 @@ struct Map::Mimpl {
 	}
 
 	void ApplyHash() {
+		if( dataV.empty() ) return;
 		// apply hash on dataM1
-		int i;
+		int i; auto Ibeg = dataV.begin();
 		for( i=0; i<dataM1.Size()-1; i++ ) {
 			auto& pp = dataM1[i];
 			if( pp.pos == -1 ) continue;
-			pp = ppair< DataPoint<float> >( dataV.begin()+pp.pos, dataV.begin()+dataM1[i+1].pos );
+			pp.assign( Ibeg+pp.pos, Ibeg+dataM1[i+1].pos );
 		}
-		dataM1[i] = ppair< DataPoint<float> >( dataV.begin()+dataM1[i].pos, dataV.end() );
+		dataM1[i].assign( Ibeg+dataM1[i].pos, dataV.end() );
 
+		//int ndebug = 0; for(auto pp : dataM1) ndebug += pp.size();
+		//std::cerr<<"debug ApplyHash 2: "<<dataV.size()<<" "<<dataM1.Size()<<" "<<ndebug<<" "<<dataM1.back().pos<<std::endl;
 		// apply hash on dataM2
 		if( ! isReg ) return;
 		for( auto& pp : dataM2 ) {
 			if( pp.pos == -1. ) continue;
-			pp = ppair< DataPoint<float> >( dataV.begin()+pp.pos, 1 );
+			//pp = ppair< DataPoint<float> >( dataV.begin()+pp.pos, 1, pp.pos );
+			pp.assign( Ibeg+pp.pos, Ibeg+pp.pos+1 );
 		}
 	}
 
@@ -478,6 +486,7 @@ void Map::SetSource( const Point<float>& srcin ) {
 	src = srcin;
 	for( auto& dp : pimplM->dataV ) {
 		dp.dis = Path<float>( src, Point<float>(dp.lon, dp.lat) ).Dist();
+		//std::cerr<<"      debug SetSource: "<<dp<<std::endl;
 	}
 }
 
@@ -616,7 +625,9 @@ void Map::TraceGCP( Point<float> Psrc, const Point<float>& Prec, float dis_step,
 	// compute tracing params
 	Path<float> path( Psrc, Prec );
 	float dis = path.Dist(), azi1 = path.Azi1(), azi2 = path.Azi2();
-	int n = std::max(npts_min, (int)float( dis / dis_step + 0.5 ));
+	auto nptsmin = npts_min;
+	int n = std::max(nptsmin, (int)float( dis / dis_step + 0.5 ));
+	//int n = std::max(npts_min, (int)float( dis / dis_step + 0.5 ));
 	dis_step = dis / n;
 
 	// trace
@@ -783,7 +794,6 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float& perc, const floa
 			//float disEsrc1 = Path<float>( src, Point<float>(loncur,latcur) ).Dist();
 			//float disErec1 = Path<float>( rec, Point<float>(loncur,latcur) ).Dist();
 			//std::cerr<<Point<float>(loncur,latcur)<<" "<<rec<<"   "<<disEsrc<<" "<<disEsrc1<<"   "<<disErec<<" "<<disErec1<<"   "<<max_2a<<"   "<<grd_lon<<"\n";
-//exit(0);
 			if( disEsrc + disErec > max_2a ) continue; // 20. for estimating error
 			for( const auto& dpcur : dataM(irow, icol) ) {
 				if( dpcur.Data() == NaN ) continue;
@@ -792,6 +802,7 @@ DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float& perc, const floa
 				//float dis_rec1 = Path<float>(rec, dpcur).Dist();
 				//std::cerr<<(Point<float>)src<<" "<<(Point<float>)dpcur<<"   "<<dis_src<<" "<<dis_rec<<" "<<dis_rec1<<"   "<<max_esti<<"   "<<grd_lon<<"\n";
 				float dis_rec = pimplM->estimate_dist(rec, dpcur);
+//std::cerr<<dpcur<<" "<<dis_rec<<" "<<dis_src<<" "<<max_esti<<std::endl;
 				if( dis_src+dis_rec > max_esti ) continue; // 2.*dab == hdis * 3.
 				dis_rec = (Path<float>(rec, dpcur).*fDist_ptr)();
 				//calc_dist(src.Lat(), src.Lon(), dpcur.Lat(), dpcur.Lon(), &dis_src);
