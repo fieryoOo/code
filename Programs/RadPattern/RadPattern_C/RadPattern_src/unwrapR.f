@@ -1,8 +1,8 @@
-           subroutine unwrapR(dper,per,n,tph,ph,grt,r)
+           subroutine unwrap(dper,per,n,tph,ph,grt,r)
 c-    to unwrap phase spectrum and get group time-----
 C---equal increment by T
 C---d(phi)/d(omega)=d(phi)/dT**2/(-pi2)
-	   real*4 ph(200),tph(200),grt(200),per(200),dper
+	   real*4 ph(n),tph(n),grt(n),per(n),dper
            integer jump(10)
 	   data pi2/6.2831854/,const/50./
 C-------------saving original phase temporarily--S
@@ -20,37 +20,22 @@ c            PRint*,dp,ph(i+1),ph(i),i
                                 ENDIF
            enddo
 C----------------unwrapping from PI2----E
-C--------------check for phase PI jump-----S
-         kj=0
-		do i=2,n
-        diff=ph(i)-ph(i-1)
-        if(abs(diff).gt.3.00)then
-c                  PRint*,' jump! ',per(i)
-        kj=kj+1
-        jump(kj)=i
-                              endif
-               enddo
-C--------------check for phase PI jump-----E
-C---------------source group time-----S
-C-----q=d(T)/d(omega)-----------
-             do i=1,n
-        q=-per(i)**2/pi2
-        if(i.gt.1.and.i.lt.n) grt(i)=(ph(i+1)-ph(i-1))/2./dper*q 
-        if(i.eq.1)grt(1)=(ph(2)-ph(1))/dper*q                        
-        if(i.eq.n)grt(n)=(ph(n)-ph(n-1))/dper*q                        
-               enddo
-              m=0
-          DO k=1,n
-          qqq=grt(k)
-          if(abs(grt(k)).gt.const.and.kj.ne.0)then
-             do l=1,kj
-                if(jump(l).eq.k) then
-                   grt(k)=sign(const,qqq)
-                endif
-             enddo
-              m=m+1
-                                  endif
-          endDO
-C---------------source group time-----E
+C-Ye------------source group time-----S
+      do i=1, n
+         if(i.eq.1) then
+            dp=ph(2)-ph(1)
+         else if(i.eq.n) then
+            dp=ph(n)-ph(n-1)
+         else 
+            dp=(ph(i+1)-ph(i-1))/2.
+         endif
+         if(abs(dp).gt.3.00) then
+            grt(i)=-123456
+         else
+            q=-per(i)**2/pi2
+            grt(i)=dp/dper*q
+         endif
+      enddo
+C-Ye------------source group time-----E
                 return
  	end

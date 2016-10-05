@@ -5,7 +5,8 @@ ListSeed() {
 	local _fin=$1
 	local _fou=$2
 	if [ -e $_fin ]; then
-		more $_fin | tr " " "\n" | grep ".seed" | awk -F_ '{print $1,$2}' | awk -F. '{print $1,$2,$0}' | awk '{print $2,$3,$4"_"$5}' | sort -M -k2 | sort -s -g -k1 | awk '{print $3}' | tr "\r" " " > $_fou
+		more $_fin | tr " " "\n" | grep ".seed" | tr "\r" " " > $_fou
+		#more $_fin | tr " " "\n" | grep ".seed" | awk -F_ '{print $1,$2}' | awk -F. '{print $1,$2,$0}' | awk '{print $2,$3,$4"_"$5}' | sort -M -k2 | sort -s -g -k1 | awk '{print $3}' | tr "\r" " " > $_fou
 	fi
 }
 

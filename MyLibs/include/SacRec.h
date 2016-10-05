@@ -177,6 +177,8 @@ public:
 	float Dis();
 	float Azi() const;
 	float Azi();
+	float BAzi() const;
+	float BAzi();
 
 	const std::string ntname() const { return shd.ntname(); }
 	const std::string evname() const { return shd.evname(); }
@@ -428,6 +430,8 @@ public:
 	void CCFromAmPh(SacRec& sac_am, SacRec& sac_ph, const SAC_HD& shd1, const SAC_HD& shd2);
 	float Correlation( const SacRec& sac2 ) const {	return Correlation( sac2, shd.b, shd.e );	}
 	float Correlation( const SacRec& sac2, const float tb, const float te ) const;
+	
+	friend void CalcTransferF( const SacRec& sac1, const SacRec& sac2, const float fmin, SacRec& Coh, SacRec& Adm, SacRec& Pha );
 
 	/* Cross-Correlate with another sac record
 		ctype=0: Cross-Correlate (default) 

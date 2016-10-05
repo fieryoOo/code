@@ -12,8 +12,8 @@ bool isNumber( const std::string& s ) {
 
 int main( int argc, char* argv[] ) {
 	// check inputs
-	if( argc != 7 ) {
-		std::cerr<<"Usage: "<<argv[0]<<" [seed name] [sta list (or name)] [chanel list (or name)] [event name (14 digits No)] [sps out] [sac outtype (0=displacement, 1=velocity, 2=acceleration)]"<<std::endl;
+	if( argc != 9 ) {
+		std::cerr<<"Usage: "<<argv[0]<<" [seed name] [sta list (or name)] [chanel list (or name)] [event name (14 digits No)] [evlon] [evlat] [sps out] [sac outtype (0=displacement, 1=velocity, 2=acceleration)]"<<std::endl;
 		exit(-1);
 	}
 
@@ -23,12 +23,13 @@ int main( int argc, char* argv[] ) {
 		const std::string fname_sta(argv[2]);
 		const std::string fname_cha(argv[3]);
 		const std::string evname(argv[4]);
+		const float evlon = atof(argv[5]), evlat = atof(argv[6]);
 		if( !isNumber(evname) || evname.length()!=14 )
-			throw std::runtime_error( std::string("Invalid input: evname = ") + argv[4] );
-		const int sps = atoi(argv[5]);
+			throw std::runtime_error( std::string("Invalid input: evname = ") + evname );
+		const int sps = atoi(argv[7]);
 		if( sps<=0 ) 
-			throw std::runtime_error( std::string("Invalid input: sps = ") + argv[5] );
-		const int sactype = atoi(argv[6]);
+			throw std::runtime_error( std::string("Invalid input: sps = ") + argv[7] );
+		const int sactype = atoi(argv[8]);
 
 		// other params
 		const std::string netname("*");	// *: extract for any network found
@@ -55,7 +56,7 @@ int main( int argc, char* argv[] ) {
 
 		// main loop
 		SeedRec seedrec(seedname);
-		for( const auto& staname : staV )
+		for( const auto& staname : staV ) {
 			for( const auto& chname : chaV ) {
 				// out name
 				std::string outname( staname + "." + chname + ".SAC" );
@@ -71,7 +72,7 @@ int main( int argc, char* argv[] ) {
 						// remove resp
 						float perl = sps * 2.2, perh = 1000;
 						sac.RmRESP( resp_outname, perl, perh, sactype );
-						sac.ZoomToEvent( evname, -12345., -12345., 0., 5000. );
+						sac.ZoomToEvent( evname, evlon, evlat, 0., 5000. );
 						sac.Write( "ft_" + outname );
 					} catch( const ErrorSR::Base& e ) {
 						std::cerr<<"Warning(main): RmRESP/Zoom failed on "<<netname<<" "
@@ -80,6 +81,7 @@ int main( int argc, char* argv[] ) {
 					}
 				}
 			}
+		}
 	} catch( std::exception& e ) {
 		std::cerr<<e.what()<<std::endl;
 	}

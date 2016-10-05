@@ -38,7 +38,8 @@ public:
 
 	PointC RemoveTilt( const std::string& outinfoname = "", float tseg=2000. );
 
-	void test(float tseg, int nsm, float tb = NaN, float te = NaN);
+	void test(float tb, float te);
+
 	PointC5 RemoveTiltCompliance( const std::string& outinfoname = "", float tseg=2000. );
 
 	RDirect RayleighDirectionality(const float dazi, const std::vector<std::pair<float, float>>& freqRangeV, 
@@ -271,19 +272,11 @@ PointC StaSacs::EstimateTilt( SacRec& Coh, SacRec& Adm, SacRec& Pha ) {
 	return Pres;
 }
 
-void StaSacs::test(float tseg, int nsm, float tb, float te) {
-	_tseg = tseg;
-	// search for earthquakes and save noise windows, sacZ modified
-	sacZ = DetectNoiseWindows(11., 20., true);
-//sacZ.Write("debugZ.SAC");
-//sacD.Mul(-1.);
+void StaSacs::test(float tb, float te) {
 	std::vector<SacRec> sacV; sacV.resize(3);
 	SacRec Coh, Adm, Pha;
-	CalcTransferF('Z', 'D', Coh, Adm, Pha, tb, te);
-	sacV[0] = std::move(Coh); sacV[1] = std::move(Adm); sacV[2] = std::move(Pha);
-	DumpSACs( sacV, "testinfo1.txt" );
 	if( tb!=NaN && te!=NaN ) { sacZ.cut(tb, te); sacD.cut(tb, te); }
-	CalcTransferF2(sacZ, sacD, Coh, Adm, Pha);
+	CalcTransferF2(sacZ, sacH1, Coh, Adm, Pha);
 	sacV[0] = std::move(Coh); sacV[1] = std::move(Adm); sacV[2] = std::move(Pha);
 	DumpSACs( sacV, "testinfo2.txt" );
 }

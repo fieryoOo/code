@@ -105,8 +105,8 @@ if [ ${plot_type} == 1 ]; then
 	psxy $fintmp $REG $SCA -Sc.35 -W3,white -O -K >> $psout
 	psxy $fintmp $REG $SCA -Sc.4 -W3,black -O -K >> $psout
 elif [ ${plot_type} -gt 1 ]; then
-	#psxy $fintmp $REG $SCA -Sc.38 -C$fcpt -W3,black -O -K >> $psout
-	psxy $fintmp $REG $SCA -Ss.14 -C$fcpt -O -K >> $psout
+	psxy $fintmp $REG $SCA -Sc.38 -C$fcpt -W3,black -O -K >> $psout
+	#psxy $fintmp $REG $SCA -Ss.14 -C$fcpt -O -K >> $psout
 fi
 
 # texts
@@ -114,6 +114,8 @@ if [ ${plot_type} == 3 ]; then
 	awk '{print $1,$2,"8 0.0 7 CB",$4}' $fintmp | pstext -R -J -O -K -Wwhite -G0 >>  $psout
 fi
 
+elon=245.123; elat=41.160
+echo $elon $elat | psxy -R -J -Sc1. -Gdarkgray -W8,white -O -K >> $psout
 # plot ends
 pwd | psxy -R -J -O >> $psout
 echo $psout

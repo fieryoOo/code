@@ -263,8 +263,9 @@ struct SacRec::SRimpl {
 		int i, j, wb, we;
 		long double wsum;
 		const float *sigw = sig;
+		std::unique_ptr<float> sigw_p;
 		if( abs ) {
-			std::unique_ptr<float> sigw_p(new float[n]);
+			sigw_p.reset(new float[n]);
 			float *sigwp = sigw_p.get(); 
 			for( i=0; i<n; i++ ) sigwp[i] = fabs(sig[i]);
 			sigw = sigwp;
@@ -476,7 +477,8 @@ struct SacRec::SRimpl {
 	void ComputeDisAzi( SAC_HD& shd ) {
 		try {
 			Path<float> path( shd.evlo, shd.evla, shd.stlo, shd.stla );
-			shd.dist = path.Dist(); shd.az = path.Azi1(); shd.baz = path.Azi2();
+			shd.dist = path.Dist(); shd.az = path.Azi1(); 
+			shd.baz = path.Azi2(); shd.baz += shd.baz<180.?180.:-180.;
 		} catch (const std::exception& e) {}
 	}
 	#else
@@ -1312,6 +1314,15 @@ float SacRec::Azi() {
 	if( shd.az == NaN ) pimpl->ComputeDisAzi( shd );
 	return shd.az;
 }
+float SacRec::BAzi() const {
+	auto shdl = shd;
+	if( shdl.az == NaN ) pimpl->ComputeDisAzi( shdl );
+	return shdl.baz;
+}
+float SacRec::BAzi() {
+	if( shd.az == NaN ) pimpl->ComputeDisAzi( shd );
+	return shd.baz;
+}
 
 double SacRec::DayTime() const {
 	return 3600.*shd.nzhour + 60.*shd.nzmin + shd.nzsec + 0.001*shd.nzmsec;
@@ -1542,7 +1553,7 @@ void SacRec::Smooth( float timehlen, SacRec& sacout, bool abs, float tb, float t
 		int nb = Index(tb); npts -= nb;
 		sigsac += nb; sigout += nb;
 	}
-	//std::cerr<<"SacRec::Smooth: before call "<<tb<<" "<<npts<<" "<<half_l<<std::endl;
+	//std::cerr<<"SacRec::Smooth: before call "<<tb<<" "<<npts<<" "<<half_l<<"   "<<sigsac<<std::endl;
 	pimpl->Smooth(sigsac, sigout, npts, half_l, abs);
 }
 
@@ -2670,7 +2681,7 @@ void SacRec::RmRESP( const std::string& fresp, float perl, float perh, const std
    sscanf(shd.kcmpnm, "%s", ch);
    sscanf(shd.knetwk, "%s", net);
 	int hourmid = (int)ceil( (DayTime() + shd.b) / 3600. ); 
-   sprintf(buff, "%s %s %s %4d %3d %f %f %d -t %d -f %s -v >& /dev/null", evrexe.c_str(), sta, ch, shd.nzyear, shd.nzjday, f1, f4, nf, hourmid, fresp.c_str());
+   sprintf(buff, "%s %s %s %4d %3d %f %f %d -t %d: -f %s -v >& /dev/null", evrexe.c_str(), sta, ch, shd.nzyear, shd.nzjday, f1, f4, nf, hourmid, fresp.c_str());
 	// define all variables to be used in the critical section
    char nameam[50], nameph[50];
    sprintf(nameam, "AMP.%s.%s.*.%s", net, sta, ch);
@@ -3160,6 +3171,35 @@ float SacRec::Correlation( const SacRec& sac2, const float tb, const float te ) 
 	cc /= ( (ie1-ib1-1) * std1 * std2 );
 
 	return cc;
+}
+
+void CalcTransferF( const SacRec& sac1, const SacRec& sac2, const float fmin, SacRec& Coh, SacRec& Adm, SacRec& Pha ) {
+	SacRec sac1_am, sac1_ph; sac1.ToAmPh(sac1_am, sac1_ph);
+	SacRec sac2_am, sac2_ph; sac2.ToAmPh(sac2_am, sac2_ph);
+	//sac1_am.Mul(1.0e-5);	sac2_am.Mul(1.0e-5); // to prevent floating-point overflow
+	// calculate autospectral density functions Gss, Grr and
+	// the one-sided cross-spectral density function Grs
+	SacRec Grr(sac1_am);  Grr.Mulf(sac1_am);
+	SacRec Gss(sac2_am);  Gss.Mulf(sac2_am);
+	SacRec GrsA(sac2_am); GrsA.Mulf(sac1_am);
+	SacRec GrsP(sac2_ph); GrsP.Subf(sac1_ph);
+	// convert GrsAmp&GrsPha to GrsR&GrsI in place
+   AmPhToReIm( GrsA, GrsP );
+	// freqency domain smoothing for statistical stability
+	int nsm = 20; float fhlen = nsm * GrsA.shd.delta;
+	//std::cerr<<fhlen<<std::endl;
+	//Grr.Write("Grr.SAC"); Gss.Write("Gss.SAC"); GrsA.Write("GrsA.SAC"); GrsP.Write("GrsP.SAC");
+	GrsA.Smooth(fhlen, false, fmin); GrsP.Smooth(fhlen, false, fmin);
+	Grr.Smooth(fhlen, true, fmin); Gss.Smooth(fhlen, true, fmin);
+	//Grr.Write("Grr.SAC_sm"); Gss.Write("Gss.SAC_sm"); GrsA.Write("GrsA.SAC_sm"); GrsP.Write("GrsP.SAC_sm");
+	// convert GrsR&GrsI back to GrsAmp&GrsPha
+	ReImToAmPh( GrsA, GrsP );
+	// construct coherence, admittance, and phase from the spectral density functions
+	Pha = std::move(GrsP); Adm = GrsA; Adm.Divf( Gss );
+	Coh = Adm; Coh.Mulf( GrsA ); Coh.Divf( Grr ); Coh.sqrt();
+	//Coh.Write("debugCoh.SAC"); Adm.Write("debugAdm.SAC"); Pha.Write("debugPha.SAC"); 
+	// smooth Coh
+	//Coh.Smooth(0.002, false, fmin); 
 }
 
 void SacRec::CCFromAmPh(SacRec& sac_am, SacRec& sac_ph, const SAC_HD& shd1, const SAC_HD& shd2) {
