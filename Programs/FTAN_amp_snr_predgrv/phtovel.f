@@ -15,7 +15,7 @@ c V      - observed phase velocity
 
       implicit none
       integer*4 ip,n,npr
-      real*8    delta,per(100),U(100),pha(100),prper(300),prvel(300),V(100)
+      real*8    delta,per(100),U(100),pha(100),prper(npr),prvel(npr),V(100)
       real*8    pi,om(100),sU(100),t(100)
       integer*4 i,ierr,k,m
       real*8    Vpred,phpred,s,ss

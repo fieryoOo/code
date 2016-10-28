@@ -15,13 +15,13 @@ Input 2: input-file list ( staname1 staname2 fDisppos fAmppos fDispneg fAmpneg d
 #include <math.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include "/home/tianye/MyLib/Dis_Azi.h"
+#include "DisAzi.h"
 #include "omp.h"
 using namespace std;
 
 #define NSTA 2000
 #define BLKs 5000
-#define NFRQ 300
+#define NFRQ 500
 
 int wsnr_pow;
 float perl, perh, ghlgrv, ghlphv, alphagrv, alphaphv, snrmin;
@@ -41,9 +41,10 @@ struct STAPAIR {
 };
 
 struct LAG_DATA {
-   float per[NFRQ], snr[NFRQ];
+   float per[NFRQ], width[NFRQ];
    float disgrv[NFRQ], disphv[NFRQ];
    float grv[NFRQ], phv[NFRQ];
+   float amp[NFRQ], snr[NFRQ];
    float effperc; // percentage of the effective bandwidth 
    int ndat;
 };
@@ -113,13 +114,18 @@ int AmpSNRSummation( char *fdisp, char *fsnr, char *fgrvpred, char *fphvpred, fl
    char buff1[300], buff2[300];
    int i, nfgrv, nfphv;
    float pergrv[NFRQ], grvpred[NFRQ], perphv[NFRQ], phvpred[NFRQ];
+
   // omp_set_lock(&readlock);
    // read predicted group disp if ghlgrv < 1
    float perlow, perhigh;
    if( ghlgrv < 1. ) {
       if((fin1=fopen(fgrvpred, "r")) == NULL) return -1;
       for(i=0;fgets(buff1, 300, fin1)!=NULL;) {
-         if(sscanf(buff1, "%f %f", &pergrv[i], &grvpred[i])!=2) continue;
+         if(sscanf(buff1, "%f %f", &pergrv[i], &grvpred[i])!=2) break;	//continue;
+			if( i!=0 && pergrv[i]<=pergrv[i-1] ) {
+				std::cerr<<"Warning(AmpSNRSummation): unsorted grvpred file "<<fgrvpred<<std::endl; 
+				break;
+			}
          i++;
       }
       fclose(fin1);
@@ -132,34 +138,52 @@ int AmpSNRSummation( char *fdisp, char *fsnr, char *fgrvpred, char *fphvpred, fl
       }
       if( perlow<perl ) perlow = perl;
       if( perhigh>perh ) perhigh = perh;
-   }
-   else { // set period range and ignore predictions
+   } else { // set period range and ignore predictions
       perlow = perl; perhigh = perh;
    }
+
    // read predicted phase disp and define period range
    if( ghlphv < 1. ) {
       if((fin1=fopen(fphvpred, "r")) == NULL) return -1;
       for(i=0;fgets(buff1, 300, fin1)!=NULL;) {
-         if(sscanf(buff1, "%f %f", &perphv[i], &phvpred[i])!=2) continue;
+         if(sscanf(buff1, "%f %f", &perphv[i], &phvpred[i])!=2) break;	//continue;
+			if( i!=0 && perphv[i]<=perphv[i-1] ) {
+				std::cerr<<"Warning(AmpSNRSummation): unsorted phvpred file "<<fphvpred<<std::endl; 
+				break;
+			}
          i++;
       }
       fclose(fin1);
       nfphv = i;
    }
   // omp_unset_lock(&readlock);
-   // read observed parameters and weighted-sum amp and snr
+
+	// load in observed information
+	while(fgets(buff1, 300, fin1) && fgets(buff2, 300, fin2)) {
+      if( sscanf(buff1, "%f %f %f %f %f", &ftmp, &ftmp, &(data->per[ndat]), &(data->grv[ndat]), &(data->phv[ndat])) != 5 ) continue;
+      if( sscanf(buff2, "%f %f %f", &ftmp, &(data->amp[ndat]), &(data->snr[ndat])) != 3 ) continue;
+      if( ftmp != data->per[ndat] ) {
+			cerr<<fdisp<<" and "<<fsnr<<" does not match!"<<endl;
+			continue;
+      }
+		++ndat;
+	}
+
+   // read observed parameters 
+	// and weighted-sum amp and snr
    *snr = 0.; *amp = 0.;
    int ndat = 0, neff = 0;
    float ftmp, weit = 0., weight, disgrv, disphv;
    float percur, grvcur, phvcur, snrcur, ampcur;
    float perlowO = 999999., perhighO = 0.;
    if((fin1=fopen(fdisp, "r")) == NULL || ((fin2=fopen(fsnr, "r"))==NULL)) return -1;
+	// read one line from each file (fdisp and fsnr) at a time
    while(fgets(buff1, 300, fin1) && fgets(buff2, 300, fin2)) {
       if( sscanf(buff1, "%f %f %f %f %f", &ftmp, &ftmp, &percur, &grvcur, &phvcur) != 5 ) continue;
-      if( sscanf(buff2, "%f %f %f %f %f", &ftmp, &ampcur, &snrcur) != 3 ) continue;
+      if( sscanf(buff2, "%f %f %f", &ftmp, &ampcur, &snrcur) != 3 ) continue;
       if( ftmp != percur ) {
-	 cerr<<fdisp<<" and "<<fsnr<<" does not match!"<<endl;
-	 continue;
+			cerr<<fdisp<<" and "<<fsnr<<" does not match!"<<endl;
+			continue;
       }
       if( percur<perlow || percur>perhigh ) continue;
       if( percur < perlowO ) perlowO = percur;
@@ -190,12 +214,14 @@ int AmpSNRSummation( char *fdisp, char *fsnr, char *fgrvpred, char *fphvpred, fl
       *amp = 0.; *snr = 0.;
       return 0;
    }
-   // discard the path if measurable dispersion is less than 30% in the given range
+	/* not necessary?
+   // discard the path if measurable dispersion is less than 20% in the given range
    data->effperc = (log(perhighO)-log(perlowO))/(log(perhigh)-log(perlow))*neff/ndat;
-   if( data->effperc < 0.3 ) {
+   if( data->effperc < 0.2 ) {
       *amp = 0.; *snr = 0.;
       return 0;
    }
+	*/
    //ftmp = data->effperc/weit;
    *snr /= weit; *amp /= weit;
    
@@ -317,108 +343,109 @@ void TimeShift( struct LAG_DATA *datapos, struct LAG_DATA *dataneg, double dist,
    AverageTimeShift(&datadiff, TShiftG, sigmaG, TShiftP, sigmaP);
 }
 
-main(int na, char *arg[])
-{
-   if(na!=9) {
-      cout<<"usage: "<<arg[0]<<" [station.lst] [stanm1-stanm2-fDisppos-fAmppos-fDispneg-fAmpneg-daynum-fpredDispgrv-fpredDispphv list] [period_lowerend] [period_higherend] [ghlgrv (ignore predictions if >=1)] [ghlphv (ignore predictions if >=1)] [SNRmin] [snr weighting factor (0 for plain average, >10 for peak)]"<<endl;
-      return 0;
-   }
- 
-/* ghlgrv & ghlphv
-Gaussian halflength as percentage for group and phase dispersion shift
-defines how the amplitude and SNRs are weighted
-*/
-   FILE *ff;
-   char buff[500];
-   int i, nsta, npth, nblk;
-   struct STATION sta[NSTA];
-   struct STAPAIR *spr = NULL;
-/* read in sta.name, sta.lon, sta.lat from station list */
-   if((ff=fopen(arg[1],"r"))==NULL) {
-      cout<<"Cannot open file "<<arg[1]<<endl;
-      return -1;
-   }
-   for(i=0;fgets(buff, 500, ff)!=NULL;i++) {
-      sscanf(buff,"%s %f %f", sta[i].name, &sta[i].lon, &sta[i].lat);
-      if(sta[i].lon<0) sta[i].lon += 360.;
-   }
-   nsta=i;
-   fclose(ff);
-   if( nsta == 0 ) {
-      cerr<<"Error(main): empty station list!"<<endl;
-      exit(0);
-   }
+main(int na, char *arg[]) {
+	if(na!=9) {
+		cout<<"usage: "<<arg[0]<<" [station.lst] [stanm1-stanm2-fDisppos-fAmppos-fDispneg-fAmpneg-daynum-fpredDispgrv-fpredDispphv list] [period_lowerend] [period_higherend] [ghlgrv (ignore predictions if >=1)] [ghlphv (ignore predictions if >=1)] [SNRmin] [snr weighting factor (0 for plain average, >10 for peak)]"<<endl;
+		return 0;
+	}
 
-/* read in sta1, sta2, dispf, snrf pdisp_g pdisp_p from file list */
-   if((ff=fopen(arg[2],"r"))==NULL) {
-      cout<<"Cannot open file "<<arg[2]<<endl;
-      return -1;
-   }
-   for(nblk=0,i=0;fgets(buff, 500, ff)!=NULL;) {
-      if( nblk*BLKs <= i ) spr = (struct STAPAIR *) realloc (spr, (++nblk)*BLKs * sizeof(struct STAPAIR));
-      if( sscanf(buff,"%s %s %s %s %s %s %f %s %s", spr[i].sta1, spr[i].sta2, spr[i].disp_pf, spr[i].snr_pf, spr[i].disp_nf, spr[i].snr_nf, &(spr[i].daynum), spr[i].pdisp_g, spr[i].pdisp_p) != 9 ) {
-	 cerr<<"Warning(main): format error in file "<<arg[2]<<endl;
-	 continue;
-      }
-      i++;
-   }
-   npth = i;
-   fclose(ff);
-   if( npth == 0 ) {
-      cerr<<"Error(main): empty file list!"<<endl;
-      exit(0);
-   }
+	/* ghlgrv & ghlphv
+		Gaussian halflength as percentage for group and phase dispersion shift
+		defines how the amplitude and SNRs are weighted
+		*/
+	FILE *ff;
+	char buff[500];
+	int i, nsta, npth, nblk;
+	struct STATION sta[NSTA];
+	struct STAPAIR *spr = NULL;
+	/* read in sta.name, sta.lon, sta.lat from station list */
+	if((ff=fopen(arg[1],"r"))==NULL) {
+		cout<<"Cannot open file "<<arg[1]<<endl;
+		return -1;
+	}
+	for(i=0;fgets(buff, 500, ff)!=NULL;i++) {
+		sscanf(buff,"%s %f %f", sta[i].name, &sta[i].lon, &sta[i].lat);
+		if(sta[i].lon<0) sta[i].lon += 360.;
+	}
+	nsta=i;
+	fclose(ff);
+	if( nsta == 0 ) {
+		cerr<<"Error(main): empty station list!"<<endl;
+		exit(0);
+	}
 
-/* main loop. Process data from each path. Compute dist and snr, and as an indicator of FTAN quality,
-   compute summation of SNR&amp weighted by distance between observed and predicted dispersion curves */
-   int ipth, isp, isn, nlag;
-   int flagp, flagn;
-   float snrsig_pos, snrsig_neg, ampsig_pos, ampsig_neg;
-   double dist, azi1, azi2;
-   struct LAG_DATA datapos, dataneg;
-   float TShiftG, sigmaG, TShiftP, sigmaP;
-   perl = atof(arg[3]); perh = atof(arg[4]); 
-   ghlgrv = atof(arg[5]); ghlphv = atof(arg[6]);
-   if( ghlgrv >= 1. ) cout<<"   Warning: Group Predictions will be ignored!"<<endl;
-   if( ghlphv >= 1. ) cout<<"   Warning: Phase Predictions will be ignored!"<<endl;
-   snrmin = atof(arg[7]); wsnr_pow = atoi(arg[8]);
-   alphagrv = -0.5/(ghlgrv*ghlgrv); alphaphv = -0.5/(ghlphv*ghlphv);
+	/* read in sta1, sta2, dispf, snrf pdisp_g pdisp_p from file list */
+	if((ff=fopen(arg[2],"r"))==NULL) {
+		cout<<"Cannot open file "<<arg[2]<<endl;
+		return -1;
+	}
+	for(nblk=0,i=0;fgets(buff, 500, ff)!=NULL;) {
+		if( nblk*BLKs <= i ) spr = (struct STAPAIR *) realloc (spr, (++nblk)*BLKs * sizeof(struct STAPAIR));
+		if( sscanf(buff,"%s %s %s %s %s %s %f %s %s", spr[i].sta1, spr[i].sta2, spr[i].disp_pf, spr[i].snr_pf, spr[i].disp_nf, spr[i].snr_nf, &(spr[i].daynum), spr[i].pdisp_g, spr[i].pdisp_p) != 9 ) {
+			cerr<<"Warning(main): format error in file "<<arg[2]<<endl;
+			continue;
+		}
+		//std::cerr<<spr[i].sta1<<" "<<spr[i].sta2<<" "<<spr[i].disp_pf<<" "<<spr[i].snr_pf<<" "<<spr[i].disp_nf<<" "<<spr[i].snr_nf<<" "<<spr[i].daynum<<" "<<spr[i].pdisp_g<<" "<<spr[i].pdisp_p<<std::endl;
+		i++;
+	}
+	npth = i;
+	fclose(ff);
+	if( npth == 0 ) {
+		cerr<<"Error(main): empty file list!"<<endl;
+		exit(0);
+	}
 
-   sprintf(buff, "Disp_average_%.1f_%.1f", perl, perh);
-   ff = fopen(buff, "w");
-   fprintf(ff, "sta1(1) lat1(2) lon1(3)  sta2(4) lat2(5) lon2(6)  dist(7) azi1(8) azi2(9) dnum(10) : snrsig_pos(12) ampsig_pos/dnum(13) snrsig_neg(14) ampsig_neg/dnum(15) GrvTimeShift(16) GrvUncertainty(17) PhvTimeShift(18) PhvUnvertainty(19)\n");
-   //omp_init_lock(&readlock);
-   //#pragma omp parallel for lastprivate(ipth) schedule (static,1)
-   for(ipth=0;ipth<npth;ipth++) {
-   // Search for sta1 and sta2 in station list
-      for(isp=0;isp<nsta;isp++) if(strcmp(spr[ipth].sta1, sta[isp].name)==0) break;
-      if(isp==nsta) continue;
-      for(isn=0;isn<nsta;isn++) if(strcmp(spr[ipth].sta2, sta[isn].name)==0) break;
-      if(isn==nsta) continue;
-      cout<<"Extracting information for path "<<spr[ipth].sta1<<" - "<<spr[ipth].sta2<<endl;
-   // compute distance and azimuth
-      calc_dist(sta[isp].lat, sta[isp].lon, sta[isn].lat, sta[isn].lon, &dist);
-      calc_azimuth(sta[isp].lat, sta[isp].lon, sta[isn].lat, sta[isn].lon, &azi1);
-      calc_azimuth(sta[isn].lat, sta[isn].lon, sta[isp].lat, sta[isp].lon, &azi2);
-   // compute weights and averaged SNR&amp for each lag
-      nlag=0;
-      if( AmpSNRSummation( spr[ipth].disp_pf, spr[ipth].snr_pf, spr[ipth].pdisp_g, spr[ipth].pdisp_p, &snrsig_pos, &ampsig_pos, &datapos ) > 0 ) nlag++;
-      if( AmpSNRSummation( spr[ipth].disp_nf, spr[ipth].snr_nf, spr[ipth].pdisp_g, spr[ipth].pdisp_p, &snrsig_neg, &ampsig_neg, &dataneg ) > 0 ) nlag++;
-      if( nlag == 0 ) {
-	 cout<<"   Bad measurements in both lags. Skiped!"<<endl;
-	 continue;
-      }
-   // compute averaged timeshift and its uncertainty
-      if( nlag == 2 ) TimeShift( &datapos, &dataneg, dist, &TShiftG, &sigmaG, &TShiftP, &sigmaP );
-      else { TShiftG = -1; sigmaG = -1; TShiftP = -1; sigmaP = -1; }
-      cout<<"   Done"<<endl;
-      //#pragma omp critical
-      fprintf(ff, "%s %f %f  %s %f %f  %lf %lf %lf %f : %f %g  %f %g %f %f %f %f\n", sta[isp].name, sta[isp].lat, sta[isp].lon, sta[isn].name, sta[isn].lat, sta[isn].lon, dist, azi1, azi2, spr[ipth].daynum, snrsig_pos, ampsig_pos/spr[ipth].daynum, snrsig_neg, ampsig_neg/spr[ipth].daynum, TShiftG, sigmaG, TShiftP, sigmaP);
-   }
-   fclose(ff);
-   //omp_destroy_lock(&readlock);
+	/* main loop. Process data from each path. Compute dist and snr, and as an indicator of FTAN quality,
+		compute summation of SNR&amp weighted by shifts/distances between observed and predicted dispersion curves */
+	int ipth, isp, isn, nlag;
+	int flagp, flagn;
+	float snrsig_pos, snrsig_neg, ampsig_pos, ampsig_neg;
+	double dist, azi1, azi2;
+	struct LAG_DATA datapos, dataneg;
+	float TShiftG, sigmaG, TShiftP, sigmaP;
+	perl = atof(arg[3]); perh = atof(arg[4]); 
+	ghlgrv = atof(arg[5]); ghlphv = atof(arg[6]);
+	if( ghlgrv >= 1. ) cout<<"   Warning: Group Predictions will be ignored!"<<endl;
+	if( ghlphv >= 1. ) cout<<"   Warning: Phase Predictions will be ignored!"<<endl;
+	snrmin = atof(arg[7]); wsnr_pow = atoi(arg[8]);
+	alphagrv = -0.5/(ghlgrv*ghlgrv); alphaphv = -0.5/(ghlphv*ghlphv);
 
-   free(spr);
- 
-   return 1;
+	sprintf(buff, "Disp_average_%.1f_%.1f", perl, perh);
+	ff = fopen(buff, "w");
+	fprintf(ff, "sta1(1) lat1(2) lon1(3)  sta2(4) lat2(5) lon2(6)  dist(7) azi1(8) azi2(9) dnum(10) : snrsig_pos(12) ampsig_pos/dnum(13) snrsig_neg(14) ampsig_neg/dnum(15) GrvTimeShift(16) GrvUncertainty(17) PhvTimeShift(18) PhvUnvertainty(19)\n");
+	//omp_init_lock(&readlock);
+	//#pragma omp parallel for lastprivate(ipth) schedule (static,1)
+	for(ipth=0;ipth<npth;ipth++) {
+		// Search for sta1 and sta2 in station list
+		for(isp=0;isp<nsta;isp++) if(strcmp(spr[ipth].sta1, sta[isp].name)==0) break;
+		if(isp==nsta) continue;
+		for(isn=0;isn<nsta;isn++) if(strcmp(spr[ipth].sta2, sta[isn].name)==0) break;
+		if(isn==nsta) continue;
+		cout<<"Extracting information for path "<<spr[ipth].sta1<<" - "<<spr[ipth].sta2<<endl;
+		// compute distance and azimuth
+		Path<float> path(sta[isp].lon, sta[isp].lat, sta[isn].lon, sta[isn].lat);
+		//calc_dist(sta[isp].lat, sta[isp].lon, sta[isn].lat, sta[isn].lon, &dist);
+		//calc_azimuth(sta[isp].lat, sta[isp].lon, sta[isn].lat, sta[isn].lon, &azi1);
+		//calc_azimuth(sta[isn].lat, sta[isn].lon, sta[isp].lat, sta[isp].lon, &azi2);
+		// compute weights and averaged SNR&amp for each lag
+		nlag=0;
+		if( AmpSNRSummation( spr[ipth].disp_pf, spr[ipth].snr_pf, spr[ipth].pdisp_g, spr[ipth].pdisp_p, &snrsig_pos, &ampsig_pos, &datapos ) > 0 ) nlag++;
+		if( AmpSNRSummation( spr[ipth].disp_nf, spr[ipth].snr_nf, spr[ipth].pdisp_g, spr[ipth].pdisp_p, &snrsig_neg, &ampsig_neg, &dataneg ) > 0 ) nlag++;
+		if( nlag == 0 ) {
+			cout<<"   Bad measurements in both lags. Skiped!"<<endl;
+			continue;
+		}
+		// compute averaged timeshift and its uncertainty
+		if( nlag == 2 ) TimeShift( &datapos, &dataneg, path.Dist(), &TShiftG, &sigmaG, &TShiftP, &sigmaP );
+		else { TShiftG = -1; sigmaG = -1; TShiftP = -1; sigmaP = -1; }
+		cout<<"   Done"<<endl;
+		//#pragma omp critical
+		fprintf(ff, "%s %f %f  %s %f %f  %lf %lf %lf %f : %f %g  %f %g %f %f %f %f\n", sta[isp].name, sta[isp].lat, sta[isp].lon, sta[isn].name, sta[isn].lat, sta[isn].lon, path.Dist(), path.Azi1(), path.Azi2(), spr[ipth].daynum, snrsig_pos, ampsig_pos/spr[ipth].daynum, snrsig_neg, ampsig_neg/spr[ipth].daynum, TShiftG, sigmaG, TShiftP, sigmaP);
+	}
+	fclose(ff);
+	//omp_destroy_lock(&readlock);
+
+	free(spr);
+
+	return 1;
 }

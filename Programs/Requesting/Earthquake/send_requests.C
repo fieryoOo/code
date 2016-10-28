@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -147,29 +148,37 @@ char buff[300];
 int main (int na, char *arg[])
 /*----------------------------------------------------------------------------------------*/
 {
-  int y, m, d, h,min,sec, ndays;
-  FILE *ff;
+	int y, m, d, h,min,sec, ndays;
+	FILE *ff;
 
-  if ( na < 2 ) ndays = 1;
-  else sscanf(arg[1],"%d", &ndays );
+	if ( na < 2 ) ndays = 1;
+	else sscanf(arg[1],"%d", &ndays );
 
-  ff = fopen("events.loc","r");
-  for(;;)
-    {
-      if ( !fgets(buff,300,ff) ) break;
-      if ( strlen(buff) < 5 ) break;
+	ff = fopen("events.loc","r");
+	bool isFirst = true;
+	for(;;) {
+		if ( !fgets(buff,300,ff) ) break;
+		if ( strlen(buff) < 5 ) break;
 
-      sscanf(&(buff[0]), "%4d", &y );
-      sscanf(&(buff[4]), "%2d", &m );
-      sscanf(&(buff[6]), "%2d", &d );
-      sscanf(&(buff[8]), "%2d", &h );
-      sscanf(&(buff[10]), "%2d", &min );
-      sscanf(&(buff[12]), "%2d", &sec );
-      one_event ( y, m, d, h, min,sec, ndays);
-      system("mail  BREQ_FAST@iris.washington.edu < request_mail");  
-    }
+		sscanf(&(buff[0]), "%4d", &y );
+		sscanf(&(buff[4]), "%2d", &m );
+		sscanf(&(buff[6]), "%2d", &d );
+		sscanf(&(buff[8]), "%2d", &h );
+		sscanf(&(buff[10]), "%2d", &min );
+		sscanf(&(buff[12]), "%2d", &sec );
+		one_event ( y, m, d, h, min,sec, ndays);
+		std::cout<<"request_mail ready for event "<<buff<<std::endl;
+		if( isFirst ) {
+			std::cout<<"About to start sending out requests. Continue? ";
+			char c; std::cin>>c;
+			if( c!='y' && c!='Y' ) return -2;
+			isFirst = false;
+		}
+		system("mail  BREQ_FAST@iris.washington.edu < request_mail");  
+	}
+	fclose(ff);
 
-  fclose(ff);
+	return 0;
 }
 
 

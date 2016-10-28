@@ -128,80 +128,80 @@ void write_sac (char *fname, float *sig, SAC_HD *SHD) {
 extern int pflag;
 void printres(double dt,int nfout1,double arr1[100][8],int nfout2,
               double arr2[100][7],double tamp, int nrow,int ncol,
-              double ampo[32][32768],int ierr, char *name,char *pref,double delta)
+              double ampo[32][NMAX],int ierr, char *name,char *pref,double delta)
 {
- int i,j;
- FILE *out;
- char name2[160];
-      if(ierr  ==  0 ) {
-          printf("REESULT: O.K.\n");
-      } else if(ierr == 1) {
-          printf("RESULT: SOME PROBLEMS\n");
-      } else {
-          printf("RESULT: NO FINAL RESULT\n");
-      }
-      //printf("Start:\n");
-      //for(i = 0; i < nfout1; i++) {
-      //    printf("%4d %10.4lf %10.4lf %12.4lf %12.4lf %12.4lf %12.4lf %8.3lf %8.3lf\n",
-      //                i+1,arr1[i][0],arr1[i][1],arr1[i][2],arr1[i][3],
-      //                    arr1[i][4],arr1[i][5], arr1[i][6], arr1[i][7]);
-      //}
-      //if(nfout2 != 0) {
-      //printf("Final:\n");
-      //    for(i = 0; i < nfout2; i++) {
-      //        printf("%4d %10.4lf %10.4lf %12.4lf %12.4lf %12.4lf %8.3lf %8.3lf\n",
-      //             i+1,arr2[i][0],arr2[i][1],arr2[i][2],arr2[i][3],
-      //                 arr2[i][4], arr2[i][5], arr2[i][6]);
-      //    }
-      //}
-//  write results to hard drive
-// file ...DISP.0 contains preliminary result
-   if( pflag==0 ) {
-      strcpy(name2,name);
-      strcat(name2,pref);
-      strcat(name2,"_DISP.0");
-      if((out = fopen(name2,"w")) == NULL) {
-          printf("Can not open file %s.\n",name2);
-          exit(1);
-      }
-      for(i = 0; i < nfout1; i++) {
-          fprintf(out,"%4d %10.4lf %10.4lf %12.4lf %12.4lf %12.4lf %12.4lf %8.3lf\n",
-                      i,arr1[i][0],arr1[i][1],arr1[i][2],arr1[i][3],
-                        arr1[i][4],arr1[i][5],arr1[i][6]);
-      }
-      fclose(out);
-   }
-// file ...DISP.1 includes final results
-      if(nfout2 != 0) {
-          strcpy(name2,name);
-          strcat(name2,pref);
-          strcat(name2,"_DISP.1");
-          if((out = fopen(name2,"w")) == NULL) {
-              printf("Can not open file %s.\n",name2);
-              exit(1);
-          }
-          for(i = 0; i < nfout2; i++) {
-              fprintf(out,"%4d %10.4lf %10.4lf %12.4lf %12.4lf %12.4lf %8.3lf\n",
-                   i,arr2[i][0],arr2[i][1],arr2[i][2],arr2[i][3],
-                     arr2[i][4],arr2[i][5]);
-          }
-          fclose(out);
-      }
-//*/ Output amplitude array into file on hard drive
-   if( pflag==0 ) {
-      strcpy(name2,name);
-      strcat(name2,pref);
-      strcat(name2,"_AMP");
-      if((out = fopen(name2,"w")) == NULL) {
-          printf("Can not open file %s.\n",name2);
-          exit(1);
-      }
-      for(i = 0; i < nrow; ++i)
-          for(j = 0; j < ncol; ++j) {
-	     fprintf(out,"%8.4lf %8.4lf %15.6e\n", arr1[i][1],delta/(tamp+j*dt),ampo[i][j]);
-	     //printf("%d %d\n",i,j);
-	  }
-      fclose(out);
-   }
+	int i,j;
+	FILE *out;
+	char name2[160];
+	if(ierr  ==  0 ) {
+		printf("REESULT: O.K.\n");
+	} else if(ierr == 1) {
+		printf("RESULT: SOME PROBLEMS\n");
+	} else {
+		printf("RESULT: NO FINAL RESULT\n");
+	}
+	//printf("Start:\n");
+	//for(i = 0; i < nfout1; i++) {
+	//    printf("%4d %10.4lf %10.4lf %12.4lf %12.4lf %12.4lf %12.4lf %8.3lf %8.3lf\n",
+	//                i+1,arr1[i][0],arr1[i][1],arr1[i][2],arr1[i][3],
+	//                    arr1[i][4],arr1[i][5], arr1[i][6], arr1[i][7]);
+	//}
+	//if(nfout2 != 0) {
+	//printf("Final:\n");
+	//    for(i = 0; i < nfout2; i++) {
+	//        printf("%4d %10.4lf %10.4lf %12.4lf %12.4lf %12.4lf %8.3lf %8.3lf\n",
+	//             i+1,arr2[i][0],arr2[i][1],arr2[i][2],arr2[i][3],
+	//                 arr2[i][4], arr2[i][5], arr2[i][6]);
+	//    }
+	//}
+	//  write results to hard drive
+	// file ...DISP.0 contains preliminary result
+	if( pflag < 2 ) {
+		strcpy(name2,name);
+		strcat(name2,pref);
+		strcat(name2,"_DISP.0");
+		if((out = fopen(name2,"w")) == NULL) {
+			printf("Can not open file %s.\n",name2);
+			exit(1);
+		}
+		for(i = 0; i < nfout1; i++) {
+			fprintf(out,"%4d %10.4lf %10.4lf %12.4lf %12.4lf %12.4lf %12.4lf %8.3lf\n",
+					i,arr1[i][0],arr1[i][1],arr1[i][2],arr1[i][3],
+					arr1[i][4],arr1[i][5],arr1[i][6]);
+		}
+		fclose(out);
+	}
+	// file ...DISP.1 includes final results
+	if( pflag!=1 && nfout2!=0) {
+		strcpy(name2,name);
+		strcat(name2,pref);
+		strcat(name2,"_DISP.1");
+		if((out = fopen(name2,"w")) == NULL) {
+			printf("Can not open file %s.\n",name2);
+			exit(1);
+		}
+		for(i = 0; i < nfout2; i++) {
+			fprintf(out,"%4d %10.4lf %10.4lf %12.4lf %12.4lf %12.4lf %8.3lf\n",
+					i,arr2[i][0],arr2[i][1],arr2[i][2],arr2[i][3],
+					arr2[i][4],arr2[i][5]);
+		}
+		fclose(out);
+	}
+	//*/ Output amplitude array into file on hard drive
+	if( pflag==0 ) {
+		strcpy(name2,name);
+		strcat(name2,pref);
+		strcat(name2,"_AMP");
+		if((out = fopen(name2,"w")) == NULL) {
+			printf("Can not open file %s.\n",name2);
+			exit(1);
+		}
+		for(i = 0; i < nrow; ++i)
+			for(j = 0; j < ncol; ++j) {
+				fprintf(out,"%8.4lf %8.4lf %15.6e\n", arr1[i][1],delta/(tamp+j*dt),ampo[i][j]);
+				//printf("%d %d\n",i,j);
+			}
+		fclose(out);
+	}
 }
 

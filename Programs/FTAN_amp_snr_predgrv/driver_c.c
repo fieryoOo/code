@@ -63,7 +63,7 @@
  *          tamp      -  time to the beginning of ampo table, s (double)
  *          nrow      -  number of rows in array ampo, (int)
  *          ncol      -  number of columns in array ampo, (int)
- *          ampo      -  Ftan amplitude array, Db, (double [32][2*NMAX])
+ *          ampo      -  Ftan amplitude array, Db, (double [32][NMAX])
  * ierr   - completion status, =0 - O.K.,           (int)
  *                             =1 - some problems occures
  *                             =2 - no final results
@@ -71,6 +71,7 @@
 
 
 #define MAIN
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -89,7 +90,6 @@ int get_snr(float fhlen, float *sei, int nsample, double dt, double dist, double
 
 
 /*--------------------------------------------------------------*/
-#define NMAX 32768
 int pflag;
 int main (int argc, char *argv[])
 {
@@ -100,9 +100,8 @@ int main (int argc, char *argv[])
   static float sei[NMAX], seiout[NMAX], sei_n[NMAX], *sei_p;
   static double arr1[100][8],arr2[100][7];
   static double c_per[100],g_vel[100],amp_p[100],amp_n[100];
-  static double tamp, ampo[32][NMAX*2];
+  static double tamp, ampo[32][NMAX];
   static int nrow, ncol;
-  static double prpvper[300],prpvvel[300]; // phase vel prediction files
 
   double snr_p[64], snr_n[64];
   double f1,f2,f3,f4,dom_am;
@@ -129,8 +128,6 @@ controls what files to output
 0(default):	all the files
 1:		only _1_DISP.1 and _amp_snr
 2:		only _2_DISP.1 and _amp_snr
-notice that amp_snrs are always measured based on
- the final dispersions (_2_DISP.1)
 -----------------------------------------------*/
    pflag = 0;
    if(argc==6) pflag = atof(argv[5]);
@@ -144,9 +141,10 @@ notice that amp_snrs are always measured based on
      exit(-2);
   }
   nprpv = 0;
+  static double prpvper[NPER],prpvvel[NPER]; // phase vel prediction files
   while(fgets(buff,300,inv) != NULL) {
          if((n = sscanf(buff,"%lf %lf",&prpvper[nprpv],&prpvvel[nprpv])) < 2) break;
-         nprpv++;
+			if( (++nprpv) >= NPER ) { std::cerr<<"Warning(main): phase pred file size exceeds limit!"<<std::endl; break; }
      }
   fclose(inv);
 // main loop
@@ -158,7 +156,7 @@ notice that amp_snrs are always measured based on
   while((n = fscanf(in,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %s %d",
              &piover4,&vmin,&vmax,&tmin,&tmax,&tresh,&ffact,&taperl,&snr,&fmatch, &tresh2,
 	     &ffact2,&taperl2,&snr2,&fmatch2,name,&flag)) != EOF) {
-printf("1: %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %s %d\n", piover4,vmin,vmax,tmin,tmax,tresh,ffact,taperl,snr,fmatch, tresh2,          ffact2,taperl2,snr2,fmatch2,name,flag);
+		printf("1: %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %s %d\n", piover4,vmin,vmax,tmin,tmax,tresh,ffact,taperl,snr,fmatch, tresh2,          ffact2,taperl2,snr2,fmatch2,name,flag);
 
       if(n == 0 || n != 17) break;
 
@@ -227,6 +225,7 @@ printf("1: %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %s %d\n",
   aftanpg_(&piover4,&n,sei,&t0,&dt,&delta,&vmin,&vmax,&tmin,&tmax,&tresh1,
         &ffact,&perc,&npoints,&taperl,&nfin,&snr,&nprpv,prpvper,prpvvel,
         &nfout1,arr1,&nfout2,arr2,&tamp,&nrow,&ncol,ampo,&ierr);
+	//for(int i=0; i<32; i++) std::cout<<"debug, check ampo: "<<i<<" "<<ampo[i][1000]<<std::endl;
 
 	/* output amplitude/SNR before phase match filter */
 	for(i = 0; i < nfout1; i++) {
@@ -248,11 +247,11 @@ printf("1: %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %s %d\n",
 
   if( pflag==0 || pflag==1 ) printres(dt,nfout1,arr1,nfout2,arr2,tamp,nrow,ncol,ampo,ierr,name,"_1",delta);
   printf("dt = %f, nfout1 = %d, nfout2 = %d\n", dt, nfout1, nfout2);
-  if(nfout2 == 0) continue;   // break aftan sequence 
+  if(pflag==1 || nfout2==0) continue;   // break aftan sequence 
   printf("Tamp = %9.3lf, nrow = %d, ncol = %d\n",tamp,nrow,ncol);
 
 /* Read in the predicted group dispersion. (or make prediction based on the first iteration.) */
-  static double pred[2][300];
+  static double pred[2][NPER];
   static int npred;
   if( (inv=fopen(argv[3], "r")) == NULL ) {
      fprintf(stdout, "use grv from 1st iteration!\n");
@@ -277,7 +276,7 @@ printf("1: %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %s %d\n",
         if(tminp>pred[0][npred]) tminp = pred[0][npred];
         if(tmaxp<pred[0][npred]) tmaxp = pred[0][npred];
         //printf("%d %lf %lf\n", npred, pred[0][npred], pred[1][npred]);
-        npred++;
+		  if( (++npred) >= NPER ) { std::cerr<<"Warning(main): group pred file size exceeds limit!"<<std::endl; break; }
      }
      fclose(inv);
      tmin = tminp; tmax = tmaxp;

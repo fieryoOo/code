@@ -1,3 +1,5 @@
+#!/bin/csh
+
 if ($#argv != 1) then
 echo "USAGE: TXT2CPT [input file]"
 exit

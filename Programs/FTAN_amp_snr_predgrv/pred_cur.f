@@ -2,7 +2,7 @@ c Group velocity prediction curve
       subroutine pred_cur(ip,delta,om0,npred,pred,   om1,Gt0)
       implicit none
       integer*4 i,ip,ierr,npred
-      real*8  delta,om0,om1,Gt0,pi,s,ss,pred(300,2),x(300),y(300)
+      real*8  delta,om0,om1,Gt0,pi,s,ss,pred(500,2),x(npred),y(npred)
 
 c transfer prediction curve (T,vel) ==> (omrga,t)
       pi = atan(1.0d0)*4.0d0

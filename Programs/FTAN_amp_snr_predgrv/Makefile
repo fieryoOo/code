@@ -4,8 +4,8 @@ BIN = aftani_c_pgl_amp
 
 fflags = -O2 -Wall -ffixed-line-length-132
 #cflags = -O3 -Wall  -I"/home/tianye/code/Programs/head/"
-#cflags = -O3 -Wall  -I/usr/include -I/home/tianye/code/Programs/head/
-cflags = -O3 -Wall  -I/usr/include -I/projects/yeti4009/code/Programs/head/
+cflags = -O3  -I/usr/include -I/home/tianye/code/Programs/head/
+#cflags = -O3 -Wall  -I/usr/include -I/projects/yeti4009/code/Programs/head/
 
 #LDLIBS = -L/home/yeti4009/usr/lib -lfftw3
 LDLIBS = -L/usr/lib64 -lfftw3
@@ -14,9 +14,9 @@ FFLAGS = $(DBG) $(fflags)
 
 CFLAGS = $(DBG) $(cflags)
 
-FC = gfortran
+FC = gfortran -lstdc++
 
-CC = gcc
+CC = g++ -std=c++11
 
 DBG =
 

@@ -91,7 +91,7 @@ c ---
       real*8    wdth(100),wdth1(100),wdtht(100)
       integer*4 ip,iflag,ierr1,nindx,imax,iimax,ipos,ist,ibe,nfout2,indx(100)
       integer*4 mm,mi,iml,imr,indl,indr,nphpr
-      real*8    lm,rm,phprper(300),phprvel(300)
+      real*8    lm,rm,phprper(nphpr),phprvel(nphpr)
 
       ierr = 0
       dczero = (0.0d0,0.0d0)

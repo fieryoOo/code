@@ -101,11 +101,11 @@ c ---
       real*8    wdth(100),wdth1(100),wdtht(100)
       integer*4 iflag,ierr1,nindx,imax,iimax,ipos,ist,ibe,nfout2,indx(100)
       integer*4 mm,mi,iml,imr,indl,indr,nphpr
-      real*8    lm,rm,phprper(300),phprvel(300)
+      real*8    lm,rm,phprper(nphpr),phprvel(nphpr)
 c ---
       integer*4 ip,npred,inds,inde
       real*8    om0,tg0,omstart,dw,pha_corr,ome1,omb1,maxTpr,minTpr
-      real*8    pred(300,2),omdom(32768), ampdom(32768)
+      real*8    pred(500,2),omdom(32768), ampdom(32768)
       double complex dci,dc2,pha_cor(32768),env(32768),spref(32768)
 
       ierr = 0
