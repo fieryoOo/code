@@ -49,8 +49,8 @@ using namespace std;
 //-------------------------------------------------------------parameters----------------------------------------------------------//
    char rdsexe[200];	//rdseed excutable
    char evrexe[200];	//evalresp excutable
-   char stalst[200];	//station list (J23A -129.6825 +44.844 optional_flag) (flag controls which sta-pairs to be ccd)
-                        // (skip cc between sta-pairs that are 1> both flagged 0 or 2> both not 0 but flagged with different numbers)
+   char stalst[200];	//station list (J23A -129.6825 +44.844 optional_netname optional_flag) (flag controls which sta-pairs to be ccd)
+                     // (skip cc between sta-pairs that are 1> both flagged 0 or 2> both not 0 but flagged with different numbers)
    char seedlst[200];	//SEED file list (down_US_ALL/OBS_BHZ_2012.FEB.29.203762.seed 2012 2 29)
    char ch[4];		//channel name
    int sps;		//target sampling rate

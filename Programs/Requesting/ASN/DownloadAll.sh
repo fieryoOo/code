@@ -4,8 +4,9 @@
 ListSeed() {
 	local _fin=$1
 	local _fou=$2
+	local _label=$3
 	if [ -e $_fin ]; then
-		more $_fin | tr " " "\n" | grep ".seed" | tr "\r" " " > $_fou
+		more $_fin | tr " " "\n" | grep ".seed" | grep $_label | tr "\r" " " > $_fou
 		#more $_fin | tr " " "\n" | grep ".seed" | awk -F_ '{print $1,$2}' | awk -F. '{print $1,$2,$0}' | awk '{print $2,$3,$4"_"$5}' | sort -M -k2 | sort -s -g -k1 | awk '{print $3}' | tr "\r" " " > $_fou
 	fi
 }
@@ -51,12 +52,12 @@ while [ true ]; do
 	wget -A seed -nd -c -r --no-remove-listing -p -E -k -K -np $address/$flst 
 	# produce seed list (sorted by year.month)
 	slst=.fseeds
-	ListSeed $flst $slst
+	ListSeed $flst $slst OBS
 	# check 
 	if [ -e $flst ] && [ `CheckFList $slst` == 1 ]; then 
 		let nwait++
 		if [ $nwait -gt $maxwait ]; then break; fi
-		echo "All seeds downloaded. Sleep for 100 sec before starting the next cycle..."
+		echo "All seeds downloaded. Sleep for 100 sec before starting the next("$nwait"/"$maxwait") cycle..."
 		sleep 100
 	else
 		#wget -A seed -nd -c -r --no-remove-listing -p -E -k -K -np $address

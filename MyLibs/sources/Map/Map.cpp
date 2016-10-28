@@ -610,7 +610,7 @@ float Map::PointAverage(Point<float> rec, float hdis, float& weit) {
 }
 
 template<class Functor>
-void Map::TraceGCP( Point<float> Psrc, const Point<float>& Prec, float dis_step, const Functor& func ) {
+void Map::TraceGCP( Point<float> Psrc, const Point<float>& Prec, float dis_step, const Functor& func ) const {
 	// check source/receiver locations
 	Point<float> BL( pimplM->lonmin, pimplM->latmin);
 	Point<float> TR( pimplM->lonmax, pimplM->latmax);
@@ -646,7 +646,7 @@ void Map::TraceGCP( Point<float> Psrc, const Point<float>& Prec, float dis_step,
 }
 
 /* ------------ compute average value along the path src-rec ------------ */
-DataPoint<float> Map::PathAverage(Point<float> rec, float& perc, const float lambda, const bool acc) {
+DataPoint<float> Map::PathAverage(Point<float> rec, float& perc, const float lambda, const bool acc) const {
 	// check source
 	if( src == Point<float>() )
 		throw ErrorM::BadParam(FuncName, "invalid src location");
@@ -726,6 +726,7 @@ DataPoint<float> Map::PathAverage(Point<float> rec, float& perc, const float lam
 		datasum /= weit;
 		perc = dismax>dis ? 1 : dismax/dis;
 	}
+
 	//return datasum;
 	return DataPoint<float>(rec, datasum, dis);
 
@@ -733,7 +734,7 @@ DataPoint<float> Map::PathAverage(Point<float> rec, float& perc, const float lam
 
 
 /* ------------ compute average along the path src-rec weighted by the reciprocal of the map value ------------ */
-DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float& perc, const float lambda, const bool acc) {
+DataPoint<float> Map::PathAverage_Reci(Point<float> rec, float& perc, const float lambda, const bool acc) const {
 	// check source
 	if( src == Point<float>() )
 		throw ErrorM::BadParam(FuncName, "invalid src location");

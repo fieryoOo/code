@@ -278,6 +278,7 @@ int DoCor (struct starec *stag1, struct starec *stag2, short *dnum, short *dflag
       fprintf(stdout, "*** Warning: lagtime overflow, corrected back to max len ***");
       lag = ns/2;
    }
+	
    //Compute and correct for cc time-length
    float cor_rec[2*lag+1], cor[2*lag+1];
    if( !CalcRecCor( *stag1, *stag2, cor_rec, lag, dt1) ) return 0;
@@ -287,6 +288,10 @@ int DoCor (struct starec *stag1, struct starec *stag2, short *dnum, short *dflag
    }
    cor[lag] = seis_out[0]/cor_rec[lag];
    delete [] seis_out; seis_out = NULL;
+
+	// check results for nan
+	for(int i=0; i<=2*lag; ++i)
+		if( cor[i] != cor[i] ) return 0;
 
    //output daily cross-correlations
    if( CorOutflag > 0 ) {

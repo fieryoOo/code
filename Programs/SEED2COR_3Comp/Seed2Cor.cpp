@@ -73,8 +73,8 @@ int main(int argc, char *argv[]) {
 		#pragma omp parallel
 		{ // parallel region S
 		while( true ) {	// main loop
-Timer timer;
-std::stringstream sst;
+//Timer timer;
+//std::stringstream sst;
 			//int ithread = omp_get_thread_num();
 			/* dynamically assign events to threads, one at a time */
 			std::vector<DailyInfo> dinfoV;
@@ -88,13 +88,13 @@ std::stringstream sst;
 
 			if( cdbP.fskipesac==2 && cdbP.fskipresp==2 && cdbP.fskipamph==2 ) break;
 
-sst<<dinfoV[0].staname<<"(t0)="<<timer.SecondsElapsed()<<" ";
+//sst<<dinfoV[0].staname<<"(t0)="<<timer.SecondsElapsed()<<" ";
 RESPList respList;
 if( cdbP.fskipesac==1 && !dinfoV.empty() ) {
 	std::vector<std::string> resp_list;
 	List( dinfoV[0].outdir.c_str(), ("RESP."+dinfoV[0].ntname+"."+dinfoV[0].staname+".*").c_str(), 2, resp_list);
 	respList.Load(resp_list);
-sst<<dinfoV[0].staname<<"(t1)="<<timer.SecondsElapsed()<<" ";
+//sst<<dinfoV[0].staname<<"(t1)="<<timer.SecondsElapsed()<<" ";
 }
 
 			try {	// handle current event
@@ -106,7 +106,7 @@ sst<<dinfoV[0].staname<<"(t1)="<<timer.SecondsElapsed()<<" ";
 				// loop through channel list
 				for( int ich=0; ich<dinfoV.size(); ich++ ) {
 					auto& dinfo = dinfoV[ich];
-sst<<dinfo.chname<<"(t2)="<<timer.SecondsElapsed()<<" ";
+//sst<<dinfo.chname<<"(t2)="<<timer.SecondsElapsed()<<" ";
 					bool extract_flag=false;
 					/* daily info from the database */
 					//logger.Hold( INFO, dinfo.seedname + " " + dinfo.staname + " " + dinfo.chname, FuncName );
@@ -122,6 +122,7 @@ sst<<dinfo.chname<<"(t2)="<<timer.SecondsElapsed()<<" ";
 						SeedRec seedcur( dinfo.seedname, dinfo.rdsexe, report );
 						if( seedcur.ExtractSac( dinfo.staname, dinfo.ntname, dinfo.chname, dinfo.sps, dinfo.rec_outname,
 														dinfo.resp_outname, gapfrac, sac ) ) {
+std::cerr<<"deubg: sac extracted "<<sac.fname<<std::endl;
 							extract_flag=true;
 							sac.Write( dinfo.osac_outname );
 							ExtractedStaLst.push_back(dinfo.staname+"_"+dinfo.chname);
@@ -129,13 +130,15 @@ sst<<dinfo.chname<<"(t2)="<<timer.SecondsElapsed()<<" ";
 						sacfout_O.push_back(dinfo.osac_outname);
 					} 
 
-					// remove response and cut
+					// load ft_sac directly
 					if (  cdbP.fskipresp==2 || (FileExists(dinfo.fsac_outname) && cdbP.fskipresp==1)  ) {
 						/// 1.02-->1.03, check if removed response SAC file exists or not
+std::cerr<<"debug: try reading from existed file "<<dinfo.fsac_outname<<std::endl;
 						if (FileExists(dinfo.fsac_outname)) {
 							sac.Load(dinfo.fsac_outname);
 							sacfout_R.push_back(dinfo.fsac_outname);
 						}
+std::cerr<<"debug: loaded "<<dinfo.fsac_outname<<" "<<(bool)(sac.sig)<<std::endl;
 						sacfout_O.push_back(dinfo.osac_outname);
 						sacV.push_back( std::move(sac) );
 						continue;
@@ -155,17 +158,21 @@ sst<<dinfo.chname<<"(t2)="<<timer.SecondsElapsed()<<" ";
 							sacfout_O.push_back(dinfo.osac_outname);
 							sacV.push_back( std::move(sac) );
 							continue;
-						}
+						} else {
+std::cerr<<"debug: "<<dinfo.resp_outname<<" found for channel "<<dinfo.chname<<std::endl;
+}
 						if (FileExists(dinfo.osac_outname))	{
 							//logger.Hold( INFO,"Reading exsting SAC file: "+dinfo.osac_outname, FuncName );
 							//std::cout<<"Reading exsting SAC file: "<<dinfo.osac_outname<<std::endl;
 							ExistingStaLst.push_back(dinfo.staname+"_"+dinfo.chname);
 							sac.Load(dinfo.osac_outname);
 							sacfout_O.push_back(dinfo.osac_outname);
+std::cerr<<"deubg: osac "<<sac.fname<<" loaded"<<std::endl;
 						} else {
 							if (FileExists(dinfo.fsac_outname))	{
 								sac.Load(dinfo.fsac_outname);
 								sacfout_R.push_back(dinfo.fsac_outname);
+std::cerr<<"deubg: fsac "<<sac.fname<<" loaded"<<std::endl;
 							}
 							sacfout_O.push_back(dinfo.osac_outname);
 							sacV.push_back( std::move(sac) );
@@ -187,10 +194,12 @@ sst<<dinfo.chname<<"(t2)="<<timer.SecondsElapsed()<<" ";
 					//sac.WriteHD("/usr/temp.SAC");
 					sacV.push_back( std::move(sac) );
 					sacfout_R.push_back(dinfo.fsac_outname);
-sst<<dinfo.chname<<"(t3)="<<timer.SecondsElapsed()<<" ";
+//sst<<dinfo.chname<<"(t3)="<<timer.SecondsElapsed()<<" ";
 				}
+std::cerr<<sacV.size()<<" ";
+for( const auto &sac : sacV ) std::cerr<<(bool)(sac.sig)<<" "; std::cerr<<std::endl;
 
-sst<<dinfoV[0].chname<<"(t4)="<<timer.SecondsElapsed()<<" ";
+//sst<<dinfoV[0].chname<<"(t4)="<<timer.SecondsElapsed()<<" ";
 				// log results for the day
 				std::stringstream ssdate;
 				ssdate << dinfoV[0].year<<"."<<dinfoV[0].month<<"."<<dinfoV[0].day;
@@ -202,21 +211,21 @@ sst<<dinfoV[0].chname<<"(t4)="<<timer.SecondsElapsed()<<" ";
 					for(const auto& sta : sV ) msg += " " + sta;
 					logger.Hold( INFO, msg, FuncName ); sV.clear();
 				};
-sst<<dinfoV[0].chname<<"(t5)="<<timer.SecondsElapsed()<<" ";
+//sst<<dinfoV[0].chname<<"(t5)="<<timer.SecondsElapsed()<<" ";
 				LogAllSta( "SAC extraction", ExtractedStaLst );
 				LogAllSta( "File existed", ExistingStaLst );
 				LogAllSta( "RESP removal", RemovedStaLst );
-sst<<dinfoV[0].chname<<"(t6)="<<timer.SecondsElapsed()<<" ";
-logger.Hold( INFO, " debug timer: "+sst.str() );
+//sst<<dinfoV[0].chname<<"(t6)="<<timer.SecondsElapsed()<<" ";
+//logger.Hold( INFO, " debug timer: "+sst.str() );
 				logger.flush();
-logger.Hold( INFO, " debug timer after flush! "+std::to_string(timer.SecondsElapsed()) );
+//logger.Hold( INFO, " debug timer after flush! "+std::to_string(timer.SecondsElapsed()) );
 
-if ( cdbP.fskipamph==2 ) continue;
+//if ( cdbP.fskipamph==2 ) continue;
 				if ( cdbP.fskipamph==2 || ( cdbP.fskipamph==1 && 
 						FileExists(dinfoV[0].fsac_outname+".am")  && FileExists(dinfoV[0].fsac_outname+".ph")  &&
 						FileExists(dinfoV[1].fsac_outname+".am")  && FileExists(dinfoV[1].fsac_outname+".ph") &&
 						FileExists(dinfoV[2].fsac_outname+".am")  && FileExists(dinfoV[2].fsac_outname+".ph")  ) ) continue;
-std::cerr<<" Error!!! passed!"<<std::endl;
+std::cerr<<" checkpoint: before TNormAll: "<<sacV.size()<<std::endl;
 
 				/* time-domain normalization */
 				TNormAll( sacV, dinfoV, SyncNorm );
@@ -226,7 +235,7 @@ std::cerr<<" Error!!! passed!"<<std::endl;
 				for( int isac=0; isac<sacV.size(); isac++ ) {
 					auto& dinfo = dinfoV[isac];
 					auto& sac = sacV[isac];
-					if( ! sac.sig ) continue;
+					if( ! sac.sig ) { std::cerr<<sac.fname<<" no sig"<<std::endl; continue; }
 					SacRec sac_am, sac_ph;
 					sac.ToAmPh( sac_am, sac_ph );
 					sac = std::move(sac_am); ///???
@@ -240,9 +249,10 @@ std::cerr<<" Error!!! passed!"<<std::endl;
 				for( int isac=0; isac<sacV.size(); isac++ ) {
 					auto& dinfo = dinfoV[isac];
 					auto& sac = sacV[isac];
-					if( ! sac.sig ) continue;
+					if( ! sac.sig ) { std::cerr<<sac.fname<<" no sig"<<std::endl; continue; }
 					sac.Write( dinfo.fsac_outname + ".am" );
 				}
+std::cerr<<" checkpoint: after FNormAll: "<<sacV.size()<<std::endl;
 				// End of removed SAC file to amp&ph file
 				if (cdbP.fdelosac==1 || cdbP.fdelosac==3)
 					for (int isac=0; isac<sacfout_O.size(); isac++ )
@@ -263,6 +273,7 @@ std::cerr<<" Error!!! passed!"<<std::endl;
 		} // parallel region E
 
 		/*---- CC code start here, by Lili Feng----*/
+std::cerr<<" checkpoint: before CC 1!"<<std::endl;
 		if(cdbP.fskipcrco == 3) return 0;
 		int fskipcc=cdbP.fskipcrco;
 		// Get channel list
@@ -279,6 +290,7 @@ std::cerr<<" Error!!! passed!"<<std::endl;
 		std::vector < StaInfo > stationlist=cdb.GStaList();
 		std::vector < std::string > monthdir=cdb.GMonLst();
 		std::vector< StaPair > CC_todolist;
+std::cerr<<" checkpoint: before CC 2!"<<std::endl;
 		GCCtodoList( CC_todolist, stationlist, monthdir,  ChannelAll, fskipcc ); // generate CC_todolist
 		CCList2CC( CC_todolist, ChannelAll, cdb ); // Do CC according to CC_todolist
 		/*---- CC code end here ----*/
