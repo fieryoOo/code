@@ -30,13 +30,16 @@ int main (int argc, char *argv[]) {
 	for(int i=0; i<flstV.size(); i++) {
 		const auto &line = flstV[i];
 		std::stringstream ss(line);
-		std::string sacnameZ, sacnameH1, sacnameH2, sacnameD, outname;
-		int sactype; float waterdep;
-		if( ! (ss >> sacnameZ >> sacnameH1 >> sacnameH2 >> sacnameD >> sactype >> waterdep >> outname) ) {
+		//std::string sacnameZ, sacnameH1, sacnameH2, sacnameD, outname;
+		//int sactype; float waterdep;
+		//if( ! (ss >> sacnameZ >> sacnameH1 >> sacnameH2 >> sacnameD >> sactype >> waterdep >> outname) ) {
+		std::string sacnameZ, sacnameH1, sacnameH2, sacnameD, ssactype, swaterdep, saziH1, outname;
+		if( ! (ss >> sacnameZ >> sacnameH1 >> sacnameH2 >> sacnameD >> ssactype >> swaterdep >> saziH1 >> outname) ) {
 			std::cerr<<"Error(main): format error within input line: "<<line<<std::endl;
 			continue;
 		}
-		StaSacs stasac(sacnameZ, sacnameH1, sacnameH2, sacnameD, sactype, waterdep, 0., Eperl, Eperu);
+		int sactype = stoi(ssactype); float waterdep = stof(swaterdep), aziH1 = stof(saziH1);
+		StaSacs stasac(sacnameZ, sacnameH1, sacnameH2, sacnameD, sactype, waterdep, aziH1, Eperl, Eperu);
 		std::stringstream report(std::ios_base::app|std::ios_base::in|std::ios_base::out);
 		report<<"Producing sac file "<<outname<<"\n";
 		try {

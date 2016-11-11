@@ -2,7 +2,9 @@ BIN1 := RemoveTilt
 BIN2 := RemoveCompliance
 BIN3 := RemoveTiltCompliance
 BIN4 := RemoveTiltComplianceList
-BINall := $(BIN1) $(BIN2) $(BIN3) $(BIN4)
+BIN5 := NoiseDirectionality
+BIN6 := NoiseDirectionalityList
+BINall := $(BIN1) $(BIN2) $(BIN3) $(BIN4) ${BIN5} ${BIN6}
 
 all : $(BINall)
 

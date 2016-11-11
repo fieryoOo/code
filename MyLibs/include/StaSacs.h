@@ -52,6 +52,7 @@ public:
 
 	void Write( const std::string& foutZ, const std::string& foutZinterm="",
 					const std::string foutH1="", const std::string& foutH2="", const std::string foutD="" ) const;
+	void Write( const int iter ) const;	// save all sacs with name original_name_iter?
 
 	void clearV() const {
 		sacZamV.clear(); sacDamV.clear(); sacH1amV.clear(); sacH2amV.clear(); sacHtamV.clear(); 
@@ -82,7 +83,7 @@ protected:
 
 private:
 	const int sactype;
-	const float water_depth, fmax_comp;
+	const float water_depth, fmax_comp, azi_H1;
 	const float _Eperl, _Eperu;
 	SacRec sacZinterm;	// stores intermediate Z after removing the stronger of compliance/tilt
 	SacRec sacZ, sacH1, sacH2, sacD, sacHt;
@@ -119,11 +120,11 @@ private:
 	float CohAvg(const SacRec& Coh, const SacRec& Pha, float fb, float fe, float pha0) const;
 
 	float EstimateCoherence( const char c1, const char c2, const float fmax, 
-									 SacRec& Coh, SacRec& Adm, SacRec& Pha, bool autoflip = false );
+									 SacRec& Coh, SacRec& Adm, SacRec& Pha, float &pha0, bool autoflip = false );
 	PointC EstimateTilt( SacRec& Coh, SacRec& Adm, SacRec& Pha );
 
 	void ApplyCorrection( const char c, const SacRec& sac2, SacRec& Coh, SacRec& Adm, SacRec& Pha, 
-								 float fmax, const float pha0 = 0. );
+								 float fmax, const float pha0 );
 
 };
 
@@ -135,7 +136,7 @@ StaSacs::StaSacs( const std::string& fnameZ, const std::string& fnameH1,
 						const int sactypein, const float water_depth_in, const float azi_H1,
 						const float Eperl, const float Eperu )
 						: sacZ(fnameZ), sacH1(fnameH1), sacH2(fnameH2), sacD(fnameD), sactype(sactypein)
-						, water_depth(water_depth_in), fmax_comp(fcutoffCompliance()), _Eperl(Eperl), _Eperu(Eperu) {
+						, water_depth(water_depth_in), fmax_comp(fcutoffCompliance()), azi_H1(azi_H1), _Eperl(Eperl), _Eperu(Eperu) {
 	// lambda function to load sac and convert to displacement
 	auto LoadSAC = [&]( SacRec& sac ) {
 		sac.Load(); //sac.cut(60000., 85000.);
@@ -192,8 +193,8 @@ float StaSacs::RemoveCompliance( const std::string& outinfoname, float tseg ) {
 	DetectNoiseWindows(_Eperl, _Eperu);
 
 	// estimate compliance noise
-	SacRec Coh_c, Adm_c, Pha_c;
-	float cohavg = EstimateCoherence( 'Z', 'D', fmax_comp, Coh_c, Adm_c, Pha_c, true );	// flip sacD when pha is close to PI
+	SacRec Coh_c, Adm_c, Pha_c; float pha0 = 0.;
+	float cohavg = EstimateCoherence( 'Z', 'D', fmax_comp, Coh_c, Adm_c, Pha_c, pha0, true );	// flip pha0 when Pha is close to PI
 
 	// output 1
 	std::vector<SacRec> sacV; // use a vector to store sacs to be written later
@@ -201,7 +202,7 @@ float StaSacs::RemoveCompliance( const std::string& outinfoname, float tseg ) {
 	if( output_coh ) sacV = {Coh_c, Adm_c, Pha_c};
 
 	// compliance correction on Z (Z -= coh_c*D)
-	ApplyCorrection( 'Z', sacD, Coh_c, Adm_c, Pha_c, fmax_comp );
+	ApplyCorrection( 'Z', sacD, Coh_c, Adm_c, Pha_c, fmax_comp, pha0 );
 
 	// output 2
 	if(output_coh) { 
@@ -213,24 +214,28 @@ float StaSacs::RemoveCompliance( const std::string& outinfoname, float tseg ) {
 }
 
 float StaSacs::EstimateCoherence( const char c1, const char c2, const float fmax, 
-											 SacRec& Coh, SacRec& Adm, SacRec& Pha, bool autoflip ) {
+											 SacRec& Coh, SacRec& Adm, SacRec& Pha, float &pha0, bool autoflip ) {
 	// compute transfer F for compliance noise
 	CalcTransferF(c1, c2, Coh, Adm, Pha);
 	// compute average coherence
    float fe = fe_avg<fmax?fe_avg:fmax, flen = 0.5 * (fe-fb_avg);
-   float coh1 = flen<0.02 ? CohAvg( Coh, Pha, fb_avg, fe, 0. ) 
-					 : std::max( CohAvg( Coh, Pha, fb_avg, fb_avg+flen, 0. ),
-									 CohAvg( Coh, Pha, fb_avg+flen, fe, 0. ) );
+   float coh1 = flen<0.02 ? CohAvg( Coh, Pha, fb_avg, fe, pha0 ) 
+					 : std::max( CohAvg( Coh, Pha, fb_avg, fb_avg+flen, pha0 ),
+									 CohAvg( Coh, Pha, fb_avg+flen, fe, pha0 ) );
 	if( autoflip ) {
-		float coh2 = flen<0.02 ? CohAvg( Coh, Pha, fb_avg, fe, M_PI ) 
-						 : std::max( CohAvg( Coh, Pha, fb_avg, fb_avg+flen, M_PI ),
-										 CohAvg( Coh, Pha, fb_avg+flen, fe, M_PI ) );
+		float pha0_flip = pha0<0. ? (pha0+M_PI) : (pha0-M_PI);
+		float coh2 = flen<0.02 ? CohAvg( Coh, Pha, fb_avg, fe, pha0_flip ) 
+						 : std::max( CohAvg( Coh, Pha, fb_avg, fb_avg+flen, pha0_flip ),
+										 CohAvg( Coh, Pha, fb_avg+flen, fe, pha0_flip ) );
 		if( coh2 > coh1 ) {
+			coh1 = coh2; pha0 = pha0_flip;
+			/*	not necessary!
 			float adder = Pha.shd.user1<0 ? M_PI : -M_PI;
+			Pha.shd.user1 += adder; 
 			Pha.Transform( [&](float& val){val += adder;} ); 
-			coh1 = coh2; Pha.shd.user1 += adder; 
 			std::get<0>(sacsM.at(c2))->Mul(-1.);
 			std::get<1>(sacsM.at(c2))->clear();
+			*/
 		}
 	}
 	return coh1;
@@ -251,7 +256,7 @@ PointC StaSacs::RemoveTilt( const std::string& outinfoname, float tseg ) {
 	if( output_coh ) sacV = {Coh_t, Adm_t, Pha_t};
 
 	// tilt correction on Z (Z -= coh_t*H1)
-	if( Pres.y>cohmin ) ApplyCorrection( 'Z', sacHt, Coh_t, Adm_t, Pha_t, fmax_tilt );
+	if( Pres.y>cohmin ) ApplyCorrection( 'Z', sacHt, Coh_t, Adm_t, Pha_t, fmax_tilt, 0. );
 
 	// output 2
 	if(output_coh) {
@@ -267,8 +272,11 @@ PointC StaSacs::EstimateTilt( SacRec& Coh, SacRec& Adm, SacRec& Pha ) {
 	// where Pres.x = direction_t, Pres.y = coh_t
 	PointC Pres = EstimateTiltDirection( 1.0 );
 	sacHt = SACProject(sacH1, sacH2, Pres.x); sacHtamV.clear();
+//sacHt.Write("debug_Ht_2.SAC");
 	// compute transfer F for tilt noise
-	Pres.y = EstimateCoherence( 'Z', 't', fmax_tilt, Coh, Adm, Pha );
+	float pha0 = 0.;
+	Pres.y = EstimateCoherence( 'Z', 't', fmax_tilt, Coh, Adm, Pha, pha0, false );
+//std::cerr<<"debug: Ht-Z coh = "<<Pres.y<<std::endl;
 	return Pres;
 }
 
@@ -289,14 +297,15 @@ PointC5 StaSacs::RemoveTiltCompliance( const std::string& outinfoname, float tse
 	// search for earthquakes and save noise windows, sacZ not modified
 	DetectNoiseWindows(_Eperl, _Eperu);
 
-	// estimate tilt noise
+	// estimate tilt noise (pha_expected = 0)
 	SacRec Coh_t, Adm_t, Pha_t;
 	PointC5 Pres = EstimateTilt( Coh_t, Adm_t, Pha_t );
 
-	// estimate comp noise
-	SacRec Coh_c, Adm_c, Pha_c;
+	// estimate comp noise (pha_expected = 0)
+	// autoflip=true to correct DPG with flipped polarity
+	SacRec Coh_c, Adm_c, Pha_c; float pha0 = 0.;
 	Pres.z = !sacD.sig ? 0. :
-				EstimateCoherence( 'Z', 'D', fmax_comp, Coh_c, Adm_c, Pha_c, true );
+				EstimateCoherence( 'Z', 'D', fmax_comp, Coh_c, Adm_c, Pha_c, pha0, true );
 
 	// output 1
 	std::vector<SacRec> sacV; // use a vector to store sacs to be written later
@@ -313,38 +322,45 @@ PointC5 StaSacs::RemoveTiltCompliance( const std::string& outinfoname, float tse
 		//output_coh = false;
 	} else if( coh_t > coh_c ) {
 		// tilt correction on Z (Z -= coh_t*H1)
-		ApplyCorrection( 'Z', sacHt, Coh_t, Adm_t, Pha_t, fmax_tilt );
+		ApplyCorrection( 'Z', sacHt, Coh_t, Adm_t, Pha_t, fmax_tilt, 0. );
 		sacZinterm = sacZ;
 		if(output_coh) { sacV[3] = std::move(Adm_t); sacV[4] = std::move(Pha_t); }
 		if( sacD.sig ) { // stop if sacD is empty
 			// tilt correction on D (D -= coh_t*H1)
-			Pres.z2 = EstimateCoherence( 'D', 't', fmax_tilt, Coh_t, Adm_t, Pha_t, true );
-			if(Pres.z2>cohmin) ApplyCorrection( 'D', sacHt, Coh_t, Adm_t, Pha_t, fmax_tilt );
+			Pres.z2 = EstimateCoherence( 'D', 't', fmax_tilt, Coh_t, Adm_t, Pha_t, pha0=0., true );
+			//Coh_t.Write("Coh_Ht-D.SAC"); Adm_t.Write("Adm_Ht-D.SAC"); Pha_t.Write("Pha_Ht-D.SAC");
+			if(Pres.z2>cohmin) ApplyCorrection( 'D', sacHt, Coh_t, Adm_t, Pha_t, fmax_tilt, pha0 );
 			// compliance correction on Z (Z -= coh_c*D)
 			if(output_coh) { sacV[8] = std::move(Adm_c); sacV[9] = std::move(Pha_c); }
-			Pres.z3 = EstimateCoherence( 'Z', 'D', fmax_comp, Coh_c, Adm_c, Pha_c, true );
+			Pres.z3 = EstimateCoherence( 'Z', 'D', fmax_comp, Coh_c, Adm_c, Pha_c, pha0=0., true );
 			if(output_coh) { sacV[10] = Coh_c; sacV[11] = Adm_c; sacV[12] = Pha_c; }
-			if(Pres.z3>cohmin) ApplyCorrection( 'Z', sacD, Coh_c, Adm_c, Pha_c, fmax_comp );
+			if(Pres.z3>cohmin) ApplyCorrection( 'Z', sacD, Coh_c, Adm_c, Pha_c, fmax_comp, pha0 );
 			if(output_coh) { sacV[13] = std::move(Adm_c); sacV[14] = std::move(Pha_c); }
 		}
 	} else {
 		// compliance correction on Z (Z -= coh_c*D)
-		ApplyCorrection( 'Z', sacD, Coh_c, Adm_c, Pha_c, fmax_comp );
+//sacZ.Write("debug_Z_1.SAC");
+		ApplyCorrection( 'Z', sacD, Coh_c, Adm_c, Pha_c, fmax_comp, pha0 );
+//sacZ.Write("debug_Z_2.SAC");
 		sacZinterm = sacZ;
 		if(output_coh) { sacV[8] = std::move(Adm_c); sacV[9] = std::move(Pha_c); }
-		// compliance correction on H1 (H1 -= coh_c*D)
-		float coh_cH1 = EstimateCoherence( '1', 'D', fmax_comp, Coh_c, Adm_c, Pha_c );
-		if(coh_cH1>cohmin) ApplyCorrection( '1', sacD, Coh_c, Adm_c, Pha_c, fmax_comp );
-		// compliance correction on H2 (H2 -= coh_c*D)
-		float coh_cH2 = EstimateCoherence( '2', 'D', fmax_comp, Coh_c, Adm_c, Pha_c );
-		if(coh_cH2>cohmin) ApplyCorrection( '2', sacD, Coh_c, Adm_c, Pha_c, fmax_comp );
-		Pres.z2 = sqrt(coh_cH1*coh_cH1 + coh_cH2*coh_cH2);
+		// compliance correction on H1 (H1 -= coh_c*D) (IMPORTANT: pha_expected = pi/2!!!)
+		float coh_cH1 = EstimateCoherence( '1', 'D', fmax_comp, Coh_c, Adm_c, Pha_c, pha0=M_PI*0.5, true );
+//sacH1.Write("debug_H1_1.SAC"); Coh_c.Write("debug_Coh_D-H1_1.SAC"); Adm_c.Write("debug_Adm_D-H1_1.SAC"); Pha_c.Write("debug_Pha_D-H1_1.SAC");
+		if(coh_cH1>cohmin) ApplyCorrection( '1', sacD, Coh_c, Adm_c, Pha_c, fmax_comp, pha0 );
+//sacH1.Write("debug_H1_2.SAC"); Coh_c.Write("debug_Coh_D-H1_2.SAC"); Adm_c.Write("debug_Adm_D-H1_2.SAC"); Pha_c.Write("debug_Pha_D-H1_2.SAC");
+		// compliance correction on H2 (H2 -= coh_c*D) (IMPORTANT: pha_expected = pi/2!!!)
+		float coh_cH2 = EstimateCoherence( '2', 'D', fmax_comp, Coh_c, Adm_c, Pha_c, pha0=M_PI*0.5, true );
+//sacH2.Write("debug_H2_1.SAC"); Coh_c.Write("debug_Coh_D-H2_1.SAC"); Adm_c.Write("debug_Adm_D-H2_1.SAC"); Pha_c.Write("debug_Pha_D-H2_1.SAC");
+		if(coh_cH2>cohmin) ApplyCorrection( '2', sacD, Coh_c, Adm_c, Pha_c, fmax_comp, pha0 );
+//sacH2.Write("debug_H2_2.SAC"); Coh_c.Write("debug_Coh_D-H2_2.SAC"); Adm_c.Write("debug_Adm_D-H2_2.SAC"); Pha_c.Write("debug_Pha_D-H2_2.SAC");
+		Pres.z2 = sqrt(0.5*(coh_cH1*coh_cH1 + coh_cH2*coh_cH2));
 		if(output_coh) { sacV[3] = std::move(Adm_t); sacV[4] = std::move(Pha_t); }
 		// tilt correction on Z (Z -= coh_t*H1)
 		PointC Pres2 = EstimateTilt( Coh_t, Adm_t, Pha_t ); 
 		Pres.x = Pres2.x; Pres.z3 = Pres2.y;	// update tilt orientation and coh
 		if(output_coh) { sacV[10] = Coh_t; sacV[11] = Adm_t; sacV[12] = Pha_t; }
-		if(Pres.z3>cohmin) ApplyCorrection( 'Z', sacHt, Coh_t, Adm_t, Pha_t, fmax_tilt );
+		if(Pres.z3>cohmin) ApplyCorrection( 'Z', sacHt, Coh_t, Adm_t, Pha_t, fmax_tilt, 0. );
 		if(output_coh) { sacV[13] = std::move(Adm_t); sacV[14] = std::move(Pha_t); }
 	}
 
@@ -364,7 +380,7 @@ RDirect StaSacs::RayleighDirectionality(const float dazi, const std::vector<std:
 	//sacZ.RunAvg( 40., _Eperl, _Eperu ); //sacZ.OneBit();
 	std::vector<SacRec> sacV{sacZ, sacH1, sacH2};
 	//RunAvg(40., 15., 30., sacV);
-	RunAvg(40., 12., 20., sacV, true);
+	//RunAvg(40., 12., 20., sacV, true);	// Effect of RunAvg on diretionality? Needs further test!
 	SacRec &sacZt(sacV[0]), &sacH1t(sacV[1]), &sacH2t(sacV[2]); 
 	int nrotate = ceil(90./dazi), ncycle = nrotate*4, ntwin = (int)(te-tb-twin)/(0.5*twin) + 1;
 	RDirect rdirect( freqRangeV );
@@ -377,17 +393,18 @@ RDirect StaSacs::RayleighDirectionality(const float dazi, const std::vector<std:
 		auto computeCohs = [&](const SacRec& sac2, std::vector<SacRec>& sac2amV, std::vector<SacRec>& sac2phV,
 									  float tb, float te, float azipos, float azineg) {
 			CalcTransferF(sacZt, sacZamV, sacZphV, sac2, sac2amV, sac2phV, Coh, Adm, Pha, tb, te);
-/*
-if( tb==26300 && te==28100. && azipos==70. ) {
-	std::cerr<<"found!"<<std::endl;
+//if( tb==26300 && te==28100. && azipos==70. ) {
+//	std::cerr<<"found!"<<std::endl;
+if( false ) {	// debug output
+	std::string oname(std::to_string((int)((tb+te)/2))+"sec_"+std::to_string((int)azipos)+"deg.SAC");
 	SacRec Coht; Coh.Smooth(0.01, Coht);
-	Coht.Write("Coh_6500sec_120deg.SAC");
+	Coht.Write("Coh_"+oname);
 	SacRec Admt; Adm.Smooth(0.01, Admt);
-	Admt.Write("Adm_6500sec_120deg.SAC");
+	Admt.Write("Adm_"+oname);
 	SacRec Phat(Pha); Phat.Wrap();
-	Phat.Write("Pha_6500sec_120deg.SAC");
+	Phat.Write("Pha_"+oname);
 }
-*/
+//}
 			auto& donut = rdirect[std::make_pair(tb, te)];
 			auto &resVpos = donut[azipos], &resVneg = donut[azineg];
 			for( const auto& pair : freqRangeV ) {
@@ -415,6 +432,8 @@ PointC StaSacs::EstimateTiltDirection( const float ddeg ) const {
 	int nrotate = ceil(90./ddeg); 
 	std::vector<PointC> cohV(nrotate*4);
 	SacRec sacH1t(sacH1), sacH2t(sacH2);
+//SacRec(sacZ).Write("debug_Z_2.5.SAC"); sacH1t.Write("debug_H1_2.5.SAC"); sacH2t.Write("debug_H2_2.5.SAC");
+	sacH1amV.clear(); sacH2amV.clear();
 	float fe_tilt = fe_avg<fmax_tilt ? fe_avg : fmax_tilt;
 	for(int irotate=0; ; irotate++) {
 		auto &p1 = cohV[irotate], &p2 = cohV[irotate+nrotate];
@@ -511,28 +530,39 @@ void StaSacs::ReshapeByZHPhaseDiff( float twin, float tseg ) {
 	sacZ.Transform( [&](float& val){val = 0.;}, sacZ.Index(twine_e), sacZ.shd.npts );
 }
 
+void StaSacs::Write( const int iter ) const {
+	std::string suffix("iter"+std::to_string(iter));
+	Write(sacZ.fname+"_"+suffix, sacZ.fname+"_interm_"+suffix, sacH1.fname+"_"+suffix, sacH2.fname+"_"+suffix, sacD.fname+"_"+suffix );
+}
 void StaSacs::Write( const std::string& foutZ, const std::string& foutZinterm,
 							const std::string foutH1, const std::string& foutH2, const std::string foutD ) const {
 	// lambda function to convert sac back to original type and write
-	SacRec sact;
-	auto WriteSAC = [&]( const SacRec& sac, const std::string& outname ) {
+	auto WriteSAC = [&]( SacRec& sac, const std::string& outname ) {
 		if( outname.empty() || !sac.sig ) return;
-		sact = sac;
 		switch(sactype) {
 			case 2:	// acc: differentiate twice
-				sact.Differentiate();
+				sac.Differentiate();
 			case 1:	// vel: differentiate once
-				sact.Differentiate();
+				sac.Differentiate();
 			case 0:	// dis: do nothing
 				break;
 			default:
 				throw ErrorSR::BadParam( FuncName, "unknown sactype("+std::to_string(sactype)+")." );
 		}
-		sact.Write(outname);
+		sac.Write(outname);
 	};
-	WriteSAC(sacZ, foutZ); WriteSAC(sacZinterm, foutZinterm);
-	WriteSAC(sacH1, foutH1); WriteSAC(sacH2, foutH2); 
-	if( ! foutD.empty() ) { sact = sacD; sact.Write(foutD); }
+	// write Z
+	SacRec sact;
+	sact = sacZ; WriteSAC(sact, foutZ); 
+	sact = sacZinterm; WriteSAC(sact, foutZinterm);
+	// write Hs
+	SacRec sacH1t(sacH1), sacH2t(sacH2);
+	SACRotate(sacH1t, sacH2t, azi_H1); // rotate horizontals back
+	WriteSAC(sacH1t, foutH1); WriteSAC(sacH2t, foutH2); 
+	// write D
+	if( ! foutD.empty() ) try { 
+		sact = sacD; sact.Mul(1.0e6); sact.Write(foutD); // correct DPG unit back to Pa
+	} catch (std::exception &e) {}
 }
 
 
@@ -791,7 +821,7 @@ void StaSacs::ApplyCorrection( const char c, const SacRec& sac2, SacRec& Coh, Sa
 	// fit phase with a single parabola
 	FitIntoParabola( Pha, Coh, fmin, fmax, 1 );
 	// and admittance with two parabolas
-	FitIntoParabola( Adm, Coh, fmin, fmax, (fmax-fmin>0.04 ? 2 : 1) );
+	//FitIntoParabola( Adm, Coh, fmin, fmax, (fmax-fmin>0.04 ? 2 : 1) );
 	//Adm.Smooth(0.002, false, fmin);
 	#ifdef DEBUG
 	Coh.Write("debug_CohP_"+chn1+chn2+".SAC");
