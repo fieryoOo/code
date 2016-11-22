@@ -61,9 +61,12 @@ int main (int argc, char *argv[]) {
 			//std::vector<std::pair<float, float>> freqRangeV{{0.03,0.039},{0.039,0.051},{0.051, 0.066},{0.066, 0.086},{0.086, 0.11},{0.12, 0.2},{0.2, 0.4}};
 			std::vector<std::pair<float, float>> freqRangeV{{0.0177,0.025},{0.025,0.0354},{0.0354, 0.05},{0.05, 0.0707},{0.0707, 0.1},{0.1, 0.141},{0.141,0.2},{0.2,0.283},{0.283,0.4}};
 			// compute Rayleigh wave directionality
-			auto rdirect = stasac.RayleighDirectionality(dazi, freqRangeV, 300., 1800.);
-			rdirect.Write(outname+"_RDirect"+suffix);
-			report<<outname<<"_RDirect"<<suffix<<" (Rayleigh wave directionalities)"<<std::endl;
+			RDirect rdCoh, rdAdm;
+			//stasac.RayleighDirectionality(dazi, freqRangeV, 2000., 21000., rdCoh, rdAdm);
+			//stasac.RayleighDirectionality(dazi, freqRangeV, 300., 1800., rdCoh, rdAdm);
+			stasac.RayleighDirectionality(dazi, freqRangeV, 200., 800., rdCoh, rdAdm);
+			rdCoh.Write(outname+"_rdCoh"+suffix); rdAdm.Write(outname+"_rdAdm"+suffix);
+			report<<outname<<"_rdCoh/rdAdm"<<suffix<<" (Rayleigh wave directionalities)"<<std::endl;
 		} catch( const std::exception& e ) {
 			report<<"Warning(main): StaSacs operation failed ("<<e.what()<<") and no correction made.\n";
 			if( ! sacWritten ) {

@@ -8,6 +8,7 @@
 #include <map>
 
 class RDirect {
+public:
 	typedef std::pair<float, float> Range;
 	class rangeCmp {
 	public:

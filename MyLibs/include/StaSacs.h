@@ -42,8 +42,9 @@ public:
 
 	PointC5 RemoveTiltCompliance( const std::string& outinfoname = "", float tseg=2000. );
 
-	RDirect RayleighDirectionality(const float dazi, const std::vector<std::pair<float, float>>& freqRangeV, 
-											 float tseg=2000., float twin=1800.);
+	void RayleighDirectionality(const float dazi, const std::vector<std::pair<float, float>>& freqRangeV, 
+										 float tseg, float twin, RDirect &rdCoh, RDirect &rdAdm);
+										 //float tseg=2000., float twin=1800.);
 
 	PointC EstimateTiltDirection( const float ddeg ) const;
 
@@ -370,12 +371,14 @@ PointC5 StaSacs::RemoveTiltCompliance( const std::string& outinfoname, float tse
 	return Pres;
 }
 
-RDirect StaSacs::RayleighDirectionality(const float dazi, const std::vector<std::pair<float, float>>& freqRangeV, 
-													 float tseg, float twin) {
+void StaSacs::RayleighDirectionality(const float dazi, const std::vector<std::pair<float, float>>& freqRangeV, 
+												 float tseg, float twin, RDirect &rdCoh, RDirect &rdAdm) {
 	_tseg = tseg;
 	float tb = sacZ.shd.b, te = sacZ.shd.e; //, twin = 1800.;
-	//DetectNoiseWindows(_Eperl, _Eperu);
-	trec = { {tb, te} }; clearV();
+	//trec = { {tb, te} }; clearV();			// do include earthquakes (and also bad data!)
+	DetectNoiseWindows(_Eperl, _Eperu);		// do not include earthquakes
+	//SacRec sacZcut = DetectNoiseWindows(_Eperl, _Eperu);
+	//static int idebug = 0; sacZcut.Write("debug_"+std::to_string(idebug++)+".SAC");
 
 	//sacZ.RunAvg( 40., _Eperl, _Eperu ); //sacZ.OneBit();
 	std::vector<SacRec> sacV{sacZ, sacH1, sacH2};
@@ -383,36 +386,53 @@ RDirect StaSacs::RayleighDirectionality(const float dazi, const std::vector<std:
 	//RunAvg(40., 12., 20., sacV, true);	// Effect of RunAvg on diretionality? Needs further test!
 	SacRec &sacZt(sacV[0]), &sacH1t(sacV[1]), &sacH2t(sacV[2]); 
 	int nrotate = ceil(90./dazi), ncycle = nrotate*4, ntwin = (int)(te-tb-twin)/(0.5*twin) + 1;
-	RDirect rdirect( freqRangeV );
+	//RDirect rdCoh(freqRangeV), rdAdm(freqRangeV);
+	rdCoh = rdAdm = RDirect(freqRangeV);
 	//SacRec sacH1t(sacH1), sacH2t(sacH2);
 	for(int irotate=0; irotate<nrotate; irotate++) {
 		float azi1 = irotate * dazi, azi2 = azi1 + 90.;
 		float azi3 = azi2 + 90., azi4 = azi3 + 90.;
 		//const SacRec &sacH1t(sacH1), &sacH2t(sacH2);
 		SacRec Coh, Adm, Pha;
+
+		// lambda function to compute average admittance in a given freq window
+		auto AdmAvg = [](const SacRec& Adm, float fb, float fe) {
+			int ib = Adm.Index(fb), ie = Adm.Index(fe);
+			if( ib >= ie ) throw ErrorSR::BadParam(FuncName, "fb >= fe");
+			float mean = 0.;
+			auto sigadm = Adm.sig.get();
+			for(int i=ib; i<ie; i++) mean += sigadm[i];
+			return mean / (ie-ib);
+		};
+
+		// lambda function to 1. compute transfer function in a given time window
+		// and then 2. compute average coh and adm for each of the given freq window
 		auto computeCohs = [&](const SacRec& sac2, std::vector<SacRec>& sac2amV, std::vector<SacRec>& sac2phV,
 									  float tb, float te, float azipos, float azineg) {
 			CalcTransferF(sacZt, sacZamV, sacZphV, sac2, sac2amV, sac2phV, Coh, Adm, Pha, tb, te);
-//if( tb==26300 && te==28100. && azipos==70. ) {
-//	std::cerr<<"found!"<<std::endl;
-if( false ) {	// debug output
-	std::string oname(std::to_string((int)((tb+te)/2))+"sec_"+std::to_string((int)azipos)+"deg.SAC");
-	SacRec Coht; Coh.Smooth(0.01, Coht);
-	Coht.Write("Coh_"+oname);
-	SacRec Admt; Adm.Smooth(0.01, Admt);
-	Admt.Write("Adm_"+oname);
-	SacRec Phat(Pha); Phat.Wrap();
-	Phat.Write("Pha_"+oname);
-}
-//}
-			auto& donut = rdirect[std::make_pair(tb, te)];
-			auto &resVpos = donut[azipos], &resVneg = donut[azineg];
+			if( false ) {	// debug output
+				std::string oname(std::to_string((int)((tb+te)/2))+"sec_"+std::to_string((int)azipos)+"deg.SAC");
+				SacRec Coht; Coh.Smooth(0.01, Coht);
+				Coht.Write("Coh_"+oname);
+				SacRec Admt; Adm.Smooth(0.01, Admt);
+				Admt.Write("Adm_"+oname);
+				SacRec Phat(Pha); Phat.Wrap();
+				Phat.Write("Pha_"+oname);
+			}
+			// compute average coh and adm
+			auto& donutCoh = rdCoh[std::make_pair(tb, te)];
+			auto& donutAdm = rdAdm[std::make_pair(tb, te)];
+			auto &cohVpos = donutCoh[azipos], &cohVneg = donutCoh[azineg];
+			auto &admV = donutAdm[azipos];	//admpos==admneg!, &admVneg = donutAdm[azineg];
 			for( const auto& pair : freqRangeV ) {
 				//cohAvg( pair.first, pair.second, resVpos[i], resVneg[i] ); i++;
-				resVpos.push_back( CohAvg( Coh, Pha, pair.first, pair.second, -PIo2 ) );
-				resVneg.push_back( CohAvg( Coh, Pha, pair.first, pair.second, PIo2 ) );
+				cohVpos.push_back( CohAvg( Coh, Pha, pair.first, pair.second, -PIo2 ) );
+				cohVneg.push_back( CohAvg( Coh, Pha, pair.first, pair.second, PIo2 ) );
+				admV.push_back( AdmAvg( Adm, pair.first, pair.second ) );
 			}
 		};
+
+		// compute coh&adm for each time window
 		for(float twinb=tb,twine=tb+twin; twine<=te; twinb+=0.5*twin, twine+=0.5*twin) {
 			try {
 				computeCohs(sacH1t, sacH1amV, sacH1phV, twinb, twine, azi1, azi3);
@@ -423,7 +443,7 @@ if( false ) {	// debug output
 		SACRotate(sacH1t, sacH2t, dazi); 
 	}
 	sacZamV.clear();
-	return rdirect;
+	//return rdCoh, rdAdm;
 }
 
 PointC StaSacs::EstimateTiltDirection( const float ddeg ) const {
@@ -593,7 +613,7 @@ void StaSacs::Segmentize(const SacRec& sac, std::vector<SacRec>& sacamV, std::ve
 	for(int i=0; i<trec.size(); i++) {
 		float twin_b = trec[i].first, twin_e = trec[i].second, tb;
 		//std::cout<<i<<"   "<<twin_b<<" "<<twin_e<<" "<<_tseg<<"   "<<sac.shd.b<<" "<<sac.shd.e<<std::endl;
-		for(tb=twin_b; tb<=twin_e-_tseg; tb+=_tseg) {
+		for(tb=twin_b; tb<=twin_e-_tseg; tb+=_tseg*0.5) {
 			float te = tb+_tseg;
 			//if( tb<sac.shd.b || te>sac.shd.e ) continue;
 			if( tb<sac.shd.b-1.0e-5 || te>sac.shd.e+1.0e-5 ) continue;
