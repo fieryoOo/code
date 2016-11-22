@@ -62,9 +62,9 @@ int main (int argc, char *argv[]) {
 			std::vector<std::pair<float, float>> freqRangeV{{0.0177,0.025},{0.025,0.0354},{0.0354, 0.05},{0.05, 0.0707},{0.0707, 0.1},{0.1, 0.141},{0.141,0.2},{0.2,0.283},{0.283,0.4}};
 			// compute Rayleigh wave directionality
 			RDirect rdCoh, rdAdm;
-			//stasac.RayleighDirectionality(dazi, freqRangeV, 2000., 21000., rdCoh, rdAdm);
-			//stasac.RayleighDirectionality(dazi, freqRangeV, 300., 1800., rdCoh, rdAdm);
-			stasac.RayleighDirectionality(dazi, freqRangeV, 200., 800., rdCoh, rdAdm);
+			//stasac.RayleighDirectionality(dazi, freqRangeV, 2000., 21000., rdCoh, rdAdm);	// 6 hours
+			//stasac.RayleighDirectionality(dazi, freqRangeV, 300., 1800., rdCoh, rdAdm);		// 30 minutes
+			stasac.RayleighDirectionality(dazi, freqRangeV, 100., 600., rdCoh, rdAdm);			// 10 minutes
 			rdCoh.Write(outname+"_rdCoh"+suffix); rdAdm.Write(outname+"_rdAdm"+suffix);
 			report<<outname<<"_rdCoh/rdAdm"<<suffix<<" (Rayleigh wave directionalities)"<<std::endl;
 		} catch( const std::exception& e ) {
