@@ -27,50 +27,54 @@ public:
 };
 
 
-inline bool fExist( const std::string& fname ) { return ( access( fname.c_str(), F_OK ) != -1 ); }
+//inline bool fExist( const std::string& fname ) { return ( access( fname.c_str(), F_OK ) != -1 ); }
 
 int main(int argc, char* argv[]) {
 	if( argc!=5 && argc!=6 ) {
-		std::cerr<<"Usage: "<<argv[0]<<" [phv infile (per phv spectral_density[optional])] [grv outfile] [sacout] [distance || sac_in(for spectrum)] [distance (only when sac_in is given for argv[4])]"<<std::endl;
+		std::cerr<<"Usage: "<<argv[0]<<" [phv infile (per phv spectral_density[optional])] [grv outfile] [sacout] [distance] [sac_in(optional,for spectrum)]"<<std::endl;
 		exit(-1);
 	}
 	
-	// check the type of argument[4]
-	bool spin = false; float distin;
-	if( fExist( argv[4] ) ) {
-		spin = true;
-		if( argc == 6 ) distin = atof( argv[5] );
-	} else {
-		distin = atof( argv[4] );
-	}
+	// take input
+	std::string name_grvout(argv[2]);
+	std::string name_sacout(argv[3]);
+	float distin = atof(argv[4]);
+	bool specin = argc==6;
+	std::string name_sacin(specin?argv[5]:"");
+
 	// read phase dispersion
 	Dispersion disp(argv[1]);
-	if( spin )
-		disp.ComputeSpectrum(argv[4]);
 
 	// take derivative of wavenumber wrt omiga
 	KDeriv kderivs, grvs;
 	disp.Deriv_k2om( kderivs );
-	//std::vector<Point> grvV;
+
+	// predict group
+	//std::vector<PointC> grvV;
 	kderivs.Reciprocal( grvs );
+
+	// take spectrum from reference sac
+	float permax = grvs.xmax();
+	float tmin = distin/std::min(grvs.ymax(),5.0f)-permax*3;
+	float tmax = distin/std::max(grvs.ymin(),0.4f)+permax*3;
+	if( specin )
+		disp.ComputeSpectrum(name_sacin, tmin, tmax);
 
 	//std::cout<<" per range: "<<disp.xmin()<<" - "<<disp.xmax()<<std::endl;
 	std::cout<<" per range: "<<kderivs.xmin()<<" - "<<kderivs.xmax()<<std::endl;
 
-	// synthetic at distance 500km
-	float pi = M_PI, oopi = 1./pi;
+	// 
+	float pi = M_PI, oopi = 1./pi, sqrt2pi = std::sqrt(2.*pi);
 	float ph_init = pi/4.;
 
 	// sac header
 	SacRec sacout;
 	auto& shd = sacout.shd;
-	if( spin ) {
-		sacout.LoadHD(argv[4]);
-		if( argc == 6 ) {
-			shd.dist = distin;
-			shd.stla=-12345.;
-			shd.stlo=-12345.;
-		}
+	if( specin ) {
+		sacout.LoadHD(name_sacin);
+		shd.dist = distin;
+		shd.stla=-12345.;
+		shd.stlo=-12345.;
 	} else {
 		shd.npts = 3000;
 		shd.delta = 1.;
@@ -90,7 +94,7 @@ int main(int argc, char* argv[]) {
 	for( float om=2*pi/disp.xmax(); om<2*pi/disp.xmin(); om+=dom ) {
 	//for( float om=2*pi/20.; om<2*pi/17.; om+=dom ) {
 		float per = 2.*pi/om, c = disp.Val(per);
-		float sdens = disp.Sdens(per);
+		float sdens = disp.Sdens(per)/sqrt2pi;
 		//std::cout<<om/(2.*pi)<<" "<<sdens<<std::endl;
 		float wavenum = 2.*pi / (per * c);
 		for (int it=0; it<shd.npts; it++) {
@@ -107,7 +111,7 @@ int main(int argc, char* argv[]) {
 	/* stationary phase
 	// affected time window
 	float tmax = 0., tmin = shd.npts*delta;
-	for( Point& grvP : grvV ) {
+	for( PointC& grvP : grvV ) {
 		float grv = grvP.vel, tcur = dist / grv;
 		if( tcur > tmax ) tmax = tcur;
 		else if( tcur < tmin ) tmin = tcur;
@@ -158,18 +162,18 @@ int main(int argc, char* argv[]) {
 	//}
 	*/
 	// output group dispersion
-	grvs.Write( argv[2] );
-	//std::ofstream fout( argv[2] );
+	grvs.Write( name_grvout );
+	//std::ofstream fout( name_grvout );
 	//for( const auto& grv : grvV ) fout << grv << "\n";
 
 	// output spectrum
-	if( spin ) {
-		std::string fspname = std::string(argv[4]) + "_sp.txt";
+	if( specin ) {
+		std::string fspname = std::string(name_sacin) + "_sp.txt";
 		disp.Write( fspname );
 	}
 
 	// output sac
-	sacout.Write( argv[3] );
+	sacout.Write( name_sacout );
 
 	return 0;
 }

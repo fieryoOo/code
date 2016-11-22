@@ -4,10 +4,10 @@
 #include "Curve.h"
 
 class Dispersion;
-class Ddata : public Point {
+class Ddata : public PointC {
 public:
 	Ddata( float xin=NaN, float yin=NaN, float sdensin=1. )
-		: Point(xin, yin, sdensin) {
+		: PointC(xin, yin, sdensin) {
 		if(x != NaN ) {
 			om = twopi / x;
 			if( y != NaN ) k_ang = om / y;
@@ -15,7 +15,7 @@ public:
 	}
 
 	Ddata(const std::string& input) 
-		: Point(input) {
+		: PointC(input) {
 		om = twopi / x;
 		k_ang = om / y;
 	}
@@ -27,24 +27,24 @@ private:
 	float om = NaN, k_ang = NaN;	//angular wavenumber
 };
 
-// to save space, use Point.sdensity to store om
-class KDeriv : public Curve<Point> {
+// to save space, use PointC.z to store om
+class KDeriv : public Curve<PointC> {
 public:
 		float Deriv_2om( const float per ) {
-			const auto itupp = std::upper_bound( dataV.begin(), dataV.end(), Point(per) );
+			const auto itupp = std::upper_bound( dataV.begin(), dataV.end(), PointC(per) );
 			if( itupp<dataV.begin()+1 || itupp>=dataV.end() )
-				return Point::NaN;
+				return PointC::NaN;
 			const auto itlow = itupp - 1;
-			return ( (*itupp).y - (*itlow).y ) / ( (*itupp).sdensity - (*itlow).sdensity );
+			return ( (*itupp).y - (*itlow).y ) / ( (*itupp).z - (*itlow).z );
 		}
 
-		//float Reciprocal( std::vector<Point>& grvV ) {
+		//float Reciprocal( std::vector<PointC>& grvV ) {
 		void Reciprocal( KDeriv& grvs ) {
 			//grvV.resize( dataV.size() );
 			grvs.clear(); grvs.reserve( dataV.size() );
 			for(int i=0; i<dataV.size(); i++) {
-				grvs.push_back(dataV[i].x, 1./dataV[i].y, dataV[i].sdensity);
-				//grvV[i] = Point(dataV[i].x, 1./dataV[i].vel, dataV[i].sdensity);
+				grvs.push_back(PointC(dataV[i].x, 1./dataV[i].y, dataV[i].z));
+				//grvV[i] = PointC(dataV[i].x, 1./dataV[i].vel, dataV[i].z);
 			}
 		}
 };
@@ -81,15 +81,15 @@ public:
 		float Sdens( const float per ) {
 			const auto itupp = std::upper_bound( dataV.begin(), dataV.end(), Ddata(per) );
 			if( itupp == dataV.end() ) {
-				if( fabs((*(itupp-1)).x - per) < 0.1 ) return (*(itupp-1)).sdensity;
+				if( fabs((*(itupp-1)).x - per) < 0.1 ) return (*(itupp-1)).z;
 				else return Ddata::NaN;
 			}
 			if( itupp<dataV.begin()+1 || itupp>=dataV.end() )
 				return Ddata::NaN;
 			const auto itlow = itupp - 1;
-			float sdiff = (*itupp).sdensity - (*itlow).sdensity, Tdiff = (*itupp).x - (*itlow).x;
+			float sdiff = (*itupp).z - (*itlow).z, Tdiff = (*itupp).x - (*itlow).x;
 			float deriv = sdiff / Tdiff;
-			return (*itlow).sdensity + ( per-(*itlow).x ) * deriv;
+			return (*itlow).z + ( per-(*itlow).x ) * deriv;
 		}
 
 		float Deriv_k2om( const float per ) {
@@ -108,13 +108,13 @@ public:
 				float per = 0.5 * ( (*it).x + (*(it-1)).x );
 				float om = Om( per );
 				float deriv = Deriv_k2om( per );
-				curveout.push_back(per, deriv, om);
+				curveout.push_back(PointC(per, deriv, om));
 			}
 		}
 
-		void ComputeSpectrum( const std::string& sacname ) {
+		void ComputeSpectrum( const std::string& sacname, float tmin, float tmax ) {
 			SacRec sac(sacname);
-			sac.Load();
+			sac.Load(); sac.cut(tmin, tmax);
 			SacRec sac_am;
 			sac.ToAm(sac_am);
 			sac_am.Smooth(0.0002, sac);
@@ -122,8 +122,8 @@ public:
 			for( auto& data : dataV ) {
 				float freq = 1./data.x;
 				int ifreq = (int)floor(freq/sac.shd.delta+0.5);
-				data.sdensity = sigsac[ifreq];
-				//std::cout<<freq<<" "<<data.sdensity<<std::endl;
+				data.z = sigsac[ifreq];
+				//std::cout<<freq<<" "<<data.z<<std::endl;
 			}
 		}
 

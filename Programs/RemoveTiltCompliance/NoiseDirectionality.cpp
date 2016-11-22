@@ -12,12 +12,10 @@ int main (int argc, char *argv[]) {
 	float Eperl = 11., Eperu = 20.;	// tilt noise is strong in between 20 and 50 sec
 	StaSacs ss(argv[1], argv[2], argv[3], argv[4], atoi(argv[5]), atof(argv[6]), atof(argv[7]), Eperl, Eperu);
 	std::string oname(argv[8]);
-/*
 	auto res = ss.RemoveTiltCompliance(oname+"_noise_coherences", 2000.);
 	std::cout<<"direction & coh_t0 & coh_c0 & coh_h & coh_1 = "<<res<<"   fcutoff = "<<ss.fcutoffCompliance()<<std::endl;
 	ss.Write(oname,oname+"_interm");
 	//ss.Write(oname,oname+"_interm",std::string(argv[2])+"_c",std::string(argv[3])+"_c",std::string(argv[4])+"_c");
-*/
 
 	// compute Rayleigh wave directionality
 	float dazi = 5.0;

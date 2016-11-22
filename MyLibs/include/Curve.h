@@ -200,6 +200,16 @@ public:
 		// x-range
 		float xmin() const { return dataV.front().x; }
 		float xmax() const { return dataV.back().x; }
+		float ymin() const {
+			float ymin = std::numeric_limits<float>::max();
+			for(const auto &t : dataV) if(t.y<ymin) ymin=t.y;
+			return ymin;
+		}
+		float ymax() const {
+			float ymax = std::numeric_limits<float>::lowest();
+			for(const auto &t : dataV) if(t.y>ymax) ymax=t.y;
+			return ymax;
+		}
 
 		// load curve from file
 		void Load( const std::string& fname );
