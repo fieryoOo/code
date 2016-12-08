@@ -7,9 +7,9 @@
 #include <float.h>
 using namespace std;
 
-#define NDAT 2000
+#define NBLK 2000
 
-void least_square_fit(int type, double *datx, double *daty, double *sigma, int ndat, double *aout, double *sigmaaout, double *bout, double *sigmabout ) {
+void least_square_fit(int type, double *datx, double *daty, double *sigma, int ndat, double *aout, double *sigmaaout, double *bout, double *sigmabout, double *rms ) {
    if( ndat < 2 ) {
       *aout = *bout = *sigmaaout = *sigmabout = -12345.;
       return;
@@ -63,7 +63,7 @@ void least_square_fit(int type, double *datx, double *daty, double *sigma, int n
       dtmp = daty[i] - a * datx[i] - b;
       S2 += dtmp * dtmp;
    }
-   S2 /= ndat-2.;
+   S2 /= ndat-2.; *rms = sqrt(S2);
    if( type == 0 ) {
       *sigmaaout = k * sqrt(S2 * W * w);
       *sigmabout = k * sqrt(S2 * WX2 * w);
@@ -86,13 +86,22 @@ int main (int argc, char *argv[])
    FILE *ff;
    char buff[300];
    int i, itmp, ndat;
-   double datx[NDAT], daty[NDAT], sigma[NDAT];
+   //double datx[NDAT], daty[NDAT], sigma[NDAT];
+	double *datx = NULL, *daty = NULL, *sigma = NULL;
 
    if((ff=fopen(argv[1],"r"))==NULL) {
       cout<<"Can't open file: "<<argv[1]<<endl;
       exit(0);
    }
+
+	int nsize = 0;
    for(i=0; fgets(buff, 300, ff); ) {
+		if( i >= nsize ) {
+			nsize += NBLK;
+			datx = (double*) realloc (datx, nsize * sizeof(double));
+			daty = (double*) realloc (daty, nsize * sizeof(double));
+			sigma = (double*) realloc (sigma, nsize * sizeof(double));
+		}
       itmp = sscanf(buff,"%lf %lf %lf", &datx[i], &daty[i], &sigma[i]);
       if( itmp == 2 ) sigma[i]=1.;
       else if (itmp != 3) continue;
@@ -101,9 +110,11 @@ int main (int argc, char *argv[])
    fclose(ff);
    ndat=i;
 
-   double a, b, sigmaa, sigmab;
-   least_square_fit(atoi(argv[2]), datx, daty, sigma, ndat, &a, &sigmaa, &b, &sigmab);
-   cout<<a<<" "<<b<<" "<<sigmaa<<" "<<sigmab<<endl;
+   double a, b, sigmaa, sigmab, rms;
+   least_square_fit(atoi(argv[2]), datx, daty, sigma, ndat, &a, &sigmaa, &b, &sigmab, &rms);
+   cout<<a<<" "<<b<<" "<<sigmaa<<" "<<sigmab<<" "<<rms<<std::endl;
+
+	free(datx); free(daty); free(sigma);
 
    return 1;
 }

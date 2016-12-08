@@ -47,7 +47,7 @@ public:
 	const std::vector<Range>& fRanges() const { return _frangeV; }
 
 	float aziWeight( float dazi, float &wsum ) const;
-	std::vector<float> SpecWeight( const Range &twin, const float aziTarget ) const;
+	std::vector<float> AvgsAlong( const Range &twin, const float aziTarget ) const;
 
 protected:
 	static constexpr float PIoDEG = M_PI / 180.;
@@ -111,10 +111,10 @@ float RDirect::aziWeight( float dazi, float &wsum ) const {
 	*/
 	// weighting function 2: gaussian based
 	// gaussian coefs
-	//static const float h1 = 10., alpha1 = - 0.5 / (h1*h1), bound1 = 20.;
-	//static const float h2 = 25., alpha2 = - 0.5 / (h2*h2), bound2 = 120.;
-	static const float h1 = 30., alpha1 = - 0.5 / (h1*h1), bound1 = 90.;
-	static const float h2 = 20., alpha2 = - 0.5 / (h2*h2), bound2 = 90.;
+	static const float h1 = 10., alpha1 = - 0.5 / (h1*h1), bound1 = 30.;
+	static const float h2 = 25., alpha2 = - 0.5 / (h2*h2), bound2 = 120.;
+	//static const float h1 = 30., alpha1 = - 0.5 / (h1*h1), bound1 = 90.;
+	//static const float h2 = 20., alpha2 = - 0.5 / (h2*h2), bound2 = 90.;
 	dazi = fabs(dazi);
 	if( dazi > 180. ) dazi = 360. - dazi;
 	float weight = 0.;
@@ -128,10 +128,11 @@ float RDirect::aziWeight( float dazi, float &wsum ) const {
 	return weight;
 }
 
-std::vector<float> RDirect::SpecWeight( const Range &twin, const float aziTarget ) const {
+// get averages (for all freqs) at a given twin&azi
+std::vector<float> RDirect::AvgsAlong( const Range &twin, const float aziTarget ) const {
 	const auto &donut = _data.at(twin);
 	if( donut.size() < 5 ) 
-		throw std::runtime_error("Error(RDirect::SpecWeight): incomplete donut with size(No. of Azi) = "
+		throw std::runtime_error("Error(RDirect::AvgsAlong): incomplete donut with size(No. of Azi) = "
 																								+std::to_string(donut.size()));
 	// for each freq range, compute a weighted average of coh over all azimuths
 	std::vector<float> SWeightV( donut.begin()->second.size() );
@@ -153,8 +154,8 @@ std::vector<float> RDirect::SpecWeight( const Range &twin, const float aziTarget
 			//SWeightV[i] = std::max(SWeightV[i], cohV[i]*(float)cos(dazi*M_PI/180.));
 		}
 	}
-	for( auto& sweight : SWeightV ) sweight = std::max(0.1f, sweight/wsum);
-	//for( auto& sweight : SWeightV ) sweight = std::max(0.02f, sweight);
+	//for( auto& sweight : SWeightV ) sweight = std::max(0.1f, sweight/wsum);
+	for( auto& sweight : SWeightV ) sweight /= wsum;
 	return SWeightV;
 }
 
