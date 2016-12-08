@@ -73,7 +73,7 @@ protected:
 	static constexpr float PIo2 = M_PI * 0.5; 
 	static const int nfcorr_min = 10;
 	static constexpr float fb = 0.01;		// signal below fb is discarded
-	static constexpr float cohmin = 0.5;
+	static constexpr float cohmin = 0.4;
 	static constexpr float fmax_tilt = 0.105;
 	static constexpr float fb_avg = 0.01;	// cohavg is computed between fb_avg and fe_avg Hz
 	static constexpr float fe_avg = 0.09;	

@@ -71,14 +71,19 @@ int main(int argc, char *argv[]) {
 		int y, m, d;
 		std::string Cohname, Admname;
 		if( ! (ss >> y >> m >> d >> Cohname >> Admname) ) continue;
-		std::cerr<<"Working on "<<line<<std::endl;
+		std::cout<<"Working on "<<line<<std::endl;
 
 		// time
 		double time0 = 24.*3600.*AbsDay(year0, y, m, d);
 
 		// load in rdirect files
-		RDirect rdCoh; rdCoh.Load(Cohname);
-		RDirect rdAdm; rdAdm.Load(Admname);
+		RDirect rdCoh, rdAdm;
+		try {
+			rdCoh.Load(Cohname); rdAdm.Load(Admname);
+		} catch( std::exception &e ) {
+			std::cout<<"Warning(main): Skipped. Failed to load RDirect file "<<Cohname<<" "<<Admname<<std::endl;
+			continue;
+		}
 
 		// check if frange matches
 		typedef std::vector<RDirect::Range> RV;

@@ -11,10 +11,9 @@ int main( int argc, char* argv[] ) {
 	}
 
 	// correlate
-	SacRec sac1, sac2, saccor;
-	sac1.Load(argv[1]);
-	sac2.Load(argv[2]);
-	sac1.CrossCorrelate(sac2, saccor);
+	SacRec sac1; sac1.Load(argv[1]);
+	SacRec sac2; sac2.Load(argv[2]);
+	SacRec saccor = sac1.CrossCorrelate(sac2);
 
 	// file for output 
 	std::ofstream fout(argv[3]);

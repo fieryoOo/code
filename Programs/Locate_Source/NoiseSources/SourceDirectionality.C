@@ -219,7 +219,7 @@ int AmpAvg(struct DATA *data, int npt, int decflag, struct RESULTS *results) {
       V1 += ftmp;
       V2 += ftmp * ftmp;
    }
-   if ( decflag == 2 ) for(i=0;i<npt;i++) data[i].val *= sqrt(data[i].dis/hdis);
+   if ( decflag == 2 ) for(i=0;i<npt;i++) data[i].val *= sqrt(data[i].dis/refdis);
    for(i=0;i<npt;i++) avg += data[i].val * weight[i];
    avg /= V1;
    // std of the mean

@@ -14,8 +14,8 @@ public:
 		}
 	}
 
-	Ddata(const std::string& input) 
-		: PointC(input) {
+	Ddata(const std::string& input, int ix=1, int iy=2, int iz=3) 
+		: PointC(input, ix, iy, iz) {
 		om = twopi / x;
 		k_ang = om / y;
 	}
