@@ -108,7 +108,7 @@ public:
       return (PathAverage(Prec, perc, lambda, acc)).Data();
    }
 	*/
-   DataPoint<float> PathAverage(Point<float> Prec, float& perc, const float lambda = 0., const bool acc = false);
+   DataPoint<float> PathAverage(Point<float> Prec, float& perc, const float lambda = 0., const bool acc = false) const;
 
    /* ------------ compute average along the path src-rec weighted by the reciprocal of map values ------------ */
 	/*
@@ -117,11 +117,11 @@ public:
       return (PathAverage_Reci(Prec, perc, lambda, acc)).Data();
    }
 	*/
-   DataPoint<float> PathAverage_Reci(Point<float> Prec, float& perc, const float lambda = 0., const bool acc = false);
+   DataPoint<float> PathAverage_Reci(Point<float> Prec, float& perc, const float lambda = 0., const bool acc = false) const;
 
 	// trace along the great circle path. return a vector of map values along the path
 	template<class Functor>
-	void TraceGCP( Point<float> Psrc, const Point<float>& Prec, float dis_step, const Functor& func );
+	void TraceGCP( Point<float> Psrc, const Point<float>& Prec, float dis_step, const Functor& func ) const;
 
 	friend std::ostream& operator<<( std::ostream& o, const Map& map ) {
 		o<<map.LonMin()<<" - "<<map.LonMax()<<"   "<<map.LatMin()<<" - "<<map.LatMax();

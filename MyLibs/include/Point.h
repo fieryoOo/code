@@ -30,7 +30,7 @@ public:
    virtual bool LoadLine( const std::string& line ) {
       //return ( sscanf(line.c_str(), "%f %f", &lon, &lat) == 2 );
 		std::stringstream ss(line);
-		return (ss >> lon >> lat);
+		return (bool)(ss >> lon >> lat);
    }
 
 	bool isValid() { return (lon!=NaN && lat!=NaN); }
