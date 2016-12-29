@@ -63,8 +63,8 @@ int main (int argc, char *argv[]) {
 			// compute Rayleigh wave directionality
 			RDirect rdCoh, rdAdm;
 			//stasac.RayleighDirectionality(dazi, freqRangeV, 2000., 21000., rdCoh, rdAdm);	// 6 hours
-			//stasac.RayleighDirectionality(dazi, freqRangeV, 300., 1800., rdCoh, rdAdm);		// 30 minutes
-			stasac.RayleighDirectionality(dazi, freqRangeV, 100., 600., rdCoh, rdAdm);			// 10 minutes
+			stasac.RayleighDirectionality(dazi, freqRangeV, 300., 1800., rdCoh, rdAdm);		// 30 minutes
+			//stasac.RayleighDirectionality(dazi, freqRangeV, 100., 600., rdCoh, rdAdm);			// 10 minutes
 			rdCoh.Write(outname+"_rdCoh"+suffix); rdAdm.Write(outname+"_rdAdm"+suffix);
 			report<<outname<<"_rdCoh/rdAdm"<<suffix<<" (Rayleigh wave directionalities)"<<std::endl;
 		} catch( const std::exception& e ) {

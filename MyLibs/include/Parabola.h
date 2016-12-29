@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <map>
 #include <algorithm>
 #include <stdexcept>
 
@@ -26,10 +27,16 @@ public:
 //std::cerr<<" PointC::PointC: "<<zin<<std::endl;
 	}
 
-	PointC( const std::string& input ) {
-		int nrd = sscanf(input.c_str(), "%f %f %f", &x, &y, &z);
-		if( nrd < 2 )
-			throw std::runtime_error( std::string(FuncName) + ": format error in string "+input );
+	PointC( const std::string &line, int ix=1, int iy=2, int iz=3 ) {
+		std::map<int, float*> indexM{{ix,&x}, {iy,&y}, {iz,&z}};
+		int icol = 1; std::stringstream ss(line);
+		for(auto iter=indexM.begin(); iter!=indexM.end(); iter++) {
+			for(; icol<=iter->first; ++icol ) {
+				if( ! (ss >> *(iter->second)) )
+					if( iter->second == &z ) break;
+					else throw std::runtime_error("Error(PointC::PointC): format error, col num out of range ("+line+")");
+			}
+		}
 	}
 
 	bool isValid() const { return (x!=NaN && y!=NaN); }

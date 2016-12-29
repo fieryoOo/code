@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <map>
 #include <limits>
 #include <algorithm>
 
@@ -57,10 +58,16 @@ public:
 	PointC( float xin=NaN, float yin=NaN, float zin=1. ) 
 		: x(xin), y(yin), z(zin) {}
 
-	PointC( const std::string& input ) {
-		int nrd = sscanf(input.c_str(), "%f %f %f", &x, &y, &z);
-		if( nrd < 2 )
-			throw ErrorCv::BadInput( FuncName, "format error in string "+input );
+	PointC( const std::string &line, int ix=1, int iy=2, int iz=3 ) {
+		std::map<int, float*> indexM{{ix,&x}, {iy,&y}, {iz,&z}};
+		int icol = 1; std::stringstream ss(line);
+		for(auto iter=indexM.begin(); iter!=indexM.end(); iter++) {
+			for(; icol<=iter->first; ++icol ) {
+				if( ! (ss >> *(iter->second)) )
+					if( iter->second == &z ) break;
+					else throw std::runtime_error("Error(PointC::PointC): format error, col num out of range ("+line+")");
+			}
+		}
 	}
 
 	bool isValid() const { return (x!=NaN && y!=NaN); }
@@ -143,10 +150,10 @@ class Curve {
 public:
 		// con/destructors
 		// load from file
-		Curve( const std::string& fname = "" ) {
+		Curve( const std::string& fname = "", int ix=1, int iy=2, int iz=3 ) {
 			// force T to be derived from PointC at compile time
 			const PointC& pc = T{};
-			if( !fname.empty() ) Load(fname); 
+			if( !fname.empty() ) Load(fname, ix, iy, iz); 
 		}
 		// with data vector moved in
 		Curve( std::vector<T>&& dataVin ) 
@@ -212,7 +219,7 @@ public:
 		}
 
 		// load curve from file
-		void Load( const std::string& fname );
+		void Load( const std::string& fname, int ix=1, int iy=2, int iz=3 );
 
 		// convert from thickness-val data
 		void FromThickData( const std::vector<T>& dataVthk, const float x0, bool addbot = true, bool addtop = true );
@@ -346,7 +353,7 @@ private:
 
 // load curve from file
 template <class T>
-void Curve<T>::Load( const std::string& fname ) {
+void Curve<T>::Load( const std::string& fname, int ix, int iy, int iz ) {
 	// check infile
 	std::ifstream fin(fname);
 	if( ! fin )
@@ -354,7 +361,7 @@ void Curve<T>::Load( const std::string& fname ) {
 	// read
 	for(std::string line; std::getline(fin, line); ) {
 		try {	
-			T t(line); 
+			T t(line, ix, iy, iz); 
 			dataV.push_back(t);
 		} catch( std::exception& e ) {}
 	}
