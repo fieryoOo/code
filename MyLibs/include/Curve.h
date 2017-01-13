@@ -307,6 +307,7 @@ public:
 
 		// math operators
 		Curve<T> operator-() const { return YTransform( std::negate<float>() ); }
+		Curve<T> sqr() const { return YTransform( [](const float val){ return val*val; } ); }
 		Curve<T> sqrt() const { return YTransform( [](const float val){ return std::sqrt(val); } ); }
 		Curve<T>& operator+=( const Curve<T>& c2 ) { *this = (*this) + c2; return *this; }
 		Curve<T>& operator-=( const Curve<T>& c2 ) {	*this = (*this) - c2; return *this; }

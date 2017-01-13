@@ -97,7 +97,10 @@ struct PerData {
 	*/
 
 	inline int nint(const float &val) const { return (int)floor(val+0.5); }
-	bool AtDep( const float dep, float &eigH, float &deigH ) const {
+	bool AtDep( float dep, float &eigH, float &deigH ) const {
+		if( dep < 0. )
+			for(int i=0; i<depDHV.size(); ++i)
+				if( depDHV[i].eig!=0 ) {	dep = depDHV[i].dep; break; }
 		if( depDHV.empty() || dep<depmin-toler || dep>depmax+toler ) return false;
 		int i1dep = nint( (dep-depmin)/ddep ); const auto &dd1 = depDHV[i1dep];
 		if( fabs(dd1.dep-dep) < toler ) {
@@ -111,7 +114,10 @@ struct PerData {
 		return true;
 	}
 
-	bool AtDep( const float dep, float &eigH, float &deigH, float &eigV, float &deigV ) const {
+	bool AtDep( float dep, float &eigH, float &deigH, float &eigV, float &deigV ) const {
+		if( dep < 0. )
+			for(int i=0; i<depDVV.size(); ++i)
+				if( depDVV[i].eig!=0 ) {	dep = depDVV[i].dep; break; }
 		if( depDHV.empty() || depDVV.empty() || dep<depmin-toler || dep>depmax+toler ) return false;
 		int i1dep = nint( (dep-depmin)/ddep ); 
 		const auto &dd1H = depDHV[i1dep], &dd1V = depDVV[i1dep];
@@ -183,7 +189,7 @@ public:
 		}
 	}
 
-	void FillSDAtDep(const float dep) {
+	void FillSDAtDep(const float dep=-1.) {
 		sd.nper = perDV.size();
 		sd.eigH.assign( sd.nper, 0. ); sd.deigH.assign( sd.nper, 0. ); 
 		if( type == "Love" ) { 

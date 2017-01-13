@@ -159,7 +159,9 @@ StaSacs::StaSacs( const std::string& fnameZ, const std::string& fnameH1,
 	// load sacs
 	LoadSAC(sacZ);
 	try {	// load horizontal channels
-		LoadSAC(sacH1); LoadSAC(sacH2); SACRotate(sacH1, sacH2, -azi_H1);
+		LoadSAC(sacH1); sacH1.ZoomToEvent(sacZ.shd);
+		LoadSAC(sacH2); sacH2.ZoomToEvent(sacZ.shd);
+		SACRotate(sacH1, sacH2, -azi_H1);
 	} catch( ErrorSR::Base& e ) {
 		std::cerr<<"Warning(StaSacs): empty/non-accessable sacH1/H2 ("<<e.what()<<")"<<std::endl;
 	}

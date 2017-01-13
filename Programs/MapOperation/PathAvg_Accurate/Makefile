@@ -2,7 +2,7 @@ INST_DIR = $(HOME)/bin
 BIN1 = PathAvg
 BIN2 = PointAvg
 
-cflags = -O3 -Wall -std=c++0x -lMap
+cflags = -O3 -Wall -std=c++11 -lMap
 
 LDLIBS = -lstdc++ -fopenmp
 

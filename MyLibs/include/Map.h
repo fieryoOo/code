@@ -88,7 +88,7 @@ public:
 	/* ------------ compute number of points near the given location ------------ */
 	float NumberOfPoints(Point<float> rec, const float xhdis, const float yhdis) const {
 		float loneff, lateff;
-		NumberOfPoints( rec, xhdis, yhdis, loneff, lateff );
+		return NumberOfPoints( rec, xhdis, yhdis, loneff, lateff );
 	}
 	float NumberOfPoints(Point<float> rec, const float xhdis, const float yhdis, float& loneff, float& lateff) const;
 
