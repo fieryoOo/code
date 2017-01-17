@@ -8,7 +8,7 @@
 
 #include <iostream>
 #include <sys/stat.h>
-#include "/projects/yeti4009/code/Programs/head/mysac.h"
+#include "mysac64.h"
 //#include "/home/tianye/code/Programs/head/mysac.h"
 
 using namespace std;
@@ -116,6 +116,10 @@ void sac_add ( SAC_HD *shd, float **fsig, char *filename, int flag ) {
 				*fsig=NULL;
 				return;
 			}
+			if( (*fsig)[0] != (*fsig)[0] ) {
+				fprintf(stderr,"Error: invalid sac file: %s\n",filename);
+				free(tsig);	return ;
+			}
 		}
 		else {
 			fprintf (stderr,"Warning: Reversed signal, skipped!\n");
@@ -156,6 +160,10 @@ void sac_add ( SAC_HD *shd, float **fsig, char *filename, int flag ) {
 	if( shd1.user0 == 0 ) {
 		free(tsig);
 		return;
+	}
+	if( tsig[0] != tsig[0] ) {
+		fprintf(stderr,"Error: invalid sac file: %s\n",filename);
+		free(tsig);	return ;
 	}
 	ns = shd1.npts;
 

@@ -1292,6 +1292,13 @@ void SacRec::Reverse( SacRec& sac2 ) {
 	float *sigsac = sig.get(), *sigsac2 = sac2.sig.get();
    for(int i=0; i<shd.npts; i++) 
 		sigsac2[shd.npts-i-1] = sigsac[i];
+
+	// reverse header
+	std::string stmp(sac2.shd.kstnm);
+	strncpy(sac2.shd.kstnm, sac2.shd.kevnm, 8);
+	strncpy(sac2.shd.kevnm, stmp.c_str(), 8);
+	std::swap(sac2.shd.evlo, sac2.shd.stlo);
+	std::swap(sac2.shd.evla, sac2.shd.stla);
 }
 
 
