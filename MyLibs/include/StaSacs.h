@@ -491,7 +491,7 @@ PointC StaSacs::EstimateTiltDirection( const float ddeg ) const {
 	// check if p1 p2 p3 are continguous
 	if( fabs(p2.x-p1.x) + fabs(p3.x-p1.x) + fabs(p3.x-p2.x) > ddeg*4.1 ) return pmax;
 	// find tilt direction (with peak coh)
-	return Parabola(p1, p2, p3).Vertex();
+	return p1.y==p2.y ? p1 : Parabola(p1, p2, p3).Vertex();
 }
 
 // compute transfer function for each window (twin) from segments (tseg) within that window

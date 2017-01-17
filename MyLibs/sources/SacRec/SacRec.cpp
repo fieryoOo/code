@@ -1332,7 +1332,7 @@ int SacRec::AbsDay(int year0) const {
 	if( year0 > shd.nzyear )
 		throw ErrorSR::BadParam(FuncName, "year0("+std::to_string(year0)+") > shd.nzyear("+std::to_string(shd.nzyear)+")");
    int nyday = 0;
-   for( int i=year0+1; i<shd.nzyear; i++ ) {
+   for( int i=year0; i<shd.nzyear; i++ ) {
       if ( (i%400==0) || (i%100!=0&&i%4==0) ) nyday += 366;
       else nyday += 365;
    }
@@ -1346,7 +1346,7 @@ double SacRec::AbsTime(int year0) const {
    if( shd.nzjday == NaN || shd.nzyear == NaN || shd.nzhour == NaN ||
        shd.nzmin == NaN || shd.nzsec == NaN || shd.nzmsec == NaN ) return -1;
    //computes time in s relative to year0 (defaulted to 1900)
-   return 24.*3600.*AbsDay() + DayTime();
+   return 24.*3600.*AbsDay(year0) + DayTime();
 }
 
 
